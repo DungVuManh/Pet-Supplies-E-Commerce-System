@@ -3,6 +3,10 @@
 Next.js App Router, React, TypeScript, and Tailwind CSS. The first implemented
 screens are the Figma `Customer/Auth/Login` and `Customer/Auth/Register` designs.
 
+Read [design.md](design.md) before changing UI. It defines the Figma-backed
+design tokens, role-specific layouts, reusable component rules, responsive
+behavior, accessibility constraints, and review checklist.
+
 ## Run
 
 From the repository root:
