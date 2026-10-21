@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { CartPreview } from "@/features/cart/components/cart-preview";
 import { StorefrontSearch, StorefrontSearchForm } from "./storefront-search";
+import { AccountMenu } from "@/features/auth/components/account-menu";
 
 const categories = [
   { name: "Sản phẩm", href: "/#featured-products" },
@@ -24,7 +25,7 @@ export function StorefrontHeader() {
           <div className="ml-auto flex items-center gap-4 whitespace-nowrap md:ml-0 md:gap-8">
             <a href="tel:1900636789" className="hidden text-brand hover:underline sm:inline">Trợ giúp</a>
             <CartPreview />
-            <Link href="/login" className="font-semibold hover:text-brand">Đăng nhập</Link>
+            <AccountMenu />
           </div>
         </div>
       </div>

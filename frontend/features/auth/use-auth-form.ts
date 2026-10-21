@@ -1,33 +1,45 @@
 "use client";
 
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import type { AuthErrors } from "./validation";
+import { authErrorMessage } from "./errors";
 
-export function useAuthForm(validate: (data: FormData) => AuthErrors, validMessage: string) {
+export function useAuthForm(validate: (data: FormData) => AuthErrors, submit: (data: FormData) => Promise<void | string>) {
   const [errors, setErrors] = useState<AuthErrors>({});
   const [notice, setNotice] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [failure, setFailure] = useState("");
+  const [pending, setPending] = useState(false);
+  const locked = useRef(false);
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (locked.current) return;
     const form = event.currentTarget;
-    const nextErrors = validate(new FormData(form));
+    const data = new FormData(form);
+    const nextErrors = validate(data);
     setSubmitted(true);
     setErrors(nextErrors);
+    setNotice("");
+    setFailure("");
     const firstError = Object.keys(nextErrors)[0];
     if (firstError) {
       setNotice("");
       form.querySelector<HTMLInputElement>(`[name="${firstError}"]`)?.focus();
       return;
     }
-    // Frontend preview only: no account request, session, or credential storage.
-    setNotice(validMessage);
+    locked.current = true;
+    setPending(true);
+    try { setNotice((await submit(data)) || ""); }
+    catch (error) { setFailure(authErrorMessage(error)); }
+    finally { locked.current = false; setPending(false); }
   }
 
   function onChange(event: ChangeEvent<HTMLFormElement>) {
     setNotice("");
+    setFailure("");
     if (submitted) setErrors(validate(new FormData(event.currentTarget)));
   }
 
-  return { errors, notice, setNotice, onSubmit, onChange };
+  return { errors, notice, failure, pending, setNotice, onSubmit, onChange };
 }

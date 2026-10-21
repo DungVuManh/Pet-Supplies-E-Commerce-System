@@ -1,27 +1,51 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TextField } from "@/components/ui/text-field";
 import { validateLogin } from "../validation";
 import { useAuthForm } from "../use-auth-form";
-import { AuthNotice } from "./auth-notice";
+import { AuthFeedback } from "./auth-feedback";
+import { CompleteProfileForm } from "./complete-profile-form";
+import { AuthApiError } from "../api";
+import { loginWithEmail, clearFirebaseIdentity } from "../auth-actions";
+import { useAuth } from "../auth-provider";
+import type { Customer } from "../types";
 
 export function LoginForm() {
-  const { errors, notice, setNotice, onSubmit, onChange } = useAuthForm(
-    validateLogin,
-    "Thông tin hợp lệ. Chức năng đăng nhập sẽ sớm có mặt.",
-  );
+  const router = useRouter();
+  const { acceptUser } = useAuth();
+  const [needsProfile, setNeedsProfile] = useState(false);
+  const [remember, setRemember] = useState(false);
+  function finish(user: Customer) { acceptUser(user); router.replace("/"); }
+  const { errors, notice, failure, pending, onSubmit, onChange } = useAuthForm(validateLogin, async (data) => {
+    const rememberChoice = data.get("remember") === "on";
+    setRemember(rememberChoice);
+    try {
+      finish(await loginWithEmail(String(data.get("identifier") || "").trim(), String(data.get("password") || ""), rememberChoice));
+    } catch (error) {
+      if (error instanceof AuthApiError && error.code === "PROFILE_INCOMPLETE") { setNeedsProfile(true); return; }
+      throw error;
+    }
+  });
+
+  if (needsProfile) return <CompleteProfileForm remember={remember} onSuccess={finish} onCancel={async () => {
+    await clearFirebaseIdentity(); setNeedsProfile(false);
+  }} />;
 
   return (
     <>
-      <form method="post" noValidate onSubmit={onSubmit} onChange={onChange} className="flex flex-col gap-5" aria-label="Đăng nhập">
+      <form method="post" noValidate onSubmit={onSubmit} onChange={onChange} aria-busy={pending} aria-label="Đăng nhập">
+        <fieldset disabled={pending} className="flex min-w-0 flex-col gap-5">
         <TextField
           id="login-identifier"
           name="identifier"
-          label="Email hoặc số điện thoại"
-          placeholder="Nhập email hoặc số điện thoại"
+          label="Email"
+          type="email"
+          placeholder="Nhập địa chỉ email"
           autoComplete="username"
           autoCapitalize="none"
           spellCheck={false}
@@ -42,16 +66,16 @@ export function LoginForm() {
         />
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Checkbox id="login-remember" name="remember">Ghi nhớ đăng nhập</Checkbox>
-          <button
-            type="button"
+          <Link
+            href="/forgot-password"
             className="text-sm font-semibold text-brand hover:underline"
-            onClick={() => setNotice("Vui lòng liên hệ 1900 636 789 để được hỗ trợ khôi phục mật khẩu.")}
           >
             Quên mật khẩu?
-          </button>
+          </Link>
         </div>
-        <Button type="submit" className="w-full">Đăng nhập</Button>
-        <AuthNotice>{notice}</AuthNotice>
+        <Button type="submit" className="w-full">{pending ? "Đang đăng nhập…" : "Đăng nhập"}</Button>
+        <AuthFeedback notice={notice} failure={failure} />
+        </fieldset>
       </form>
       <p className="text-center text-sm text-muted">
         Chưa có tài khoản? <Link href="/register" className="ml-1 font-semibold text-brand hover:underline">Đăng ký ngay</Link>

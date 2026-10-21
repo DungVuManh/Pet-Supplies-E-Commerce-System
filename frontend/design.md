@@ -173,10 +173,11 @@ Với màn hình có dữ liệu từ xa, thiết kế đủ **loading, empty, e
 - Tái sử dụng `TextField`, `Checkbox`, `Button`, `AuthCard`, `AuthWelcome` và `AuthNotice`; logic tương tác ở hook, quy tắc validation ở module thuần.
 - Validation hiển thị sau lần submit đầu và cập nhật khi người dùng sửa. Focus trường sai đầu tiên; lỗi đặt cạnh trường và có câu hướng dẫn rõ ràng.
 - Dùng đúng `type`, `required`, `autoComplete`, `aria-invalid`, `aria-describedby`; không gửi mật khẩu qua query string hoặc ghi vào console/storage.
-- Login gồm email hoặc số điện thoại, mật khẩu, ghi nhớ đăng nhập và trợ giúp quên mật khẩu.
+- Login gồm email, mật khẩu, ghi nhớ đăng nhập và liên kết khôi phục mật khẩu qua email. Theo phạm vi Firebase đã thống nhất, số điện thoại chỉ là thông tin liên hệ trong hồ sơ, không dùng để đăng nhập.
 - Register gồm họ tên, điện thoại, email, mật khẩu, xác nhận và đồng ý điều khoản. Figma yêu cầu mật khẩu tối thiểu 8 ký tự có chữ hoa, chữ thường và số. Quy tắc điện thoại Việt Nam và độ dài họ tên hiện là quy ước code, không phải kết quả suy ra từ layout.
-- Auth hiện chỉ có frontend preview. Submit hợp lệ chỉ báo tính năng chưa khả dụng; không tuyên bố đã tạo tài khoản/đăng nhập, không tạo session hoặc lưu lựa chọn ghi nhớ. Home có tìm kiếm/lọc sản phẩm mẫu và giỏ hàng khách trong bộ nhớ, không gọi API. Giỏ hàng reset khi tải lại toàn trang; checkout/policy/ưu đãi chưa triển khai.
-- Khi nối API, giữ validation server và thay nhánh preview bằng kết quả thật; không coi client validation là lớp bảo mật.
+- Auth dùng Firebase Email/Password và API Express/MongoDB. Chỉ thông báo thành công khi backend lưu/đọc được hồ sơ và cấp session cookie. Có trạng thái chờ, lỗi, thử lại và hoàn tất hồ sơ còn thiếu; không hiển thị tên khách hàng giả. Header đọc phiên thật qua `/auth/me`, có nút đăng xuất. Session dùng cookie HttpOnly; không lưu mật khẩu/token vào localStorage hoặc sessionStorage.
+- Home vẫn công khai. Danh mục và giỏ hàng dùng sản phẩm mẫu trong bộ nhớ, reset giỏ khi tải lại toàn trang; checkout/policy/ưu đãi chưa triển khai. Chưa bắt buộc xác minh email; chưa có Google hoặc OTP điện thoại.
+- Giữ validation server; không coi client validation là lớp bảo mật. Trang `/forgot-password` tái sử dụng AuthCard/TextField/Button và thông báo chung để tránh tiết lộ email đã đăng ký.
 
 ## 7. Assets, accessibility và nội dung
 
