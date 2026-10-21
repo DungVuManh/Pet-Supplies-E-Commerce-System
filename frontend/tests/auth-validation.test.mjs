@@ -19,7 +19,7 @@ const validRegistration = {
 
 test("login accepts email without imposing registration password rules", () => {
   for (const identifier of [" minhanh@example.com ", "other@example.com"]) {
-    assert.deepEqual(validateLogin(form({ identifier, password: "old-password" })), {});
+    assert.deepEqual(validateLogin(form({ identifier, password: "123456" })), {});
   }
 });
 
@@ -41,11 +41,18 @@ test("registration checks every required field", () => {
   assert.equal(Object.keys(errors)[0], "email", "focus follows the visible form order before consent");
 });
 
-test("registration enforces password guidance and exact confirmation", () => {
-  for (const password of ["Short1", "lowercase1", "UPPERCASE1", "NoNumbersHere"]) {
+test("registration requires more than six non-whitespace characters", () => {
+  for (const password of ["Short1", "123456", " 123456 ", "a b c d e f", "      ", "\t\n ", "😀😀😀😀😀😀"]) {
     assert.ok(validateRegister(form({ ...validRegistration, password, confirmPassword: password })).password);
   }
+  for (const password of ["abcdefg", "ABCDEFG", "1234567", "!@#$%^&", "a b c d e f g", "\t1234567\t", "😀😀😀😀😀😀😀"]) {
+    assert.deepEqual(validateRegister(form({ ...validRegistration, password, confirmPassword: password })), {});
+  }
+});
+
+test("registration requires exact confirmation including whitespace", () => {
   assert.ok(validateRegister(form({ ...validRegistration, confirmPassword: "Petly123 " })).confirmPassword);
+  assert.ok(validateRegister(form({ ...validRegistration, password: "a b c d e f g", confirmPassword: "abcdefg" })).confirmPassword);
 });
 
 test("registration rejects invalid contact details, overlong names, and missing consent", () => {

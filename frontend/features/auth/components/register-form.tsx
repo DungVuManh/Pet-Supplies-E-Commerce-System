@@ -39,7 +39,7 @@ export function RegisterForm() {
           required
           error={errors.password}
         />
-        <p id="register-password-guidance" className="text-xs text-muted">Ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số.</p>
+        <p id="register-password-guidance" className="text-xs text-muted">Hơn 6 ký tự, không tính khoảng trắng.</p>
         <TextField
           id="register-confirm-password"
           name="confirmPassword"
