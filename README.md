@@ -1,8 +1,8 @@
 # Pet Supplies E-Commerce System
 
 This repository has a Next.js frontend and an Express/Mongoose backend. The backend
-currently provides configuration, middleware, MongoDB connectivity, and Swagger
-documentation; product, cart, order, and other business APIs are not implemented yet.
+provides Firebase customer authentication, HttpOnly sessions, MongoDB profiles,
+middleware and Swagger documentation. Product, cart and order APIs are not implemented yet.
 
 ## Requirements
 
@@ -25,10 +25,10 @@ Copy-Item backend/.env.example backend/.env
 ```
 
 On macOS/Linux, use `cp backend/.env.example backend/.env` for the last command.
-Then edit `backend/.env` and set `PORT=3001`. The example currently says
-`PORT=3000`, which would conflict with the frontend. Keep
+The backend example uses `PORT=3001`. Keep
 `CORS_ORIGIN=http://localhost:3000` for the frontend, and set `MONGODB_URI` to
-your running MongoDB server if it differs from the example.
+your running MongoDB server, including credentials and `authSource` if required.
+Configure Firebase and `frontend/.env.local` using [authentication setup](docs/authentication.md).
 
 Start both apps from the repository root:
 
@@ -38,7 +38,7 @@ npm run dev
 
 Open the frontend at [http://localhost:3000](http://localhost:3000) and the
 backend's Swagger UI at [http://localhost:3001/api/docs/](http://localhost:3001/api/docs/).
-Swagger currently lists no business endpoints. Press `Ctrl+C` to stop the
+Swagger lists the customer authentication endpoints. Press `Ctrl+C` to stop the
 development processes.
 
 ## Run one app at a time
