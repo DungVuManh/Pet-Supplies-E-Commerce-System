@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AppError } from '../../common/errors/app-error.js';
+import { AppError } from '../common/errors/app-error.js';
 
 export const sessionSchema = z.object({
   idToken: z.string().min(1).max(16000),

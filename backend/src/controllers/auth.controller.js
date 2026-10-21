@@ -1,7 +1,7 @@
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { parseCookie } from 'cookie';
-import { AppError } from '../../common/errors/app-error.js';
-import { parseBody, registerSchema, sessionSchema } from './auth.schema.js';
+import { AppError } from '../common/errors/app-error.js';
+import { parseBody, registerSchema, sessionSchema } from '../validators/auth.schema.js';
 
 export function createAuthController(config, service) {
   const secure = config.NODE_ENV === 'production';

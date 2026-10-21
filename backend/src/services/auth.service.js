@@ -1,5 +1,5 @@
-import { AppError } from '../../common/errors/app-error.js';
-import { publicUser } from './user.model.js';
+import { AppError } from '../common/errors/app-error.js';
+import { publicUser } from '../models/user.model.js';
 
 export const DAY = 24 * 60 * 60 * 1000;
 

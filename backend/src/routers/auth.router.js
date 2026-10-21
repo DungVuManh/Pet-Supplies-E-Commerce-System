@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { getFirebaseAuth } from '../../config/firebase.js';
-import { createAuthService } from './auth.service.js';
-import { createAuthController } from './auth.controller.js';
-import { userRepository } from './user.model.js';
+import { getFirebaseAuth } from '../config/firebase.js';
+import { createAuthService } from '../services/auth.service.js';
+import { createAuthController } from '../controllers/auth.controller.js';
+import { userRepository } from '../models/user.model.js';
 
 export function createAuthRouter(config, service = createAuthService({
   getAuth: () => getFirebaseAuth(config), users: userRepository,

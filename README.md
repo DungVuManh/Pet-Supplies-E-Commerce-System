@@ -2,7 +2,7 @@
 
 This repository has a Next.js frontend and an Express/Mongoose backend. The backend
 provides Firebase customer authentication, HttpOnly sessions, MongoDB profiles,
-middleware and Swagger documentation. Product, cart and order APIs are not implemented yet.
+middleware and tests. Product, cart and order APIs are not implemented yet.
 
 ## Requirements
 
@@ -36,16 +36,33 @@ Start both apps from the repository root:
 npm run dev
 ```
 
-Open the frontend at [http://localhost:3000](http://localhost:3000) and the
-backend's Swagger UI at [http://localhost:3001/api/docs/](http://localhost:3001/api/docs/).
-Swagger lists the customer authentication endpoints. Press `Ctrl+C` to stop the
-development processes.
+Open the frontend at [http://localhost:3000](http://localhost:3000). The backend
+listens on port 3001; see [authentication endpoints](docs/authentication.md#api).
+Press `Ctrl+C` to stop the development processes.
 
 ## Run one app at a time
 
 From the repository root, use `npm run dev:frontend` or `npm run dev:backend`.
 The backend still needs MongoDB and its environment configuration. Its dev script
 uses Nodemon, so server changes restart it automatically.
+
+## Backend structure
+
+```text
+backend/src/
+  config/        Environment, MongoDB and Firebase setup
+  routers/       Endpoint registration (auth.router.js)
+  controllers/   HTTP requests, responses and cookies
+  services/      Authentication and session business logic
+  models/        Mongoose schemas and persistence
+  validators/    Request input validation
+  common/        Shared errors and middleware
+  app.js         Express application composition
+  server.js      Startup and shutdown
+```
+
+Requests flow through routers, controllers, services and models. Keep input
+validation in `validators/` and add new features to the corresponding layers.
 
 ## Backend tests
 

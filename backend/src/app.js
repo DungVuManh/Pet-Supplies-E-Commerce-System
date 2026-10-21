@@ -2,12 +2,10 @@ import cors from "cors";
 import express from "express";
 import { rateLimit } from "express-rate-limit";
 import helmet from "helmet";
-import swaggerUi from "swagger-ui-express";
 import { AppError } from "./common/errors/app-error.js";
 import { errorMiddleware } from "./common/middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./common/middlewares/not-found.middleware.js";
-import { createOpenApiDocument } from "./docs/swagger.js";
-import { createAuthRouter } from "./modules/auth/auth.routes.js";
+import { createAuthRouter } from "./routers/auth.router.js";
 export function createApp(config, { authService } = {}) {
  const app = express();
  app.disable("x-powered-by");
@@ -15,16 +13,7 @@ export function createApp(config, { authService } = {}) {
   response.set('Cache-Control', 'no-store');
   next();
  });
- app.use(
-  helmet({
-   // HTTP localhost docs must not have their asset URLs upgraded to HTTPS.
-   contentSecurityPolicy: {
-    directives: {
-     "upgrade-insecure-requests": config.NODE_ENV === "production" ? [] : null,
-    },
-   },
-  }),
- );
+ app.use(helmet());
  app.use(
   cors({
    origin(origin, callback) {
@@ -52,11 +41,6 @@ export function createApp(config, { authService } = {}) {
  );
  app.use(express.json({ limit: "100kb" }));
  app.use(express.urlencoded({ extended: false, limit: "100kb" }));
- app.use(
-  "/api/docs",
-  swaggerUi.serve,
-  swaggerUi.setup(createOpenApiDocument(config)),
- );
  app.use('/api/v1/auth', createAuthRouter(config, authService));
  app.use(notFoundMiddleware);
  app.use(errorMiddleware);

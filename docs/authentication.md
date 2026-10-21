@@ -25,7 +25,7 @@ Use Node.js 24.x and npm 11+. Install dependencies separately with
    Keep `FIREBASE_PROJECT_ID` aligned with the frontend. Replace any key shared in
    a chat or source control using Google Cloud IAM; never put its contents here.
 5. Run `npm run dev` at the repository root. Frontend: `http://localhost:3000`;
-   backend: `http://localhost:3001`; Swagger: `http://localhost:3001/api/docs/`.
+   backend: `http://localhost:3001`.
    Restart Next after modifying its environment because public values are
    compiled into the client.
 
@@ -33,8 +33,8 @@ Use Node.js 24.x and npm 11+. Install dependencies separately with
 `http://127.0.0.1:3001`). Auth requests use the same-origin Next rewrite, including
 Set-Cookie responses. The browser never calls the Express origin directly.
 Avoid switching between `localhost` and `127.0.0.1` in the browser; they have
-different cookies/origins. Direct Swagger mutations must run from an allowed
-origin and include CSRF cookies/header; Swagger does not bypass authentication.
+different cookies/origins. Direct API mutations must run from an allowed origin
+and include CSRF cookies/header.
 
 ## Trust and persistence
 

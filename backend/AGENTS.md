@@ -6,8 +6,8 @@ These instructions apply to `backend/`. Keep this file aligned with the code and
 ## Current scope
 
 - This is an Express 5, MongoDB/Mongoose, JavaScript ESM backend with Firebase
-  customer authentication, session cookies, profile persistence, middleware,
-  Swagger UI and tests. Product/cart/order APIs and seed data are not implemented.
+  customer authentication, session cookies, profile persistence, middleware
+  and tests. Product/cart/order APIs and seed data are not implemented.
 - Use Node.js 24.x and npm 11+ as declared in `package.json`. Run commands from
   `backend/`. Use `npm ci` to install the locked dependencies.
 - The tracked backend has no `.nvmrc`, Docker Compose file, ESLint configuration,
@@ -30,8 +30,8 @@ On macOS/Linux, use `cp .env.example .env`. `npm run dev` starts Nodemon on
 once and `npm run test:watch` runs it in watch mode. Supertest needs permission to
 open local loopback sockets, but the tests do not require a running MongoDB server.
 
-The copied `.env.example` and runtime default use `PORT=3001`, so Swagger UI is at
-`http://localhost:3001/api/docs/`. The frontend uses port 3000. Keep
+The copied `.env.example` and runtime default use `PORT=3001`. The frontend uses
+port 3000. Keep
 the example, runtime default, tests, and documentation in sync if you change port
 behavior. `CORS_ORIGIN=http://localhost:3000` identifies the allowed frontend
 origin; it does not select the backend listening port.
@@ -65,7 +65,7 @@ origin; it does not select the backend listening port.
   MongoDB, or opening a listener. Keep those side effects in `src/server.js` so
   application tests remain isolated.
 - Middleware runs in this order: Helmet, explicit CORS, rate limiting for
-  `/api/v1`, 100 KB JSON and URL-encoded parsers, Swagger UI at `/api/docs`, auth
+  `/api/v1`, 100 KB JSON and URL-encoded parsers, auth
   router at `/api/v1/auth`, then 404 and error handlers. Auth no-store headers are
   set before CORS/parsers/limiting so error responses also remain uncacheable.
   Mount future feature routers under `/api/v1` before the
@@ -74,12 +74,15 @@ origin; it does not select the backend listening port.
 - Keep errors in the common `{ success: false, message, error: { code } }`
   envelope. Use `AppError` for intentional public errors; unexpected errors get
   a generic message without a stack. Express 5 forwards rejected route promises.
-- `src/modules/auth/` owns customer authentication. Routes bind handlers; controllers translate HTTP;
-  services own business logic; Mongoose models own persistence; Zod schemas
-  validate input. Put reusable technical concerns in `src/common/`. Use explicit
-  `.js` extensions in ESM imports.
-- `src/docs/swagger.js` combines OpenAPI 3 with the auth module's operation/schema
-  definitions. Unknown routes return JSON 404. Update the document when adding routes.
+- Organize `src/` by layer: `routers/` binds routes to handlers, `controllers/`
+  translates HTTP, `services/` owns business logic, `models/` owns Mongoose
+  persistence, and `validators/` owns Zod input schemas. Keep routers thin and
+  business logic in services. Put reusable technical concerns in `src/common/`
+  and environment/database/Firebase setup in `src/config/`. Use explicit `.js`
+  extensions in ESM imports. Auth uses `auth.router.js`, `auth.controller.js`,
+  `auth.service.js`, `auth.schema.js`, and `user.model.js` in their respective layers.
+- Unknown routes return JSON 404. Document authentication endpoints in
+  `../docs/authentication.md` when changing their behavior.
 - Auth mutation endpoints require JSON, an allowed Origin and matching CSRF
   cookie/header. Identity and email come from Firebase verification, never the
   request body. Password provider and <5-minute sign-in are required to exchange
@@ -93,7 +96,7 @@ origin; it does not select the backend listening port.
 ## Verification
 
 - `tests/env.test.js`, `tests/app.test.js`, and `tests/database.test.js` cover
-  configuration, HTTP middleware/error behavior, Swagger assets, and mocked
+  configuration, HTTP middleware/error behavior, and mocked
   database lifecycle. Run `npm test` after backend changes.
 - `tests/auth.test.js` covers auth/CSRF HTTP boundaries, token/session validation,
   public profile projection, insert-only persistence and dependency failures using

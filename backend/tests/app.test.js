@@ -28,19 +28,6 @@ describe('application foundation', () => {
     expect(response.headers['x-content-type-options']).toBe('nosniff');
     expect(response.headers['x-powered-by']).toBeUndefined();
   });
-  it('serves Swagger UI and its assets', async () => {
-    const app = createApp(config);
-    const page = await request(app).get('/api/docs/');
-    expect(page.status).toBe(200);
-    expect(page.text).toContain('swagger-ui');
-    const script = await request(app).get('/api/docs/swagger-ui-init.js');
-    expect(script.status).toBe(200);
-    expect(script.text).toContain('Pet Supplies E-Commerce API');
-    expect(script.text).toContain('/auth/session');
-    expect(page.headers['content-security-policy']).not.toContain(
-      'upgrade-insecure-requests',
-    );
-  });
   it('allows the configured origin on preflight requests', async () => {
     const response = await request(createApp(config))
       .options('/api/v1/missing')

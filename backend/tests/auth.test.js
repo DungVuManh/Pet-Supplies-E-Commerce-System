@@ -2,8 +2,8 @@ import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createApp } from '../src/app.js';
 import { parseEnvironment } from '../src/config/env.js';
-import { createAuthService, DAY } from '../src/modules/auth/auth.service.js';
-import { userRepository, User } from '../src/modules/auth/user.model.js';
+import { createAuthService, DAY } from '../src/services/auth.service.js';
+import { userRepository, User } from '../src/models/user.model.js';
 
 const now = 1_800_000_000_000;
 const claims = { uid: 'firebase-customer', email: 'customer@example.com', auth_time: now / 1000,
