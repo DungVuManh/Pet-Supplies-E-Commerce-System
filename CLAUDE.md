@@ -110,3 +110,21 @@ Read `frontend/design.md` before any UI change. It is the source for Figma refer
 - Keep Admin brand overrides scoped to the Admin workspace; Customer/Staff use the shared blue brand.
 - Preserve public access to `/`; do not invent authenticated customer data or backend-backed catalog/cart behavior.
 - Reuse UI primitives only for common presentation/interaction. Feature validation, routing, and API calls stay in feature modules.
+
+## Feature Implementation Workflow
+
+Before implementing a requested feature, first classify the scope:
+
+- **Small change:** a localized bug fix, copy/style adjustment, minor validation change, or another change whose behavior and implementation are already clear. Implement it directly and run the relevant tests; do not create process documents.
+- **Larger feature:** work that introduces a new user flow, API/domain capability, data model, cross-layer behavior, significant architectural decision, or coordinated changes across multiple areas. Also use the larger-feature workflow whenever the user explicitly asks for a spec or plan.
+
+For a larger feature:
+
+1. Search `docs/specs/` and `docs/plan/` for an existing specification and implementation plan for the feature.
+2. If both exist and still match the request and current codebase, implement and test from them immediately. Do not create duplicate documents.
+3. If the specification is missing, create `docs/specs/<feature-name>.md`. Define the problem, scope, user-visible behavior, requirements, acceptance criteria, constraints, edge cases, and explicit non-goals. Resolve material ambiguities before treating the specification as ready.
+4. If the implementation plan is missing, create `docs/plan/<feature-name>.md` from the specification. Identify the affected architecture and files, ordered implementation steps, migrations or compatibility concerns, and the verification strategy.
+5. Implement the code in the plan's order, keeping the implementation, specification, and plan consistent when discoveries require scope changes.
+6. Run the relevant focused tests during implementation, then the appropriate package-level test, lint, and build checks before declaring the feature complete.
+
+Use stable, descriptive kebab-case names for matching spec and plan files. Keep these documents specific to the feature; do not create a spec or plan merely to document a trivial edit after the fact.
