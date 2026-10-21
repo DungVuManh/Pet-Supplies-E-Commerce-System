@@ -20,7 +20,7 @@ export const categories = [
 // Sample catalog from the supplied design; replace with API data when available.
 export const products: readonly Product[] = [
   {
-    id: "royal-canin-mini-adult",
+    id: "1",
     brand: "Royal Canin",
     name: "Royal Canin Mini Adult",
     description: "Thức ăn cho chó trưởng thành · 2 kg",
@@ -29,7 +29,7 @@ export const products: readonly Product[] = [
     categories: ["dog", "food"],
   },
   {
-    id: "royal-canin-indoor",
+    id: "2",
     brand: "Royal Canin",
     name: "Royal Canin Indoor 27",
     description: "Thức ăn cho mèo trong nhà · 2 kg",
@@ -38,7 +38,7 @@ export const products: readonly Product[] = [
     categories: ["cat", "food"],
   },
   {
-    id: "kong-ball",
+    id: "3",
     brand: "KONG",
     name: "Bóng cao su KONG",
     description: "Đồ chơi cho chó · Cỡ nhỏ",
@@ -47,7 +47,7 @@ export const products: readonly Product[] = [
     categories: ["dog", "accessories"],
   },
   {
-    id: "cats-best-original",
+    id: "4",
     brand: "Cat’s Best",
     name: "Cát mèo Cat’s Best Original",
     description: "Cát hữu cơ vón cục · 5 L",
@@ -56,7 +56,7 @@ export const products: readonly Product[] = [
     categories: ["cat", "accessories"],
   },
    {
-    id: "royal-canin-mini-adult",
+    id: "5",
     brand: "Royal Canin",
     name: "Royal Canin Mini Adult",
     description: "Thức ăn cho chó trưởng thành · 2 kg",
@@ -65,7 +65,7 @@ export const products: readonly Product[] = [
     categories: ["dog", "food"],
   },
   {
-    id: "royal-canin-indoor",
+    id: "6", 
     brand: "Royal Canin",
     name: "Royal Canin Indoor 27",
     description: "Thức ăn cho mèo trong nhà · 2 kg",
@@ -74,7 +74,7 @@ export const products: readonly Product[] = [
     categories: ["cat", "food"],
   },
   {
-    id: "kong-ball",
+    id: "7",
     brand: "KONG",
     name: "Bóng cao su KONG",
     description: "Đồ chơi cho chó · Cỡ nhỏ",
@@ -83,7 +83,7 @@ export const products: readonly Product[] = [
     categories: ["dog", "accessories"],
   },
   {
-    id: "cats-best-original",
+    id: "8",
     brand: "Cat’s Best",
     name: "Cát mèo Cat’s Best Original",
     description: "Cát hữu cơ vón cục · 5 L",
@@ -92,7 +92,7 @@ export const products: readonly Product[] = [
     categories: ["cat", "accessories"],
   },
    {
-    id: "royal-canin-mini-adult",
+    id: "9",
     brand: "Royal Canin",
     name: "Royal Canin Mini Adult",
     description: "Thức ăn cho chó trưởng thành · 2 kg",
@@ -101,7 +101,7 @@ export const products: readonly Product[] = [
     categories: ["dog", "food"],
   },
   {
-    id: "royal-canin-indoor",
+    id: "10",
     brand: "Royal Canin",
     name: "Royal Canin Indoor 27",
     description: "Thức ăn cho mèo trong nhà · 2 kg",
@@ -110,7 +110,7 @@ export const products: readonly Product[] = [
     categories: ["cat", "food"],
   },
   {
-    id: "kong-ball",
+    id: "11",
     brand: "KONG",
     name: "Bóng cao su KONG",
     description: "Đồ chơi cho chó · Cỡ nhỏ",
@@ -119,7 +119,7 @@ export const products: readonly Product[] = [
     categories: ["dog", "accessories"],
   },
   {
-    id: "cats-best-original",
+    id: "12",
     brand: "Cat’s Best",
     name: "Cát mèo Cat’s Best Original",
     description: "Cát hữu cơ vón cục · 5 L",

@@ -1,28 +1,48 @@
+"use client";
+
 import React from "react";
 import { ProductCard } from "./product-card";
 import { products } from "../products";
+import { useState } from "react";
+import Link from "next/link";
+
 export function AllProduct() {
   const categories = [
     { name: "Tất cả sản phẩm", href: "/listProduct/allProducts" },
     { name: "Dành cho chó", href: "/?category=dog#featured-products" },
     { name: "Dành cho mèo", href: "/?category=cat#featured-products" },
-    { name: "Đồ chơi" },
-    { name: "Phụ kiện" },
-    { name: "Vệ sinh & chăm sóc" },
+    { name: "Đồ chơi", href: "/?category=accessories#featured-products" },
+    { name: "Phụ kiện", href: "/?category=accessores#featured-products" },
+    {
+      name: "Vệ sinh & chăm sóc",
+      href: "/?category=accessories#featued-products",
+    },
   ];
   const brands = [
     { name: "KONG" },
     { name: "Cat's Best" },
     { name: "Royal Caninl" },
   ];
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedPrices, setSelectedPrices] = useState<string[]>([]);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+
+  function deleteFilter() {
+    // Xóa bộ lọc ở đây
+    setSelectedCategory("all");
+    setSelectedPrices([]);
+    setSelectedBrands([]);
+  }
 
   return (
     <main>
-      <div className="flex">
+      <div className="flex  items-start">
         <aside className="w-1/4 shrink-0 rounded-md p-4 bg-blue-50 mr-5">
           <div className="flex justify-between mt-5">
             <h1 className="font-bold ">Bộ lọc</h1>
-            <button className="font-bold">Xóa lọc</button>
+            <button className="font-bold" onClick={deleteFilter}>
+              Xóa lọc
+            </button>
           </div>
           <h4 className="font-bold mt-3">Danh mục</h4>
           <ul>
@@ -31,7 +51,12 @@ export function AllProduct() {
                 key={item.href}
                 className="flex items-center gap-2 mt-5 font-medium"
               >
-                <input type="radio" id={item.href} />
+                <input
+                  type="radio"
+                  id={item.href}
+                  checked={selectedCategory === item.href}
+                  onChange={() => setSelectedCategory(item.href)}
+                />
                 <label htmlFor={item.href}>{item.name}</label>
               </li>
             ))}
@@ -39,7 +64,19 @@ export function AllProduct() {
           <h1 className="font-bold mt-5">Khoảng giá</h1>
           <ul>
             <li className="flex items-center gap-2 mt-5 font-medium">
-              <input type="checkbox" />
+              <input
+                type="checkbox"
+                checked={selectedPrices.includes("under-100k")}
+                onChange={() => {
+                  if (selectedPrices.includes("under-100k")) {
+                    setSelectedPrices(
+                      selectedPrices.filter((p) => p !== "under-100k"),
+                    );
+                  } else {
+                    setSelectedPrices([...selectedPrices, "under-100k"]);
+                  }
+                }}
+              />
               <label>Dưới 100.000đ</label>
             </li>
             <li className="flex items-center gap-2 mt-5 font-medium">
@@ -82,8 +119,10 @@ export function AllProduct() {
           </div>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}{" "}
+              <Link href={`/listProduct/detailProduct`} key={product.id}>
+                <ProductCard product={product} />
+              </Link>
+            ))}
           </div>
         </div>
       </div>
