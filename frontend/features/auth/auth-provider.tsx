@@ -2,17 +2,17 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { authApi, AuthApiError } from "./api";
-import type { Customer } from "./types";
+import type { AuthUser } from "./types";
 
-type AuthState = { status: "loading" | "ready" | "error"; user: Customer | null };
-type AuthContextValue = AuthState & { refresh: () => Promise<void>; acceptUser: (user: Customer | null) => void };
+type AuthState = { status: "loading" | "ready" | "error"; user: AuthUser | null };
+type AuthContextValue = AuthState & { refresh: () => Promise<void>; acceptUser: (user: AuthUser | null) => void };
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AuthState>({ status: "loading", user: null });
+export function AuthProvider({ children, initialUser }: { children: ReactNode; initialUser?: AuthUser }) {
+  const [state, setState] = useState<AuthState>({ status: initialUser ? "ready" : "loading", user: initialUser ?? null });
   const revision = useRef(0);
 
-  const acceptUser = useCallback((user: Customer | null) => {
+  const acceptUser = useCallback((user: AuthUser | null) => {
     revision.current++;
     setState({ status: "ready", user });
   }, []);
