@@ -4,6 +4,7 @@ import { connectDatabase, disconnectDatabase } from "./config/database.js";
 import { loadEnvironment } from "./config/env.js";
 import { getFirebaseAuth } from "./config/firebase.js";
 import { User } from "./models/user.model.js";
+
 async function startServer() {
  const config = loadEnvironment();
  const server = createServer(createApp(config));

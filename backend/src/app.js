@@ -5,12 +5,14 @@ import helmet from "helmet";
 import { AppError } from "./common/errors/app-error.js";
 import { errorMiddleware } from "./common/middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./common/middlewares/not-found.middleware.js";
-import { createAuthRouter } from "./routers/auth.router.js";
-export function createApp(config, { authService } = {}) {
+import authRouter from "./routers/auth.router.js";
+
+export function createApp(config) {
  const app = express();
+ app.locals.config = config;
  app.disable("x-powered-by");
- app.use('/api/v1/auth', (_request, response, next) => {
-  response.set('Cache-Control', 'no-store');
+ app.use("/api/v1/auth", (_request, response, next) => {
+  response.set("Cache-Control", "no-store");
   next();
  });
  app.use(helmet());
@@ -41,7 +43,7 @@ export function createApp(config, { authService } = {}) {
  );
  app.use(express.json({ limit: "100kb" }));
  app.use(express.urlencoded({ extended: false, limit: "100kb" }));
- app.use('/api/v1/auth', createAuthRouter(config, authService));
+ app.use("/api/v1/auth", authRouter);
  app.use(notFoundMiddleware);
  app.use(errorMiddleware);
  return app;

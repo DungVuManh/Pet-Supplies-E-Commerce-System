@@ -52,8 +52,7 @@ uses Nodemon, so server changes restart it automatically.
 backend/src/
   config/        Environment, MongoDB and Firebase setup
   routers/       Endpoint registration (auth.router.js)
-  controllers/   HTTP requests, responses and cookies
-  services/      Authentication and session business logic
+  controllers/   Request handling, authentication logic, responses and cookies
   models/        Mongoose schemas and persistence
   validators/    Request input validation
   common/        Shared errors and middleware
@@ -61,8 +60,10 @@ backend/src/
   server.js      Startup and shutdown
 ```
 
-Requests flow through routers, controllers, services and models. Keep input
+Requests flow through routers, controllers and models. Keep input
 validation in `validators/` and add new features to the corresponding layers.
+Controllers export handlers such as `login` and `register` directly; routers
+import those handlers and export an Express router.
 
 ## Backend tests
 

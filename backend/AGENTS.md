@@ -63,7 +63,8 @@ origin; it does not select the backend listening port.
 
 - `src/app.js` exports `createApp(config)` without reading `.env`, connecting to
   MongoDB, or opening a listener. Keep those side effects in `src/server.js` so
-  application tests remain isolated.
+  application tests remain isolated. It stores validated configuration in
+  `app.locals.config`; handlers access it through `request.app.locals.config`.
 - Middleware runs in this order: Helmet, explicit CORS, rate limiting for
   `/api/v1`, 100 KB JSON and URL-encoded parsers, auth
   router at `/api/v1/auth`, then 404 and error handlers. Auth no-store headers are
@@ -75,12 +76,16 @@ origin; it does not select the backend listening port.
   envelope. Use `AppError` for intentional public errors; unexpected errors get
   a generic message without a stack. Express 5 forwards rejected route promises.
 - Organize `src/` by layer: `routers/` binds routes to handlers, `controllers/`
-  translates HTTP, `services/` owns business logic, `models/` owns Mongoose
-  persistence, and `validators/` owns Zod input schemas. Keep routers thin and
-  business logic in services. Put reusable technical concerns in `src/common/`
+  handles HTTP and business logic, `models/` owns Mongoose persistence, and
+  `validators/` owns Zod input schemas. Keep routers thin; controllers call
+  Firebase and models directly. Put reusable technical concerns in `src/common/`
   and environment/database/Firebase setup in `src/config/`. Use explicit `.js`
   extensions in ESM imports. Auth uses `auth.router.js`, `auth.controller.js`,
-  `auth.service.js`, `auth.schema.js`, and `user.model.js` in their respective layers.
+  `auth.schema.js`, and `user.model.js` in their respective layers.
+- Controllers export named handlers directly (for example `login(request,
+response)`); routers import those handlers and export the Express router.
+  Do not wrap controllers or routers in factory functions or pass test adapters
+  through application code. Tests mock Firebase, model methods and the clock.
 - Unknown routes return JSON 404. Document authentication endpoints in
   `../docs/authentication.md` when changing their behavior.
 - Auth mutation endpoints require JSON, an allowed Origin and matching CSRF
@@ -100,7 +105,7 @@ origin; it does not select the backend listening port.
   database lifecycle. Run `npm test` after backend changes.
 - `tests/auth.test.js` covers auth/CSRF HTTP boundaries, token/session validation,
   public profile projection, insert-only persistence and dependency failures using
-  injected adapters. It does not verify Firebase or MongoDB live connectivity.
+  mocked dependencies. It does not verify Firebase or MongoDB live connectivity.
 - Check any command or file mentioned here against the current tree before
   updating instructions. Do not claim a server or MongoDB smoke test passed
   unless it was actually run.
