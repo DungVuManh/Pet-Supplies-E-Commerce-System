@@ -23,6 +23,11 @@
   --color-surface: #ffffff;
   --color-line: #e2e8f0;
   --color-danger: #b91c1c;
+  --color-danger-subtle: #fef2f2;
+  --color-success: #15803d;
+  --color-success-subtle: #f0fdf4;
+  --color-warning: #b45309;
+  --color-warning-subtle: #fffbeb;
   --font-sans: var(--font-inter), Arial, Helvetica, sans-serif;
   --text-sm--line-height: normal;
   --text-xs--line-height: normal;

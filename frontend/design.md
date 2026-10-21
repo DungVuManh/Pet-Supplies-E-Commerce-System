@@ -67,7 +67,7 @@ Các mã ở cột Figma là giá trị nguồn, không có nghĩa mọi token �
 - Khai báo token dùng chung trong [app/globals.css](app/globals.css); component dùng `text-ink`, `text-muted`, `bg-brand`, `border-line` hoặc biến ngữ nghĩa tương đương. Không rải lại mã hex trong JSX.
 - Khi cần trạng thái mới, bổ sung token còn thiếu trước khi dùng ở nhiều component. Không giả định token trong bảng đã có sẵn.
 - Khi triển khai Admin, đặt override nhận diện ở layout/theme Admin; không thay `--color-brand` toàn ứng dụng thành teal.
-- Trang khung dashboard dùng shell tối giản, thông tin tài khoản và trạng thái chưa có dữ liệu; chưa triển khai sidebar/metric theo dashboard Figma. Admin hover `#115E59` là quy ước bổ sung, không phải giá trị đã xác nhận từ Figma.
+- Staff dùng shell vận hành, sidebar, metric, bảng và biểu đồ theo bộ màn hình Staff đã cung cấp; dữ liệu nghiệp vụ hiện là mock dùng chung giữa các trang. Admin vẫn dùng shell tối giản và chưa có metric nghiệp vụ. Admin hover `#115E59` là quy ước bổ sung, không phải giá trị đã xác nhận từ Figma.
 - `--color-brand-hover: #1D4ED8` là quy ước đang dùng trong code, chưa được xác nhận là màu hover từ Figma. Không coi đây là màu hover chung cho cả Admin.
 - `--color-danger` hiện là `#B91C1C`, khác Figma. Trên nền `#FEF2F2`, cặp `#DC2626` chỉ đạt contrast khoảng **4,4148:1**, dưới mức 4,5:1 cho chữ thường; `#B91C1C` đạt khoảng **5,9146:1**. Không ép text lỗi nhỏ sang màu nguồn nếu làm mất khả năng đọc. Giữ khác biệt này được ghi nhận, đo từng cặp foreground/background và thống nhất variant accessible trước khi mở rộng badge lỗi. Đây là phép tính từ mã màu theo công thức WCAG, không phải kết quả audit toàn trang.
 
@@ -149,7 +149,7 @@ Các breakpoint dưới đây là quyết định triển khai hiện tại, kh�
 - Dùng cùng breakpoint và container giữa các trang cùng shell; không tạo breakpoint riêng cho từng lỗi hiển thị.
 - Footer nằm sau nội dung, có thể xuống dưới viewport khi form dài. Không ghim footer lên form hoặc cắt lỗi validation để giữ khung 1024px.
 - Body không cuộn ngang ở 320px. Bảng dữ liệu và dải category có thể cuộn ngang trong vùng riêng; nội dung chính vẫn phải reflow.
-- Staff/Admin trên màn hình nhỏ: thu shell thành một cột, sidebar thành điều hướng có thể mở/đóng và truy cập bằng bàn phím; bảng có vùng cuộn riêng. Đây là quy ước cho phần triển khai sau, chưa có component shell tương ứng trong code hiện tại.
+- Staff/Admin trên màn hình nhỏ: thu shell thành một cột, sidebar thành điều hướng có thể mở/đóng và truy cập bằng bàn phím; bảng có vùng cuộn riêng. Staff đã triển khai quy ước này; Admin áp dụng khi mở rộng shell.
 - Kiểm tra ở **320, 768, 1024, 1440px**, viewport thấp và zoom 200%. Không che nội dung thiết yếu để làm ảnh chụp trông gọn.
 - Home: danh mục 2 cột dưới 1024px, 4 cột từ 1024px; sản phẩm 1 cột dưới 640px, 2 cột ở 640–1023px, 4 cột từ 1024px. Banner xếp dọc dưới 768px; nội dung được xuống dòng và tăng chiều cao. Đây là quy ước responsive bổ sung theo bố cục desktop.
 
