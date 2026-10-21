@@ -6,7 +6,11 @@
 			"script": "dev",
 			"problemMatcher": [],
 			"label": "npm: dev",
-			"detail": "concurrently \"npm:dev:backend\" \"npm:dev:frontend\""
+			"detail": "concurrently \"npm:dev:backend\" \"npm:dev:frontend\"",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
 		}
 	]
 }
