@@ -2,7 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   async rewrites() {
-    return [{ source: "/api/v1/auth/:path*", destination: `${process.env.BACKEND_ORIGIN || "http://127.0.0.1:3001"}/api/v1/auth/:path*` }];
+    const origin = process.env.BACKEND_ORIGIN || "http://127.0.0.1:3001";
+    return ["auth", "staff", "admin"].map((area) => ({
+      source: `/api/v1/${area}/:path*`, destination: `${origin}/api/v1/${area}/:path*`,
+    }));
   },
   /* config options here */
   experimental: {

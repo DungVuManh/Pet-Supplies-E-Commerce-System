@@ -1,9 +1,8 @@
 import { createServer } from "node:http";
 import { createApp } from "./app.js";
-import { connectDatabase, disconnectDatabase } from "./config/database.js";
+import { connectDatabase, createModelIndexes, disconnectDatabase } from "./config/database.js";
 import { loadEnvironment } from "./config/env.js";
 import { getFirebaseAuth } from "./config/firebase.js";
-import { User } from "./models/user.model.js";
 
 async function startServer() {
  const config = loadEnvironment();
@@ -38,8 +37,7 @@ async function startServer() {
  try {
   getFirebaseAuth(config);
   await connectDatabase(config.MONGODB_URI);
-  // autoIndex is disabled globally; the UID uniqueness constraint is required.
-  await User.createIndexes();
+  await createModelIndexes();
   // A termination signal may arrive while the initial connection is pending.
   if (stopping) {
    await disconnectDatabase();

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { authApi, AuthApiError, parseCustomer } from "../features/auth/api.ts";
+import { authApi, AuthApiError, fetchDashboardUser, parseAuthUser } from "../features/auth/api.ts";
 import { authErrorMessage } from "../features/auth/errors.ts";
 
 const user = { id: "customer-1", email: "customer@example.com", fullName: "Khách hàng", phone: "0912345678", role: "customer" };
@@ -22,12 +22,47 @@ test("session exchange includes CSRF and cookies, but never a password or client
   assert.deepEqual(JSON.parse(options.body), { idToken: "test-id-token", remember: true });
 });
 
-test("response boundary rejects fabricated profiles, privilege escalation and malformed responses", () => {
-  for (const body of [null, {}, { success: true, data: { user: { ...user, role: "admin" } } },
+test("response boundary rejects unknown roles and malformed profiles", () => {
+  for (const body of [null, {}, { success: true, data: { user: { ...user, role: "manager" } } },
+    { success: true, data: { user: { ...user, role: null } } },
     { success: true, data: { user: { ...user, phone: 123 } } }]) {
-    assert.throws(() => parseCustomer(body), (error) => error.code === "INVALID_RESPONSE");
+    assert.throws(() => parseAuthUser(body), (error) => error.code === "INVALID_RESPONSE");
   }
-  assert.deepEqual(parseCustomer({ success: true, data: { user: { ...user, private: "omit" } } }), user);
+  assert.deepEqual(parseAuthUser({ success: true, data: { user: { ...user, private: "omit" } } }), user);
+});
+
+for (const role of ["customer", "staff", "admin"]) {
+  test(`${role} login and session responses use the same public profile contract`, async (t) => {
+    const profile = { ...user, role };
+    t.mock.method(globalThis, "fetch", async (url) => url.endsWith("csrf")
+      ? json({ success: true, data: { csrfToken: "x".repeat(43) } })
+      : json({ success: true, data: { user: { ...profile, firebaseUid: "private" } } }));
+    assert.deepEqual(await authApi.login("test-id-token", false), profile);
+    assert.deepEqual(await authApi.me(), profile);
+  });
+}
+
+test("dashboard fetch forwards the session only to the configured backend without caching or redirects", async (t) => {
+  let call;
+  t.mock.method(globalThis, "fetch", async (url, options) => {
+    call = { url, options };
+    return json({ success: true, data: { user: { ...user, role: "staff" } } });
+  });
+  assert.equal((await fetchDashboardUser("http://127.0.0.1:3001", "petly-session=test-session", "staff")).role, "staff");
+  assert.equal(call.url, "http://127.0.0.1:3001/api/v1/staff/dashboard");
+  assert.deepEqual(call.options.headers, { Cookie: "petly-session=test-session" });
+  assert.equal(call.options.cache, "no-store");
+  assert.equal(call.options.redirect, "error");
+});
+
+test("dashboard fetch fails closed on wrong-role data and preserves authentication and service errors", async (t) => {
+  const mockFetch = t.mock.method(globalThis, "fetch", async () => json(envelope));
+  const read = () => fetchDashboardUser("http://127.0.0.1:3001", "petly-session=test-session", "admin");
+  await assert.rejects(read(), (error) => error.code === "FORBIDDEN" && error.status === 403);
+  for (const [status, code] of [[401, "UNAUTHENTICATED"], [403, "FORBIDDEN"], [409, "PROFILE_INCOMPLETE"], [503, "PROFILE_UNAVAILABLE"]]) {
+    mockFetch.mock.mockImplementation(async () => json({ success: false, error: { code } }, status));
+    await assert.rejects(read(), (error) => error.status === status && error.code === code);
+  }
 });
 
 test("server errors preserve codes needed for profile recovery and session expiry", async (t) => {

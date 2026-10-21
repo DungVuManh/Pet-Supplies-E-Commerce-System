@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+export const USER_ROLES = ["customer", "staff", "admin"];
+
 const userSchema = new mongoose.Schema(
  {
   firebaseUid: { type: String, required: true, unique: true, immutable: true },
@@ -8,7 +10,7 @@ const userSchema = new mongoose.Schema(
   phone: { type: String, required: true },
   role: {
    type: String,
-   enum: ["customer"],
+   enum: USER_ROLES,
    default: "customer",
    immutable: true,
   },
