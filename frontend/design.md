@@ -57,8 +57,8 @@ Các mã ở cột Figma là giá trị nguồn, không có nghĩa mọi token �
 | `Danger/Foreground` | `#DC2626` | Màu lỗi trong Figma; xem lưu ý contrast bên dưới |
 | `Danger/Background` | `#FEF2F2` | Nền lỗi; chưa có token CSS riêng |
 | `Danger/Focus` | `#DB2626` | Màu focus lỗi riêng trong Styles; không tự gộp với foreground |
-| `Admin/Color/Brand Teal` | `#0F766E` | Nhận diện Admin; chưa triển khai theme Admin |
-| `Admin/Color/Brand Subtle` | `#EAF5F3` | Nền nhận diện Admin; chưa triển khai theme Admin |
+| `Admin/Color/Brand Teal` | `#0F766E` | Nhận diện Admin; override scoped tại `[data-workspace="admin"]` |
+| `Admin/Color/Brand Subtle` | `#EAF5F3` | Nền nhận diện Admin; override scoped tại `[data-workspace="admin"]` |
 | `Icons/Black` | `#000000` | Một số asset icon; không thay màu toàn bộ icon thành đen |
 | `Components/Canvas` | `#FAFBFE` | Nền board component; không mặc định dùng cho trang sản phẩm |
 
@@ -67,6 +67,7 @@ Các mã ở cột Figma là giá trị nguồn, không có nghĩa mọi token �
 - Khai báo token dùng chung trong [app/globals.css](app/globals.css); component dùng `text-ink`, `text-muted`, `bg-brand`, `border-line` hoặc biến ngữ nghĩa tương đương. Không rải lại mã hex trong JSX.
 - Khi cần trạng thái mới, bổ sung token còn thiếu trước khi dùng ở nhiều component. Không giả định token trong bảng đã có sẵn.
 - Khi triển khai Admin, đặt override nhận diện ở layout/theme Admin; không thay `--color-brand` toàn ứng dụng thành teal.
+- Trang khung dashboard dùng shell tối giản, thông tin tài khoản và trạng thái chưa có dữ liệu; chưa triển khai sidebar/metric theo dashboard Figma. Admin hover `#115E59` là quy ước bổ sung, không phải giá trị đã xác nhận từ Figma.
 - `--color-brand-hover: #1D4ED8` là quy ước đang dùng trong code, chưa được xác nhận là màu hover từ Figma. Không coi đây là màu hover chung cho cả Admin.
 - `--color-danger` hiện là `#B91C1C`, khác Figma. Trên nền `#FEF2F2`, cặp `#DC2626` chỉ đạt contrast khoảng **4,4148:1**, dưới mức 4,5:1 cho chữ thường; `#B91C1C` đạt khoảng **5,9146:1**. Không ép text lỗi nhỏ sang màu nguồn nếu làm mất khả năng đọc. Giữ khác biệt này được ghi nhận, đo từng cặp foreground/background và thống nhất variant accessible trước khi mở rộng badge lỗi. Đây là phép tính từ mã màu theo công thức WCAG, không phải kết quả audit toàn trang.
 

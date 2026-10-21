@@ -1,5 +1,4 @@
 import { randomBytes, timingSafeEqual } from "node:crypto";
-import { parseCookie } from "cookie";
 import { AppError } from "../common/errors/app-error.js";
 import { getFirebaseAuth } from "../config/firebase.js";
 import { publicUser, userRepository } from "../models/user.model.js";
@@ -9,50 +8,11 @@ import {
  sessionSchema,
 } from "../validators/auth.schema.js";
 
+import { cookieSettings, firebaseError, database, validateUserRole } from "../common/middlewares/auth.middleware.js";
+
 const DAY = 24 * 60 * 60 * 1000;
 
-function firebaseError(error, operation) {
- const code =
-  typeof error?.code === "string" && /^[a-z-]+\/[a-z-]+$/.test(error.code)
-   ? error.code
-   : "unknown";
- console.warn("[auth] Firebase request rejected", { operation, code });
- if (
-  [
-   "auth/id-token-expired",
-   "auth/id-token-revoked",
-   "auth/invalid-id-token",
-   "auth/argument-error",
-   "auth/user-disabled",
-   "auth/user-not-found",
-   "auth/session-cookie-expired",
-   "auth/session-cookie-revoked",
-   "auth/invalid-session-cookie",
-  ].includes(error.code)
- ) {
-  return new AppError(
-   "Phiên đăng nhập không hợp lệ hoặc đã hết hạn.",
-   401,
-   "UNAUTHENTICATED",
-  );
- }
- return new AppError(
-  "Chưa thể kết nối dịch vụ xác thực. Vui lòng thử lại.",
-  503,
-  "AUTH_UNAVAILABLE",
- );
-}
-
 const csrfPattern = /^[A-Za-z0-9_-]{43}$/;
-
-function cookieSettings(request) {
- const secure = request.app.locals.config.NODE_ENV === "production";
- return {
-  sessionName: secure ? "__Host-petly-session" : "petly-session",
-  csrfName: secure ? "__Host-petly-csrf" : "petly-csrf",
-  cookieOptions: { httpOnly: true, secure, sameSite: "lax", path: "/" },
- };
-}
 
 async function verifyIdToken(request, idToken) {
  let claims;
@@ -98,23 +58,6 @@ async function verifyIdToken(request, idToken) {
   );
  }
  return claims;
-}
-
-async function database(operation) {
- try {
-  return await operation();
- } catch {
-  throw new AppError(
-   "Chưa thể lưu hoặc đọc hồ sơ. Vui lòng thử lại.",
-   503,
-   "PROFILE_UNAVAILABLE",
-  );
- }
-}
-
-export function readCookies(request, _response, next) {
- request.authCookies = parseCookie(request.headers.cookie || "");
- next();
 }
 
 export function csrf(request, response) {
@@ -166,6 +109,7 @@ async function sendSession(request, response, input, user) {
    "PROFILE_INCOMPLETE",
   );
  }
+ validateUserRole(user);
  const expiresIn = input.remember ? 14 * DAY : DAY;
  let cookie;
  try {
@@ -176,13 +120,13 @@ async function sendSession(request, response, input, user) {
  } catch (error) {
   throw firebaseError(error, "create-session-cookie");
  }
- const customer = publicUser(user);
+ const profile = publicUser(user);
  const { sessionName, cookieOptions } = cookieSettings(request);
  response.cookie(sessionName, cookie, {
   ...cookieOptions,
   ...(input.remember ? { maxAge: expiresIn } : {}),
  });
- response.json({ success: true, data: { user: customer } });
+ response.json({ success: true, data: { user: profile } });
 }
 
 export async function register(request, response) {
@@ -205,33 +149,8 @@ export async function login(request, response) {
  await sendSession(request, response, input, user);
 }
 
-export async function me(request, response) {
- const { sessionName, cookieOptions } = cookieSettings(request);
- try {
-  const cookie = request.authCookies[sessionName];
-  if (!cookie)
-   throw new AppError("Bạn chưa đăng nhập.", 401, "UNAUTHENTICATED");
-  let claims;
-  try {
-   claims = await getFirebaseAuth(
-    request.app.locals.config,
-   ).verifySessionCookie(cookie, true);
-  } catch (error) {
-   throw firebaseError(error, "verify-session-cookie");
-  }
-  const user = await database(() => userRepository.findByUid(claims.uid));
-  if (!user)
-   throw new AppError(
-    "Vui lòng hoàn tất hồ sơ để tiếp tục.",
-    409,
-    "PROFILE_INCOMPLETE",
-   );
-  response.json({ success: true, data: { user: publicUser(user) } });
- } catch (error) {
-  if (error.statusCode === 401)
-   response.clearCookie(sessionName, cookieOptions);
-  throw error;
- }
+export function me(request, response) {
+ response.json({ success: true, data: { user: publicUser(request.user) } });
 }
 
 export function logout(request, response) {

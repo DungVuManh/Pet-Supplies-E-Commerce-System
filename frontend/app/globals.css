@@ -2,12 +2,21 @@
 
 :root {
   color-scheme: light;
+  --brand: #2563eb;
+  --brand-hover: #1d4ed8;
+  --brand-subtle: #eff6ff;
+}
+
+[data-workspace="admin"] {
+  --brand: #0f766e;
+  --brand-hover: #115e59;
+  --brand-subtle: #eaf5f3;
 }
 
 @theme inline {
-  --color-brand: #2563eb;
-  --color-brand-hover: #1d4ed8;
-  --color-brand-subtle: #eff6ff;
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-subtle: var(--brand-subtle);
   --color-ink: #172033;
   --color-muted: #64748b;
   --color-canvas: #f8fafc;

@@ -17,7 +17,7 @@ export function AccountMenu() {
   async function logout() {
     if (locked.current) return;
     locked.current = true; setPending(true); setFailure("");
-    try { await authApi.logout(); acceptUser(null); router.replace("/"); }
+    try { await authApi.logout(); acceptUser(null); router.replace("/"); router.refresh(); }
     catch (error) { setFailure(authErrorMessage(error)); }
     finally { locked.current = false; setPending(false); }
   }
@@ -37,6 +37,10 @@ export function AccountMenu() {
     <div className="absolute right-0 top-full z-20 mt-3 w-64 max-w-[calc(100vw-3rem)] whitespace-normal rounded-lg border border-line bg-surface p-4 shadow-lg">
       <p className="break-words font-semibold">{user.fullName}</p>
       <p className="mt-1 break-all text-xs text-muted">{user.email}</p>
+      {user.role !== "customer" && <Link href={`/${user.role}/dashboard`} prefetch={false}
+        className="mt-3 flex min-h-11 items-center font-semibold text-brand hover:underline">
+        {user.role === "staff" ? "Dashboard nhân viên" : "Dashboard quản trị"}
+      </Link>}
       <button type="button" disabled={pending} className="mt-3 min-h-11 text-sm font-semibold text-brand hover:underline disabled:opacity-50" onClick={() => { void logout(); }}>{pending ? "Đang đăng xuất…" : "Đăng xuất"}</button>
       {failure && <p role="alert" className="mt-2 text-xs text-danger">{failure}</p>}
     </div>

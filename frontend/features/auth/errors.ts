@@ -1,6 +1,7 @@
 export function authErrorMessage(error: unknown): string {
   const code = error && typeof error === "object" && "code" in error ? error.code : "";
   switch (code) {
+    case "FORBIDDEN": return "Bạn không có quyền truy cập chức năng này.";
     case "auth/invalid-email": return "Địa chỉ email chưa đúng định dạng.";
     case "auth/invalid-credential":
     case "auth/wrong-password":

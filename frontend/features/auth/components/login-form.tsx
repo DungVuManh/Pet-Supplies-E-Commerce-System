@@ -13,14 +13,14 @@ import { CompleteProfileForm } from "./complete-profile-form";
 import { AuthApiError } from "../api";
 import { loginWithEmail, clearFirebaseIdentity } from "../auth-actions";
 import { useAuth } from "../auth-provider";
-import type { Customer } from "../types";
+import type { AuthUser } from "../types";
 
 export function LoginForm() {
   const router = useRouter();
   const { acceptUser } = useAuth();
   const [needsProfile, setNeedsProfile] = useState(false);
   const [remember, setRemember] = useState(false);
-  function finish(user: Customer) { acceptUser(user); router.replace("/"); }
+  function finish(user: AuthUser) { acceptUser(user); router.replace("/"); }
   const { errors, notice, failure, pending, onSubmit, onChange } = useAuthForm(validateLogin, async (data) => {
     const rememberChoice = data.get("remember") === "on";
     setRemember(rememberChoice);

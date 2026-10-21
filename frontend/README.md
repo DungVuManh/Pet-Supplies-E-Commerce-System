@@ -1,7 +1,7 @@
 # Petly frontend
 
 Next.js App Router, React, TypeScript, and Tailwind CSS. Implemented screens:
-`Customer/Product/Home`, `Customer/Auth/Login`, and `Customer/Auth/Register`.
+`Customer/Product/Home`, shared sign-in/registration, and Staff/Admin dashboard shells.
 
 Read [design.md](design.md) before changing UI. It defines the Figma-backed
 design tokens, role-specific layouts, reusable component rules, responsive
@@ -17,9 +17,12 @@ npm run dev:frontend
 
 - `/`: public product home, accessible without an account or redirect to login.
 - `/?q=thuc+an&category=cat`: shareable search/category filter on the home catalog.
-- `/login`: customer sign-in UI.
+- `/login`: shared customer/staff/admin sign-in UI.
 - `/register`: customer registration UI.
 - `/forgot-password`: email password recovery.
+- `/staff/dashboard`: Staff only; public profile and workspace empty state.
+- `/admin/dashboard`: Admin only; public profile and workspace empty state.
+- `/forbidden`: wrong-role access explanation and home link.
 
 Home and the guest cart remain public. Authentication requires Firebase,
 the Express backend and MongoDB. Follow [authentication setup](../docs/authentication.md)
@@ -66,7 +69,7 @@ shared controls in `components/ui` and feature-specific behavior in `features`.
   session cookie; the client SDK uses memory-only persistence and signs out after
   that exchange. Passwords and tokens are not saved in browser storage.
 - Successful sign-in/registration returns to home. The header shows the customer
-  name and sign-out action. Reload/focus reads `/api/v1/auth/me`; connection
+  name, role-specific dashboard link for Staff/Admin, and sign-out action. Reload/focus reads `/api/v1/auth/me`; connection
   failures offer retry instead of pretending the user is signed out.
 - Remember-me stores the session cookie for 14 days. Otherwise it is a browser
   session cookie whose signed token expires after 24 hours.
@@ -90,7 +93,11 @@ shared controls in `components/ui` and feature-specific behavior in `features`.
   its own row. The footer stays below the content rather than covering it.
 
 Client validation is for user feedback. Express validates profile data and derives
-identity from verified Firebase tokens. Next rewrites auth requests to
+identity from verified Firebase tokens. Dashboard Server Components check the
+session and exact role through Express before rendering, with a Suspense boundary
+for request-time access. Staff/Admin shells are outside the storefront layout;
+Admin uses scoped teal brand tokens. Missing sessions redirect to `/login`, wrong
+roles to `/forbidden`, and service failures offer retry. Next rewrites auth/staff/admin requests to
 `BACKEND_ORIGIN` (default `http://127.0.0.1:3001`); private credentials belong only
 in the backend. Analytics, phone OTP, Google sign-in and checkout are not included.
 
@@ -105,6 +112,14 @@ npm --prefix frontend run build
 ```
 
 Validation tests use Node's built-in test runner without additional dependencies.
+Optional browser smoke checks run with `node tests/rbac-browser.mjs` against the
+running frontend (`TEST_BASE_URL`, default `http://localhost:3000`). They require
+Playwright and Chrome; `PLAYWRIGHT_MODULE_PATH` can point to an existing Playwright
+installation without adding a project dependency. The script uses isolated browser
+contexts and only mocks `/auth/me` in the browser: it verifies role-specific menu
+links, keyboard access, responsive layout and that fabricated client roles cannot
+bypass server redirects. Screenshots go to `.next/rbac-browser/screenshots`.
+It does not replace live authorized-dashboard checks with Firebase/MongoDB.
 Manually verify all routes at 320, 768, 1024, and 1440px, plus blank submission,
 invalid email/phone, password mismatch, missing consent, auth navigation, public
 home access, accent-insensitive search, category/empty results, repeated cart

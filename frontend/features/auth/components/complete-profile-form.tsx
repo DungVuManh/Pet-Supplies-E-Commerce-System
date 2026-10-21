@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { completeProfile } from "../auth-actions";
 import { useAuthForm } from "../use-auth-form";
 import { validateProfile } from "../validation";
-import type { Customer } from "../types";
+import type { AuthUser } from "../types";
 import { ProfileFields, TermsCheckbox } from "./profile-fields";
 import { AuthFeedback } from "./auth-feedback";
 
 export function CompleteProfileForm({ remember, onSuccess, onCancel }: {
-  remember: boolean; onSuccess: (user: Customer) => void; onCancel: () => Promise<void>;
+  remember: boolean; onSuccess: (user: AuthUser) => void; onCancel: () => Promise<void>;
 }) {
   const { errors, notice, failure, pending, onSubmit, onChange } = useAuthForm(validateProfile, async (data) => {
     const user = await completeProfile({ fullName: String(data.get("fullName") || "").trim(),
