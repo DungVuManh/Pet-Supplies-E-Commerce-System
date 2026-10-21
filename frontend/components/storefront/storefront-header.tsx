@@ -5,7 +5,7 @@ import { StorefrontSearch, StorefrontSearchForm } from "./storefront-search";
 import { AccountMenu } from "@/features/auth/components/account-menu";
 
 const categories = [
-  { name: "Sản phẩm", href: "/#featured-products" },
+  { name: "Sản phẩm", href: "/listProduct/allProducts" },
   { name: "Dành cho chó", href: "/?category=dog#featured-products" },
   { name: "Dành cho mèo", href: "/?category=cat#featured-products" },
 ];
