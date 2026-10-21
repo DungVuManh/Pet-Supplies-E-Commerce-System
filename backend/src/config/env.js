@@ -22,6 +22,8 @@ const environmentSchema = z.object({
     .enum(['development', 'test', 'production'])
     .default('development'),
   PORT: z.coerce.number().int().min(1).max(65535).default(3001),
+  FIREBASE_PROJECT_ID: z.string().trim().min(1).default('wdp-pet-supplies'),
+  GOOGLE_APPLICATION_CREDENTIALS: z.string().trim().min(1).optional(),
   MONGODB_URI: z
     .string()
     .trim()

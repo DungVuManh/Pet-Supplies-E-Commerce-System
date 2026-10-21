@@ -7,9 +7,14 @@ import { AppError } from "./common/errors/app-error.js";
 import { errorMiddleware } from "./common/middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./common/middlewares/not-found.middleware.js";
 import { createOpenApiDocument } from "./docs/swagger.js";
-export function createApp(config) {
+import { createAuthRouter } from "./modules/auth/auth.routes.js";
+export function createApp(config, { authService } = {}) {
  const app = express();
  app.disable("x-powered-by");
+ app.use('/api/v1/auth', (_request, response, next) => {
+  response.set('Cache-Control', 'no-store');
+  next();
+ });
  app.use(
   helmet({
    // HTTP localhost docs must not have their asset URLs upgraded to HTTPS.
@@ -52,7 +57,7 @@ export function createApp(config) {
   swaggerUi.serve,
   swaggerUi.setup(createOpenApiDocument(config)),
  );
- // Mount future feature routers at /api/v1 before the fallback handlers.
+ app.use('/api/v1/auth', createAuthRouter(config, authService));
  app.use(notFoundMiddleware);
  app.use(errorMiddleware);
  return app;

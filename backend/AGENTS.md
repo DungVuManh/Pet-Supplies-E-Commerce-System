@@ -5,9 +5,9 @@ These instructions apply to `backend/`. Keep this file aligned with the code and
 
 ## Current scope
 
-- This is an Express 5, MongoDB/Mongoose, JavaScript ESM backend foundation. It has
-  configuration, middleware, Swagger UI, database lifecycle code, and tests, but no
-  business routes, models, seed data, or authentication yet.
+- This is an Express 5, MongoDB/Mongoose, JavaScript ESM backend with Firebase
+  customer authentication, session cookies, profile persistence, middleware,
+  Swagger UI and tests. Product/cart/order APIs and seed data are not implemented.
 - Use Node.js 24.x and npm 11+ as declared in `package.json`. Run commands from
   `backend/`. Use `npm ci` to install the locked dependencies.
 - The tracked backend has no `.nvmrc`, Docker Compose file, ESLint configuration,
@@ -30,10 +30,8 @@ On macOS/Linux, use `cp .env.example .env`. `npm run dev` starts Nodemon on
 once and `npm run test:watch` runs it in watch mode. Supertest needs permission to
 open local loopback sockets, but the tests do not require a running MongoDB server.
 
-The copied `.env.example` sets `PORT=3000`, so Swagger UI is at
-`http://localhost:3000/api/docs/` with that file loaded. Without `PORT` in the
-environment, `src/config/env.js` defaults to **3001**. The frontend's development
-server also uses port 3000; choose a free backend port when running both. Keep
+The copied `.env.example` and runtime default use `PORT=3001`, so Swagger UI is at
+`http://localhost:3001/api/docs/`. The frontend uses port 3000. Keep
 the example, runtime default, tests, and documentation in sync if you change port
 behavior. `CORS_ORIGIN=http://localhost:3000` identifies the allowed frontend
 origin; it does not select the backend listening port.
@@ -48,12 +46,16 @@ origin; it does not select the backend listening port.
   `http://localhost:3000`. Supply both explicitly in production. `CORS_ORIGIN`
   accepts comma-separated, exact HTTP(S) origins without paths or trailing
   slashes. Invalid configuration reports field names without secret values.
-- `MONGODB_PORT` and `MONGODB_DATABASE` appear in `.env.example` but are not read
-  by the application. They do not change `MONGODB_URI` or create a database.
-- `src/server.js` validates configuration, connects to MongoDB, then listens on
+- `FIREBASE_PROJECT_ID` defaults to `wdp-pet-supplies`. Firebase Admin uses
+  Application Default Credentials; locally set `GOOGLE_APPLICATION_CREDENTIALS`
+  to an absolute service-account JSON path outside the repository. Never log the
+  file contents or put them in frontend configuration. See `../docs/authentication.md`.
+- `src/server.js` initializes Firebase, connects to MongoDB and explicitly creates
+  the unique Firebase UID index, then listens on
   the configured port. It drains requests and disconnects Mongoose on SIGINT or
   SIGTERM, with a ten-second shutdown deadline. Connection errors must not log
-  raw database URIs or driver exceptions.
+  raw database URIs or driver exceptions. MongoDB must allow reads, writes and
+  index creation; a connected socket alone does not prove authentication works.
 - The default local MongoDB URI has no replica set configuration. Use a replica
   set before introducing multi-document transactions.
 
@@ -63,26 +65,39 @@ origin; it does not select the backend listening port.
   MongoDB, or opening a listener. Keep those side effects in `src/server.js` so
   application tests remain isolated.
 - Middleware runs in this order: Helmet, explicit CORS, rate limiting for
-  `/api/v1`, 100 KB JSON and URL-encoded parsers, Swagger UI at `/api/docs`, then
-  404 and error handlers. Mount future feature routers under `/api/v1` before the
+  `/api/v1`, 100 KB JSON and URL-encoded parsers, Swagger UI at `/api/docs`, auth
+  router at `/api/v1/auth`, then 404 and error handlers. Auth no-store headers are
+  set before CORS/parsers/limiting so error responses also remain uncacheable.
+  Mount future feature routers under `/api/v1` before the
   fallback handlers. The rate limit is 100 requests per IP per 15 minutes with
   an in-memory store; review proxy trust and the store before scaling out.
 - Keep errors in the common `{ success: false, message, error: { code } }`
   envelope. Use `AppError` for intentional public errors; unexpected errors get
   a generic message without a stack. Express 5 forwards rejected route promises.
-- `src/modules/` is empty and reserved for feature modules. Add only the module
-  needed for an agreed feature. Routes bind handlers; controllers translate HTTP;
+- `src/modules/auth/` owns customer authentication. Routes bind handlers; controllers translate HTTP;
   services own business logic; Mongoose models own persistence; Zod schemas
   validate input. Put reusable technical concerns in `src/common/`. Use explicit
   `.js` extensions in ESM imports.
-- `src/docs/swagger.js` currently defines OpenAPI 3 with no operations. Unknown
-  routes return JSON 404 responses. Update the document when adding routes.
+- `src/docs/swagger.js` combines OpenAPI 3 with the auth module's operation/schema
+  definitions. Unknown routes return JSON 404. Update the document when adding routes.
+- Auth mutation endpoints require JSON, an allowed Origin and matching CSRF
+  cookie/header. Identity and email come from Firebase verification, never the
+  request body. Password provider and <5-minute sign-in are required to exchange
+  an ID token for an HttpOnly session. `/me` checks revocation; logout clears only
+  the current browser cookie. Default tokens last 24 hours; remembered sessions
+  last 14 days. Production uses Secure `__Host-` cookies. Do not cache auth data.
+- User profiles are insert-only upserts keyed by unique Firebase UID. Registration
+  retries must never overwrite an existing profile or accept a client role.
+  Preserve incomplete-profile recovery when changing the registration flow.
 
 ## Verification
 
 - `tests/env.test.js`, `tests/app.test.js`, and `tests/database.test.js` cover
   configuration, HTTP middleware/error behavior, Swagger assets, and mocked
   database lifecycle. Run `npm test` after backend changes.
+- `tests/auth.test.js` covers auth/CSRF HTTP boundaries, token/session validation,
+  public profile projection, insert-only persistence and dependency failures using
+  injected adapters. It does not verify Firebase or MongoDB live connectivity.
 - Check any command or file mentioned here against the current tree before
   updating instructions. Do not claim a server or MongoDB smoke test passed
   unless it was actually run.

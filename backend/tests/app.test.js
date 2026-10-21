@@ -36,7 +36,7 @@ describe('application foundation', () => {
     const script = await request(app).get('/api/docs/swagger-ui-init.js');
     expect(script.status).toBe(200);
     expect(script.text).toContain('Pet Supplies E-Commerce API');
-    expect(script.text).toContain('"paths": {}');
+    expect(script.text).toContain('/auth/session');
     expect(page.headers['content-security-policy']).not.toContain(
       'upgrade-insecure-requests',
     );

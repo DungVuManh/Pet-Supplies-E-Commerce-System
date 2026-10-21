@@ -5,6 +5,7 @@ describe('environment configuration', () => {
     expect(parseEnvironment({})).toEqual({
       NODE_ENV: 'development',
       PORT: 3001,
+      FIREBASE_PROJECT_ID: 'wdp-pet-supplies',
       MONGODB_URI: 'mongodb://127.0.0.1:27017/pet_supplies',
       CORS_ORIGIN: ['http://localhost:3000'],
     });

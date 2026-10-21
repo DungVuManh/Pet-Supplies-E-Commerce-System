@@ -1,3 +1,5 @@
+import { authPaths, customerSchema } from '../modules/auth/auth.openapi.js';
+
 export function createOpenApiDocument(config) {
   return {
     openapi: '3.0.3',
@@ -5,7 +7,7 @@ export function createOpenApiDocument(config) {
       title: 'Pet Supplies E-Commerce API',
       version: '0.1.0',
       description:
-        'Backend foundation. Business endpoints are not implemented yet.',
+        'Firebase customer authentication. Product, cart and order APIs are not implemented yet.',
     },
     servers: [
       {
@@ -14,9 +16,12 @@ export function createOpenApiDocument(config) {
       },
       { url: '/api/v1', description: 'Current deployment' },
     ],
-    paths: {},
+    paths: authPaths,
     components: {
+      securitySchemes: { sessionCookie: { type: 'apiKey', in: 'cookie',
+        name: config.NODE_ENV === 'production' ? '__Host-petly-session' : 'petly-session' } },
       schemas: {
+        Customer: customerSchema,
         ErrorResponse: {
           type: 'object',
           required: ['success', 'message', 'error'],

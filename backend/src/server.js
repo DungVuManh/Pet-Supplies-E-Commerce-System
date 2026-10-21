@@ -2,6 +2,8 @@ import { createServer } from "node:http";
 import { createApp } from "./app.js";
 import { connectDatabase, disconnectDatabase } from "./config/database.js";
 import { loadEnvironment } from "./config/env.js";
+import { getFirebaseAuth } from "./config/firebase.js";
+import { User } from "./modules/auth/user.model.js";
 async function startServer() {
  const config = loadEnvironment();
  const server = createServer(createApp(config));
@@ -33,7 +35,10 @@ async function startServer() {
  process.once("SIGINT", () => void shutdown(0));
  process.once("SIGTERM", () => void shutdown(0));
  try {
+  getFirebaseAuth(config);
   await connectDatabase(config.MONGODB_URI);
+  // autoIndex is disabled globally; the UID uniqueness constraint is required.
+  await User.createIndexes();
   // A termination signal may arrive while the initial connection is pending.
   if (stopping) {
    await disconnectDatabase();
@@ -53,7 +58,7 @@ async function startServer() {
   console.info(`Backend listening on port ${config.PORT}`);
  } catch {
   console.error(
-   "Startup failed; check MongoDB availability and the configured port",
+   "Startup failed; check Firebase credentials, MongoDB availability, indexes and the configured port",
   );
   await shutdown(1);
  }
