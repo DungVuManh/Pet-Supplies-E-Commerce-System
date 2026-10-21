@@ -6,8 +6,10 @@ These instructions apply to `backend/`. Keep this file aligned with the code and
 ## Current scope
 
 - This is an Express 5, MongoDB/Mongoose, JavaScript ESM backend with Firebase
-  customer authentication, session cookies, profile persistence, middleware
-  and tests. Product/cart/order APIs and seed data are not implemented.
+  authentication for customer/staff/admin, session cookies, profile persistence, middleware
+  and tests. All 14 SRS section 5.2 models are defined, including PetProfile and
+  Wishlist. Role-specific dashboard bootstrap APIs return the public profile only.
+  Product/cart/order APIs and seed data are not implemented.
 - Use Node.js 24.x and npm 11+ as declared in `package.json`. Run commands from
   `backend/`. Use `npm ci` to install the locked dependencies.
 - The tracked backend has no `.nvmrc`, Docker Compose file, ESLint configuration,
@@ -51,11 +53,16 @@ origin; it does not select the backend listening port.
   to an absolute service-account JSON path outside the repository. Never log the
   file contents or put them in frontend configuration. See `../docs/authentication.md`.
 - `src/server.js` initializes Firebase, connects to MongoDB and explicitly creates
-  the unique Firebase UID index, then listens on
+  all declared model indexes through `createModelIndexes()`, then listens on
   the configured port. It drains requests and disconnects Mongoose on SIGINT or
   SIGTERM, with a ten-second shutdown deadline. Connection errors must not log
   raw database URIs or driver exceptions. MongoDB must allow reads, writes and
   index creation; a connected socket alone does not prove authentication works.
+- `src/models/index.js` exports the 14 persistence models. See
+  `src/models/README.md` for collections, field conventions, indexes and validation
+  limits. Keep Firebase identity fields unchanged; domain user references use its MongoDB
+  `_id`, not its Firebase UID. Models do not implement stock reservation, payment
+  verification, review purchase eligibility or authorization.
 - The default local MongoDB URI has no replica set configuration. Use a replica
   set before introducing multi-document transactions.
 
@@ -67,7 +74,7 @@ origin; it does not select the backend listening port.
   `app.locals.config`; handlers access it through `request.app.locals.config`.
 - Middleware runs in this order: Helmet, explicit CORS, rate limiting for
   `/api/v1`, 100 KB JSON and URL-encoded parsers, auth
-  router at `/api/v1/auth`, then 404 and error handlers. Auth no-store headers are
+  router at `/api/v1/auth`, workspace router under `/api/v1`, then 404 and error handlers. Auth/workspace no-store headers are
   set before CORS/parsers/limiting so error responses also remain uncacheable.
   Mount future feature routers under `/api/v1` before the
   fallback handlers. The rate limit is 100 requests per IP per 15 minutes with
@@ -94,6 +101,12 @@ response)`); routers import those handlers and export the Express router.
   an ID token for an HttpOnly session. `/me` checks revocation; logout clears only
   the current browser cookie. Default tokens last 24 hours; remembered sessions
   last 14 days. Production uses Secure `__Host-` cookies. Do not cache auth data.
+- Protected requests use `readCookies`, `requireAuth`, and exact-role `requireRole`
+  from `src/common/middlewares/auth.middleware.js`. Firebase sessions check
+  revocation; current roles are loaded from MongoDB on every request. Staff and
+  Admin do not inherit each other's workspace access. The dashboard endpoints at
+  `/api/v1/staff/dashboard` and `/api/v1/admin/dashboard` return only public user
+  fields. Their responses, including errors, use no-store headers before middleware.
 - User profiles are insert-only upserts keyed by unique Firebase UID. Registration
   retries must never overwrite an existing profile or accept a client role.
   Preserve incomplete-profile recovery when changing the registration flow.
@@ -106,6 +119,10 @@ response)`); routers import those handlers and export the Express router.
 - `tests/auth.test.js` covers auth/CSRF HTTP boundaries, token/session validation,
   public profile projection, insert-only persistence and dependency failures using
   mocked dependencies. It does not verify Firebase or MongoDB live connectivity.
+- `tests/models.test.js` covers document validation, defaults, snapshot structure
+  and index declarations without a database. `tests/database.test.js` also checks
+  explicit index initialization using mocked model methods. These tests do not
+  verify unique constraints or concurrency against a live MongoDB server.
 - Check any command or file mentioned here against the current tree before
   updating instructions. Do not claim a server or MongoDB smoke test passed
   unless it was actually run.

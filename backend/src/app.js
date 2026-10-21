@@ -6,12 +6,13 @@ import { AppError } from "./common/errors/app-error.js";
 import { errorMiddleware } from "./common/middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./common/middlewares/not-found.middleware.js";
 import authRouter from "./routers/auth.router.js";
+import workspaceRouter from "./routers/workspace.router.js";
 
 export function createApp(config) {
  const app = express();
  app.locals.config = config;
  app.disable("x-powered-by");
- app.use("/api/v1/auth", (_request, response, next) => {
+ app.use(["/api/v1/auth", "/api/v1/staff", "/api/v1/admin"], (_request, response, next) => {
   response.set("Cache-Control", "no-store");
   next();
  });
@@ -44,6 +45,7 @@ export function createApp(config) {
  app.use(express.json({ limit: "100kb" }));
  app.use(express.urlencoded({ extended: false, limit: "100kb" }));
  app.use("/api/v1/auth", authRouter);
+ app.use("/api/v1", workspaceRouter);
  app.use(notFoundMiddleware);
  app.use(errorMiddleware);
  return app;
