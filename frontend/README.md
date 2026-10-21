@@ -1,7 +1,7 @@
 # Petly frontend
 
-Next.js App Router, React, TypeScript, and Tailwind CSS. The first implemented
-screens are the Figma `Customer/Auth/Login` and `Customer/Auth/Register` designs.
+Next.js App Router, React, TypeScript, and Tailwind CSS. Implemented screens:
+`Customer/Product/Home`, `Customer/Auth/Login`, and `Customer/Auth/Register`.
 
 Read [design.md](design.md) before changing UI. It defines the Figma-backed
 design tokens, role-specific layouts, reusable component rules, responsive
@@ -15,9 +15,10 @@ From the repository root:
 npm run dev:frontend
 ```
 
+- `/`: public product home, accessible without an account or redirect to login.
+- `/?q=thuc+an&category=cat`: shareable search/category filter on the home catalog.
 - `/login`: customer sign-in UI.
 - `/register`: customer registration UI.
-- `/`: temporarily redirects to `/login` until the storefront home is implemented.
 
 These pages run independently of the backend and MongoDB.
 
@@ -28,16 +29,18 @@ app/
   layout.tsx                   Vietnamese locale, local Inter font, metadata
   globals.css                  Semantic color and typography tokens
   (customer)/layout.tsx        Shared storefront header and footer
+  (customer)/page.tsx          Public product home
   (customer)/(auth)/layout.tsx Shared auth layout and welcome panel
   (customer)/(auth)/login/     Thin login route
   (customer)/(auth)/register/  Thin registration route
 components/
   storefront/                 Storefront header and footer
   ui/                         Button, TextField, Checkbox
-features/auth/
-  components/                 AuthCard, AuthWelcome, forms, feedback
-  use-auth-form.ts            Shared client-side form interactions
-  validation.ts               Pure validation functions
+features/
+  auth/                       Auth components, form hook, validation
+  catalog/                    Sample products, filtering, hero/category/product cards
+  cart/                       In-memory guest cart, provider, accessible preview dialog
+lib/                          Shared currency formatting
 public/
   images/                     Original companion photo from Figma
   icons/                      Original search and benefit SVGs from Figma
@@ -59,8 +62,16 @@ shared controls in `components/ui` and feature-specific behavior in `features`.
 - Valid submission shows an availability notice. It does **not** authenticate,
   create an account, call an API, or save credentials or the remember-me choice.
 - Forgot-password displays the support contact; no reset request is sent.
-- Search is disabled; product/category/cart/policy entries are display-only until
-  their respective screens are implemented. Auth links work between both pages.
+- Home uses a guest greeting and generic categories, with no invented customer
+  name, pets, notifications, or prefilled cart count.
+- Search ignores Vietnamese accents and case. Category filters combine with the
+  search query; filters live in the URL and empty results offer a reset link.
+- Header search works from auth pages too and returns to the public catalog.
+- Guests can add/remove sample products and view quantities and totals in the
+  cart dialog. Cart state survives client-side navigation within the customer
+  layout, resets on a full reload, and is not stored or sent to a backend.
+- Product details, checkout, offers, and policy pages are not implemented. There
+  is no fake checkout or payment action. Auth links work between both forms.
 - Desktop preserves Figma's two-column layout. Below 1024px the welcome panel is
   hidden and the form becomes a single column; mobile navigation scrolls within
   its own row. The footer stays below the content rather than covering it.
@@ -80,7 +91,13 @@ npm --prefix frontend run build
 ```
 
 Validation tests use Node's built-in test runner without additional dependencies.
-Manually verify both routes at 320, 768, 1024, and 1440px, plus blank submission,
-invalid email/phone, password mismatch, missing consent, and auth navigation.
+Manually verify all routes at 320, 768, 1024, and 1440px, plus blank submission,
+invalid email/phone, password mismatch, missing consent, auth navigation, public
+home access, accent-insensitive search, category/empty results, repeated cart
+adds, item removal, and dialog focus/Escape behavior.
+
+The home layout follows the screenshot supplied on 2026-10-21 because the live
+Figma MCP read was rate limited. Original product photos/icons were downloaded
+from asset URLs obtained during the earlier successful Figma read.
 
 Design source: https://www.figma.com/design/icvgUyrqj9YruHQyN67vUv/WDP

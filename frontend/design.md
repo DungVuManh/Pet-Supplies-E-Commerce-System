@@ -1,6 +1,6 @@
 # Petly — Design rules và constraints cho frontend
 
-Cập nhật: **20/10/2026**. Phạm vi: Customer, Staff và Admin trong frontend Next.js.
+Cập nhật: **21/10/2026**. Phạm vi: Customer, Staff và Admin trong frontend Next.js.
 Đây là hợp đồng thiết kế để triển khai và review màn hình, không phải xác nhận rằng toàn bộ ứng dụng đã đạt các yêu cầu bên dưới.
 
 ## 1. Nguồn chuẩn và cách áp dụng
@@ -9,6 +9,7 @@ Cập nhật: **20/10/2026**. Phạm vi: Customer, Staff và Admin trong fronten
 | --- | --- | --- |
 | [Styles / Design foundations](https://www.figma.com/design/icvgUyrqj9YruHQyN67vUv/WDP?node-id=19-716) | `19:716` | Màu sắc, typography, spacing |
 | [Components](https://www.figma.com/design/icvgUyrqj9YruHQyN67vUv/WDP?node-id=18-3587) | `18:3587` | Button, Input, Card, Table row, Navbar, Tab bar, Status badge, Icons |
+| [Customer/Product/Home](https://www.figma.com/design/icvgUyrqj9YruHQyN67vUv/WDP?node-id=18-1594) | `18:1594` | Home công khai; ảnh mẫu người dùng gửi ngày 21/10/2026 là nguồn đối chiếu khi MCP bị giới hạn |
 | [Customer/Auth/Login](https://www.figma.com/design/icvgUyrqj9YruHQyN67vUv/WDP?node-id=105-6484) | `105:6484` | Đăng nhập Customer |
 | [Customer/Auth/Register](https://www.figma.com/design/icvgUyrqj9YruHQyN67vUv/WDP?node-id=105-6621) | `105:6621` | Đăng ký Customer |
 | [Staff/Dashboard/Dashboard](https://www.figma.com/design/icvgUyrqj9YruHQyN67vUv/WDP?node-id=28-53011) | `28:53011` | Shell và mật độ thông tin Staff |
@@ -22,12 +23,13 @@ Tài liệu phân biệt ba loại thông tin:
 
 Ưu tiên yêu cầu hiện tại của người dùng, sau đó đến node màn hình/variant được chọn và các foundation chung phù hợp với vai trò. Nếu nguồn mâu thuẫn mà chưa rõ cách xử lý, hỏi lại trước khi sửa. Không dùng code đang có để tự hợp thức hóa một điểm lệch thiết kế.
 
-Lượt đối chiếu này đọc được Styles, metadata Components, token Customer/Admin, dashboard Staff và Status badge. Truy vấn chi tiết Button/Input và tải lại geometry Auth/Admin sau đó bị giới hạn bởi Figma MCP Starter. Geometry Auth/Admin bên dưới dùng dữ liệu đã đọc ở lượt triển khai trước trong cùng ngày; hình thức chi tiết của variant chưa đọc được phải được xác nhận lại khi triển khai.
+Lượt đối chiếu ngày 20/10 đọc được Styles, metadata Components, token Customer/Admin, dashboard Staff và Status badge. Truy vấn chi tiết Button/Input và tải lại geometry Auth/Admin sau đó bị giới hạn bởi Figma MCP Starter. Geometry Auth/Admin bên dưới dùng dữ liệu đã đọc ở lượt triển khai ngày 20/10; hình thức chi tiết của variant chưa đọc được phải được xác nhận lại khi triển khai. Ngày 21/10, truy vấn lại Home vẫn bị giới hạn: dùng ảnh mẫu người dùng gửi, đồng thời dùng ảnh sản phẩm/icon gốc từ URL asset của lượt đọc Figma trước đó.
 
 ## 2. Ngôn ngữ thiết kế
 
 - Giao diện sáng, nền trắng hoặc xám rất nhạt; phân chia khối bằng khoảng cách, viền mảnh và thứ bậc chữ.
 - Customer tập trung vào mua sắm và chăm sóc thú cưng; Staff ưu tiên thao tác vận hành; Admin ưu tiên dữ liệu, cấu hình và quản trị.
+- Home tại `/` phải mở công khai. Khi chưa có phiên xác thực thật, dùng lời chào chung, danh mục chung và giỏ hàng thực tế của phiên xem; không hiển thị tên Minh Anh, thú cưng Milo/Luna hoặc số thông báo/giỏ hàng mẫu như dữ liệu của khách.
 - Giữ tiếng Việt có dấu, nội dung thực tế, nhãn hành động rõ nghĩa như “Đăng nhập”, “Tạo tài khoản”, “Lưu thay đổi”.
 - Màu trạng thái dùng cho phản hồi và trạng thái nghiệp vụ. Màu nhận diện dùng cho hành động chính, liên kết và mục điều hướng được chọn.
 - Styles ghi rõ: **“Không gradient, không bóng đổ nặng.”** Không thêm gradient, hiệu ứng kính, shadow lớn hay trang trí không có trong màn hình đích.
@@ -120,6 +122,8 @@ Các thông số sau thuộc đúng shell/màn hình được dẫn nguồn, kh�
 | Frame màn hình mẫu | 1440 × 1024px; không phải chiều cao bắt buộc của trang web |
 | Customer navbar / category bar / footer | 88px / 48px / 56px |
 | Customer lề navbar/footer tại 1440px | 64px mỗi bên |
+| Home banner / ảnh banner | Cao 184px; ảnh 344 × 184px ở desktop |
+| Home danh mục / sản phẩm | 4 cột ở desktop; danh mục gap 16px, sản phẩm gap 24px; ảnh sản phẩm cao 160px |
 | Auth khối nội dung | Rộng 1152px, căn giữa; 520px giới thiệu + 96px gap + 536px form |
 | Auth ảnh giới thiệu | 520 × 278px, giữ tỉ lệ và cách crop theo nguồn |
 | Auth card | Padding 32px, radius 16px |
@@ -146,6 +150,7 @@ Các breakpoint dưới đây là quyết định triển khai hiện tại, kh�
 - Body không cuộn ngang ở 320px. Bảng dữ liệu và dải category có thể cuộn ngang trong vùng riêng; nội dung chính vẫn phải reflow.
 - Staff/Admin trên màn hình nhỏ: thu shell thành một cột, sidebar thành điều hướng có thể mở/đóng và truy cập bằng bàn phím; bảng có vùng cuộn riêng. Đây là quy ước cho phần triển khai sau, chưa có component shell tương ứng trong code hiện tại.
 - Kiểm tra ở **320, 768, 1024, 1440px**, viewport thấp và zoom 200%. Không che nội dung thiết yếu để làm ảnh chụp trông gọn.
+- Home: danh mục 2 cột dưới 1024px, 4 cột từ 1024px; sản phẩm 1 cột dưới 640px, 2 cột ở 640–1023px, 4 cột từ 1024px. Banner xếp dọc dưới 768px; nội dung được xuống dòng và tăng chiều cao. Đây là quy ước responsive bổ sung theo bố cục desktop.
 
 ## 5. Component và trạng thái tương tác
 
@@ -170,7 +175,7 @@ Với màn hình có dữ liệu từ xa, thiết kế đủ **loading, empty, e
 - Dùng đúng `type`, `required`, `autoComplete`, `aria-invalid`, `aria-describedby`; không gửi mật khẩu qua query string hoặc ghi vào console/storage.
 - Login gồm email hoặc số điện thoại, mật khẩu, ghi nhớ đăng nhập và trợ giúp quên mật khẩu.
 - Register gồm họ tên, điện thoại, email, mật khẩu, xác nhận và đồng ý điều khoản. Figma yêu cầu mật khẩu tối thiểu 8 ký tự có chữ hoa, chữ thường và số. Quy tắc điện thoại Việt Nam và độ dài họ tên hiện là quy ước code, không phải kết quả suy ra từ layout.
-- Hiện tại chỉ có frontend preview. Submit hợp lệ chỉ báo tính năng chưa khả dụng; không tuyên bố đã tạo tài khoản/đăng nhập, không tạo session hoặc lưu lựa chọn ghi nhớ. Search đang disabled; category/cart/policy chưa có luồng nghiệp vụ.
+- Auth hiện chỉ có frontend preview. Submit hợp lệ chỉ báo tính năng chưa khả dụng; không tuyên bố đã tạo tài khoản/đăng nhập, không tạo session hoặc lưu lựa chọn ghi nhớ. Home có tìm kiếm/lọc sản phẩm mẫu và giỏ hàng khách trong bộ nhớ, không gọi API. Giỏ hàng reset khi tải lại toàn trang; checkout/policy/ưu đãi chưa triển khai.
 - Khi nối API, giữ validation server và thay nhánh preview bằng kết quả thật; không coi client validation là lớp bảo mật.
 
 ## 7. Assets, accessibility và nội dung
@@ -199,10 +204,12 @@ Nội dung tiếng Việt không viết cứng khoảng trắng để căn cột
 ```text
 app/                          Route, layout, metadata; page mỏng
   (customer)/(auth)/          /login và /register
+  (customer)/page.tsx         Home công khai tại /
 components/ui/                Control dùng chung, không chứa nghiệp vụ Auth
 components/storefront/        Header/footer Customer
 features/<feature>/components/ Component theo nghiệp vụ
 features/<feature>/           Hook, validation và logic thuộc feature
+features/catalog/, cart/      Catalog mẫu/tìm kiếm; state và dialog giỏ hàng khách
 public/images/, public/icons/ Asset tĩnh
 app/fonts/                    Font local và license
 ```
