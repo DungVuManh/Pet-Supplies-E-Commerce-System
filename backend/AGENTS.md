@@ -9,7 +9,8 @@ These instructions apply to `backend/`. Keep this file aligned with the code and
   authentication for customer/staff/admin, session cookies, profile persistence, middleware
   and tests. All 14 SRS section 5.2 models are defined, including PetProfile and
   Wishlist. Role-specific dashboard bootstrap APIs return the public profile only.
-  Product/cart/order APIs and seed data are not implemented.
+  Product/cart/order APIs are not implemented. `src/scripts/seed.js` provides
+  development/test sample data for all 13 non-User models using existing users.
 - Use Node.js 24.x and npm 11+ as declared in `package.json`. Run commands from
   `backend/`. Use `npm ci` to install the locked dependencies.
 - The tracked backend has no `.nvmrc`, Docker Compose file, ESLint configuration,
@@ -31,6 +32,14 @@ On macOS/Linux, use `cp .env.example .env`. `npm run dev` starts Nodemon on
 `src/server.js`; `npm start` runs the same server directly. `npm test` runs Vitest
 once and `npm run test:watch` runs it in watch mode. Supertest needs permission to
 open local loopback sockets, but the tests do not require a running MongoDB server.
+
+`npm run seed` connects to the configured MongoDB and inserts missing samples;
+it does not delete or overwrite existing documents or create/modify User data.
+It requires an existing customer and at least one staff/admin, selected by lowest
+MongoDB `_id` per role. Missing users stop the seed before index creation/data
+writes. It refuses `NODE_ENV=production`. Offline sample orders require Staff;
+with only Admin, all 13 collections are still populated using online orders.
+See `src/models/README.md` for seed contents and rerun behavior.
 
 The copied `.env.example` and runtime default use `PORT=3001`. The frontend uses
 port 3000. Keep
@@ -123,6 +132,11 @@ response)`); routers import those handlers and export the Express router.
   and index declarations without a database. `tests/database.test.js` also checks
   explicit index initialization using mocked model methods. These tests do not
   verify unique constraints or concurrency against a live MongoDB server.
+- `tests/seed.test.js` uses real Mongoose queries/save middleware and mocks only
+  collection operations at the database boundary
+  to check all 13 seeded models, references, totals, repeated runs, preservation of
+  existing data, missing-user preflight and disconnect behavior. It never seeds
+  the configured database or calls Firebase/payment/email services.
 - Check any command or file mentioned here against the current tree before
   updating instructions. Do not claim a server or MongoDB smoke test passed
   unless it was actually run.
