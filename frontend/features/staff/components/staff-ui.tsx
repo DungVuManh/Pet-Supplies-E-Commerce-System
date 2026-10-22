@@ -16,7 +16,7 @@ export function MetricCard({ label, value, detail }: { label: string; value: str
   return <article className={`${card} min-w-0 p-6`}><p className="text-muted">{label}</p><p className="mt-2 text-[32px] font-semibold tracking-[-1px]">{value}</p><p className="mt-2 text-xs leading-relaxed text-muted">{detail}</p></article>;
 }
 
-type BadgeTone = "success" | "warning" | "info" | "danger" | "neutral";
+export type BadgeTone = "success" | "warning" | "info" | "danger" | "neutral";
 const tones: Record<BadgeTone, string> = { success: "bg-success-subtle text-success", warning: "bg-warning-subtle text-warning", info: "bg-brand-subtle text-brand", danger: "bg-danger-subtle text-danger", neutral: "bg-canvas text-muted" };
 export function Badge({ children, tone = "neutral" }: { children: ReactNode; tone?: BadgeTone }) { return <span className={`inline-flex min-h-8 items-center rounded-full px-3 text-xs font-semibold ${tones[tone]}`}>{children}</span>; }
 export const orderLabels: Record<OrderStatus, string> = { pending: "Chờ xử lý", packing: "Đóng gói", shipping: "Đang giao", completed: "Hoàn thành", cancelled: "Đã hủy" };
