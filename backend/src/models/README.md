@@ -75,7 +75,43 @@ run on query updates, and update validation has limitations. Future controllers
 must validate request fields, use appropriate document validation, and enforce
 authorization, actual stock availability/reservation under concurrency, verified
 payment outcomes, promotion eligibility, review purchase eligibility and
-historical snapshot protection. This change adds no API endpoints or seed data.
+historical snapshot protection. Models do not expose API endpoints.
+
+## Sample data
+
+From `backend/`, run `npm run seed` with Node.js 24.x after configuring `.env`
+and starting MongoDB. `src/scripts/seed.js` supports development/test only.
+It reads existing User IDs/roles without creating or modifying users and requires
+at least one Customer plus one Staff or Admin. It selects the lowest `_id` per
+role. If prerequisites are missing, it stops before index creation or data writes.
+
+The seed covers every non-User collection: 5 categories, 7 products, 2 addresses,
+2 pets, customer/guest carts, a wishlist, 4 promotions, 8 online orders (all seven
+order statuses plus a guest order), corresponding payments, 2 reviews of completed
+purchases, 3 notification delivery statuses, an audit log and global settings.
+If a Staff exists, it also adds a completed offline order/payment. An Admin is
+not used as a Staff or offline order creator. No Firebase, payment or email calls
+are made; QR payloads and payment results are explicitly simulated.
+
+The seed reads each sample's key first and creates missing documents with `save()`.
+This runs cross-field validators in document context (including promotion date
+comparisons); it does not use query validation as a substitute. Category slugs,
+product SKUs, user-owned unique keys and stable
+sample IDs prevent duplicates across repeated runs. Existing records and their
+timestamps are preserved, including carts, wishlists and global settings. New
+order/payment snapshots use the persisted product prices and configured shipping
+fee. Saved sample addresses are non-default to preserve the account's current
+default address. Other records are identified by `SEED-` codes, stable IDs or
+sample text. Samples belong to the selected real accounts and will be visible
+to them when the corresponding APIs/UI are implemented.
+
+The seed is sequential, not a multi-document transaction. If a database write
+fails after preflight, already inserted samples remain; fix the cause and rerun
+to add missing records. It does not reset existing samples or refresh their
+promotion dates on subsequent runs.
+Run one seed process at a time; unique indexes reject conflicting concurrent inserts.
+Failures report the model and validation paths or numeric MongoDB error code,
+without printing raw driver messages, document values or credentials.
 
 Run `npm test` from `backend/`. Model tests validate documents and declared index
 metadata; index initialization tests mock MongoDB calls. Unique-index enforcement
