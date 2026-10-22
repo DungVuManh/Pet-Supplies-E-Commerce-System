@@ -2,6 +2,9 @@
 
 Ngày: 22/10/2026. Trạng thái: **bản thảo để duyệt, chưa triển khai**.
 
+Phần cập nhật trạng thái đã được mở rộng theo yêu cầu người dùng sau tài liệu
+chỉ đọc này; hợp đồng hiện tại nằm ở [staff-order-status.md](staff-order-status.md).
+
 ## 1. Mục tiêu, hiện trạng và phạm vi
 
 Thay dữ liệu mock trên `/staff/orders` và `/staff/orders/[id]` bằng dữ liệu MongoDB,

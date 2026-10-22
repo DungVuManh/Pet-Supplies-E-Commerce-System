@@ -45,7 +45,7 @@ subtotal against item snapshots and total against subtotal minus discount plus
 shipping fee. Online guest orders require guest contact details; offline orders
 require `createdByStaffId`. Online orders require a shipping-address snapshot;
 Staff-created in-store sales do not request a delivery address. Existing offline
-address snapshots remain valid. Moving to `shipping` requires carrier and tracking information.
+address snapshots remain valid. Manual shipping permits optional carrier and tracking information.
 
 Payment methods also include `CASH` for Staff in-store sales. That creation API
 explicitly records completed/paid and deducts physical stock without consuming

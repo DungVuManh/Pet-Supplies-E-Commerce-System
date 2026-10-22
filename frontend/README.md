@@ -22,10 +22,32 @@ npm run dev:frontend
 - `/forgot-password`: email password recovery.
 - `/staff/dashboard`: Staff-only operations overview with mock metrics, revenue and pending orders.
 - `/staff/orders` and `/staff/orders/[id]`: mock order search, filtering and detail/status flow.
-- `/staff/products`, `/staff/products/[sku]`, `/staff/products/[sku]/edit`: mock catalog list, detail and local edit flow.
-- `/staff/inventory`, `/staff/sales`, `/staff/performance`: mock inventory and reporting screens.
+- Staff order detail now reads MongoDB and supports protected status updates through
+  confirmation, preparation and manual shipping, with cancellation before preparation.
+  Shipping details are optional; Staff cannot mark delivery complete. See the
+  [status contract](../docs/specs/staff-order-status.md).
+
+Optional status UI regression check after a production build:
+`node frontend/tests/staff-order-status-browser.mjs` with `PLAYWRIGHT_MODULE_PATH`
+pointing to an installed Playwright module. Ports 3023/3133 must be free. The test
+uses only fixture APIs, checks confirmation, repeated submits, server refresh,
+conflicts, manual shipping and lost responses, then requires compiled Tailwind CSS
+for responsive checks. A Webpack fallback can verify interactions but cannot pass
+the stylesheet gate because Tailwind is configured only for Turbopack.
+- `/staff/products`: catalog and inventory list with physical, reserved and available quantities, stock alerts and filters; uses the Staff API with a local mock fallback.
+- `/staff/products/[sku]`, `/staff/products/[sku]/edit`: product detail and local edit flow.
+- `/staff/inventory`: redirects to `/staff/products`; inventory is managed from the product screen.
+- `/staff/sales`, `/staff/performance`: mock reporting screens.
 - `/admin/dashboard`: Admin only; public profile and workspace empty state.
 - `/forbidden`: wrong-role access explanation and home link.
+
+Optional product/inventory browser check after a production build:
+`node frontend/tests/staff-products-browser.mjs` (set `PLAYWRIGHT_MODULE_PATH` to
+an installed Playwright module). It uses isolated fixture data on ports 3131 and
+3021, checks the old inventory redirect, quantities, stock filters and keyboard
+reset, then verifies compiled styles and responsive layouts. Screenshots go to
+`frontend/.next/staff-products-browser/`. The stylesheet check requires the
+configured Turbopack build; the Webpack fallback does not run the Tailwind loader.
 
 Home and the guest cart remain public. Authentication requires Firebase,
 the Express backend and MongoDB. Follow [authentication setup](../docs/authentication.md)

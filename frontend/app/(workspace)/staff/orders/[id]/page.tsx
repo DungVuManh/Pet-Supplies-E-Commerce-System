@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { money } from "@/features/staff/mock-data";
 import { Badge, PageHeader, card } from "@/features/staff/components/staff-ui";
 import { fetchStaffOrderDetail, StaffOrdersApiError } from "@/features/staff/orders/api";
+import { OrderStatusAction } from "@/features/staff/components/order-status-action";
 import {
   orderStatusLabels,
   orderStatusTones,
@@ -194,6 +195,7 @@ export default async function OrderDetailPage({
           </div>
 
           {/* Customer & Address */}
+          <OrderStatusAction order={order} />
           <section className={`${card} p-6`}>
             <h2 className="text-xl font-semibold">{order.channel === "offline" ? "Khách hàng tại quầy" : "Khách hàng & địa chỉ"}</h2>
             <div className="mt-4 space-y-2">
@@ -221,9 +223,9 @@ export default async function OrderDetailPage({
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
                   Đơn vị vận chuyển
                 </h3>
-                <p className="mt-1 text-sm font-medium">{order.shipping.carrier}</p>
+                <p className="mt-1 text-sm font-medium">{order.shipping.carrier || "Chưa cung cấp"}</p>
                 <p className="mt-1 text-xs text-muted">
-                  Mã vận đơn: {order.shipping.trackingNumber}
+                  Mã vận đơn: {order.shipping.trackingNumber || "Chưa cung cấp"}
                 </p>
               </div>
             )}

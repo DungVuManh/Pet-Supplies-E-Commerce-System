@@ -154,3 +154,30 @@ export function parseOrderId(params) {
   }
   return result.data.id;
 }
+
+export const staffOrderTransitions = {
+  pending: ["confirmed", "cancelled"],
+  confirmed: ["processing", "cancelled"],
+  processing: ["shipping"],
+  shipping: [],
+  delivered: [],
+  completed: [],
+  cancelled: [],
+};
+
+const staffOrderStatusSchema = z.object({
+  expectedStatus: z.enum(orderStatuses),
+  orderStatus: z.enum(["confirmed", "processing", "shipping", "cancelled"]),
+  shipping: z.object({
+    carrier: z.string().trim().max(100).default(""),
+    trackingNumber: z.string().trim().max(100).default(""),
+  }).strict().optional(),
+}).strict().refine((value) => !value.shipping || value.orderStatus === "shipping");
+
+export function parseStaffOrderStatus(body) {
+  const result = staffOrderStatusSchema.safeParse(body);
+  if (!result.success) {
+    throw new AppError("Thông tin cập nhật trạng thái không hợp lệ.", 400, "VALIDATION_ERROR");
+  }
+  return result.data;
+}

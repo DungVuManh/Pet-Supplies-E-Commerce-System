@@ -68,8 +68,8 @@ const orderSchema = new mongoose.Schema(
   creationRequestHash: { type: String, select: false, immutable: true },
   creationState: { type: String, enum: ["pending", "complete"] },
   shipping: {
-   carrier: { type: String, trim: true },
-   trackingNumber: { type: String, trim: true },
+   carrier: { type: String, trim: true, maxlength: 100 },
+   trackingNumber: { type: String, trim: true, maxlength: 100 },
   },
   statusHistory: { type: [statusHistorySchema], default: [] },
  },
@@ -85,9 +85,6 @@ orderSchema.pre("validate", function () {
  if (this.discount > this.subtotal) this.invalidate("discount", "Discount exceeds subtotal");
  if (this.total !== this.subtotal - this.discount + this.shippingFee) {
   this.invalidate("total", "Total must match subtotal, discount and shipping fee");
- }
- if (this.orderStatus === "shipping" && (!this.shipping?.carrier || !this.shipping?.trackingNumber)) {
-  this.invalidate("shipping", "Shipping requires a carrier and tracking number");
  }
 });
 orderSchema.index({ customerId: 1, createdAt: -1 });

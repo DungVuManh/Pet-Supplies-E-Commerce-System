@@ -11,6 +11,11 @@ These instructions apply to `backend/`. Keep this file aligned with the code and
   Wishlist. Role-specific dashboard bootstrap APIs return the public profile only.
   Product and Staff order read APIs exist. Staff can create completed CASH offline
   orders through `staff-sale.controller.js`; cart/online checkout APIs are not implemented.
+  Staff can PATCH `/api/v1/staff/orders/:id/status` with JSON/Origin/CSRF to move
+  online orders pending → confirmed → processing → shipping, or cancel pending/confirmed.
+  Status/history update atomically in Order using expectedStatus; no stock/payment
+  mutation. Shipping metadata is optional. Staff cannot mark orders completed.
+  See `../docs/specs/staff-order-status.md` for confirmation guards and the API contract.
   `src/scripts/seed.js` provides
   development/test sample data for all 13 non-User models using existing users.
 - Use Node.js 24.x and npm 11+ as declared in `package.json`. Run commands from

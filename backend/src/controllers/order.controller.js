@@ -8,6 +8,7 @@ import {
   computeDateRange,
   parseOrderId,
   parseOrderQuery,
+  staffOrderTransitions,
 } from "../validators/order.validator.js";
 
 const SORT_MAP = {
@@ -248,10 +249,10 @@ export async function getStaffOrderDetail(request, response, next) {
     const email = order.guestInfo?.email || null;
 
     const shipping =
-      order.shipping?.carrier && order.shipping?.trackingNumber
+      order.shipping?.carrier || order.shipping?.trackingNumber
         ? {
-            carrier: order.shipping.carrier,
-            trackingNumber: order.shipping.trackingNumber,
+            carrier: order.shipping.carrier || "",
+            trackingNumber: order.shipping.trackingNumber || "",
           }
         : null;
 
@@ -289,6 +290,7 @@ export async function getStaffOrderDetail(request, response, next) {
       createdByStaff,
       items,
       statusHistory,
+      allowedNextStatuses: order.channel === "online" ? staffOrderTransitions[order.orderStatus] || [] : [],
     };
 
     response.set("Cache-Control", "no-store");

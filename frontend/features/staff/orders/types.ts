@@ -8,6 +8,12 @@ export type OrderStatus =
   | "cancelled";
 
 export type PaymentMethod = "COD" | "ONLINE" | "CASH";
+export type StaffEditableOrderStatus = "confirmed" | "processing" | "shipping" | "cancelled";
+export type StaffOrderStatusUpdate = {
+  expectedStatus: OrderStatus;
+  orderStatus: StaffEditableOrderStatus;
+  shipping?: StaffOrderShippingInfo;
+};
 export type PaymentStatus = "unpaid" | "pending" | "paid" | "failed";
 export type OrderChannel = "online" | "offline";
 export type SortOption = "createdAt_desc" | "createdAt_asc" | "total_desc" | "total_asc";
@@ -107,6 +113,7 @@ export interface StaffOrderDetail {
   createdByStaff: string | null;
   items: StaffOrderDetailItem[];
   statusHistory: StaffOrderStatusHistoryItem[];
+  allowedNextStatuses: StaffEditableOrderStatus[];
 }
 
 export interface StaffOrdersFilterState {
@@ -121,7 +128,7 @@ export interface StaffOrdersFilterState {
 export const orderStatusLabels: Record<OrderStatus, string> = {
   pending: "Chờ xử lý",
   confirmed: "Đã xác nhận",
-  processing: "Đang đóng gói",
+  processing: "Đang chuẩn bị",
   shipping: "Đang giao",
   delivered: "Đã giao",
   completed: "Hoàn thành",

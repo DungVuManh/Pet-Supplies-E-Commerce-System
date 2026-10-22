@@ -19,6 +19,7 @@ import {
   control,
   productLabels,
   stockLabels,
+  stockTones,
   secondaryButton,
 } from "./staff-ui";
 
@@ -181,6 +182,18 @@ export function ProductsList() {
         </p>
       )}
 
+      {!loading && (
+        <div className="flex flex-wrap items-center gap-4 rounded-lg bg-canvas p-4" aria-label="Tổng quan tồn kho">
+          <strong>{items.length} sản phẩm</strong>
+          {(["available", "low", "out"] as const).map((state) => (
+            <Badge key={state} tone={stockTones[state]}>
+              {items.filter((p) => p.stockStatus === state).length} {stockLabels[state].toLowerCase()}
+            </Badge>
+          ))}
+          <span className="text-xs text-muted">Khả dụng = thực tế − giữ chỗ</span>
+        </div>
+      )}
+
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr_1fr_1fr]">
         <label className="grid gap-2 font-medium">
           Tìm kiếm
@@ -241,15 +254,17 @@ export function ProductsList() {
       <TableFrame>
         <TableHead>
           <Th>SKU / Cập nhật</Th>
-          <Th>Sản phẩm / Tồn khả dụng</Th>
+          <Th>Sản phẩm</Th>
           <Th right>Giá bán</Th>
+          <Th right>Số lượng</Th>
+          <Th>Tồn kho</Th>
           <Th>Trạng thái</Th>
           <Th>Thao tác</Th>
         </TableHead>
         <tbody>
           {loading ? (
             <tr>
-              <td colSpan={5} className="p-8 text-center text-muted">
+              <td colSpan={7} className="p-8 text-center text-muted">
                 Đang tải dữ liệu sản phẩm từ máy chủ...
               </td>
             </tr>
@@ -263,11 +278,20 @@ export function ProductsList() {
                 <Td>
                   {p.name}
                   <p className="mt-2 text-xs text-muted">
-                    {p.category} · {p.weight} · {p.brand} · Còn {p.availableStock}
+                    {p.category} · {p.weight} · {p.brand}
                   </p>
                 </Td>
                 <Td right>
                   <strong>{money(p.price)}</strong>
+                </Td>
+                <Td right>
+                  <strong>{p.physical} thực tế</strong>
+                  <p className="mt-2 text-xs text-muted">{p.reserved} giữ chỗ</p>
+                  <p className="mt-2 text-xs text-muted">{p.availableStock} khả dụng</p>
+                </Td>
+                <Td>
+                  <Badge tone={stockTones[p.stockStatus]}>{stockLabels[p.stockStatus]}</Badge>
+                  <p className="mt-2 text-xs text-muted">Ngưỡng: {p.threshold}</p>
                 </Td>
                 <Td>
                   <Badge tone={p.status === "active" ? "success" : "neutral"}>
