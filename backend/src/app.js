@@ -6,6 +6,7 @@ import { AppError } from "./common/errors/app-error.js";
 import { errorMiddleware } from "./common/middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./common/middlewares/not-found.middleware.js";
 import authRouter from "./routers/auth.router.js";
+import productRouter from "./routers/product.router.js";
 import workspaceRouter from "./routers/workspace.router.js";
 
 export function createApp(config) {
@@ -45,6 +46,7 @@ export function createApp(config) {
  app.use(express.json({ limit: "100kb" }));
  app.use(express.urlencoded({ extended: false, limit: "100kb" }));
  app.use("/api/v1/auth", authRouter);
+ app.use("/api/v1/products", productRouter);
  app.use("/api/v1", workspaceRouter);
  app.use(notFoundMiddleware);
  app.use(errorMiddleware);
