@@ -43,8 +43,16 @@ Order items retain `name`, `unitPrice`, `qty` and `variantSku`; shipping address
 are embedded snapshots, independent of saved addresses. Document validation checks
 subtotal against item snapshots and total against subtotal minus discount plus
 shipping fee. Online guest orders require guest contact details; offline orders
-require `createdByStaffId`. Each order requires a shipping-address snapshot under
-BR-08. Moving to `shipping` requires carrier and tracking information.
+require `createdByStaffId`. Online orders require a shipping-address snapshot;
+Staff-created in-store sales do not request a delivery address. Existing offline
+address snapshots remain valid. Moving to `shipping` requires carrier and tracking information.
+
+Payment methods also include `CASH` for Staff in-store sales. That creation API
+explicitly records completed/paid and deducts physical stock without consuming
+reserved stock, in a transaction with Payment/AuditLog. CASH cannot be used for
+online orders. `COD` and `ONLINE` retain their existing behavior/defaults.
+Order's optional hidden creationRequestId/creationRequestHash fields support
+same-intent replay; a partial unique Staff/request index leaves old orders untouched.
 
 Order/payment statuses use the proposed SRS values. Defaults are `pending` for
 orders, `unpaid` for COD payments, and `pending` for online payments. The schema

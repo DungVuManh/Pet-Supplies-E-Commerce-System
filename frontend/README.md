@@ -33,6 +33,33 @@ to configure both environment files and enable Email/Password in Firebase.
 
 ## Structure
 
+### Staff in-store sales
+
+`/staff/orders/new` uses the existing Staff guard/shell and feature components in
+`features/staff/orders/`. Its relative API calls use the existing Staff rewrite.
+Customers and sellable SKUs come from protected backend lookups; there is no mock
+fallback. Pending request IDs (UUID only, no contact/cart information) are kept in
+sessionStorage so a reload can recover a committed receipt without creating twice.
+Do not replace backend price/stock validation with frontend calculations.
+
+The backend requires MongoDB replica-set transactions for this feature; see the
+[spec](../docs/specs/staff-order-create.md). The form currently supports CASH only,
+immediate pickup, zero delivery charge and no promotions.
+
+Optional browser check after a production build:
+
+```powershell
+# Supply an independently installed Playwright module; requires Chrome.
+$env:PLAYWRIGHT_MODULE_PATH = '/absolute/path/to/playwright'
+node frontend/tests/staff-sale-browser.mjs
+```
+
+Run from the repository root. The script starts a fixture API on 3001 and the
+built frontend on 3020; both ports must be free. It uses fake data and a fake
+session accepted only by that isolated fixture API, not production Firebase.
+It checks both customer modes, empty/error/retry, reload recovery, keyboard and
+320/768/1024/1440px layouts. Screenshots go to `.next/staff-sale-browser/`.
+
 ```text
 app/
   layout.tsx                   Vietnamese locale, local Inter font, metadata

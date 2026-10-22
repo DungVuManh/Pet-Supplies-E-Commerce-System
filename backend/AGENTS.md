@@ -9,7 +9,9 @@ These instructions apply to `backend/`. Keep this file aligned with the code and
   authentication for customer/staff/admin, session cookies, profile persistence, middleware
   and tests. All 14 SRS section 5.2 models are defined, including PetProfile and
   Wishlist. Role-specific dashboard bootstrap APIs return the public profile only.
-  Product/cart/order APIs are not implemented. `src/scripts/seed.js` provides
+  Product and Staff order read APIs exist. Staff can create completed CASH offline
+  orders through `staff-sale.controller.js`; cart/online checkout APIs are not implemented.
+  `src/scripts/seed.js` provides
   development/test sample data for all 13 non-User models using existing users.
 - Use Node.js 24.x and npm 11+ as declared in `package.json`. Run commands from
   `backend/`. Use `npm ci` to install the locked dependencies.
@@ -74,6 +76,12 @@ origin; it does not select the backend listening port.
   verification, review purchase eligibility or authorization.
 - The default local MongoDB URI has no replica set configuration. Use a replica
   set before introducing multi-document transactions.
+- Staff sale creation requires a replica set/Atlas: stock deductions, Order,
+  Payment and AuditLog commit atomically. Standalone MongoDB returns
+  `503 TRANSACTIONS_REQUIRED`; never fall back to independent writes. Startup
+  creates the partial unique `(createdByStaffId, creationRequestId)` index for
+  duplicate-submit protection. `CASH` is for offline sales, not online COD.
+  See `../docs/specs/staff-order-create.md` for API/input/idempotency contracts.
 
 ## Code boundaries
 
@@ -116,6 +124,10 @@ response)`); routers import those handlers and export the Express router.
   Admin do not inherit each other's workspace access. The dashboard endpoints at
   `/api/v1/staff/dashboard` and `/api/v1/admin/dashboard` return only public user
   fields. Their responses, including errors, use no-store headers before middleware.
+- POST `/api/v1/staff/orders` additionally uses the existing `protectMutation`
+  JSON/Origin/CSRF guard. The server derives actor, prices, statuses and totals;
+  `expectedPrice` is a comparison precondition only. Pending request recovery is
+  scoped to the current actor and only returns a receipt, never the request hash.
 - User profiles are insert-only upserts keyed by unique Firebase UID. Registration
   retries must never overwrite an existing profile or accept a client role.
   Preserve incomplete-profile recovery when changing the registration flow.
@@ -140,3 +152,9 @@ response)`); routers import those handlers and export the Express router.
 - Check any command or file mentioned here against the current tree before
   updating instructions. Do not claim a server or MongoDB smoke test passed
   unless it was actually run.
+- `tests/staff-sale*.test.js` cover input, HTTP authorization/CSRF, replay and
+  transaction orchestration with mocked dependencies. The optional isolated
+  `tests/staff-sale-integration.mjs` uses mongodb-memory-server-core supplied via
+  `MONGODB_MEMORY_MODULE_PATH` to exercise real replica-set rollback/concurrency;
+  it does not load `.env` or use the application's database. Test-tool dependencies
+  are optional and are not added to the application lockfiles.

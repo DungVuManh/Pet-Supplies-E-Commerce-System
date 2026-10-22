@@ -17,7 +17,7 @@ export const addressFields = {
 };
 
 export const shippingAddressSchema = new mongoose.Schema(addressFields, { _id: false });
-export const paymentMethods = ["COD", "ONLINE"];
+export const paymentMethods = ["COD", "ONLINE", "CASH"];
 export const paymentStatuses = ["unpaid", "pending", "paid", "failed"];
 export const orderStatuses = [
  "pending", "confirmed", "processing", "shipping", "delivered", "completed", "cancelled",

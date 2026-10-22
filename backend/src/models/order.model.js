@@ -44,7 +44,10 @@ const orderSchema = new mongoose.Schema(
    required: true,
    validate: { validator: (items) => items.length > 0, message: "Order requires items" },
   },
-  shippingAddress: { type: shippingAddressSchema, required: true },
+  shippingAddress: {
+   type: shippingAddressSchema,
+   required() { return this.channel === "online"; },
+  },
   subtotal: { ...nonNegativeInteger, required: true },
   discount: { ...nonNegativeInteger, default: 0 },
   shippingFee: { ...nonNegativeInteger, default: 0 },
@@ -61,6 +64,8 @@ const orderSchema = new mongoose.Schema(
    type: mongoose.Schema.Types.ObjectId, ref: "User",
    required() { return this.channel === "offline"; },
   },
+  creationRequestId: { type: String, select: false, immutable: true },
+  creationRequestHash: { type: String, select: false, immutable: true },
   shipping: {
    carrier: { type: String, trim: true },
    trackingNumber: { type: String, trim: true },
@@ -71,6 +76,9 @@ const orderSchema = new mongoose.Schema(
 );
 
 orderSchema.pre("validate", function () {
+ if (this.paymentMethod === "CASH" && this.channel !== "offline") {
+  this.invalidate("paymentMethod", "Cash is only supported for offline orders");
+ }
  const subtotal = this.items?.reduce((sum, item) => sum + item?.unitPrice * item?.qty, 0);
  if (this.subtotal !== subtotal) this.invalidate("subtotal", "Subtotal must match item snapshots");
  if (this.discount > this.subtotal) this.invalidate("discount", "Discount exceeds subtotal");
@@ -84,5 +92,9 @@ orderSchema.pre("validate", function () {
 orderSchema.index({ customerId: 1, createdAt: -1 });
 orderSchema.index({ orderStatus: 1, createdAt: -1 });
 orderSchema.index({ paymentStatus: 1, orderStatus: 1, createdAt: -1 });
+orderSchema.index({ createdByStaffId: 1, creationRequestId: 1 }, {
+ unique: true,
+ partialFilterExpression: { creationRequestId: { $type: "string" } },
+});
 
 export const Order = mongoose.models.Order || mongoose.model("Order", orderSchema);

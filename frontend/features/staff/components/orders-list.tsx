@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { money } from "../mock-data";
 import {
@@ -73,15 +74,16 @@ export function OrdersList() {
 
   // Local query state for immediate input feedback & debounce
   const [searchInput, setSearchInput] = useState(urlQuery);
-  const [notice, setNotice] = useState("");
+  const [previousQuery, setPreviousQuery] = useState(urlQuery);
   const [data, setData] = useState<StaffOrdersListResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Sync search input if URL changes externally (e.g. Back/Forward)
-  useEffect(() => {
+  // Reset the draft when navigation changes the committed URL query.
+  if (previousQuery !== urlQuery) {
+    setPreviousQuery(urlQuery);
     setSearchInput(urlQuery);
-  }, [urlQuery]);
+  }
 
   // Active filter state derived from URL
   const activeFilter: StaffOrdersFilterState = useMemo(
@@ -236,24 +238,10 @@ export function OrdersList() {
         title="Danh sách đơn hàng"
         subtitle={subtitle}
         action={
-          <button
-            className={secondaryButton}
-            onClick={() =>
-              setNotice(
-                "Chức năng tạo đơn hộ khách đang được phát triển ở phiên bản tiếp theo."
-              )
-            }
-          >
-            Tạo đơn hộ khách
-          </button>
+          <Link className={secondaryButton} href="/staff/orders/new">Tạo đơn hộ khách</Link>
         }
       />
 
-      {notice && (
-        <p role="status" className="rounded-lg bg-brand-subtle p-4 text-brand">
-          {notice}
-        </p>
-      )}
 
       {error && (
         <div role="alert" className="rounded-lg border border-line bg-canvas p-4 text-ink">

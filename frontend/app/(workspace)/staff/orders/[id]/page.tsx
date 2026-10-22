@@ -195,7 +195,7 @@ export default async function OrderDetailPage({
 
           {/* Customer & Address */}
           <section className={`${card} p-6`}>
-            <h2 className="text-xl font-semibold">Khách hàng & địa chỉ</h2>
+            <h2 className="text-xl font-semibold">{order.channel === "offline" ? "Khách hàng tại quầy" : "Khách hàng & địa chỉ"}</h2>
             <div className="mt-4 space-y-2">
               <p className="font-semibold">{order.customer.name}</p>
               <p className="text-sm">{order.customer.phone}</p>
@@ -205,6 +205,7 @@ export default async function OrderDetailPage({
             </div>
 
             <div className="mt-4 border-t border-line pt-4">
+              {order.channel === "offline" ? <p className="text-sm font-medium">Nhận tại cửa hàng · Không giao hàng</p> : <>
               <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Địa chỉ nhận hàng
               </h3>
@@ -212,6 +213,7 @@ export default async function OrderDetailPage({
                 {order.shippingAddress.street}, {order.shippingAddress.ward},{" "}
                 {order.shippingAddress.district}, {order.shippingAddress.province}
               </p>
+              </>}
             </div>
 
             {order.shipping && (

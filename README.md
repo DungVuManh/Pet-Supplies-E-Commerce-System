@@ -2,12 +2,24 @@
 
 This repository has a Next.js frontend and an Express/Mongoose backend. The backend
 provides Firebase customer authentication, HttpOnly sessions, MongoDB profiles,
-middleware and tests. Product, cart and order APIs are not implemented yet.
+middleware and tests, Product/Staff order read APIs and Staff in-store CASH sales.
+Cart and online checkout APIs are not implemented yet.
 
 ## Requirements
 
 - Node.js 24.x and npm 11+ (required by `backend/package.json`)
 - A running MongoDB server reachable at the URI in `backend/.env`
+- For Staff in-store order creation, MongoDB must be a replica set or Atlas.
+  Standalone MongoDB supports the existing reads but sale creation fails closed
+  with `TRANSACTIONS_REQUIRED`; there is no non-transactional fallback.
+
+Staff opens **Tạo đơn hộ khách** from Orders or Dashboard. The form can select an
+existing Customer or record guest contact information without creating a User,
+select live SKUs and confirm cash received. The backend creates a completed paid
+offline order and commits inventory, payment and audit together. See the
+[creation spec](docs/specs/staff-order-create.md) and [plan](docs/plan/staff-order-create.md).
+Restart the backend after updating so startup creates the new partial idempotency
+index; no existing User/order data migration is required.
 
 There is no Docker Compose file in this repository. Download it yourself (using Docker or manually). Start MongoDB separately or
 point `MONGODB_URI` to a MongoDB deployment you can access. The backend waits for

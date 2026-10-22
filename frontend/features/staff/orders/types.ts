@@ -7,7 +7,7 @@ export type OrderStatus =
   | "completed"
   | "cancelled";
 
-export type PaymentMethod = "COD" | "ONLINE";
+export type PaymentMethod = "COD" | "ONLINE" | "CASH";
 export type PaymentStatus = "unpaid" | "pending" | "paid" | "failed";
 export type OrderChannel = "online" | "offline";
 export type SortOption = "createdAt_desc" | "createdAt_asc" | "total_desc" | "total_asc";
@@ -155,6 +155,7 @@ export const paymentStatusTones: Record<PaymentStatus, BadgeTone> = {
 };
 
 export const paymentMethodLabels: Record<PaymentMethod, string> = {
+  CASH: "Tiền mặt tại quầy",
   COD: "COD",
   ONLINE: "Thanh toán trực tuyến",
 };
