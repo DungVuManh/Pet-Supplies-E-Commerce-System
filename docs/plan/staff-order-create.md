@@ -3,6 +3,23 @@
 Spec: [staff-order-create](../specs/staff-order-create.md). 22/10/2026.
 Theo workflow CLAUDE.md; không tạo thư mục tasks hoặc tài liệu trùng Orders read.
 
+## Cập nhật standalone theo yêu cầu người dùng
+
+Luồng hiện tại đã chuyển từ transaction sang Order pending giữ unique request key,
+ghi stock/Payment/AuditLog tuần tự và bù trừ best-effort. Chỉ Order complete được
+trả receipt hoặc hiển thị ở danh sách/chi tiết/tổng hợp; đơn cũ không cần migration.
+Pending do crash/timeout/khôi phục thất bại cần đối soát thủ công, không tự trừ lại.
+
+Kiểm chứng: backend 136/137, lỗi duy nhất là test rate limit vốn đã bị comment
+trong app.js (cùng baseline bên dưới). Toàn bộ 23 test HTTP tạo đơn đạt, bao gồm
+đồng thời, mất phản hồi, bù trừ nhiều SKU, pending recovery và ẩn đơn dở dang.
+Integration trên MongoDB standalone local với database tên UUID riêng đã đạt:
+same-key replay, distinct-key stock race, Payment/AuditLog đã ghi nhưng mất phản
+hồi vẫn bù trừ, lookup/paging. Database test được xóa sau khi chạy; không dùng
+database ứng dụng. Không kiểm thử lại trình duyệt/Firebase live vì không đổi UI/auth.
+
+Các bước và bằng chứng replica set bên dưới là lịch sử triển khai trước cập nhật.
+
 - [x] 1. Schema/validator: CASH, optional address offline, idempotency partial index;
   strict input; focused model/validator tests. Giữ dữ liệu cũ và enum còn lại.
 - [x] 2. Protected lookup APIs và create/recovery handlers theo layers hiện có;
@@ -52,6 +69,14 @@ $env:MONGODB_MEMORY_MODULE_PATH = '/absolute/path/to/mongodb-memory-server-core'
 node backend/tests/staff-sale-integration.mjs
 ```
 
-Runner tải MongoDB binary chính thức nếu chưa có và khởi tạo replica set tạm;
-cần network/cho phép mở cổng loopback. Browser runner và cấu hình Playwright được
-ghi trong frontend/README.md. Không dùng URI database thật thay cho fixture này.
+Runner hiện tải MongoDB binary chính thức nếu chưa có và khởi tạo standalone tạm;
+cần network/cho phép mở cổng loopback. Hoặc dùng server local đang chạy:
+
+```powershell
+$env:STAFF_SALE_TEST_MONGODB_URI = 'mongodb://127.0.0.1:27017'
+node backend/tests/staff-sale-integration.mjs
+```
+
+Runner không tải .env, luôn chọn database test tên UUID riêng và xóa database đó
+sau test. Không ghi vào database có trong URI. Browser runner và cấu hình Playwright
+được ghi trong frontend/README.md.

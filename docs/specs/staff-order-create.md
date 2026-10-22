@@ -45,11 +45,20 @@ Exact Staff, session revocation/current role, no-store trên tất cả endpoint
   channel:"offline",orderStatus:"completed",paymentStatus:"paid",paymentMethod:"CASH"}}}`.
   POST lần đầu 201, replay 200. Không trả raw document hay dữ liệu khách ngoài nhu cầu.
 
-Transaction MongoDB gồm đọc giá/Customer, trừ stock có điều kiện không xâm phạm
-reservedStock, save Order + Payment CASH paid + AuditLog actor/action/target (không
-PII trong audit). Abort toàn bộ nếu lỗi. Không dùng bù trừ kho sau khi ghi thất bại.
-Thiếu replica set: 503 có thông báo cấu hình, không fallback ghi không transaction.
-Không thay cấu hình hoặc ghi thử database thực trong quá trình phát triển.
+Theo yêu cầu chuyển sang standalone ngày 22/10/2026, luồng hiện tại không dùng
+transaction: đọc/kiểm tra giá và Customer, lưu Order `creationState=pending` để
+giữ unique request key, trừ stock có điều kiện không xâm phạm reservedStock,
+save Payment CASH paid + AuditLog actor/action/target (không PII), rồi đánh dấu
+Order `creationState=complete`. Đơn pending không hiện ở list/detail/summary và
+create/recovery trả 503 ORDERS_UNAVAILABLE thay vì receipt thành công.
+Nếu ghi thất bại: thử hoàn các lần trừ kho đã xác nhận bằng $inc, xóa Payment/Audit
+theo ID của lần tạo và xóa Order pending khi đã dọn xong. Không reset stock về
+snapshot cũ. Nếu kết quả ghi stock không rõ hoặc dọn thất bại, giữ pending key và
+log ID đơn để kiểm tra thủ công, không tự chạy lại. Nếu mất phản hồi lúc đánh dấu
+complete thì tra lại receipt, không bù trừ vì có thể đơn đã hoàn tất.
+Giới hạn: không atomic nhiều document; crash hoặc mất kết nối có thể để dữ liệu
+dở dang cần đối soát thủ công. Chỉ dùng database test tách biệt để integration test;
+không thay cấu hình hoặc ghi thử database ứng dụng thực.
 
 Order thêm request ID/hash optional và unique partial index theo Staff+request ID;
 đơn cũ không cần migration. Hash payload chuẩn hóa; cùng key khác payload = 409
@@ -60,23 +69,22 @@ nguyên payload/key để retry hoặc tra cứu, không tự tạo intent mới
 
 Lỗi: 400 VALIDATION_ERROR; auth 401/403/409 như hiện có; 403 CSRF_INVALID;
 409 OUT_OF_STOCK/CATALOG_CHANGED/IDEMPOTENCY_CONFLICT; 404 CUSTOMER_NOT_FOUND;
-503 ORDERS_UNAVAILABLE/TRANSACTIONS_REQUIRED. Không expose driver errors.
+503 ORDERS_UNAVAILABLE. Không expose driver errors.
 Không cấp quyền Admin, đổi giá, giảm giá, vận chuyển, online payment hoặc tạo tài khoản.
 
 ## Nghiệm thu
 
 1. Staff tạo được cả đơn guest và Customer, snapshot/tổng/actor chính xác; không tạo User.
 2. Backend không tin giá/tổng/trạng thái; hàng ẩn/thiếu/hết/giá thay đổi bị từ chối.
-3. Stock/Order/Payment/Audit commit cùng nhau; rollback, concurrent sale và replay
-   không oversell/duplicate. MongoDB replica set integration riêng kiểm chứng transaction.
+3. Standalone ghi được Stock/Order/Payment/Audit, bù trừ lỗi đã xác định; concurrent
+   sale không oversell, replay không ghi trùng, pending không giả thành công.
+   Integration test riêng kiểm chứng bằng database ngẫu nhiên trên standalone.
 4. Guest/Customer/Admin không gọi được API; invalid/revoked cookie, CSRF, malformed
    bodies và user role lạ được từ chối; DTO không lộ hồ sơ/PII audit.
 5. Direct/reload new route, search/chọn/xóa/sửa số lượng, lỗi và thành công hoạt động;
    320/768/1024/1440px, bàn phím, không tràn body; không success giả.
 6. Chạy backend/frontend tests, lint, tsc/build; ghi baseline và giới hạn live services riêng.
 
-Nguồn transaction: [Mongoose transactions](https://mongoosejs.com/docs/transactions.html)
-và [MongoDB transactions](https://www.mongodb.com/docs/manual/core/transactions/).
-Các thao tác trong một transaction được await tuần tự; không Promise.all trên
-cùng session. Không biến timeout hoặc lỗi commit chưa rõ kết quả thành đơn thất bại
-chắc chắn rồi tự phát một request ID mới.
+Nguồn: [MongoDB atomicity](https://www.mongodb.com/docs/manual/core/write-operations-atomicity/).
+Không biến timeout chưa rõ kết quả thành đơn thất bại chắc chắn rồi tự phát
+một request ID mới. Có thể nâng lại transaction khi triển khai replica set/Atlas.

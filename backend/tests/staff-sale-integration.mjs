@@ -12,11 +12,16 @@ import { Payment } from "../src/models/payment.model.js";
 import { AuditLog } from "../src/models/audit-log.model.js";
 
 const require = createRequire(import.meta.url);
-const { MongoMemoryReplSet } = require(process.env.MONGODB_MEMORY_MODULE_PATH || "mongodb-memory-server-core");
-const replica = await MongoMemoryReplSet.create({ replSet: { count: 1, storageEngine: "wiredTiger" },
- binary: { version: "8.0.17" } });
+const databaseName = `petly_sale_test_${randomUUID().replaceAll("-", "")}`;
+let standalone;
+let uri = process.env.STAFF_SALE_TEST_MONGODB_URI;
+if (!uri) {
+ const { MongoMemoryServer } = require(process.env.MONGODB_MEMORY_MODULE_PATH || "mongodb-memory-server-core");
+ standalone = await MongoMemoryServer.create({ binary: { version: "8.0.17" } });
+ uri = standalone.getUri();
+}
 try {
- await mongoose.connect(replica.getUri("petly_sale_test"), { autoIndex: false });
+ await mongoose.connect(uri, { dbName: databaseName, autoIndex: false });
  await createModelIndexes();
  const actor = await User.create({ firebaseUid: "fixture-staff", role: "staff", fullName: "Staff fixture",
   phone: "0912345678", email: "staff@example.test", termsAcceptedAt: new Date() });
@@ -34,13 +39,18 @@ try {
   return { status, ...result };
  }
  const repeatedKey = randomUUID();
+ const concurrent = await Promise.allSettled(Array.from({ length: 5 }, () => create(payload, repeatedKey)));
+ assert.equal(concurrent.filter((v) => v.status === "fulfilled" && v.value.status === 201).length, 1);
+ for (const result of concurrent) {
+  if (result.status === "rejected") assert.equal(result.reason.code, "ORDERS_UNAVAILABLE");
+ }
  const repeats = await Promise.all(Array.from({ length: 5 }, () => create(payload, repeatedKey)));
  assert.equal(new Set(repeats.map((v) => v.data.order.id)).size, 1);
  assert.equal(await Order.countDocuments(), 1);
  assert.equal(await Payment.countDocuments(), 1);
  assert.equal(await AuditLog.countDocuments(), 1);
  assert.equal((await Product.findById(product._id)).variants[0].stock, 8);
- assert.equal(repeats.filter((v) => v.status === 201).length, 1);
+ assert.ok(repeats.every((v) => v.status === 200));
  await assert.rejects(create({ ...payload, items: [{ ...payload.items[0], qty: 1 }] }, repeatedKey), (error) => error.code === "IDEMPOTENCY_CONFLICT");
  console.log("PASS concurrent replay: one order/payment/audit and one stock deduction");
 
@@ -58,15 +68,20 @@ try {
  console.log("PASS concurrent distinct sales: reserved stock preserved, no oversell");
 
  await Product.updateOne({ _id: product._id }, { $set: { "variants.0.stock": 10 } });
- const save = AuditLog.prototype.save;
- AuditLog.prototype.save = async function () { throw new Error("test audit write failure"); };
- try { await assert.rejects(create(), (error) => error.code === "ORDERS_UNAVAILABLE"); }
- finally { AuditLog.prototype.save = save; }
- assert.equal((await Product.findById(product._id)).variants[0].stock, 10);
- assert.equal(await Order.countDocuments(), 4);
- assert.equal(await Payment.countDocuments(), 4);
- assert.equal(await AuditLog.countDocuments(), 4);
- console.log("PASS real transaction rollback after Order/Payment writes");
+ for (const model of [Payment, AuditLog]) {
+  const save = model.prototype.save;
+  model.prototype.save = async function (...args) {
+   await save.apply(this, args);
+   throw new Error("test lost write acknowledgement");
+  };
+  try { await assert.rejects(create(), (error) => error.code === "ORDERS_UNAVAILABLE"); }
+  finally { model.prototype.save = save; }
+  assert.equal((await Product.findById(product._id)).variants[0].stock, 10);
+  assert.equal(await Order.countDocuments(), 4);
+  assert.equal(await Payment.countDocuments(), 4);
+  assert.equal(await AuditLog.countDocuments(), 4);
+ }
+ console.log("PASS standalone compensation even after Payment/AuditLog writes lost acknowledgement");
 
  await Product.create({ name: "Hidden fixture", petType: "cat", isActive: false, categoryId: new mongoose.Types.ObjectId(),
   variants: [{ sku: "HIDDEN", label: "1 kg", price: 1, stock: 10 }] });
@@ -89,6 +104,9 @@ try {
  assert.equal(new Set([...firstPage.items, ...secondPage.items].map((item) => item.sku)).size, 15);
  console.log("PASS real lookup pipelines: sellable variants, literal search, Customer isolation and paging after unwind");
 } finally {
+ if (mongoose.connection.readyState === 1 && mongoose.connection.name === databaseName) {
+  await mongoose.connection.dropDatabase();
+ }
  await mongoose.disconnect();
- await replica.stop();
+ await standalone?.stop();
 }

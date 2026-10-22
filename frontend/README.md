@@ -42,7 +42,9 @@ fallback. Pending request IDs (UUID only, no contact/cart information) are kept 
 sessionStorage so a reload can recover a committed receipt without creating twice.
 Do not replace backend price/stock validation with frontend calculations.
 
-The backend requires MongoDB replica-set transactions for this feature; see the
+The backend currently supports standalone MongoDB with sequential writes and
+best-effort compensation; incomplete requests do not return successful receipts.
+Process crashes or uncertain writes may require manual reconciliation. See the
 [spec](../docs/specs/staff-order-create.md). The form currently supports CASH only,
 immediate pickup, zero delivery charge and no promotions.
 

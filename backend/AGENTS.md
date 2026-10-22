@@ -74,11 +74,14 @@ origin; it does not select the backend listening port.
   limits. Keep Firebase identity fields unchanged; domain user references use its MongoDB
   `_id`, not its Firebase UID. Models do not implement stock reservation, payment
   verification, review purchase eligibility or authorization.
-- The default local MongoDB URI has no replica set configuration. Use a replica
-  set before introducing multi-document transactions.
-- Staff sale creation requires a replica set/Atlas: stock deductions, Order,
-  Payment and AuditLog commit atomically. Standalone MongoDB returns
-  `503 TRANSACTIONS_REQUIRED`; never fall back to independent writes. Startup
+- Staff sale creation currently supports standalone MongoDB with sequential
+  writes and best-effort compensation, as explicitly requested by the user.
+  A pending Order claims the request key before stock/Payment/AuditLog writes;
+  mark it complete only after all writes succeed. Pending orders stay out of
+  list/detail/summary and cannot replay as successful receipts. Failed cleanup,
+  uncertain stock writes or final acknowledgements retain the pending request
+  for manual reconciliation; never auto-retry its deductions. This is not atomic
+  across documents or process crashes; use transactions for production atomicity. Startup
   creates the partial unique `(createdByStaffId, creationRequestId)` index for
   duplicate-submit protection. `CASH` is for offline sales, not online COD.
   See `../docs/specs/staff-order-create.md` for API/input/idempotency contracts.
@@ -152,9 +155,11 @@ response)`); routers import those handlers and export the Express router.
 - Check any command or file mentioned here against the current tree before
   updating instructions. Do not claim a server or MongoDB smoke test passed
   unless it was actually run.
-- `tests/staff-sale*.test.js` cover input, HTTP authorization/CSRF, replay and
-  transaction orchestration with mocked dependencies. The optional isolated
-  `tests/staff-sale-integration.mjs` uses mongodb-memory-server-core supplied via
-  `MONGODB_MEMORY_MODULE_PATH` to exercise real replica-set rollback/concurrency;
-  it does not load `.env` or use the application's database. Test-tool dependencies
+- `tests/staff-sale*.test.js` cover input, HTTP authorization/CSRF, replay,
+  pending receipts and standalone compensation with mocked dependencies. The
+  optional isolated `tests/staff-sale-integration.mjs` uses a standalone test
+  server from `mongodb-memory-server-core` via `MONGODB_MEMORY_MODULE_PATH`, or
+  an explicit server URI via `STAFF_SALE_TEST_MONGODB_URI`. It always creates
+  and drops its own randomly named database; it never loads `.env` or uses
+  the application's database. It exercises real compensation/concurrency. Test-tool dependencies
   are optional and are not added to the application lockfiles.

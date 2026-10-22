@@ -25,7 +25,7 @@ export async function listStaffOrders(request, response, next) {
     const searchFilter = buildOrderSearchFilter(query);
     const dateRange = computeDateRange(dateFrom, dateTo);
 
-    const baseConditions = [];
+    const baseConditions = [{ creationState: { $nin: ["pending"] } }];
     if (Object.keys(searchFilter).length > 0) {
       baseConditions.push(searchFilter);
     }
@@ -158,7 +158,7 @@ export async function getStaffOrderDetail(request, response, next) {
       );
     }
 
-    if (!order) {
+    if (!order || order.creationState === "pending") {
       throw new AppError("Không tìm thấy đơn hàng.", 404, "ORDER_NOT_FOUND");
     }
 

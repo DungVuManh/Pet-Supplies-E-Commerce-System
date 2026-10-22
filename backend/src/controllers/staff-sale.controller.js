@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import { randomBytes } from "node:crypto";
 import { AppError } from "../common/errors/app-error.js";
 import { Product } from "../models/product.model.js";
@@ -11,9 +10,6 @@ import { literalRegex, parseLookup, parseRequestId, parseSale, saleHash } from "
 const PAGE_SIZE = 10;
 function unavailable(error) {
  if (error instanceof AppError) return error;
- if (error?.code === 20 || error?.codeName === "IllegalOperation") {
-  return new AppError("Tạo đơn cần MongoDB replica set hoặc Atlas hỗ trợ transaction.", 503, "TRANSACTIONS_REQUIRED");
- }
  return new AppError("Chưa thể xác nhận kết quả tạo đơn. Hãy thử lại cùng yêu cầu.", 503, "ORDERS_UNAVAILABLE");
 }
 function receipt(order) {
@@ -23,13 +19,19 @@ function receipt(order) {
 }
 async function existingRequest(actorId, requestId) {
  return Order.findOne({ createdByStaffId: actorId, creationRequestId: requestId })
-  .select("_id orderCode total channel orderStatus paymentStatus paymentMethod +creationRequestHash").lean();
+  .select("_id orderCode total channel orderStatus paymentStatus paymentMethod creationState +creationRequestHash").lean();
+}
+function completedReceipt(order) {
+ if (order.creationState && order.creationState !== "complete") {
+  throw new AppError("Đơn đang xử lý hoặc cần kiểm tra. Hãy tra cứu lại cùng yêu cầu.", 503, "ORDERS_UNAVAILABLE");
+ }
+ return receipt(order);
 }
 function checkReplay(order, hash) {
  if (order.creationRequestHash !== hash) {
   throw new AppError("Yêu cầu này đã được dùng cho một đơn khác. Hãy kiểm tra đơn vừa tạo.", 409, "IDEMPOTENCY_CONFLICT");
  }
- return receipt(order);
+ return completedReceipt(order);
 }
 
 export async function listSaleCustomers(request, response) {
@@ -71,17 +73,17 @@ export async function getSaleCreation(request, response) {
  try { found = await existingRequest(request.user._id, requestId); }
  catch (error) { throw unavailable(error); }
  if (!found) throw new AppError("Chưa tìm thấy đơn của yêu cầu này.", 404, "CREATION_NOT_FOUND");
- response.json({ success: true, data: { order: receipt(found) } });
+ response.json({ success: true, data: { order: completedReceipt(found) } });
 }
 
-async function saveSale(input, actorId, requestId, hash, session) {
+async function saveSale(input, actorId, requestId, hash) {
  const skus = input.items.map((i) => i.sku);
  const products = await Product.find({ isActive: true, "variants.sku": { $in: skus } })
-  .select("_id name variants").session(session).lean();
+  .select("_id name variants").lean();
  let contact = input.customer;
  if (input.customerId) {
   const user = await User.findOne({ _id: input.customerId, role: "customer" })
-   .select("fullName phone email").session(session).lean();
+   .select("fullName phone email").lean();
   if (!user) throw new AppError("Khách hàng không còn khả dụng. Hãy chọn lại.", 404, "CUSTOMER_NOT_FOUND");
   contact = { name: user.fullName, phone: user.phone, email: user.email };
  }
@@ -97,11 +99,6 @@ async function saveSale(input, actorId, requestId, hash, session) {
   if (variant.stock - variant.reservedStock < requested.qty) throw new AppError("Số lượng còn lại không đủ. Hãy kiểm tra lại sản phẩm.", 409, "OUT_OF_STOCK");
   subtotal += variant.price * requested.qty;
   if (!Number.isSafeInteger(subtotal)) throw new AppError("Tổng tiền vượt giới hạn cho phép.", 400, "VALIDATION_ERROR");
-  const updated = await Product.updateOne({ _id: product._id, isActive: true,
-   variants: { $elemMatch: { sku: variant.sku, price: variant.price,
-    stock: { $gte: requested.qty + variant.reservedStock }, reservedStock: variant.reservedStock } },
-  }, { $inc: { "variants.$.stock": -requested.qty } }, { session });
-  if (updated.modifiedCount !== 1) throw new AppError("Tồn kho đã thay đổi. Hãy kiểm tra lại sản phẩm.", 409, "OUT_OF_STOCK");
   items.push({ productId: product._id, variantSku: variant.sku,
    name: product.name, unitPrice: variant.price, qty: requested.qty });
  }
@@ -110,15 +107,61 @@ async function saveSale(input, actorId, requestId, hash, session) {
   ...(input.customerId ? { customerId: input.customerId } : {}), guestInfo: contact,
   items, subtotal, total: subtotal, discount: 0, shippingFee: 0,
   channel: "offline", orderStatus: "completed", paymentMethod: "CASH", paymentStatus: "paid",
-  createdByStaffId: actorId, creationRequestId: requestId, creationRequestHash: hash,
+  createdByStaffId: actorId, creationRequestId: requestId, creationRequestHash: hash, creationState: "pending",
   statusHistory: [{ to: "completed", by: actorId, at: now }],
  });
- await order.save({ session });
- await new Payment({ orderId: order._id, method: "CASH", amount: subtotal, status: "paid" }).save({ session });
- await new AuditLog({ actorId, action: "order.create.offline",
+ // Claim the unique request key before any stock/payment writes, including across processes.
+ await order.save();
+ const payment = new Payment({ orderId: order._id, method: "CASH", amount: subtotal, status: "paid" });
+ const audit = new AuditLog({ actorId, action: "order.create.offline",
   target: { collectionName: "orders", id: String(order._id) }, at: now,
   after: { orderCode: order.orderCode, total: subtotal, channel: "offline" },
- }).save({ session });
+ });
+ const deducted = [];
+ let stockWriteUncertain = false;
+ try {
+  for (const item of items) {
+   const variant = products.find((p) => String(p._id) === String(item.productId))
+    .variants.find((v) => v.sku === item.variantSku);
+   stockWriteUncertain = true;
+   const updated = await Product.updateOne({ _id: item.productId, isActive: true,
+    variants: { $elemMatch: { sku: item.variantSku, price: item.unitPrice,
+     stock: { $gte: item.qty + variant.reservedStock }, reservedStock: variant.reservedStock } },
+   }, { $inc: { "variants.$.stock": -item.qty } });
+   stockWriteUncertain = false;
+   if (updated.modifiedCount !== 1) throw new AppError("Tồn kho đã thay đổi. Hãy kiểm tra lại sản phẩm.", 409, "OUT_OF_STOCK");
+   deducted.push(item);
+  }
+  await payment.save();
+  await audit.save();
+ } catch (error) {
+  // shortcut: compensation cannot survive a process crash; use transactions for production atomicity.
+  let restored = !stockWriteUncertain;
+  for (const item of deducted.reverse()) {
+   try {
+    const result = await Product.updateOne({ _id: item.productId, "variants.sku": item.variantSku },
+     { $inc: { "variants.$.stock": item.qty } });
+    if (result.modifiedCount !== 1) restored = false;
+   } catch { restored = false; }
+  }
+  for (const doc of [audit, payment]) {
+   try { await doc.constructor.deleteOne({ _id: doc._id }); }
+   catch { restored = false; }
+  }
+  if (restored) {
+   try { await Order.deleteOne({ _id: order._id, creationState: "pending" }); }
+   catch { restored = false; }
+  }
+  if (!restored) {
+   console.error("Staff sale requires reconciliation", String(order._id));
+   throw unavailable();
+  }
+  throw error;
+ }
+ // An uncertain final acknowledgement must never trigger compensation of a completed sale.
+ const completed = await Order.updateOne({ _id: order._id, creationState: "pending" },
+  { $set: { creationState: "complete" } });
+ if (completed.modifiedCount !== 1) throw unavailable();
  return receipt(order);
 }
 
@@ -129,20 +172,13 @@ export async function createStaffSale(request, response) {
  try {
   const previous = await existingRequest(request.user._id, requestId);
   if (previous) return response.json({ success: true, data: { order: checkReplay(previous, hash) } });
-  const result = await mongoose.connection.transaction(async (session) => {
-   const replay = await Order.findOne({ createdByStaffId: request.user._id, creationRequestId: requestId })
-    .select("_id orderCode total channel orderStatus paymentStatus paymentMethod +creationRequestHash").session(session).lean();
-   if (replay) return { order: checkReplay(replay, hash), replayed: true };
-   return { order: await saveSale(input, request.user._id, requestId, hash, session), replayed: false };
-  }, { readPreference: "primary", readConcern: { level: "snapshot" }, writeConcern: { w: "majority" }, maxCommitTimeMS: 10000 });
-  response.status(result.replayed ? 200 : 201).json({ success: true, data: { order: result.order } });
+  const order = await saveSale(input, request.user._id, requestId, hash);
+  response.status(201).json({ success: true, data: { order } });
  } catch (error) {
-  if (error?.code === 11000) {
-   try {
-    const replay = await existingRequest(request.user._id, requestId);
-    if (replay) return response.json({ success: true, data: { order: checkReplay(replay, hash) } });
-   } catch (lookupError) { throw unavailable(lookupError); }
-  }
+  try {
+   const replay = await existingRequest(request.user._id, requestId);
+   if (replay) return response.json({ success: true, data: { order: checkReplay(replay, hash) } });
+  } catch (lookupError) { throw unavailable(lookupError); }
   throw unavailable(error);
  }
 }

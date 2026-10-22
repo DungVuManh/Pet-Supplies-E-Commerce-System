@@ -66,6 +66,7 @@ const orderSchema = new mongoose.Schema(
   },
   creationRequestId: { type: String, select: false, immutable: true },
   creationRequestHash: { type: String, select: false, immutable: true },
+  creationState: { type: String, enum: ["pending", "complete"] },
   shipping: {
    carrier: { type: String, trim: true },
    trackingNumber: { type: String, trim: true },
