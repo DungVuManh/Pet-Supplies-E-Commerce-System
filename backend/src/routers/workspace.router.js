@@ -4,6 +4,7 @@ import { dashboard } from "../controllers/dashboard.controller.js";
 import { listStaffOrders, getStaffOrderDetail } from "../controllers/order.controller.js";
 import { updateStaffOrderStatus } from "../controllers/order-status.controller.js";
 import { getStaffProducts, getProductBySku } from "../controllers/product.controller.js";
+import { updateStaffProduct } from "../controllers/product-update.controller.js";
 import { protectMutation } from "../controllers/auth.controller.js";
 import { createStaffSale, getSaleCreation, listSaleCustomers, listSaleProducts } from "../controllers/staff-sale.controller.js";
 
@@ -18,6 +19,7 @@ router.get("/staff/orders/:id", readCookies, requireAuth, requireRole("staff"), 
 router.patch("/staff/orders/:id/status", readCookies, requireAuth, requireRole("staff"), protectMutation, updateStaffOrderStatus);
 router.get("/staff/products", readCookies, requireAuth, requireRole("staff"), getStaffProducts);
 router.get("/staff/products/:sku", readCookies, requireAuth, requireRole("staff"), getProductBySku);
+router.patch("/staff/products/:sku", readCookies, requireAuth, requireRole("staff"), protectMutation, updateStaffProduct);
 
 router.get("/admin/dashboard", readCookies, requireAuth, requireRole("admin"), dashboard);
 

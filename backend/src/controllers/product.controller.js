@@ -1,6 +1,7 @@
 import { AppError } from "../common/errors/app-error.js";
 import { Category } from "../models/category.model.js";
 import { Product } from "../models/product.model.js";
+import { parseProductSku } from "../validators/product.validator.js";
 
 function formatTimestamp(date) {
   if (!date) return "";
@@ -124,10 +125,7 @@ export async function getStaffProducts(request, response, next) {
 
 export async function getProductBySku(request, response, next) {
   try {
-    const { sku } = request.params;
-    if (!sku) {
-      throw new AppError("Mã SKU không hợp lệ.", 400, "BAD_REQUEST");
-    }
+    const sku = parseProductSku(request.params);
 
     const product = await Product.findOne({ "variants.sku": sku })
       .populate("categoryId", "name slug")
@@ -158,6 +156,7 @@ export async function getProductBySku(request, response, next) {
       image: product.images?.[0] || "/images/products/royal-canin-mini-adult.png",
       updated: formatTimestamp(product.updatedAt),
       shortDescription: product.description || "",
+      description: product.description || "",
       content: product.description || "",
       variants: product.variants,
     };

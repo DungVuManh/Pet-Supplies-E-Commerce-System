@@ -35,7 +35,14 @@ conflicts, manual shipping and lost responses, then requires compiled Tailwind C
 for responsive checks. A Webpack fallback can verify interactions but cannot pass
 the stylesheet gate because Tailwind is configured only for Turbopack.
 - `/staff/products`: catalog and inventory list with physical, reserved and available quantities, stock alerts and filters; uses the Staff API with a local mock fallback.
-- `/staff/products/[sku]`, `/staff/products/[sku]/edit`: product detail and local edit flow.
+- `/staff/products/[sku]`, `/staff/products/[sku]/edit`: real product detail and
+  protected updates to physical stock, shared visibility and one description.
+  Saving returns to detail; stale snapshots require reload. These pages do not
+  fall back to mock data. See [product update contract](../docs/specs/staff-product-update.md).
+- Optional edit UI regression: after building, run
+  `node frontend/tests/staff-product-edit-browser.mjs` with `PLAYWRIGHT_MODULE_PATH`.
+  It uses fixture APIs on ports 3024/3134, verifies validation/save/re-edit/conflicts/
+  lost responses/error retry, then requires compiled Tailwind for responsive checks.
 - `/staff/inventory`: redirects to `/staff/products`; inventory is managed from the product screen.
 - `/staff/sales`, `/staff/performance`: mock reporting screens.
 - `/admin/dashboard`: Admin only; public profile and workspace empty state.

@@ -16,6 +16,10 @@ These instructions apply to `backend/`. Keep this file aligned with the code and
   Status/history update atomically in Order using expectedStatus; no stock/payment
   mutation. Shipping metadata is optional. Staff cannot mark orders completed.
   See `../docs/specs/staff-order-status.md` for confirmation guards and the API contract.
+  Staff can PATCH `/api/v1/staff/products/:sku` with JSON/Origin/CSRF to edit the
+  SKU's physical stock and the Product's shared status/description. An expected
+  snapshot prevents stale overwrites; stock cannot fall below reservedStock.
+  No price/category/image or reservation edits. See `../docs/specs/staff-product-update.md`.
   `src/scripts/seed.js` provides
   development/test sample data for all 13 non-User models using existing users.
 - Use Node.js 24.x and npm 11+ as declared in `package.json`. Run commands from

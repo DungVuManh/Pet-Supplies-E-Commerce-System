@@ -1,37 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
-import { availableStock, getProduct, money, type Product } from "@/features/staff/mock-data";
+import { money } from "@/features/staff/mock-data";
 import { Badge, PageHeader, card, primaryLink } from "@/features/staff/components/staff-ui";
-
-async function fetchProduct(sku: string): Promise<Product | null> {
-  try {
-    const origin = process.env.BACKEND_ORIGIN || "http://127.0.0.1:3001";
-    const name = process.env.NODE_ENV === "production" ? "__Host-petly-session" : "petly-session";
-    const session = (await cookies()).get(name);
-
-    const headers: Record<string, string> = { Accept: "application/json" };
-    if (session) {
-      headers.Cookie = `${name}=${encodeURIComponent(session.value)}`;
-    }
-
-    const res = await fetch(`${origin}/api/v1/staff/products/${sku}`, {
-      headers,
-      cache: "no-store",
-    });
-
-    if (res.ok) {
-      const json = await res.json();
-      if (json.success && json.data) {
-        return json.data;
-      }
-    }
-  } catch (error) {
-    console.warn(`[ProductDetailPage] API fetch failed for ${sku}, using fallback:`, error);
-  }
-  return getProduct(sku) || null;
-}
+import { getStaffProduct } from "@/features/staff/products/server";
 
 export default async function ProductDetailPage({
   params,
@@ -39,12 +10,8 @@ export default async function ProductDetailPage({
   params: Promise<{ sku: string }>;
 }) {
   const { sku } = await params;
-  const p = await fetchProduct(sku);
-  if (!p) notFound();
-
-  const available = typeof p.physical === "number" && typeof p.reserved === "number"
-    ? p.physical - p.reserved
-    : availableStock(p);
+  const p = await getStaffProduct(sku);
+  const available = p.availableStock;
 
   return (
     <>
@@ -52,7 +19,7 @@ export default async function ProductDetailPage({
         title={p.name}
         subtitle={`SKU ${p.sku} · ${p.category} · ${p.weight} · Cập nhật ${p.updated}`}
         action={
-          <Link className={primaryLink} href={`/staff/products/${p.sku}/edit`}>
+          <Link className={primaryLink} href={`/staff/products/${encodeURIComponent(p.sku)}/edit`}>
             Chỉnh sửa sản phẩm
           </Link>
         }
@@ -123,17 +90,10 @@ export default async function ProductDetailPage({
       </div>
 
       <section className={`${card} p-6`}>
-        <h2 className="text-xl font-semibold">Mô tả & nội dung hiển thị</h2>
-        <h3 className="mt-5 font-semibold">Mô tả</h3>
+        <h2 className="text-xl font-semibold">Mô tả sản phẩm</h2>
         <p className="mt-3 leading-relaxed text-muted">
-          {p.shortDescription || (p as { description?: string }).description || ""}
+          {p.description || "Chưa có mô tả."}
         </p>
-        {p.content && (
-          <>
-            <h3 className="mt-5 font-semibold">Thành phần & hướng dẫn</h3>
-            <p className="mt-3 leading-relaxed text-muted">{p.content}</p>
-          </>
-        )}
       </section>
 
       <div className="rounded-lg bg-brand-subtle p-4">
