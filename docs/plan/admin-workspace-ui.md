@@ -46,8 +46,8 @@ Designs: `docs/designs/Admin/` (Auth designs excluded; authentication is already
   - [x] Mobile: collapsible, keyboard-accessible navigation below `lg`, and no horizontal body scroll
 - [x] Add `app/(workspace)/admin/layout.tsx` with the role guard and shell. Until phase 1, `/admin/dashboard` is a header-only placeholder inside the shell. The unused `WorkspaceDashboard` was removed.
 - [x] Add `tests/admin-mock.test.mjs` with the first invariants (status mapping covers every tone).
-- [ ] Visual check of the shell, logged in as Admin, at 320 / 768 / 1024 / 1440 (needs your Admin account)
-- [ ] **🛑 Commit checkpoint: Admin shell + shared workspace UI**
+- [x] Visual check of the shell, logged in as Admin (confirmed by user)
+- [x] **🛑 Commit checkpoint: Admin shell + shared workspace UI**
 
 > Known blockers outside this plan, found during phase 0. They are not caused by this work and are left for their owners:
 > - `npm --prefix frontend run build` fails type checking because `app/(customer)/listProduct/ProductCat/page.tsx` is an empty file (commit `50677e2`).
@@ -56,13 +56,16 @@ Designs: `docs/designs/Admin/` (Auth designs excluded; authentication is already
 
 ## 1. Dashboard: `/admin/dashboard`
 
-- [ ] Mock: KPI values, cumulative revenue series 01–12/10, low-stock list, recent activity rows
-- [ ] Page header with greeting from the session user, and a date-range chip "01–12/10/2026"
-- [ ] 4 KPI cards. "Sản phẩm sắp hết" uses the warning variant.
-- [ ] "Doanh thu lũy kế" line chart with axis and legend
-- [ ] "Cảnh báo tồn kho" card with the "8 sản phẩm dưới định mức" pill and 3 items, linking to `/admin/inventory`
-- [ ] Recent-activity table with badges, "Chi tiết →" links, and pagination
-- [ ] Replace the placeholder `WorkspaceDashboard` usage for Admin
+- [x] Mock: KPI values, cumulative revenue series 01–12/10 (`mock/overview.ts`), and stock levels shared with the inventory screens (`mock/inventory.ts`)
+- [x] Page header with greeting from the session user's given name, and a date-range chip "01–12/10/2026"
+- [x] 4 KPI cards. "Sản phẩm sắp hết" uses the warning variant.
+- [x] "Doanh thu lũy kế" line chart with axis, legend, and the data table
+- [x] "Cảnh báo tồn kho" card with the "8 sản phẩm dưới định mức" pill and the 3 below-threshold items (each links to its product), plus a "Xem kho hàng →" link to `/admin/inventory`
+- [x] Recent-activity table with badges, "Chi tiết →" links, and pagination (shared `DataTable`/`Th`/`Td`/`Stack` added to `admin-ui.tsx`)
+- [x] Replace the placeholder dashboard page
+- [x] Tests: the chart ends at the net-revenue KPI, the stock alert lists only below-threshold items, and activity statuses and links are valid
+- [x] Fix from the review: `Pagination` attaches `onClick` only when `onPage` is given, so Server Components can render it. `admin/layout.tsx` moves the session check into a Suspense-wrapped `AdminSession` child, so client navigations into `/admin` pass Cache Components validation.
+- [ ] Visual check against `Dashboard.png` (you)
 - [ ] **🛑 Commit checkpoint: Dashboard**
 
 ## 2. Users

@@ -65,6 +65,8 @@ export function LineChart({ title, subtitle, data, unit, legend = "Kỳ này", t
     return `${d} C${cx},${py} ${cx},${y} ${x},${y}`;
   }, "");
   const labelEvery = Math.max(1, Math.ceil(data.length / 6));
+  const last = data.length - 1;
+  const showLabel = (index: number) => index === last || (index % labelEvery === 0 && last - index >= labelEvery);
   return <section className={`${card} min-w-0 p-6`} aria-labelledby={headingId}>
     <h2 id={headingId} className="text-xl font-semibold">{title}</h2>
     <div className="mt-4 flex items-center justify-between gap-4 text-xs text-muted"><p>{subtitle}</p><p className="flex items-center gap-1.5 text-brand"><span className="h-2 w-2 rounded-full bg-brand" aria-hidden="true" />{legend}</p></div>
@@ -75,7 +77,7 @@ export function LineChart({ title, subtitle, data, unit, legend = "Kỳ này", t
         <path d={path} className="fill-none stroke-brand" strokeWidth="2" vectorEffect="non-scaling-stroke" />
       </svg>
       <span aria-hidden="true" />
-      <div className="mt-4 flex justify-between text-xs text-muted" aria-hidden="true">{data.map((item, index) => index % labelEvery === 0 || index === data.length - 1 ? <span key={item.label}>{item.label}</span> : null)}</div>
+      <div className="mt-4 flex justify-between text-xs text-muted" aria-hidden="true">{data.map((item, index) => showLabel(index) ? <span key={item.label}>{item.label}</span> : null)}</div>
     </div>
     <ChartDataTable data={data} unit={unit} />
   </section>;
@@ -109,10 +111,10 @@ export function Pagination({ from, to, total, page = 1, pages = 1, onPage }: { f
   return <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-6 py-4 text-xs text-muted">
     <p>{total === 0 ? "0 bản ghi" : `Hiển thị ${from}–${to} / ${total.toLocaleString("vi-VN")} bản ghi`}</p>
     <nav aria-label="Phân trang"><ul className="flex items-center gap-1 text-sm">
-      <li><button type="button" className={pageStyle(false)} disabled={!onPage || page <= 1} onClick={() => onPage?.(page - 1)} aria-label="Trang trước">‹</button></li>
-      {shown.map((n) => <li key={n}><button type="button" className={pageStyle(n === page)} disabled={!onPage} aria-current={n === page ? "page" : undefined} onClick={() => onPage?.(n)}>{n}</button></li>)}
+      <li><button type="button" className={pageStyle(false)} disabled={!onPage || page <= 1} onClick={onPage && (() => onPage(page - 1))} aria-label="Trang trước">‹</button></li>
+      {shown.map((n) => <li key={n}><button type="button" className={pageStyle(n === page)} disabled={!onPage} aria-current={n === page ? "page" : undefined} onClick={onPage && (() => onPage(n))}>{n}</button></li>)}
       {pages > 3 && <li aria-hidden="true" className="px-1">…</li>}
-      <li><button type="button" className={pageStyle(false)} disabled={!onPage || page >= pages} onClick={() => onPage?.(page + 1)} aria-label="Trang sau">›</button></li>
+      <li><button type="button" className={pageStyle(false)} disabled={!onPage || page >= pages} onClick={onPage && (() => onPage(page + 1))} aria-label="Trang sau">›</button></li>
     </ul></nav>
   </div>;
 }
