@@ -9,12 +9,12 @@ const benefits = [
 
 export function AuthWelcome() {
   return (
-    <aside className="hidden flex-col gap-6 lg:flex" aria-label="Đồng hành cùng Petly">
+    <aside className="hidden flex-col gap-6 lg:flex" aria-label="Đồng hành cùng Petjoy">
       <Image src={companions} alt="Chó Golden và mèo xám bên nhau trong căn phòng ấm áp" width={520} height={278} sizes="(min-width: 1280px) 520px, (min-width: 1024px) calc((100vw - 96px) / 2), 520px" preload className="aspect-[520/278] h-auto w-full rounded-2xl object-cover" />
       <div className="flex flex-col gap-3">
         <p className="text-xs font-semibold text-brand">DÀNH RIÊNG CHO BẠN &amp; CÁC BÉ</p>
         <h2 className="text-[28px] font-normal leading-[normal]">Chăm sóc trọn vẹn, yêu thương mỗi ngày.</h2>
-        <p className="text-sm leading-[1.6] text-muted">Cùng Petly chọn những điều tốt nhất cho người bạn nhỏ của bạn.</p>
+        <p className="text-sm leading-[1.6] text-muted">Cùng Petjoy chọn những điều tốt nhất cho người bạn nhỏ của bạn.</p>
       </div>
       <ul className="flex flex-col gap-4">
         {benefits.map((benefit) => (

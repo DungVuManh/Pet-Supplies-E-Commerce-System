@@ -1,4 +1,4 @@
-# Petly — Design rules và constraints cho frontend
+# Petjoy — Design rules và constraints cho frontend
 
 Cập nhật: **21/10/2026**. Phạm vi: Customer, Staff và Admin trong frontend Next.js.
 Đây là hợp đồng thiết kế để triển khai và review màn hình, không phải xác nhận rằng toàn bộ ứng dụng đã đạt các yêu cầu bên dưới.
@@ -33,7 +33,7 @@ Lượt đối chiếu ngày 20/10 đọc được Styles, metadata Components, 
 - Giữ tiếng Việt có dấu, nội dung thực tế, nhãn hành động rõ nghĩa như “Đăng nhập”, “Tạo tài khoản”, “Lưu thay đổi”.
 - Màu trạng thái dùng cho phản hồi và trạng thái nghiệp vụ. Màu nhận diện dùng cho hành động chính, liên kết và mục điều hướng được chọn.
 - Styles ghi rõ: **“Không gradient, không bóng đổ nặng.”** Không thêm gradient, hiệu ứng kính, shadow lớn hay trang trí không có trong màn hình đích.
-- Các bản `Petly / Đăng nhập` nền ảnh, màu xanh lá là thiết kế riêng. Không lấy màu hoặc bố cục của chúng thay cho `Customer/Auth/Login` và `Customer/Auth/Register` khi chưa được chọn.
+- Các bản `Petjoy / Đăng nhập` nền ảnh, màu xanh lá là thiết kế riêng. Không lấy màu hoặc bố cục của chúng thay cho `Customer/Auth/Login` và `Customer/Auth/Register` khi chưa được chọn.
 
 ## 3. Design tokens
 

@@ -14,7 +14,7 @@ export function useSaleSubmission(userId: string | undefined) {
   const [recoveryRequired, setRecoveryRequired] = useState(false);
   const [uncertain, setUncertain] = useState(false);
   const [error, setError] = useState("");
-  const storageKey = `petly-pending-sale:${userId}`;
+  const storageKey = `petjoy-pending-sale:${userId}`;
   const finish = useCallback((order: SaleReceipt) => {
     try { sessionStorage.removeItem(storageKey); } catch { /* Retry still works in memory when storage is unavailable. */ }
     router.replace(`/staff/orders/${order.id}`);

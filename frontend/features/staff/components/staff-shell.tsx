@@ -109,7 +109,7 @@ export function StaffShell({ children }: { children: ReactNode }) {
      href="/staff/dashboard"
      className="text-[32px] font-bold tracking-[-1px] text-brand"
     >
-     petly
+     petjoy
     </Link>
     <p className="mt-8 text-xs uppercase text-muted">Quản lý cửa hàng</p>
     <nav className="mt-3 space-y-2">
@@ -133,7 +133,7 @@ export function StaffShell({ children }: { children: ReactNode }) {
     </div>
     <div className="mt-auto pt-6 text-xs text-muted">
      <p>Hướng dẫn vận hành</p>
-     <p className="mt-2">Petly Staff · phiên bản 1.0</p>
+     <p className="mt-2">Petjoy Staff · phiên bản 1.0</p>
     </div>
    </aside>
    <div className="min-w-0">

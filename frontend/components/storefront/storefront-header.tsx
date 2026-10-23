@@ -18,7 +18,7 @@ export function StorefrontHeader() {
       </a>
       <div className="border-b border-line md:h-[88px]">
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-x-2 gap-y-4 px-6 py-5 md:h-full md:flex-nowrap md:gap-8 md:py-0 xl:px-16">
-          <Link href="/" aria-label="Petly — Trang chủ" className="text-[32px] font-bold tracking-[-1px] text-brand">petly</Link>
+          <Link href="/" aria-label="Petjoy — Trang chủ" className="text-[32px] font-bold tracking-[-1px] text-brand">petjoy</Link>
           <Suspense fallback={<StorefrontSearchForm />}>
             <StorefrontSearch />
           </Suspense>

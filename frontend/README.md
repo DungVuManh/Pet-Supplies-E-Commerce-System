@@ -1,4 +1,4 @@
-# Petly frontend
+# Petjoy frontend
 
 Next.js App Router, React, TypeScript, and Tailwind CSS. Implemented screens:
 `Customer/Product/Home`, shared sign-in/registration, a mock-data Staff operations workspace, and the Admin dashboard shell.
