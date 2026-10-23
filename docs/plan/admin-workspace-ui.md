@@ -23,30 +23,36 @@ Designs: `docs/designs/Admin/` (Auth designs excluded; authentication is already
 
 ## 0. Foundation (shell + shared components)
 
-- [ ] Add `lucide-react` to `frontend/package.json` dependencies and update `frontend/package-lock.json`.
-- [ ] Check the Admin tokens in `app/globals.css` (`--brand` teal `#0F766E`, subtle `#EAF5F3`, hover) against the designs. Add a token for the disabled-primary button color shown in `Components.png`.
-- [ ] Extract `PageHeader`, `MetricCard`, `Badge`, `TableFrame`/`TableHead`/`Th`/`Td`, `ActionLink`, and the button/control class names from `staff-ui.tsx` into `features/workspace/components/workspace-ui.tsx`. Re-export them from `staff-ui.tsx` and confirm the Staff pages look unchanged.
-- [ ] Add the shared primitives the Admin designs need:
-  - [ ] `Breadcrumbs` ("Quản trị / … / …")
-  - [ ] `TabNav`: underline tabs with counts. Link variant for sub-pages, button variant for local filters.
-  - [ ] `FilterBar`: search input, select(s), and "Lọc dữ liệu" button
-  - [ ] `Pagination` ("Hiển thị 1–6 / 348 bản ghi" plus page buttons)
-  - [ ] `InfoCallout`: the teal panel with an icon tile, title, and text
-  - [ ] `DetailList`: label/value rows used in the detail cards
-  - [ ] `ListState`: empty, loading (skeleton rows), and error panels with the status pill (Rỗng / Đang tải / Lỗi) and an action button
-  - [ ] `useListState()`: reads `?state=empty|loading|error` so designed states can be reviewed
-  - [ ] `DemoNotice`: a button that shows "chưa kết nối backend" feedback (generalizes the Staff `DemoAction`)
-  - [ ] `Switch` toggle, accessible with `role="switch"`
-  - [ ] `LineChart`: cumulative series with an accessible value table. `BarChart` is reused from the Staff shell.
-- [ ] Create `features/admin/status.ts` with the label/tone mapping from the spec.
-- [ ] Build `AdminShell`:
-  - [ ] Sidebar: logo, "KHÔNG GIAN QUẢN TRỊ / Pet Supplies", and the 11 nav items with lucide icons and an active state
-  - [ ] Footer pill "Hệ thống ổn định" and the version text
-  - [ ] Top bar (80px): "petly / admin", global search box (demo), "Thông báo" link, "Hỗ trợ", session user name with "Admin" and the logout menu
-  - [ ] Mobile: collapsible, keyboard-accessible navigation below `lg`, and no horizontal body scroll
-- [ ] Add `app/(workspace)/admin/layout.tsx` with the role guard and shell.
-- [ ] Add `tests/admin-mock.test.mjs` with the first invariants (status mapping covers every mock status).
+- [x] Add `lucide-react` to `frontend/package.json` dependencies and update `frontend/package-lock.json`.
+- [x] Check the Admin tokens in `app/globals.css` (`--brand` teal `#0F766E`, subtle `#EAF5F3`, hover) against the designs. The disabled-primary color in `Components.png` measures as brand teal at 40% opacity over white, so disabled primaries use `disabled:opacity-40` and no new hex token is added.
+- [x] Extract `PageHeader`, `MetricCard`, `Badge`, `TableFrame`/`TableHead`/`Th`/`Td`, `ActionLink`, `BarChart`, and the button/control class names from `staff-ui.tsx` into `features/workspace/components/workspace-ui.tsx`. Re-export them from `staff-ui.tsx` so Staff imports and markup are unchanged.
+- [x] Add the shared primitives the Admin designs need:
+  - [x] `Breadcrumbs` ("Quản trị / … / …")
+  - [x] `TabNav`: underline tabs with counts. Link variant for sub-pages, button variant for local filters.
+  - [x] `Field`: label and control column. Filter rows compose `Field` items with the "Lọc dữ liệu" button.
+  - [x] `Pagination` ("Hiển thị 1–6 / 348 bản ghi" plus page buttons)
+  - [x] `InfoCallout`: the teal panel with an icon tile, title, and text
+  - [x] `DetailList`: label/value rows used in the detail cards
+  - [x] `ListState`: empty, loading (skeleton rows), and error panels, plus the `listStatePill` labels (Rỗng / Đang tải / Lỗi)
+  - [x] `useListState()`: reads `?state=empty|loading|error` so designed states can be reviewed
+  - [x] `DemoNotice`: a button that shows "chưa kết nối backend" feedback (generalizes the Staff `DemoAction`)
+  - [x] `Switch` toggle, accessible with `role="switch"`
+  - [x] `LineChart`: cumulative series with an accessible value table. `BarChart` is shared with Staff.
+- [x] Create `features/admin/status.ts` with the label/tone mapping from the spec. `features/admin/components/admin-ui.tsx` adds `AdminPageHeader`, `KpiCard`, `StatusBadge`, and `Panel`.
+- [x] Build `AdminShell`:
+  - [x] Sidebar: logo, "KHÔNG GIAN QUẢN TRỊ / Pet Supplies", and the 11 nav items with lucide icons and an active state
+  - [x] Footer pill "Hệ thống ổn định" and the version text
+  - [x] Top bar (80px): "petly / admin", global search box (demo), "Thông báo" link, "Hỗ trợ", session user name with "Admin" and the logout menu (`AccountMenu` gains an optional `roleLabel`)
+  - [x] Mobile: collapsible, keyboard-accessible navigation below `lg`, and no horizontal body scroll
+- [x] Add `app/(workspace)/admin/layout.tsx` with the role guard and shell. Until phase 1, `/admin/dashboard` is a header-only placeholder inside the shell. The unused `WorkspaceDashboard` was removed.
+- [x] Add `tests/admin-mock.test.mjs` with the first invariants (status mapping covers every tone).
+- [ ] Visual check of the shell, logged in as Admin, at 320 / 768 / 1024 / 1440 (needs your Admin account)
 - [ ] **🛑 Commit checkpoint: Admin shell + shared workspace UI**
+
+> Known blockers outside this plan, found during phase 0. They are not caused by this work and are left for their owners:
+> - `npm --prefix frontend run build` fails type checking because `app/(customer)/listProduct/ProductCat/page.tsx` is an empty file (commit `50677e2`).
+> - `npm --prefix frontend run lint` reports an error in `features/staff/components/orders-list.tsx:83` (setState inside an effect).
+> - `npm --prefix frontend test` has 4 failing auth-validation and catalog tests.
 
 ## 1. Dashboard: `/admin/dashboard`
 

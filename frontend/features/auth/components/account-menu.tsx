@@ -7,7 +7,7 @@ import { useAuth } from "../auth-provider";
 import { authApi } from "../api";
 import { authErrorMessage } from "../errors";
 
-export function AccountMenu() {
+export function AccountMenu({ roleLabel }: { roleLabel?: string } = {}) {
   const { user, status, acceptUser, refresh } = useAuth();
   const [pending, setPending] = useState(false);
   const [failure, setFailure] = useState("");
@@ -33,7 +33,7 @@ export function AccountMenu() {
   </details>;
   if (!user) return <Link href="/login" className="font-semibold hover:text-brand">Đăng nhập</Link>;
   return <details className="relative text-sm">
-    <summary className="max-w-28 cursor-pointer list-none truncate font-semibold hover:text-brand [&::-webkit-details-marker]:hidden sm:max-w-40" aria-label={`Tài khoản ${user.fullName}`}>{user.fullName}</summary>
+    <summary className={`max-w-28 cursor-pointer list-none truncate font-semibold hover:text-brand [&::-webkit-details-marker]:hidden ${roleLabel ? "sm:max-w-60" : "sm:max-w-40"}`} aria-label={`Tài khoản ${user.fullName}`}>{user.fullName}{roleLabel && ` · ${roleLabel}`}</summary>
     <div className="absolute right-0 top-full z-20 mt-3 w-64 max-w-[calc(100vw-3rem)] whitespace-normal rounded-lg border border-line bg-surface p-4 shadow-lg">
       <p className="break-words font-semibold">{user.fullName}</p>
       <p className="mt-1 break-all text-xs text-muted">{user.email}</p>
