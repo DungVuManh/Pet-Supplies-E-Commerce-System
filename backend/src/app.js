@@ -50,7 +50,6 @@ export function createApp(config) {
  app.use(express.urlencoded({ extended: false, limit: "100kb" }));
  app.use("/api/v1/auth", authRouter);
  app.use("/api/v1/products", productRouter);
- // Catalog API - dùng cho trang danh sách sản phẩm công khai
  app.use("/api/v1/catalog", catalogRouter);
  app.use("/api/v1", workspaceRouter);
  app.use(notFoundMiddleware);
