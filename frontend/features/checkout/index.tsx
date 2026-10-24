@@ -68,6 +68,7 @@ export function CheckoutView() {
           // Format sản phẩm từ cart sang format hiển thị checkout
           const mappedItems: CheckoutOrderItem[] = (cart.items || []).map((item) => ({
             id: item.id || item.sku,
+            productId: item.productId,
             name: item.name,
             description: item.description || (item.label ? `Phân loại: ${item.label}` : ""),
             sku: item.sku,
@@ -110,9 +111,8 @@ export function CheckoutView() {
 
       const res = await createOrderApi({
         items: items.map((item) => {
-          const productId = item.id.includes("_") ? item.id.split("_")[0] : item.id;
           return {
-            productId,
+            productId: item.productId,
             variantSku: item.sku,
             qty: item.quantity,
           };
@@ -229,6 +229,7 @@ export function CheckoutView() {
             items={items}
             summary={summary}
             paymentMethod={paymentMethod}
+            isSubmitting={isSubmitting}
             onSubmitOrder={handleSubmitOrder}
           />
         </div>

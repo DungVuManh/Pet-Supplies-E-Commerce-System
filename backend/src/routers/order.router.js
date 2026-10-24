@@ -5,7 +5,10 @@
 
 import { Router } from "express";
 import { createOrder, deleteOrder } from "../controllers/order.controller.js";
-import { readCookies } from "../common/middlewares/auth.middleware.js";
+import {
+  optionalAuth,
+  readCookies,
+} from "../common/middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -13,7 +16,7 @@ const router = Router();
 router.use(readCookies);
 
 // 1. POST /api/v1/orders - Tạo đơn hàng (Mua ngay & Cart)
-router.post("/", createOrder);
+router.post("/", optionalAuth, createOrder);
 
 // 2. DELETE /api/v1/orders/:id - Xóa đơn hàng khi hủy
 router.delete("/:id", deleteOrder);

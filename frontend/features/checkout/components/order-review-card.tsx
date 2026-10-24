@@ -8,6 +8,7 @@ type OrderReviewCardProps = {
   items: CheckoutOrderItem[];
   summary: CheckoutSummary;
   paymentMethod: "vnpay" | "cod";
+  isSubmitting: boolean;
   onSubmitOrder: () => void;
 };
 
@@ -19,6 +20,7 @@ export function OrderReviewCard({
   items,
   summary,
   paymentMethod,
+  isSubmitting,
   onSubmitOrder,
 }: OrderReviewCardProps) {
   return (
@@ -94,10 +96,11 @@ export function OrderReviewCard({
       {/* Nút đặt hàng */}
       <button
         type="button"
+        disabled={isSubmitting}
         onClick={onSubmitOrder}
-        className="mt-6 w-full rounded-xl bg-blue-600 py-3.5 px-4 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
+        className="mt-6 w-full rounded-xl bg-blue-600 py-3.5 px-4 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
       >
-        Đặt hàng & thanh toán
+        {isSubmitting ? "Đang tạo đơn hàng..." : "Đặt hàng & thanh toán"}
       </button>
 
       {/* Ghi chú an toàn */}

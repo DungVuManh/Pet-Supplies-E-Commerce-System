@@ -52,7 +52,9 @@ export async function createOrder(request, response, next) {
 
     for (const item of items) {
       const product = await Product.findById(item.productId);
-      if (!product) continue;
+      if (!product) {
+        throw new AppError("Không tìm thấy sản phẩm trong đơn hàng.", 404, "PRODUCT_NOT_FOUND");
+      }
 
       const variant = product.variants?.find((v) => v.sku === item.variantSku);
       const unitPrice = variant?.price ?? product.price ?? item.unitPrice ?? 0;
@@ -73,14 +75,8 @@ export async function createOrder(request, response, next) {
     const discount = 0;
     const total = subtotal + shippingFee - discount;
 
-    // 2. Xác định customerId (lấy từ session, body hoặc khách hàng customer mặc định trong DB)
-    let customerId = request.user?._id || request.body.customerId;
-    if (!customerId) {
-      const defaultCustomer = await User.findOne({ role: "customer" }).lean();
-      if (defaultCustomer) {
-        customerId = defaultCustomer._id;
-      }
-    }
+    // Chỉ lấy customerId từ hồ sơ đã xác thực; không tin ID do client gửi.
+    const customerId = request.user?._id;
 
     // 3. Chuẩn hóa địa chỉ giao hàng
     const finalAddress = {
@@ -96,6 +92,7 @@ export async function createOrder(request, response, next) {
     const newOrder = await Order.create({
       orderCode: generateOrderCode(),
       customerId,
+      guestInfo: customerId ? undefined : guestInfo,
       items: orderItems,
       shippingAddress: finalAddress,
       subtotal,

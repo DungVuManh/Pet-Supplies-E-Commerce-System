@@ -16,6 +16,7 @@ export type PaymentMethodType = "vnpay" | "cod";
 
 export type CheckoutOrderItem = {
   id: string;
+  productId: string;
   name: string;
   description: string;
   sku: string;
