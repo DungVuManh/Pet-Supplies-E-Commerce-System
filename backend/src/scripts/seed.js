@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import mongoose from "mongoose";
@@ -10,7 +11,17 @@ import {
 } from "../models/index.js";
 
 const DAY = 24 * 60 * 60 * 1000;
+const categoriesData = JSON.parse(readFileSync(new URL("./data/categories.json", import.meta.url), "utf8"));
+const productsData = JSON.parse(readFileSync(new URL("./data/products.json", import.meta.url), "utf8"));
 class SeedError extends Error {}
+
+function sampleFailure(Model, error) {
+  if (error instanceof SeedError) return error;
+  const detail = error instanceof mongoose.Error.ValidationError
+    ? `validation thất bại tại ${Object.keys(error.errors).join(", ")}`
+    : Number.isInteger(error.code) ? `MongoDB code ${error.code}` : "không thể đọc hoặc ghi dữ liệu mẫu";
+  return new SeedError(`Seed ${Model.modelName}: ${detail}.`);
+}
 
 function sampleId(key) {
   return new mongoose.Types.ObjectId(createHash("sha256").update("petly-seed-v1:" + key).digest("hex").slice(0, 24));
@@ -29,10 +40,37 @@ async function ensureSample(Model, filter, data) {
     await candidate.save({ timestamps: false });
     return candidate.toObject();
   } catch (error) {
-    const detail = error instanceof mongoose.Error.ValidationError
-      ? `validation thất bại tại ${Object.keys(error.errors).join(", ")}`
-      : Number.isInteger(error.code) ? `MongoDB code ${error.code}` : "không thể đọc hoặc ghi dữ liệu mẫu";
-    throw new SeedError(`Seed ${Model.modelName}: ${detail}.`);
+    throw sampleFailure(Model, error);
+  }
+}
+
+async function seedProduct(filter, data) {
+  try {
+    const product = await ensureSample(Product, filter, data);
+    const changes = {};
+    if (product.description !== data.description) changes.description = data.description;
+    const variants = product.variants.map((variant, index) => {
+      const source = data.variants.find((item) => item.sku === variant.sku);
+      if (!source) return variant;
+      if (source.stock < (variant.reservedStock ?? 0)) {
+        throw new SeedError(`Seed Product: tồn kho mẫu của SKU ${variant.sku} nhỏ hơn reservedStock hiện tại; không cập nhật sản phẩm này.`);
+      }
+      if (variant.stock !== source.stock) changes[`variants.${index}.stock`] = source.stock;
+      return { ...variant, stock: source.stock };
+    });
+    if (!Object.keys(changes).length && !Object.hasOwn(product, "soldCount")) return product;
+    const updated = { ...product, description: data.description, variants };
+    delete updated.soldCount;
+    await new Product(updated).validate();
+    const updatedAt = new Date();
+    // Match the read snapshot so concurrent stock, reservation or content edits are not overwritten.
+    const result = await Product.collection.updateOne({
+      _id: product._id, description: product.description, variants: product.variants,
+    }, { $set: { ...changes, updatedAt }, $unset: { soldCount: "" } });
+    if (!result.matchedCount) throw new SeedError("Seed Product: sản phẩm đã thay đổi trong lúc seed; hãy kiểm tra và chạy lại.");
+    return { ...updated, updatedAt };
+  } catch (error) {
+    throw sampleFailure(Product, error);
   }
 }
 
@@ -53,134 +91,26 @@ export async function seedSampleData() {
   const now = new Date();
 
   console.info("Seeding categories...");
-  const categoriesData = [
-    { name: "Thức ăn cho chó", slug: "thuc-an-cho-cho", isActive: true },
-    { name: "Thức ăn cho mèo", slug: "thuc-an-cho-meo", isActive: true },
-    { name: "Đồ chơi", slug: "do-choi", isActive: true },
-    { name: "Vệ sinh & chăm sóc", slug: "ve-sinh-cham-soc", isActive: true },
-    { name: "Phụ kiện", slug: "phu-kien", isActive: true },
-  ];
-
   const categoryMap = new Map();
-  for (const cat of categoriesData) {
-    const doc = await ensureSample(Category, { slug: cat.slug }, cat);
-    categoryMap.set(cat.name, doc._id);
+  for (const category of categoriesData) {
+    const doc = await ensureSample(Category, { slug: category.slug }, {
+      _id: new mongoose.Types.ObjectId(category._id.$oid), name: category.name, slug: category.slug, isActive: true,
+    });
+    categoryMap.set(category._id.$oid, doc._id);
   }
   console.info(`Seeded ${categoryMap.size} categories.`);
 
   console.info("Seeding products...");
-  const productsData = [
-    {
-      name: "Royal Canin Mini Adult",
-      categoryName: "Thức ăn cho chó",
-      brand: "Royal Canin",
-      petType: "dog",
-      description: "Thức ăn hoàn chỉnh dành cho chó trưởng thành giống nhỏ dưới 10 kg, từ 10 tháng tuổi. Hỗ trợ tiêu hóa và duy trì cân nặng lý tưởng.",
-      images: ["/images/products/royal-canin-mini-adult.png"],
-      isActive: true,
-      variants: [
-        { sku: "RC-D02", label: "2 kg", price: 420000, stock: 72, reservedStock: 8 },
-        { sku: "RC-D15", label: "15 kg", price: 1850000, stock: 7, reservedStock: 3 },
-      ],
-    },
-    {
-      name: "Royal Canin Indoor 27",
-      categoryName: "Thức ăn cho mèo",
-      brand: "Royal Canin",
-      petType: "cat",
-      description: "Dinh dưỡng cân bằng cho mèo trưởng thành sống trong nhà. Hỗ trợ tiêu hóa, kiểm soát cân nặng và duy trì bộ lông khỏe mạnh.",
-      images: ["/images/products/royal-canin-indoor.png"],
-      isActive: true,
-      variants: [
-        { sku: "RC-C02", label: "2 kg", price: 480000, stock: 43, reservedStock: 5 },
-        { sku: "RC-C04", label: "4 kg", price: 890000, stock: 20, reservedStock: 2 },
-      ],
-    },
-    {
-      name: "Bóng cao su KONG",
-      categoryName: "Đồ chơi",
-      brand: "KONG",
-      petType: "dog",
-      description: "Bóng cao su bền bỉ cho chó gặm và nhặt bóng. Chất liệu cao su thiên nhiên an toàn và có độ nảy tuyệt vời.",
-      images: ["/images/products/kong-ball.png"],
-      isActive: true,
-      variants: [
-        { sku: "KG-B01", label: "Cỡ nhỏ", price: 85000, stock: 8, reservedStock: 2 },
-        { sku: "KG-B02", label: "Cỡ vừa", price: 125000, stock: 12, reservedStock: 0 },
-      ],
-    },
-    {
-      name: "Cát mèo Cat’s Best Original",
-      categoryName: "Vệ sinh & chăm sóc",
-      brand: "Cat’s Best",
-      petType: "cat",
-      description: "Cát mèo hữu cơ từ gỗ thông vón cục tự nhiên, có khả năng phân hủy sinh học và kiểm soát mùi vượt trội.",
-      images: ["/images/products/cats-best-original.png"],
-      isActive: true,
-      variants: [
-        { sku: "CB-L05", label: "5 L", price: 195000, stock: 4, reservedStock: 1 },
-        { sku: "CB-L10", label: "10 L", price: 360000, stock: 18, reservedStock: 0 },
-      ],
-    },
-    {
-      name: "Dây dắt đệm êm Petjoy",
-      categoryName: "Phụ kiện",
-      brand: "Petjoy",
-      petType: "dog",
-      description: "Dây dắt có tay cầm đệm êm chống đau tay, khóa kim loại chắc chắn phù hợp dắt thú cưng đi dạo.",
-      images: ["/images/products/kong-ball.png"],
-      isActive: true,
-      variants: [
-        { sku: "PL-L01", label: "1,5 m", price: 165000, stock: 0, reservedStock: 0 },
-      ],
-    },
-    {
-      name: "Bát ăn inox chống trượt",
-      categoryName: "Phụ kiện",
-      brand: "Petjoy",
-      petType: "all",
-      description: "Bát ăn inox cao cấp viền silicon chống trượt, dễ dàng vệ sinh sạch sẽ.",
-      images: ["/images/products/kong-ball.png"],
-      isActive: false, // Tạm ẩn để test filter trạng thái
-      variants: [
-        { sku: "PL-B01", label: "450 ml", price: 120000, stock: 24, reservedStock: 0 },
-      ],
-    },
-    {
-      name: "Bánh thưởng Whiskas",
-      categoryName: "Thức ăn cho mèo",
-      brand: "Whiskas",
-      petType: "cat",
-      description: "Bánh thưởng giòn cho mèo vị thơm ngon hấp dẫn.",
-      images: ["/images/products/royal-canin-indoor.png"],
-      isActive: true,
-      variants: [
-        { sku: "WH-T01", label: "60 g", price: 45000, stock: 95, reservedStock: 6 },
-      ],
-    },
-  ];
-
   const productMap = new Map();
   for (const item of productsData) {
-    const categoryId = categoryMap.get(item.categoryName);
-    if (!categoryId) throw new Error("Missing sample category");
-
-    const primarySku = item.variants[0].sku;
-    const product = await ensureSample(Product,
-      { "variants.sku": primarySku },
-      {
-        name: item.name,
-        categoryId,
-        brand: item.brand,
-        petType: item.petType,
-        description: item.description,
-        images: item.images,
-        isActive: item.isActive,
-        variants: item.variants,
-        ratingAvg: primarySku === "RC-D02" ? 5 : primarySku === "RC-C02" ? 4 : 0,
-        ratingCount: ["RC-D02", "RC-C02"].includes(primarySku) ? 1 : 0,
-      }
-    );
+    const categoryId = categoryMap.get(item.categoryId.$oid);
+    if (!categoryId) throw new SeedError("Seed Product: không tìm thấy danh mục của sản phẩm mẫu.");
+    const product = await seedProduct({ "variants.sku": item.variants[0].sku }, {
+      name: item.name, categoryId, brand: item.brand,
+      petType: item.petType === "both" ? "all" : item.petType,
+      description: item.description, images: item.images, isActive: true,
+      variants: item.variants, ratingAvg: item.ratingAvg, ratingCount: item.ratingCount ?? 0,
+    });
     for (const variant of product.variants) productMap.set(variant.sku, product);
   }
 
@@ -211,7 +141,7 @@ export async function seedSampleData() {
     const variant = product.variants.find((variant) => variant.sku === sku);
     return { productId: product._id, variantSku: sku, name: product.name, unitPrice: variant.price, qty };
   }
-  const cartItems = ["RC-D02", "RC-C02"].map((sku) => ({
+  const cartItems = ["GAN-001", "ROY-021"].map((sku) => ({
     productId: productMap.get(sku)._id, variantSku: sku, quantity: 1,
   }));
   await ensureSample(Cart, { userId: customer._id }, { userId: customer._id, items: cartItems });
@@ -219,7 +149,7 @@ export async function seedSampleData() {
     guestToken: "seed-petly-guest-cart-v1", items: [cartItems[1]],
   });
   await ensureSample(Wishlist, { userId: customer._id }, {
-    userId: customer._id, productIds: [productMap.get("KG-B01")._id, productMap.get("CB-L05")._id],
+    userId: customer._id, productIds: [productMap.get("INA-049")._id, productMap.get("ACR-046")._id],
   });
 
   for (const promotion of [
@@ -251,7 +181,7 @@ export async function seedSampleData() {
   const orders = new Map();
   for (const example of examples) {
     const orderCode = `SEED-PETLY-${ownerKey}-${example.key}`.toUpperCase();
-    const items = example.status === "completed" ? [orderItem("RC-D02"), orderItem("RC-C02")] : [orderItem("RC-D02")];
+    const items = example.status === "completed" ? [orderItem("GAN-001"), orderItem("ROY-021")] : [orderItem("GAN-001")];
     const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.qty, 0);
     const discount = example.key === "completed" ? Math.floor(subtotal * 10 / 100) : 0;
     const shippingFee = example.offline ? 0 : setting.shippingFee;
@@ -286,12 +216,12 @@ export async function seedSampleData() {
     });
   }
 
-  for (const [sku, rating, comment] of [
-    ["RC-D02", 5, "Dữ liệu mẫu: bé ăn ngon, đóng gói cẩn thận."],
-    ["RC-C02", 4, "Dữ liệu mẫu: sản phẩm phù hợp cho mèo sống trong nhà."],
-  ]) {
-    await ensureSample(Review, { _id: sampleId(`review:${ownerKey}:${sku}`) }, {
-      userId: customer._id, productId: productMap.get(sku)._id, rating, comment, status: "published",
+  // Reuse persisted purchases even when they still refer to the old catalog.
+  const reviewItems = orders.get("completed").items.slice(0, 2);
+  for (const [index, item] of reviewItems.entries()) {
+    await ensureSample(Review, { _id: sampleId(`review:${ownerKey}:${item.variantSku}`) }, {
+      userId: customer._id, productId: item.productId, rating: index === 0 ? 5 : 4,
+      comment: "Dữ liệu mẫu: bé ăn ngon, đóng gói cẩn thận.", status: "published",
     });
   }
   for (const [status, orderKey] of [["sent", "completed"], ["pending", "pending"], ["failed", "cancelled"]]) {
@@ -310,7 +240,7 @@ export async function seedSampleData() {
   const counts = {
     Category: categoriesData.length, Product: productsData.length, Setting: 1, Address: 2,
     PetProfile: 2, Cart: 2, Wishlist: 1, Promotion: 4, Order: orders.size,
-    Payment: orders.size, Review: 2, Notification: 3, AuditLog: 1,
+    Payment: orders.size, Review: reviewItems.length, Notification: 3, AuditLog: 1,
   };
   for (const [model, count] of Object.entries(counts)) console.info(`${model}: đã bảo đảm ${count} bản ghi mẫu (tạo mới hoặc dùng lại).`);
   return counts;

@@ -100,7 +100,7 @@ It reads existing User IDs/roles without creating or modifying users and require
 at least one Customer plus one Staff or Admin. It selects the lowest `_id` per
 role. If prerequisites are missing, it stops before index creation or data writes.
 
-The seed covers every non-User collection: 5 categories, 7 products, 2 addresses,
+The seed covers every non-User collection: 10 categories, 52 products, 2 addresses,
 2 pets, customer/guest carts, a wishlist, 4 promotions, 8 online orders (all seven
 order statuses plus a guest order), corresponding payments, 2 reviews of completed
 purchases, 3 notification delivery statuses, an audit log and global settings.
@@ -108,22 +108,51 @@ If a Staff exists, it also adds a completed offline order/payment. An Admin is
 not used as a Staff or offline order creator. No Firebase, payment or email calls
 are made; QR payloads and payment results are explicitly simulated.
 
+The catalog is bundled in `src/scripts/data/categories.json` and `products.json`;
+no Desktop paths are needed to run the seed. Its ten categories are flat. Products
+belong to Dành cho chó (20), Dành cho mèo (28), Bổ sung dinh dưỡng (2 milk products)
+and Thú Y (Urinary S/O and Renal); six categories currently have no products.
+Category IDs come from the JSON unless a matching slug already exists, in which
+case new products reference that category's persisted ID. Source `petType: "both"`
+becomes `"all"`, and null `ratingCount` values use the schema's default zero.
+Only schema-supported fields are imported; product `slug` and category metadata
+beyond name/slug remain in the JSON.
+
+All 52 products have descriptions based on their supplied names and package
+labels, without adding unverified ingredient amounts or efficacy claims. Physical
+stock is a random integer from 1 through 50, generated once and saved in JSON;
+running the seed does not randomize it again. `soldCount` is absent from the JSON.
+
+For existing products matched by the bundled SKUs, the seed updates only the
+description and matching variants' physical stock, removes legacy `soldCount`,
+and updates `updatedAt` only when a change is needed. Names, prices, category IDs,
+active flags, reservations, extra variants and other existing fields are retained.
+Products outside the 52 bundled SKUs are not changed. Full document validation runs
+before an existing product update, and the write matches its read description and
+variant array to avoid overwriting concurrent changes. A source stock below the
+existing reserved quantity or a stale snapshot stops the seed without updating
+that product. The seed does not release reservations or rewrite historical orders.
+
 The seed reads each sample's key first and creates missing documents with `save()`.
 This runs cross-field validators in document context (including promotion date
 comparisons); it does not use query validation as a substitute. Category slugs,
 product SKUs, user-owned unique keys and stable
-sample IDs prevent duplicates across repeated runs. Existing records and their
-timestamps are preserved, including carts, wishlists and global settings. New
+sample IDs prevent duplicates across repeated runs. Other existing records and
+their timestamps are preserved, including carts, wishlists and global settings.
+Products that already match the JSON also retain their timestamps. New
 order/payment snapshots use the persisted product prices and configured shipping
 fee. Saved sample addresses are non-default to preserve the account's current
 default address. Other records are identified by `SEED-` codes, stable IDs or
 sample text. Samples belong to the selected real accounts and will be visible
-to them when the corresponding APIs/UI are implemented.
+to them when the corresponding APIs/UI are implemented. Reviews use the persisted
+completed order's product IDs/SKUs, including purchases from the previous catalog.
 
 The seed is sequential, not a multi-document transaction. If a database write
 fails after preflight, already inserted samples remain; fix the cause and rerun
-to add missing records. It does not reset existing samples or refresh their
-promotion dates on subsequent runs.
+to add missing records and finish product synchronization. It does not refresh
+promotion dates or reset other existing samples on subsequent runs. Old categories
+and products are not deleted, so an existing database may contain more than the
+10 categories and 52 products in this catalog.
 Run one seed process at a time; unique indexes reject conflicting concurrent inserts.
 Failures report the model and validation paths or numeric MongoDB error code,
 without printing raw driver messages, document values or credentials.
