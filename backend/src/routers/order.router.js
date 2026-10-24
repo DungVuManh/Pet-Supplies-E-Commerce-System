@@ -1,10 +1,10 @@
 // =============================================================
 // backend/src/routers/order.router.js
-// Router API Đơn hàng: Tạo đơn hàng và Xóa đơn hàng
+// Router API Đơn hàng: Tạo đơn hàng, Xóa đơn hàng, Lấy đơn hàng của tôi
 // =============================================================
 
 import { Router } from "express";
-import { createOrder, deleteOrder } from "../controllers/order.controller.js";
+import { createOrder, deleteOrder, getMyOrders, getOrderDetail } from "../controllers/order.controller.js";
 import {
   optionalAuth,
   readCookies,
@@ -15,10 +15,16 @@ const router = Router();
 // Hỗ trợ nhận diện user nếu đã đăng nhập qua cookie
 router.use(readCookies);
 
-// 1. POST /api/v1/orders - Tạo đơn hàng (Mua ngay & Cart)
+// 1. GET /api/v1/orders/my-orders - Lấy danh sách đơn hàng của user đang đăng nhập
+router.get("/my-orders", optionalAuth, getMyOrders);
+
+// 2. GET /api/v1/orders/:id - Lấy chi tiết 1 đơn hàng (customer xem đơn của mình)
+router.get("/:id", optionalAuth, getOrderDetail);
+
+// 3. POST /api/v1/orders - Tạo đơn hàng (Mua ngay & Cart)
 router.post("/", optionalAuth, createOrder);
 
-// 2. DELETE /api/v1/orders/:id - Xóa đơn hàng khi hủy
+// 4. DELETE /api/v1/orders/:id - Xóa đơn hàng khi hủy
 router.delete("/:id", deleteOrder);
 
 export default router;

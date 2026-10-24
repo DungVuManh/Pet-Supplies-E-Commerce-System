@@ -1,6 +1,6 @@
 // =============================================================
 // features/orders/services/order.service.ts
-// Service gọi API đặt hàng và hủy đơn hàng (dùng chung cho Mua ngay & Giỏ hàng)
+// Service gọi API đặt hàng, hủy đơn hàng, và lấy danh sách đơn của tôi
 // =============================================================
 
 export type CreateOrderItemPayload = {
@@ -62,4 +62,19 @@ export async function deleteOrderApi(orderId: string) {
   }
 
   return data;
+}
+
+// 3. GET /api/v1/orders/my-orders - Lấy danh sách đơn hàng của user đang đăng nhập
+export async function getMyOrdersApi() {
+  const response = await fetch("/api/v1/orders/my-orders", {
+    method: "GET",
+    credentials: "include", // Gửi cookie để backend biết ai đang đăng nhập
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Không thể tải danh sách đơn hàng.");
+  }
+
+  return data; // { success: true, data: { orders: [...] } }
 }

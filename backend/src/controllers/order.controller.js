@@ -143,6 +143,161 @@ export async function deleteOrder(request, response, next) {
   }
 }
 
+/**
+ * GET /api/v1/orders/my-orders - Lấy danh sách đơn hàng của người dùng đang đăng nhập
+ * - Lọc theo customerId từ token (request.user._id)
+ * - Sắp xếp mới nhất lên đầu
+ */
+export async function getMyOrders(request, response, next) {
+  try {
+    // Lấy customerId từ user đã đăng nhập (middleware optionalAuth hoặc requireAuth đã gán)
+    const customerId = request.user?._id;
+
+    if (!customerId) {
+      return response.status(401).json({ success: false, message: "Bạn cần đăng nhập để xem đơn hàng." });
+    }
+
+    // Tìm tất cả đơn của customer, mới nhất lên đầu
+    const orders = await Order.find({ customerId })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Chuyển dữ liệu sang dạng đơn giản để frontend dùng
+    const result = orders.map((order) => {
+      // Ghép tên sản phẩm thành chuỗi tóm tắt: "Sản phẩm A, Sản phẩm B..."
+      const productsSummary = order.items
+        .map((item) => item.name)
+        .join(", ")
+        .slice(0, 60); // Cắt bớt nếu quá dài
+
+      // Format ngày đặt hàng: "25/10/2026"
+      const date = new Date(order.createdAt);
+      const orderDate = `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
+
+      // Map trạng thái backend sang frontend
+      const statusMap = {
+        pending: { status: "pending", statusLabel: "Chờ xử lý" },
+        processing: { status: "pending", statusLabel: "Đang xử lý" },
+        shipping: { status: "shipping", statusLabel: "Đang giao" },
+        delivered: { status: "completed", statusLabel: "Hoàn thành" },
+        completed: { status: "completed", statusLabel: "Hoàn thành" },
+        cancelled: { status: "cancelled", statusLabel: "Đã hủy" },
+      };
+
+      const { status, statusLabel } = statusMap[order.orderStatus] || { status: "pending", statusLabel: "Chờ xử lý" };
+
+      return {
+        id: order._id.toString(),
+        orderCode: order.orderCode,
+        orderDate,
+        productsSummary,
+        itemCount: order.items.reduce((sum, item) => sum + (item.qty || 1), 0),
+        totalAmount: order.total,
+        status,
+        statusLabel,
+      };
+    });
+
+    response.json({
+      success: true,
+      data: { orders: result },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * GET /api/v1/orders/:id - Lấy chi tiết 1 đơn hàng theo ID (dành cho customer)
+ */
+export async function getOrderDetail(request, response, next) {
+  try {
+    const { id } = request.params;
+
+    // Tìm đơn hàng theo ID trong MongoDB
+    const order = await Order.findById(id).lean();
+
+    if (!order) {
+      return response.status(404).json({ success: false, message: "Không tìm thấy đơn hàng." });
+    }
+
+    // Format ngày và giờ
+    const date = new Date(order.createdAt);
+    const orderDate = `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
+    const orderTime = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+
+    // Map trạng thái backend sang frontend
+    const statusMap = {
+      pending: { status: "pending", statusLabel: "Chờ xử lý" },
+      processing: { status: "pending", statusLabel: "Đang xử lý" },
+      shipping: { status: "shipping", statusLabel: "Đang giao" },
+      delivered: { status: "completed", statusLabel: "Hoàn thành" },
+      completed: { status: "completed", statusLabel: "Hoàn thành" },
+      cancelled: { status: "cancelled", statusLabel: "Đã hủy" },
+    };
+
+    const { status, statusLabel } = statusMap[order.orderStatus] || { status: "pending", statusLabel: "Chờ xử lý" };
+
+    // Tạo timeline tự động theo trạng thái hiện tại
+    const timelineSteps = [
+      { id: "step-1", title: "Đã đặt hàng", description: `${orderDate} · ${orderTime}`, status: "completed" },
+      { id: "step-2", title: "Đang chuẩn bị", description: "Xác nhận đơn", status: status === "pending" ? "active" : status === "cancelled" ? "completed" : "completed" },
+      { id: "step-3", title: "Đang giao", description: "Trên đường giao", status: status === "shipping" ? "active" : status === "completed" ? "completed" : "pending" },
+      { id: "step-4", title: "Hoàn thành", description: "Nhận hàng thành công", status: status === "completed" ? "completed" : "pending" },
+    ];
+
+    // Map danh sách sản phẩm trong đơn
+    const items = order.items.map((item, index) => ({
+      id: item.productId?.toString() || `item-${index}`,
+      name: item.name,
+      description: `SKU: ${item.variantSku}`,
+      sku: item.variantSku,
+      price: item.unitPrice,
+      quantity: item.qty,
+      image: "/images/placeholder-product.png", // Ảnh lấy từ product nếu cần
+    }));
+
+    // Chuẩn hóa địa chỉ giao hàng
+    const shippingAddress = {
+      fullName: order.shippingAddress?.recipientName || order.guestInfo?.name || "",
+      phone: order.shippingAddress?.phone || order.guestInfo?.phone || "",
+      address: [
+        order.shippingAddress?.street,
+        order.shippingAddress?.ward,
+        order.shippingAddress?.district,
+        order.shippingAddress?.province,
+      ].filter(Boolean).join(", "),
+    };
+
+    const result = {
+      id: order._id.toString(),
+      orderCode: order.orderCode,
+      orderDate,
+      orderTime,
+      itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
+      status,
+      statusLabel,
+      timeline: timelineSteps,
+      items,
+      subtotal: order.subtotal,
+      shippingFee: order.shippingFee,
+      discount: order.discount || 0,
+      totalAmount: order.total,
+      paymentMethod: order.paymentMethod === "COD" ? "COD" : order.paymentMethod,
+      paymentStatus: order.paymentStatus === "unpaid" ? "Chưa thanh toán" : "Đã thanh toán",
+      transactionCode: order.orderCode, // Dùng orderCode làm mã giao dịch tạm thời
+      shippingAddress,
+    };
+
+    response.json({
+      success: true,
+      data: { order: result },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 // -------------------------------------------------------------
 // 2. DÀNH CHO STAFF WORKSPACE (Quản lý đơn hàng)
 // -------------------------------------------------------------

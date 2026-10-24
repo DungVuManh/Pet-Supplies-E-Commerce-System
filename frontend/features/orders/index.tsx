@@ -2,48 +2,30 @@
 
 // =============================================================
 // features/orders/index.tsx
-// Màn hình chính "Đơn hàng của tôi" - Tích hợp toàn bộ components con
+// Màn hình "Đơn hàng của tôi" - Gọi API từ MongoDB, không dùng mock data
 // =============================================================
 
 import Link from "next/link";
-import React, { useMemo, useState } from "react";
+import React from "react";
 import { AccountSidebar } from "./components/account-sidebar";
 import { OrdersSearchBar } from "./components/orders-search-bar";
 import { OrdersStatusTabs } from "./components/orders-status-tabs";
 import { OrdersTable } from "./components/orders-table";
-import { MOCK_CUSTOMER_ORDERS } from "./mock-data";
-import type { CustomerOrderStatus } from "./types";
+import { useOrdersPage } from "./hooks/use-orders-page";
 
 export function OrdersView() {
-  const [activeStatus, setActiveStatus] = useState<CustomerOrderStatus>("all");
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const counts = useMemo(() => {
-    return {
-      all: MOCK_CUSTOMER_ORDERS.length,
-      pending: MOCK_CUSTOMER_ORDERS.filter((o) => o.status === "pending").length,
-      shipping: MOCK_CUSTOMER_ORDERS.filter((o) => o.status === "shipping").length,
-      completed: MOCK_CUSTOMER_ORDERS.filter((o) => o.status === "completed").length,
-      cancelled: MOCK_CUSTOMER_ORDERS.filter((o) => o.status === "cancelled").length,
-    };
-  }, []);
-
-  const filteredOrders = useMemo(() => {
-    return MOCK_CUSTOMER_ORDERS.filter((order) => {
-      // Lọc theo tab
-      const matchStatus =
-        activeStatus === "all" || order.status === activeStatus;
-
-      // Lọc theo từ khóa tìm kiếm (mã đơn hoặc tên sản phẩm)
-      const query = searchQuery.trim().toLowerCase();
-      const matchSearch =
-        !query ||
-        order.orderCode.toLowerCase().includes(query) ||
-        order.productsSummary.toLowerCase().includes(query);
-
-      return matchStatus && matchSearch;
-    });
-  }, [activeStatus, searchQuery]);
+  // Lấy toàn bộ logic từ hook: gọi API, lọc, đếm, loading...
+  const {
+    isLoading,
+    error,
+    filteredOrders,
+    counts,
+    activeStatus,
+    setActiveStatus,
+    searchQuery,
+    setSearchQuery,
+    totalOrders,
+  } = useOrdersPage();
 
   return (
     <div className="container">
@@ -64,7 +46,7 @@ export function OrdersView() {
             <span className="text-ink font-medium">Đơn hàng</span>
           </nav>
 
-          {/* Tiêu đề trang & mô tả */}
+          {/* Tiêu đề trang */}
           <div className="mb-6">
             <h1 className="text-2xl font-bold tracking-tight text-ink">
               Đơn hàng của tôi
@@ -73,6 +55,13 @@ export function OrdersView() {
               Theo dõi hành trình giao hàng và quản lý các đơn mua của bạn.
             </p>
           </div>
+
+          {/* Hiển thị lỗi nếu gọi API thất bại */}
+          {error && (
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
 
           {/* Thanh Tab trạng thái */}
           <OrdersStatusTabs
@@ -87,11 +76,17 @@ export function OrdersView() {
             onChange={setSearchQuery}
           />
 
-          {/* Bảng danh sách đơn hàng */}
-          <OrdersTable
-            orders={filteredOrders}
-            totalOrders={MOCK_CUSTOMER_ORDERS.length}
-          />
+          {/* Loading khi đang gọi API */}
+          {isLoading ? (
+            <div className="rounded-2xl border border-line bg-surface p-12 text-center text-sm text-muted">
+              Đang tải đơn hàng...
+            </div>
+          ) : (
+            <OrdersTable
+              orders={filteredOrders}
+              totalOrders={totalOrders}
+            />
+          )}
         </div>
       </div>
     </div>
