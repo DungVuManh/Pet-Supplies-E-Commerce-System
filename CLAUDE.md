@@ -102,6 +102,7 @@ Browser auth requests use relative `/api/v1/...` URLs. `frontend/next.config.ts`
 
 Next.js is version 16 with experimental cache/partial-prefetch features. Before changing framework behavior, read the relevant installed guide under `frontend/node_modules/next/dist/docs/` rather than relying on older Next.js conventions. Keep the generated Next.js blocks in `frontend/AGENTS.md`.
 
+
 ## Frontend design contract
 
 Read `frontend/design.md` before any UI change. It is the source for Figma references, semantic tokens, role-specific theming, responsive behavior, accessibility constraints, and component boundaries. In particular:
@@ -109,7 +110,23 @@ Read `frontend/design.md` before any UI change. It is the source for Figma refer
 - Use semantic tokens from `app/globals.css` rather than repeating hex values in JSX.
 - Keep Admin brand overrides scoped to the Admin workspace; Customer/Staff use the shared blue brand.
 - Preserve public access to `/`; do not invent authenticated customer data or backend-backed catalog/cart behavior.
-- Reuse UI primitives only for common presentation/interaction. Feature validation, routing, and API calls stay in feature modules.
+- Reuse UI primitives only for common presentation/interaction. Feature validation lives in `hooks/`, API calls in `services/`, and routing in `app/`.
+
+### Feature structure
+
+```
+src/features/<feature>/
+├── components/       # UI blocks, one folder per screen section
+├── hooks/            # state, loading/error, validation, submit handlers
+├── services/         # API calls only
+└── types.ts          # feature-specific types
+```
+
+- **`components/`**: render UI only. Get data and handlers from hooks. Add `"use client"` when using hooks or events.
+- **`hooks/`**: own state, form validation, and submit logic. Call services, never `fetch`/`axios` directly.
+- **`services/`**: one function per API endpoint. Pure TypeScript, no React imports. Use the shared API instance from `lib/`.
+- **`types.ts`**: keep types in the feature first. Move to `src/types/` only when a second feature needs them.
+- Features must not import from each other. Shared code goes to `components/ui/`, `types/`, or `lib/`.
 
 ## Feature Implementation Workflow
 
