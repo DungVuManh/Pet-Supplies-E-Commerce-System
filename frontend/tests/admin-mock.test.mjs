@@ -3,7 +3,9 @@ import test from "node:test";
 import { adminStatusTone, adminStatusTones } from "../features/admin/status.ts";
 import { isLowStock, lowStockLevels, lowStockTotal, stockLevels } from "../features/admin/mock/inventory.ts";
 import { cumulativeRevenue, overview, recentActivity } from "../features/admin/mock/overview.ts";
-import { countUsers, filterUsers, getUser, users } from "../features/admin/mock/users.ts";
+import { countUsers, filterUsers, getUser, getUserDetail, users } from "../features/admin/mock/users.ts";
+import { defaultPermissions, togglePermission } from "../features/admin/mock/permissions.ts";
+import { validateUser } from "../features/admin/validation.ts";
 
 const allUsers = { tab: "all", query: "", role: "all", status: "all" };
 
@@ -27,6 +29,29 @@ test("user search ignores accents and combines with tab, role and status", () =>
   assert.deepEqual(filterUsers({ ...allUsers, query: "0934567890" }).map((user) => user.id), ["NV0001"]);
   assert.ok(filterUsers({ ...allUsers, tab: "staff", status: "Đã khóa" }).every((user) => user.role === "staff" && user.status === "Đã khóa"));
   assert.equal(filterUsers({ ...allUsers, tab: "customer", role: "staff" }).length, 0);
+});
+
+test("user detail keeps the designed KH0001 values and resolves every listed user", () => {
+  const detail = getUserDetail("KH0001");
+  assert.equal(detail?.completedOrders, 12);
+  assert.equal(detail?.totalSpent, 5_840_000);
+  assert.deepEqual(detail?.activity.map((row) => row.status), ["Chờ xử lý", "Thành công", "Hoàn thành"]);
+  assert.ok(users.every((user) => getUserDetail(user.id)?.activity.every((row) => row.status in adminStatusTones && row.href.startsWith("/admin/"))));
+  assert.equal(getUserDetail("NOPE"), undefined);
+});
+
+test("user form validation flags name, email and phone", () => {
+  assert.deepEqual(validateUser({ fullName: "Nguyễn Minh Anh", email: "minhanh.nguyen@gmail.com", phone: "0901 234 567" }), {});
+  assert.deepEqual(Object.keys(validateUser({ fullName: " ", email: "minhanh@", phone: "12345" })).sort(), ["email", "fullName", "phone"]);
+});
+
+test("permission matrix keeps Admin locked and toggles only the chosen cell", () => {
+  assert.equal(defaultPermissions.length, 9);
+  assert.ok(defaultPermissions.every((item) => item.roles.admin));
+  assert.equal(togglePermission(defaultPermissions, "finance", "admin"), defaultPermissions);
+  const next = togglePermission(defaultPermissions, "finance", "staff");
+  assert.equal(next.find((item) => item.id === "finance")?.roles.staff, true);
+  assert.equal(defaultPermissions.find((item) => item.id === "finance")?.roles.staff, false, "original matrix is not mutated");
 });
 
 test("dashboard revenue chart ends at the net revenue KPI and only grows", () => {

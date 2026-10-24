@@ -1,3 +1,4 @@
+import type { AdminStatus } from "../status";
 import { matchesQuery } from "./text.ts";
 
 export type UserRole = "customer" | "staff";
@@ -46,6 +47,48 @@ export const users: AdminUser[] = [...designed, ...Array.from({ length: 338 }, (
 export function getUser(id: string) {
   return users.find((user) => user.id === id);
 }
+
+export type UserActivity = { id: string; time: string; year: string; title: string; detail: string; value: string; status: AdminStatus; href: string };
+export type UserDetail = AdminUser & {
+  address: string; recipient: string; lastLogin: string; completedOrders: number; totalSpent: number; note: string; activity: UserActivity[];
+};
+
+const designedDetail: Record<string, Omit<UserDetail, keyof AdminUser>> = {
+  KH0001: {
+    address: "28 Nguyễn Thị Minh Khai, Phường Đa Kao, Quận 1, TP. Hồ Chí Minh", recipient: "Nguyễn Minh Anh · 0901 234 567",
+    lastLogin: "12/10/2026 · 10:40", completedOrders: 12, totalSpent: 5_840_000, note: "Khách hàng thường xuyên mua thức ăn cho chó giống nhỏ.",
+    activity: [
+      { id: "a1", time: "12/10 · 10:42", year: "2026", title: "Tạo đơn #PA261012018", detail: "Royal Canin Mini Adult 2 kg · Số lượng 1", value: "450.000 ₫", status: "Chờ xử lý", href: "/admin/orders?q=PA261012018" },
+      { id: "a2", time: "12/10 · 10:40", year: "2026", title: "Đăng nhập thành công", detail: "Chrome · TP. Hồ Chí Minh", value: "Web", status: "Thành công", href: "/admin/system/audit-log" },
+      { id: "a3", time: "05/10 · 14:30", year: "2026", title: "Đơn #PA261002031 đã giao", detail: "Royal Canin Mini Adult 2 kg · Số lượng 1", value: "450.000 ₫", status: "Hoàn thành", href: "/admin/orders?q=PA261002031" },
+    ],
+  },
+};
+
+const districts = ["Quận 1", "Quận 3", "Quận 7", "Quận Bình Thạnh", "TP. Thủ Đức"];
+
+/** Account details for the detail and edit screens; designed values for KH0001, deterministic ones elsewhere. */
+export function getUserDetail(id: string): UserDetail | undefined {
+  const user = getUser(id);
+  if (!user) return undefined;
+  const designed = designedDetail[id];
+  if (designed) return { ...user, ...designed };
+  const n = Number(id.slice(2));
+  const completedOrders = user.role === "customer" ? n % 15 : 0;
+  return {
+    ...user,
+    address: `${10 + (n % 90)} Lê Lợi, ${districts[n % districts.length]}, TP. Hồ Chí Minh`, recipient: `${user.fullName} · ${user.phone}`,
+    lastLogin: `${String(1 + (n % 12)).padStart(2, "0")}/10/2026 · 09:${String(n % 60).padStart(2, "0")}`,
+    completedOrders, totalSpent: completedOrders * 465_000, note: "",
+    activity: [{ id: "login", time: "12/10 · 09:15", year: "2026", title: "Đăng nhập thành công", detail: "Chrome · TP. Hồ Chí Minh", value: "Web", status: "Thành công", href: "/admin/system/audit-log" }],
+  };
+}
+
+/** Plain-language scope per role, shown beside the edit form. */
+export const rolePermissions: Record<UserRole, { summary: string; others: string }> = {
+  customer: { summary: "Mua hàng, quản lý tài khoản và xem đơn hàng của chính mình.", others: "Staff được xử lý đơn và cập nhật tồn kho. Admin có toàn quyền quản trị và phân quyền." },
+  staff: { summary: "Xử lý đơn hàng, duyệt yêu cầu hủy, cập nhật sản phẩm và tồn kho.", others: "Customer chỉ thao tác trên dữ liệu của mình. Admin có toàn quyền quản trị và phân quyền." },
+};
 
 export function countUsers(role: UserRole | "all") {
   return role === "all" ? users.length : users.filter((user) => user.role === role).length;

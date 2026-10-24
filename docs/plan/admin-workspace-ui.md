@@ -78,28 +78,33 @@ Designs: `docs/designs/Admin/` (Auth designs excluded; authentication is already
 - [x] "Quyền truy cập được kiểm soát" callout
 - [x] `tsconfig.json`: enable `allowImportingTsExtensions` (valid with `noEmit`) so mock modules can import each other with the `.ts` extension that `node --test` requires
 - [x] Tests: tab counts, designed first page, unique IDs, phone format, accent-insensitive search, combined filters
-- [ ] Visual check against `User.png` row 1 col 1 (you)
-- [ ] **🛑 Commit checkpoint: User list**
+- [x] Visual check against `User.png` row 1 col 1 (confirmed by user)
+- [x] **🛑 Commit checkpoint: User list**
 
 ### 2b. User detail: `/admin/users/[id]`
-- [ ] Account info card with status badge and `DetailList`
-- [ ] KPI cards "Đơn đã hoàn thành" and "Tổng chi tiêu", the "Địa chỉ mặc định" callout, and the lock-explanation text
-- [ ] "Khóa tài khoản" (danger, toggles local status with a notice) and "Chỉnh sửa" (link)
-- [ ] Activity-history table
-- [ ] `notFound()` for an unknown id
+- [x] Account info card with status badge and `DetailList` (`getUserDetail`: designed values for KH0001, deterministic values for the other accounts)
+- [x] KPI cards "Đơn đã hoàn thành" and "Tổng chi tiêu", the "Địa chỉ mặc định" callout, and the lock-explanation text (Staff accounts get Staff wording)
+- [x] "Khóa tài khoản" (shared `dangerButton`; toggles badge and button to "Mở khóa tài khoản" with a demo notice) and "Chỉnh sửa" (link)
+- [x] Activity-history table
+- [x] `notFound()` for an unknown id. `params` is read inside a Suspense-wrapped child so list → detail navigation passes Cache Components validation (the same pattern applies to every dynamic Admin route).
+- [x] Browser check as Admin at 1440 and 320: matches `User.png`, no console errors, no horizontal scroll
 - [ ] **🛑 Commit checkpoint: User detail**
 
 ### 2c. Edit user: `/admin/users/[id]/edit`
-- [ ] Form: name*, account code (read-only), email*, phone*, role*, status, address, and an internal-note textarea
-- [ ] Client validation with error styling from `Components.png`, and a mock save notice
-- [ ] Side cards: "Quyền theo vai trò" (changes with the selected role), the "Bảo mật tài khoản" callout, and "Gửi đặt lại mật khẩu" (demo)
-- [ ] Hủy / Lưu thay đổi
+- [x] Form: name*, account code (read-only), email*, phone*, role*, status, address, and an internal-note textarea (reuses `components/ui/TextField`)
+- [x] Client validation (`features/admin/validation.ts`) with error styling from `Components.png`. The first invalid field gets focus. Mock save notice, or "Không có thay đổi nào để lưu." when nothing changed (the button stays enabled, as designed).
+- [x] Side cards: "Quyền theo vai trò" (changes with the selected role), the "Bảo mật tài khoản" callout, and "Gửi đặt lại mật khẩu" (demo)
+- [x] Hủy (back to detail) / Lưu thay đổi (header button submits the form through `form=`)
+- [x] Fix: `app/globals.css` `:focus-visible` and `::selection` read `--brand` directly, so focus rings are teal in Admin (they were blue). The source compiles correctly with Tailwind; the running dev server needs a restart to pick up the CSS change.
+- [x] Browser check as Admin at 1440 and 320: error state, focus, role card, save notice, and Hủy navigation
 - [ ] **🛑 Commit checkpoint: Edit user**
 
 ### 2d. Roles & permissions: `/admin/users/roles`
-- [ ] "Nguyên tắc phân quyền" callout
-- [ ] Permission matrix: 9 functions × Customer/Staff/Admin with counts, using native checkboxes. The Admin column is always checked and disabled.
-- [ ] "Lưu phân quyền" mock save and the legend
+- [x] "Nguyên tắc phân quyền" callout
+- [x] Permission matrix (`mock/permissions.ts`): 9 functions × Customer/Staff/Admin with counts from the user data. Customer and Staff cells are native, labelled checkboxes. The fixed Admin column is a labelled teal check, because browsers paint disabled checkboxes grey, unlike the design.
+- [x] "Lưu phân quyền" mock save and the legend
+- [x] Tests: KH0001 detail values, every user resolves a detail, validation rules, permission toggling keeps Admin fixed and does not mutate defaults
+- [x] Browser check as Admin at 1440 and 320
 - [ ] **🛑 Commit checkpoint: Roles & permissions**
 
 ## 3. Products
