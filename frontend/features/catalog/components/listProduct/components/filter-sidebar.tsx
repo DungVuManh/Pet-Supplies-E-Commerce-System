@@ -41,8 +41,8 @@ export function FilterSidebar({
 }: FilterSidebarProps) {
   return (
     <aside className="w-1/4 shrink-0 rounded-md p-4 bg-blue-50 mr-5">
-      <div className="flex justify-between mt-5">
-        <h1 className="font-bold">Bộ lọc</h1>
+      <div className="flex justify-between ">
+        <h1 className="font-bold text-xl ">Bộ Lọc</h1>
         <button
           type="button"
           className="font-bold text-sm text-blue-600 hover:underline"
