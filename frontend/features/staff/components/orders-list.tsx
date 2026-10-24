@@ -78,10 +78,11 @@ export function OrdersList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Sync search input if URL changes externally (e.g. Back/Forward)
-  useEffect(() => {
+  const [prevUrlQuery, setPrevUrlQuery] = useState(urlQuery);
+  if (urlQuery !== prevUrlQuery) {
+    setPrevUrlQuery(urlQuery);
     setSearchInput(urlQuery);
-  }, [urlQuery]);
+  }
 
   // Active filter state derived from URL
   const activeFilter: StaffOrdersFilterState = useMemo(
