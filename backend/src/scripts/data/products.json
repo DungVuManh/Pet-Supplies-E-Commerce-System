@@ -1,0 +1,1250 @@
+[
+  {
+    "name": "Hạt Ganador Adult Cho Chó Trưởng Thành Vị Gà Quay",
+    "slug": "ganador-ga-quay",
+    "description": "Hạt Ganador Adult vị gà quay dành cho chó trưởng thành. Chia khẩu phần theo cân nặng và mức vận động dựa trên hướng dẫn trên bao bì. Luôn có nước sạch và đóng kín túi hạt sau khi sử dụng.",
+    "brand": "Ganador",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/c5c9fae4-68b3-4afe-9adb-5c94c7455444/4a93c239-82af-4e99-a221-27183430fe8d/h-t-ganador-adult-cho-ch-tr-ng-th-nh-v-g-quay-padd.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "GAN-001",
+        "label": "Mặc định",
+        "price": 20000,
+        "stock": 7,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": 10415
+  },
+  {
+    "name": "Hạt Ganador Puppy Cho Chó Con Vị Sữa & DHA",
+    "slug": "ganador-puppy-sua-dha",
+    "description": "Ganador Puppy phiên bản Sữa & DHA là thức ăn hạt dành cho chó con. Chia lượng ăn thành nhiều bữa theo độ tuổi và cân nặng. Khi đổi hạt, trộn tăng dần với thức ăn đang dùng để bé làm quen.",
+    "brand": "Ganador",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/942da0d4-61a5-49eb-80cf-38b72676f681/c66c9b30-7004-45ab-8768-eedf98362664/h-t-ganador-puppy-cho-ch-con-v-s-a-dha-paddy-pet-s.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "GAN-002",
+        "label": "Mặc định",
+        "price": 30000,
+        "stock": 24,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": 10090
+  },
+  {
+    "name": "Thức Ăn Cho Chó Trưởng Thành Ganador Thịt Bò",
+    "slug": "thuc-an-cho-cho-lon-ganador-thit-bo",
+    "description": "Thức ăn hạt Ganador vị thịt bò dành cho chó trưởng thành. Tham khảo khẩu phần trên nhãn và điều chỉnh theo thể trạng của bé. Bảo quản nơi khô mát, tránh ánh nắng và đóng kín sau khi mở.",
+    "brand": "Ganador",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/5536f9c6-2672-4a4d-afbe-279867867552/a717cad9-d0bb-4bf9-a01b-10b5fcb5f622/th-c-n-cho-ch-tr-ng-th-nh-ganador-th-t-b-paddy-pet.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "GAN-003",
+        "label": "Mặc định",
+        "price": 20000,
+        "stock": 46,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": 9912
+  },
+  {
+    "name": "Hạt Cho Chó Poodle Trưởng Thành Royal Canin Poodle Adult",
+    "slug": "hat-cho-cho-poodle-truong-thanh-royal-canin-poodle-adult",
+    "description": "Royal Canin Poodle Adult là dòng hạt dành cho chó Poodle trưởng thành. Chọn đúng giai đoạn tuổi và đối chiếu lượng ăn với cân nặng thực tế. Chuẩn bị nước sạch khi cho ăn và giữ túi hạt kín sau khi mở.",
+    "brand": "Royal Canin",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/d3023efc-b329-406f-a10c-48e0362c01fa/2f1327a9-f662-43a8-800c-d9a2946fe1fc/th-c-n-h-t-cho-ch-poodle-tr-ng-th-nh-royal-canin-p.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "ROY-004",
+        "label": "Mặc định",
+        "price": 177000,
+        "stock": 21,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": 3156
+  },
+  {
+    "name": "Hạt Ganador Puppy Chó Con Vị Trứng & Sữa",
+    "slug": "ganador-puppy-trung-sua",
+    "description": "Ganador Puppy phiên bản vị trứng & sữa dành cho chó con. Chia khẩu phần hằng ngày thành các bữa nhỏ theo hướng dẫn trên bao bì. Chuyển đổi thức ăn từ từ khi bé đang dùng một loại hạt khác.",
+    "brand": "Ganador",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/efe06bb1-5740-4762-9b15-8c945856ac59/30b1d598-db81-4205-8341-a93c0b924110/h-t-ganador-puppy-ch-con-v-tr-ng-s-a-paddy-pet-sho.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "GAN-005",
+        "label": "Mặc định",
+        "price": 25000,
+        "stock": 1,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": 10420
+  },
+  {
+    "name": "Hạt Ganador Adult Cho Chó Trưởng Thành Vị Cá Hồi & Gạo",
+    "slug": "ganador-ca-hoi-gao",
+    "description": "Hạt Ganador Adult phiên bản cá hồi & gạo dành cho chó trưởng thành. Sử dụng theo khẩu phần gợi ý trên nhãn và điều chỉnh theo mức vận động. Giữ hạt ở nơi khô ráo và luôn chuẩn bị nước sạch.",
+    "brand": "Ganador",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/054226d3-c8b0-48a9-a2c6-041525551b98/61f9cb79-8e12-434f-94df-ddbcb35155c3/h-t-ganador-adult-cho-ch-tr-ng-th-nh-v-c-h-i-g-o-p.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "GAN-006",
+        "label": "Mặc định",
+        "price": 25000,
+        "stock": 8,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": 10280
+  },
+  {
+    "name": "Hạt Ganador Adult Cho Chó Trưởng Thành Vị Cừu & Gạo",
+    "slug": "ganador-cuu-gao",
+    "description": "Ganador Adult phiên bản cừu & gạo là thức ăn hạt cho chó trưởng thành. Đối chiếu hướng dẫn cho ăn với cân nặng của bé trước khi chia bữa. Không sử dụng hạt đã ẩm hoặc có dấu hiệu biến đổi mùi, màu.",
+    "brand": "Ganador",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/f24e94d1-e83b-4813-9f39-0af590e3d893/43e8fbeb-5276-4b41-b505-c1b1e58a8115/h-t-ganador-adult-cho-ch-tr-ng-th-nh-v-c-u-g-o-pad.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "GAN-007",
+        "label": "Mặc định",
+        "price": 25000,
+        "stock": 49,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": 10346
+  },
+  {
+    "name": "Hạt Cho Chó Trưởng Thành Fib's",
+    "slug": "hat-fib-s-cho-cho-truong-thanh",
+    "description": "Hạt Fib's dành cho chó trưởng thành, dùng theo khẩu phần hướng dẫn trên bao bì. Cân lượng thức ăn theo thể trạng và thói quen vận động của bé. Bảo quản trong túi hoặc hộp đậy kín ở nơi khô mát.",
+    "brand": "Fib's",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/gmc-clean/9db85788f03aedd98908d8b33e334ad7-clean.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "FIB-008",
+        "label": "Mặc định",
+        "price": 16000,
+        "stock": 47,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 4.9,
+    "ratingCount": 7112
+  },
+  {
+    "name": "Thức Ăn Hạt Cho Chó Con Poodle Royal Canin Poodle Puppy",
+    "slug": "thuc-an-cho-cho-con-royal-canin-poodle-puppy",
+    "description": "Royal Canin Poodle Puppy là dòng thức ăn hạt dành cho chó con giống Poodle. Kiểm tra độ tuổi và khẩu phần trên nhãn để chọn lượng ăn phù hợp. Chia nhỏ các bữa và cho bé làm quen từ từ khi đổi hạt.",
+    "brand": "Royal Canin",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/ee42be13-6299-4d6e-a1c3-c86f6cc44a0c/f7902bfe-4221-4e6e-9f3b-ffa444fa350e/th-c-n-h-t-cho-ch-con-poodle-royal-canin-poodle-pu.png"
+    ],
+    "variants": [
+      {
+        "sku": "ROY-009",
+        "label": "Mặc định",
+        "price": 198000,
+        "stock": 42,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Hạt Cho Chó Mọi Lứa Tuổi Keos",
+    "slug": "hat-cho-cho-moi-lua-tuoi-keos",
+    "description": "Thức ăn hạt Keos dành cho chó nhiều độ tuổi. Chọn khẩu phần theo giai đoạn phát triển, cân nặng và mức vận động dựa trên hướng dẫn của nhà sản xuất. Đổi thức ăn từ từ và duy trì nước uống sạch.",
+    "brand": "Keos",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/4dbd3498-c8b4-4bdc-a22b-f7cee0573523/6cb1bf58-3f54-470d-8378-5e309ebe9b32/h-t-cho-ch-m-i-l-a-tu-i-keos-paddy-pet-shop.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "KEO-010",
+        "label": "Mặc định",
+        "price": 21000,
+        "stock": 40,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Thức Ăn Hạt Cho Chó Con Giống Nhỏ Royal Canin Mini Puppy",
+    "slug": "thuc-an-hat-cho-cho-con-giong-nho-royal-canin-mini-puppy",
+    "description": "Royal Canin Mini Puppy là dòng hạt dành cho chó con giống nhỏ. Tham khảo hướng dẫn theo độ tuổi và cân nặng dự kiến trên bao bì trước khi chia bữa. Giữ phần hạt chưa dùng ở nơi khô mát, tránh độ ẩm.",
+    "brand": "Royal Canin",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/40a8bf67-bf2d-456f-b11c-2479d62b87ff/8a681b38-87d0-43a6-8181-6d4bce2931ed/th-c-n-h-t-cho-ch-con-gi-ng-nh-royal-canin-mini-pu.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "ROY-011",
+        "label": "Mặc định",
+        "price": 251000,
+        "stock": 9,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Thức Ăn Hạt Cho Chó Trưởng Thành Giống Nhỏ Royal Canin Mini Adult",
+    "slug": "thuc-an-hat-cho-cho-truong-thanh-giong-nho-royal-canin-mini-adult",
+    "description": "Royal Canin Mini Adult là thức ăn hạt dành cho chó trưởng thành giống nhỏ. Chọn đúng giai đoạn tuổi và điều chỉnh lượng ăn theo hướng dẫn trên nhãn. Khi dùng cùng thức ăn khác, tính chung khẩu phần trong ngày.",
+    "brand": "Royal Canin",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/7bf9a2ec-7d5e-45be-a8fa-2f8171d5aa5a/029c8427-e0f4-44b7-9043-c1aef4d90eb5/th-c-n-h-t-cho-ch-tr-ng-th-nh-gi-ng-nh-royal-canin.png"
+    ],
+    "variants": [
+      {
+        "sku": "ROY-012",
+        "label": "Mặc định",
+        "price": 209000,
+        "stock": 50,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Hạt Mềm Cho Chó Con Zenith Puppy",
+    "slug": "hat-mem-cho-cho-con-zenith-puppy",
+    "description": "Zenith Puppy là dòng thức ăn hạt mềm dành cho chó con. Kiểm tra độ tuổi phù hợp và khẩu phần trên bao bì trước khi dùng. Chia thành các bữa nhỏ và bảo quản túi hạt theo hướng dẫn sau khi mở.",
+    "brand": "Zenith",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/ab3e42e6-a9ef-427b-aef8-fa7fbdd68c98/78ae3586-32a1-47ab-8cfe-843e326a2144/h-t-m-m-cho-ch-con-zenith-puppy-paddy-pet-shop.png"
+    ],
+    "variants": [
+      {
+        "sku": "ZEN-013",
+        "label": "Mặc định",
+        "price": 63000,
+        "stock": 48,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Hạt Mềm Cho Chó Trưởng Thành Zenith Adult",
+    "slug": "hat-mem-cho-cho-truong-thanh-zenith-adult",
+    "description": "Zenith Adult là dòng thức ăn hạt mềm cho chó trưởng thành. Chia khẩu phần theo cân nặng và nhu cầu của từng bé. Đóng kín túi sau khi lấy hạt và kiểm tra hướng dẫn bảo quản của nhà sản xuất.",
+    "brand": "Zenith",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/collection-1779942330681-6-hisfea.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "ZEN-014",
+        "label": "Mặc định",
+        "price": 63000,
+        "stock": 27,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Hạt Cho Chó Trưởng Thành Smartheart Adult Vị Bò Nướng",
+    "slug": "thuc-an-cho-cho-smartheart-adult-vi-bo-nuong",
+    "description": "SmartHeart Adult phiên bản vị bò nướng dành cho chó trưởng thành. Tham khảo bảng khẩu phần theo cân nặng trên nhãn và điều chỉnh theo mức vận động. Cho bé làm quen từ từ nếu chuyển từ loại hạt khác.",
+    "brand": "SmartHeart",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/49c2ec15-976b-4998-9113-87f77a30b3e2/b1c61e68-440a-40ec-a5f8-7206280b7fbd/h-t-cho-ch-tr-ng-th-nh-smartheart-adult-v-b-n-ng-p.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "SMA-015",
+        "label": "Mặc định",
+        "price": 30000,
+        "stock": 19,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Thức Ăn Hạt Mềm Chó ANF Soft",
+    "slug": "hat-mem-cho-cho-anf-soft-1200g",
+    "description": "ANF Soft là dòng thức ăn hạt mềm dành cho chó. Kiểm tra đối tượng sử dụng, quy cách và lượng ăn khuyến nghị trên bao bì. Đóng kín túi sau khi mở và tránh để hạt tiếp xúc lâu với không khí ẩm.",
+    "brand": "ANF",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/479e2abd-ce9a-4dae-8eeb-b10ddf07e41c/256e054b-6f55-478a-b550-58701e9f884d/th-c-n-h-t-m-m-ch-anf-soft-1-2kg-paddy-pet-shop.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "ANF-016",
+        "label": "Mặc định",
+        "price": 62000,
+        "stock": 34,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Hạt Cho Chó Con Smartheart Puppy Vị Bò & Sữa",
+    "slug": "thuc-an-cho-cho-con-smartheart-puppy-vi-bo-sua",
+    "description": "SmartHeart Puppy phiên bản vị bò & sữa là thức ăn hạt dành cho chó con. Chia khẩu phần theo độ tuổi và cân nặng thành các bữa phù hợp. Luôn có nước sạch và chuyển đổi từ từ khi thay loại thức ăn.",
+    "brand": "SmartHeart",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/b41ef99b-21f5-43be-8238-2005baadae06/099ee2a0-fe64-4a9f-b53a-0b5ccb3ac321/h-t-cho-ch-con-smartheart-puppy-v-b-s-a-paddy-pet-.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "SMA-017",
+        "label": "Mặc định",
+        "price": 35000,
+        "stock": 39,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Hạt Cho Chó Trưởng Thành Giống Vừa Royal Canin Medium Adult",
+    "slug": "hat-cho-cho-truong-thanh-giong-vua-royal-canin-medium-adult",
+    "description": "Royal Canin Medium Adult là dòng thức ăn hạt dành cho chó trưởng thành giống vừa. Đối chiếu khẩu phần với thể trạng và mức vận động của bé. Khi kết hợp với thức ăn khác, điều chỉnh tổng lượng ăn trong ngày.",
+    "brand": "Royal Canin",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/ed2aad26-0224-4b08-934a-4e67f9b1853d/162b377b-d0aa-4c54-a341-7540f91676df/h-t-cho-ch-tr-ng-th-nh-gi-ng-v-a-royal-canin-mediu.png"
+    ],
+    "variants": [
+      {
+        "sku": "ROY-018",
+        "label": "Mặc định",
+        "price": 205000,
+        "stock": 3,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Hạt Tươi Taste Of The Wild Cho Chó Trưởng Thành (USA)",
+    "slug": "thuc-an-cho-cho-truong-thanh-taste-of-the-wild",
+    "description": "Taste of the Wild là thức ăn hạt dành cho chó trưởng thành. Kiểm tra phiên bản, thành phần và quy cách cụ thể trên nhãn khi lựa chọn. Sử dụng theo khẩu phần hướng dẫn và bảo quản nơi khô mát.",
+    "brand": "Taste of the Wild",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/24adfbff-9632-4cbc-b4cb-76550758c760/ba9da5c4-f54e-4725-95a5-a917daa27acc/h-t-t-i-taste-of-the-wild-cho-ch-tr-ng-th-nh-usa-p.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "TAS-019",
+        "label": "Mặc định",
+        "price": 155000,
+        "stock": 48,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Hạt Rau Ăn Kèm Dành Cho Chó Mèo Cado's",
+    "slug": "hat-rau-an-kem-danh-cho-cho-meo-cados",
+    "description": "Hạt rau ăn kèm Cado's dành cho chó mèo, dùng bổ sung vào bữa ăn theo hướng dẫn trên bao bì. Đối chiếu lượng dùng với loại thức ăn đang sử dụng. Tính phần ăn kèm vào tổng khẩu phần hằng ngày của bé.",
+    "brand": "Dr.Kyan",
+    "petType": "dog",
+    "categoryId": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/a2f87009-4e2f-41c7-a156-1985e6bb3fa0/ee7fbd6d-50fa-41eb-971f-57e0a3ed3e95/h-t-rau-n-k-m-d-nh-cho-ch-m-o-cado-s.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "DRK-020",
+        "label": "Mặc định",
+        "price": 34000,
+        "stock": 19,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Thức Ăn Hạt Cho Mèo Trưởng Thành Nuôi Trong Nhà Royal Canin Indoor 27",
+    "slug": "thuc-an-hat-cho-meo-truong-thanh-nuoi-trong-nha-royal-canin-indoor-27",
+    "description": "Royal Canin Indoor 27 là dòng thức ăn hạt dành cho mèo trưởng thành nuôi trong nhà. Tham khảo khẩu phần theo cân nặng và thể trạng trên nhãn. Duy trì nước uống sạch và tính cả lượng thức ăn bổ sung trong ngày.",
+    "brand": "Royal Canin",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/d2878623-5fc6-4d7c-b4a0-4c210454d47e/d7eb20f3-d470-4106-aeb9-9ddc984cf63c/th-c-n-h-t-cho-m-o-tr-ng-th-nh-nu-i-trong-nh-royal.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "ROY-021",
+        "label": "Mặc định",
+        "price": 139000,
+        "stock": 14,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": 5889
+  },
+  {
+    "name": "Thức Ăn Hạt Cho Mèo Sỏi Thận Royal Canin Urinary S/O",
+    "slug": "thuc-an-cho-meo-royal-canin-urinary-so-meo",
+    "description": "Royal Canin Urinary S/O là dòng thức ăn thú y dành cho mèo. Lựa chọn sản phẩm và khẩu phần theo hướng dẫn của bác sĩ thú y, đồng thời đối chiếu thông tin trên bao bì. Không tự thay thế chế độ ăn đã được chỉ định.",
+    "brand": "Royal Canin",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "06916c6d39be37007dfaa95c"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/ea9a242a-d2f0-45e5-9387-4847a932d79f/9042ba8a-eb30-4aed-8d40-2c57a8b46a5d/th-c-n-h-t-cho-m-o-s-i-th-n-royal-canin-urinary-s-.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "ROY-022",
+        "label": "Mặc định",
+        "price": 194000,
+        "stock": 49,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": 5013
+  },
+  {
+    "name": "Hạt Cho Mèo Snappy Tom Mix Cá Sấy",
+    "slug": "hat-cho-meo-snappy-tom",
+    "description": "Hạt Snappy Tom dành cho mèo, phiên bản phối cùng cá sấy. Kiểm tra khẩu phần và giai đoạn tuổi phù hợp trên nhãn trước khi dùng. Đóng kín túi sau mỗi bữa và giữ phần hạt cùng topping ở nơi khô mát.",
+    "brand": "Snappy Tom",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/gmc-clean/c7eeedae5ab0e4fcf194125446c047db-clean.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "SNA-023",
+        "label": "Mặc định",
+        "price": 80000,
+        "stock": 31,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": 1540
+  },
+  {
+    "name": "Thức Ăn Hạt Cho Mèo Tiêu Búi Lông Royal Canin Hairball",
+    "slug": "thuc-an-cho-meo-royal-canin-hairball",
+    "description": "Royal Canin Hairball là dòng thức ăn hạt cho mèo trong nhóm sản phẩm theo nhu cầu búi lông. Đọc đối tượng sử dụng và khẩu phần trên bao bì trước khi chọn. Khi đổi hạt, trộn tăng dần với thức ăn đang dùng.",
+    "brand": "Royal Canin",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/30dbca1f-697c-45ed-8283-790efed29f5c/f0c62279-34a9-477f-a45d-32e32e75fb9a/th-c-n-h-t-cho-m-o-ti-u-b-i-l-ng-royal-canin-hairb.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "ROY-024",
+        "label": "Mặc định",
+        "price": 156000,
+        "stock": 24,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": 2522
+  },
+  {
+    "name": "Hạt Cho Mèo Mọi Lứa Tuổi Catsrang",
+    "slug": "hat-cho-meo-moi-lua-tuoi-catsrang",
+    "description": "Catsrang là thức ăn hạt dành cho mèo nhiều độ tuổi. Lượng ăn cần được chọn theo giai đoạn phát triển, cân nặng và hướng dẫn của nhà sản xuất. Chuẩn bị nước sạch và giữ hạt trong bao bì kín sau khi mở.",
+    "brand": "Catsrang",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/a8a5b5d4-bddd-428d-b23a-db9488797387/62b4f856-ec66-4f44-a380-7dcadd40cdc2/h-t-cho-m-o-m-i-l-a-tu-i-catsrang-paddy-pet-shop.png"
+    ],
+    "variants": [
+      {
+        "sku": "CAT-025",
+        "label": "Mặc định",
+        "price": 60000,
+        "stock": 34,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": 1635
+  },
+  {
+    "name": "Hạt Cho Mèo Mọi Lứa Tuổi Minino YUM Vị Hải Sản",
+    "slug": "thuc-an-cho-meo-minino-yum-vi-hai-san",
+    "description": "Minino YUM phiên bản vị hải sản dành cho mèo nhiều độ tuổi. Tham khảo bảng khẩu phần trên nhãn để chia lượng ăn cho từng bé. Khi dùng thêm pate hoặc bánh thưởng, điều chỉnh tổng lượng thức ăn trong ngày.",
+    "brand": "Minino",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/58f35e3b-0ab3-4428-9cfb-0984048e3551/63e90e70-a304-4cba-8062-b7ed680cc02e/h-t-cho-m-o-m-i-l-a-tu-i-minino-yum-v-h-i-s-n-padd.png"
+    ],
+    "variants": [
+      {
+        "sku": "MIN-026",
+        "label": "Mặc định",
+        "price": 27000,
+        "stock": 28,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": 3529
+  },
+  {
+    "name": "Thức Ăn Hạt Cho Mèo Mẹ & Mèo Con Royal Canin Mother & Babycat",
+    "slug": "thuc-an-cho-meo-con-royal-canin-mother-babycat-meo-me-meo-con",
+    "description": "Royal Canin Mother & Babycat là dòng thức ăn hạt dành cho mèo mẹ và mèo con. Đối chiếu giai đoạn sử dụng và cách cho ăn theo hướng dẫn trên bao bì. Chọn riêng khẩu phần cho mèo mẹ và mèo con theo nhu cầu thực tế.",
+    "brand": "Royal Canin",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/4e349f9b-9a22-4224-ab76-9003bf852e13/b887e821-2a28-4acf-b7b5-939196419c23/th-c-n-h-t-cho-m-o-m-m-o-con-royal-canin-mother-ba.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "ROY-027",
+        "label": "Mặc định",
+        "price": 142000,
+        "stock": 38,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": 4542
+  },
+  {
+    "name": "Hạt Cho Mèo Anh Lông Ngắn Trưởng Thành Royal Canin British Shorthair Adult",
+    "slug": "hat-cho-meo-anh-long-ngan-truong-thanh-royal-canin-british-shorthair-adult",
+    "description": "Royal Canin British Shorthair Adult là dòng hạt cho mèo Anh lông ngắn trưởng thành. Kiểm tra độ tuổi và bảng khẩu phần theo cân nặng trước khi dùng. Bảo quản trong túi hoặc hộp kín, tránh ánh nắng và độ ẩm.",
+    "brand": "Royal Canin",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/644a84ce-8fe3-47a6-80dd-42a1fd596365/a52d6297-bcc5-44ad-818b-67485081cdd2/th-c-n-h-t-cho-m-o-l-n-anh-l-ng-ng-n-royal-canin-b.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "ROY-028",
+        "label": "Mặc định",
+        "price": 163000,
+        "stock": 34,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": 1597
+  },
+  {
+    "name": "Hạt Minino YUM Salmon Cho Mèo Mọi Lứa Tuổi Vị Cá Hồi",
+    "slug": "thuc-an-cho-meo-minino-yum-salmon-vi-ca-hoi",
+    "description": "Minino YUM Salmon phiên bản vị cá hồi dành cho mèo nhiều độ tuổi. Chia khẩu phần theo hướng dẫn trên bao bì và thể trạng của bé. Cho mèo làm quen từ từ khi đổi thức ăn và duy trì nước uống sạch.",
+    "brand": "Minino",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/33c48416-e0cc-4d7d-8f2e-f3587ad60306/4f3e6e14-1258-4ef6-a26e-b265ba672228/h-t-minino-yum-salmon-cho-m-o-m-i-l-a-tu-i-v-c-h-i.png"
+    ],
+    "variants": [
+      {
+        "sku": "MIN-029",
+        "label": "Mặc định",
+        "price": 27000,
+        "stock": 11,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Thức Ăn Hạt Cho Mèo Trưởng Thành Dưỡng Lông & Da Royal Canin Hair & Skin Care",
+    "slug": "thuc-an-cho-meo-royal-canin-hair-skin-care",
+    "description": "Royal Canin Hair & Skin Care là dòng hạt cho mèo trưởng thành trong nhóm chăm sóc lông và da. Đọc đối tượng sử dụng và khẩu phần trên nhãn để lựa chọn phù hợp. Theo dõi thể trạng và thói quen ăn uống khi sử dụng.",
+    "brand": "Royal Canin",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/cfe27a35-4e3f-4753-ba26-2e1eb6102a13/b38bc1b8-94e9-43e1-b6b6-f45bd6a4e6c4/th-c-n-h-t-cho-m-o-tr-ng-th-nh-d-ng-l-ng-da-royal-.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "ROY-030",
+        "label": "Mặc định",
+        "price": 156000,
+        "stock": 11,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Hạt Cho Mèo Trưởng Thành Me-O Tuna Vị Cá Ngừ",
+    "slug": "hat-me-o-tuna-cho-meo-truong-thanh-vi-ca-ngu",
+    "description": "Me-O Tuna là thức ăn hạt vị cá ngừ dành cho mèo trưởng thành. Sử dụng theo khẩu phần trên bao bì, điều chỉnh theo cân nặng và lượng thức ăn bổ sung. Giữ túi hạt kín và đặt nước sạch tại khu vực cho ăn.",
+    "brand": "Me-O",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/1277146e-0506-487a-a0d8-d4e48c5da951/4657663a-fa0f-4713-a496-78f0e33a2728/h-t-cho-m-o-tr-ng-th-nh-me-o-tuna-v-c-ng-paddy-pet.png"
+    ],
+    "variants": [
+      {
+        "sku": "MEO-031",
+        "label": "Mặc định",
+        "price": 31000,
+        "stock": 10,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Hạt Cho Mèo Mr Vet 1KG",
+    "slug": "hat-cho-meo-mr-vet-1kg",
+    "description": "Hạt Mr Vet dành cho mèo, biến thể quy cách 1 kg. Đối chiếu độ tuổi phù hợp và hướng dẫn cho ăn trên nhãn trước khi sử dụng. Bảo quản phần hạt chưa dùng ở nơi khô ráo và đóng kín sau khi mở túi.",
+    "brand": "Mr Vet",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/3c2b6fad-6237-43c5-b184-3444d399d1e7/0964898a-3aa9-4944-b154-a3ae44d447d1/h-t-cho-m-o-mr-vet-1kg.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "MRV-032",
+        "label": "1 kg",
+        "price": 35000,
+        "stock": 17,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Hạt Mèo Macaron PetQ Topping Thịt Sấy Chà Bông 200g",
+    "slug": "hat-meo-macaron-petq-topping-thit-say-cha-bong-200g",
+    "description": "Hạt mèo Macaron PetQ với topping thịt sấy chà bông, quy cách 200 g. Kiểm tra khẩu phần trên bao bì và chia phần ăn theo thể trạng của mèo. Đóng kín túi để hạn chế hạt và topping tiếp xúc với độ ẩm.",
+    "brand": "PetQ",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/b0d424e4-c4fe-4264-8b39-ce1b146c8330/0d153d4d-7a71-4bcd-8c9b-9a6b57f9c91e/h-t-m-o-macaron-petq-topping-th-t-s-y-ch-b-ng-200g.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "PET-033",
+        "label": "200 g",
+        "price": 36000,
+        "stock": 34,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Thức Ăn Hạt Cho Mèo Trưởng Thành Royal Canin Fit 32",
+    "slug": "thuc-an-hat-cho-meo-truong-thanh-royal-canin-fit-32",
+    "description": "Royal Canin Fit 32 là dòng thức ăn hạt dành cho mèo trưởng thành. Tham khảo lượng ăn theo cân nặng trên nhãn, tính cả pate hoặc đồ ăn thêm trong ngày. Bảo quản đúng hướng dẫn và luôn chuẩn bị nước sạch.",
+    "brand": "Royal Canin",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/13314747-b2dd-4073-96c4-e48dc69c6e9e/de4918af-895c-45e2-b454-e6b9f5f2889e/th-c-n-h-t-cho-m-o-tr-ng-th-nh-royal-canin-fit-32.png"
+    ],
+    "variants": [
+      {
+        "sku": "ROY-034",
+        "label": "Mặc định",
+        "price": 131000,
+        "stock": 23,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Hạt Kucinta Cho Mèo Mọi Lứa Tuổi",
+    "slug": "hat-kucinta-cho-meo-moi-lua-tuoi",
+    "description": "Kucinta là thức ăn hạt dành cho mèo nhiều độ tuổi. Chọn khẩu phần theo giai đoạn phát triển và cân nặng thay vì dùng một lượng chung cho mọi bé. Khi đổi hạt, phối hợp tăng dần với thức ăn đang sử dụng.",
+    "brand": "Kucinta",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/39431a2e-c88a-48e2-b60a-e8247587040a/1b407e3f-4283-4d28-a0f7-31860ed58ce9/h-t-kucinta-cho-m-o-m-i-l-a-tu-i.png"
+    ],
+    "variants": [
+      {
+        "sku": "KUC-035",
+        "label": "Mặc định",
+        "price": 22000,
+        "stock": 43,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Hạt Cho Mèo Trưởng Thành Me-O Vị Cá Thu",
+    "slug": "hat-cho-meo-truong-thanh-me-o-vi-ca-thu",
+    "description": "Hạt Me-O phiên bản vị cá thu dành cho mèo trưởng thành. Đọc khẩu phần trên bao bì và điều chỉnh theo thể trạng của bé. Bảo quản nơi khô mát, vệ sinh bát ăn và thay nước uống thường xuyên.",
+    "brand": "Me-O",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/215d9240-6742-447f-ae8c-2f98e4269c81/4b6826b3-4b1f-49ec-a065-3e955976d57e/h-t-cho-m-o-tr-ng-th-nh-me-o-v-c-thu-paddy-pet-sho.png"
+    ],
+    "variants": [
+      {
+        "sku": "MEO-036",
+        "label": "Mặc định",
+        "price": 31000,
+        "stock": 39,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Hạt Cho Mèo Trưởng Thành Me-O Vị Hải Sản",
+    "slug": "hat-cho-meo-truong-thanh-me-o-vi-hai-san",
+    "description": "Hạt Me-O vị hải sản dành cho mèo trưởng thành. Chia lượng ăn hằng ngày thành các bữa theo hướng dẫn của nhà sản xuất. Đóng kín túi sau khi lấy hạt và điều chỉnh khẩu phần khi kết hợp với thức ăn ướt.",
+    "brand": "Me-O",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/90753611-fcea-4878-bbfa-8460ad7f0d49/f30ab5c3-e84e-4c3e-be67-99760e2c4d2f/h-t-cho-m-o-tr-ng-th-nh-me-o-v-h-i-s-n.png"
+    ],
+    "variants": [
+      {
+        "sku": "MEO-037",
+        "label": "Mặc định",
+        "price": 31000,
+        "stock": 20,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Hạt Whiskas Adult Cho Mèo Trưởng Thành",
+    "slug": "thuc-an-cho-meo-whiskas-adult",
+    "description": "Whiskas Adult là dòng thức ăn hạt dành cho mèo trưởng thành. Kiểm tra phiên bản và khẩu phần cụ thể trên nhãn trước khi cho ăn. Đổi thức ăn từ từ và duy trì nước sạch bên cạnh bát hạt của bé.",
+    "brand": "Whiskas",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/1b7e6a49-8c76-47fa-a0f8-514ccebd0520/4b402154-86cc-4e51-8571-ca76d0a6e2a4/h-t-whiskas-adult-cho-m-o-tr-ng-th-nh.png"
+    ],
+    "variants": [
+      {
+        "sku": "WHI-038",
+        "label": "Mặc định",
+        "price": 35000,
+        "stock": 4,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Thức Ăn Cho Mèo Mọi Lứa Tuổi Cats Eye 13.5 kg",
+    "slug": "thuc-an-cho-meo-moi-lua-tuoi-cats-eye-13-5-kg",
+    "description": "Cats Eye là thức ăn hạt dành cho mèo nhiều độ tuổi. Tham khảo khẩu phần theo độ tuổi và cân nặng trên bao bì, kiểm tra quy cách biến thể khi mua. Sau khi mở, giữ hạt trong bao hoặc hộp kín ở nơi khô ráo.",
+    "brand": "Cat's Eye",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/1e5e8fdd-b106-4807-b76f-cdd63eae9ae9/d50406e6-a50e-4c33-81ac-3d03ada88665/th-c-n-cho-m-o-m-i-l-a-tu-i-cats-eye-13-5-kg-paddy.png"
+    ],
+    "variants": [
+      {
+        "sku": "CAT-039",
+        "label": "13.5 kg",
+        "price": 38000,
+        "stock": 46,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Thức Ăn Hạt Trị Bệnh Cho Mèo Hỗ Trợ Chức Năng Thận Royal Canin Renal",
+    "slug": "hat-tri-benh-cho-meo-royal-canin-renal",
+    "description": "Royal Canin Renal là dòng thức ăn thú y dành cho mèo. Trao đổi với bác sĩ thú y về việc lựa chọn, khẩu phần và thời gian sử dụng; đối chiếu thông tin trên bao bì. Không tự thay đổi chế độ ăn đã được chỉ định cho bé.",
+    "brand": "Royal Canin",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "06916c6d39be37007dfaa95c"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/collection-1781064366051-0-52evzl.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "ROY-040",
+        "label": "Mặc định",
+        "price": 188000,
+        "stock": 13,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Pate Cho Mèo Tiêu Búi Lông Royal Canin Hairball 85g",
+    "slug": "pate-cho-meo-tieu-bui-long-royal-canin-hairball-85g",
+    "description": "Pate Royal Canin Hairball dành cho mèo, quy cách 85 g, thuộc dòng sản phẩm theo nhu cầu búi lông. Kiểm tra hướng dẫn và khẩu phần trên nhãn trước khi dùng. Bảo quản phần còn lại sau khi mở theo chỉ dẫn của nhà sản xuất.",
+    "brand": "Royal Canin",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/5a4cb262-5398-4e6d-a1d7-cb63a488f94f/b4c3702a-13a2-4322-a247-a2cb18f2b50a/pate-cho-m-o-ti-u-b-i-l-ng-royal-canin-hairball-85.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "ROY-041",
+        "label": "85 g",
+        "price": 15000,
+        "stock": 38,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Pate Mèo Joyneco CattyMan Cá Tươi 60g",
+    "slug": "pate-meo-joyneco-cattyman-ca-tuoi-60g",
+    "description": "Pate Joyneco CattyMan phiên bản cá tươi dành cho mèo, quy cách 60 g. Chia phần ăn theo thể trạng và hướng dẫn trên bao bì. Dùng dụng cụ sạch khi lấy pate và bảo quản phần chưa dùng theo điều kiện ghi trên nhãn.",
+    "brand": "CattyMan",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/c3d00562-56db-4b6d-99aa-e02ad36a1988/783ec14f-5dd8-4f7c-b12d-64b100ef8688/pate-m-o-joyneco-cattyman-c-t-i-gi-u-dinh-d-ng-60g.png"
+    ],
+    "variants": [
+      {
+        "sku": "CAT-042",
+        "label": "60 g",
+        "price": 11000,
+        "stock": 15,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Pate Mèo Dạng Sốt Nekko Gravy 70g",
+    "slug": "pate-meo-nekko-gravy-70g",
+    "description": "Pate Nekko Gravy dạng sốt dành cho mèo, quy cách 70 g. Chia vào bát theo khẩu phần được nhà sản xuất hướng dẫn. Kiểm tra cách bảo quản sau khi mở và tính phần pate vào tổng lượng thức ăn trong ngày.",
+    "brand": "Nekko",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/63beb8f2-9345-4df3-9dfa-bd45ff400b8d/93241b61-93ea-4639-8062-e5ff7c951cf0/pate-m-o-d-ng-s-t-nekko-gravy-70g-paddy-pet-shop.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "NEK-043",
+        "label": "70 g",
+        "price": 17000,
+        "stock": 17,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Sữa Bột Cho Chó Mèo Bio-Milk 100g",
+    "slug": "sua-bot-cho-meo-bio-milk-100g",
+    "description": "Sữa bột Bio-Milk dành cho chó mèo, quy cách 100 g. Pha đúng tỷ lệ và nhiệt độ nước được hướng dẫn trên bao bì, sử dụng dụng cụ sạch khi chuẩn bị. Đậy kín sản phẩm và giữ ở nơi khô mát sau khi mở.",
+    "brand": "Bio-Pharmachemie",
+    "petType": "both",
+    "categoryId": {
+      "$oid": "2e1a3f33568f173ed2f6c947"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/8caa65e8-b5d8-46f2-837a-c9efd03c877e/c30e28b1-a704-4158-9575-2c536b639187/s-a-b-t-cho-ch-m-o-bio-milk-100g-paddy-pet-shop.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "BIO-044",
+        "label": "100 g",
+        "price": 42000,
+        "stock": 14,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Pate Mèo Kit Cat Sữa Dê Bổ Sung Canxi (Lon 85g)",
+    "slug": "pate-meo-kit-cat-sua-de",
+    "description": "Pate Kit Cat phiên bản sữa dê bổ sung canxi dành cho mèo, lon 85 g. Tham khảo khẩu phần và đối tượng sử dụng trên nhãn trước khi cho ăn. Dùng dụng cụ sạch và bảo quản phần còn lại theo hướng dẫn sau khi mở lon.",
+    "brand": "Kit Cat",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/95e5f9e9-e14f-43e4-bd19-b12148432adf/f8969352-29fe-4b3c-b3a1-9e071742ba35/pate-m-o-kit-cat-s-a-d-b-sung-canxi-lon-85g-paddy-.png"
+    ],
+    "variants": [
+      {
+        "sku": "KIT-045",
+        "label": "85 g",
+        "price": 25000,
+        "stock": 41,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Cát Mèo Đậu Nành Acro Pet 5L",
+    "slug": "cat-meo-dau-nanh-acro-pet-5l",
+    "description": "Cát vệ sinh đậu nành Acro Pet dành cho mèo, quy cách 5 L. Đổ vào khay theo mức hướng dẫn trên bao bì, vệ sinh khay định kỳ và bổ sung khi cần. Giữ phần cát chưa sử dụng ở nơi khô ráo, tránh nước và độ ẩm cao.",
+    "brand": "Acro Pet",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/051a88c7-35d5-41eb-8d09-c567571cc7c6/5cbd87d3-9c5e-46f2-8b99-9456039ad7dc/c-t-m-o-u-n-nh-acro-pet-5l-paddy-pet-shop.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "ACR-046",
+        "label": "5 L",
+        "price": 88000,
+        "stock": 24,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Pate Cho Mèo Anh Lông Ngắn Trưởng Thành Royal Canin British Shorthair 85g",
+    "slug": "pate-cho-meo-anh-long-ngan-truong-thanh-royal-canin-british-shorthair-85g",
+    "description": "Pate Royal Canin British Shorthair Adult dành cho mèo Anh lông ngắn trưởng thành, quy cách 85 g. Chọn lượng dùng theo khẩu phần trên bao bì và tổng thức ăn trong ngày. Bảo quản phần còn lại sau khi mở đúng hướng dẫn.",
+    "brand": "Royal Canin",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/bb14c260-25dd-408d-960f-c0074b2f55c1/96b345fd-c007-419c-a5eb-ef358fb3b180/pate-cho-m-o-anh-l-ng-ng-n-tr-ng-th-nh-royal-canin.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "ROY-047",
+        "label": "85 g",
+        "price": 32000,
+        "stock": 43,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Thức Ăn Cho Mèo Trưởng Thành Reflex Plus Vị Gà",
+    "slug": "thuc-an-cho-meo-reflex-plus",
+    "description": "Reflex Plus phiên bản vị gà là thức ăn dành cho mèo trưởng thành. Tham khảo hướng dẫn cho ăn theo cân nặng và thể trạng trên bao bì. Nếu chuyển từ thức ăn khác, trộn tăng dần và theo dõi thói quen ăn uống của bé.",
+    "brand": "Reflex",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/fcf65373-8a9d-4e9d-a4a2-7b209dd9caf3/f426df54-2807-4ebd-9962-07c12fae77bf/th-c-n-cho-m-o-tr-ng-th-nh-reflex-plus-v-g-.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "REF-048",
+        "label": "Mặc định",
+        "price": 199000,
+        "stock": 42,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Snack Viên Mềm Cho Mèo Juicy Bites Vị Hải Sản (nhập khẩu Mỹ)",
+    "slug": "banh-thuong-meo-juicy-bites",
+    "description": "Inaba Juicy Bites là snack viên mềm vị hải sản dành cho mèo. Dùng như phần thưởng hoặc đồ ăn thêm theo lượng khuyến nghị trên nhãn, tính vào tổng khẩu phần trong ngày. Đóng kín và bảo quản đúng hướng dẫn sau khi mở.",
+    "brand": "Inaba",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/d762ab67-19c8-4473-a8de-b1218ab2ead0/35556e5c-4f4b-4081-b358-6ce62272e378/snack-vi-n-m-m-cho-m-o-juicy-bites-v-h-i-s-n-nh-p-.png"
+    ],
+    "variants": [
+      {
+        "sku": "INA-049",
+        "label": "Mặc định",
+        "price": 16000,
+        "stock": 21,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Pate Cho Mèo Meowow Súp Cá Ngừ Trắng Nguyên Miếng Lon 80g",
+    "slug": "pate-cho-meo-meowow-sup-ca-ngu-trang-nguyen-mieng-lon-80g",
+    "description": "Pate Meowow dạng súp với cá ngừ trắng nguyên miếng dành cho mèo, lon 80 g. Chia phần ăn theo hướng dẫn trên nhãn và lượng thức ăn khác bé đang dùng. Dùng dụng cụ sạch và kiểm tra điều kiện bảo quản sau khi mở lon.",
+    "brand": "MEOWOW",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://auth.paddy.vn/storage/v1/object/public/product-images/collection-1785127807108-7-uxzg1f.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "MEO-050",
+        "label": "80 g",
+        "price": 24000,
+        "stock": 10,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Pate Cho Mèo Con Snappy Tom Kitten Lon 150g",
+    "slug": "pate-cho-meo-con-snappy-tom-kitten-lon-150g",
+    "description": "Pate Snappy Tom Kitten dành cho mèo con, lon 150 g. Kiểm tra giai đoạn tuổi và khẩu phần trên bao bì, chia thành các bữa phù hợp. Phần pate còn lại cần được bảo quản theo hướng dẫn của nhà sản xuất sau khi mở.",
+    "brand": "Snappy Tom",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/cbb89568-5231-4a6a-a39c-43293be7a47b/e0f1408b-879e-49a3-81cf-1ddff8258c10/pate-snappy-tom-kitten-cho-m-o-con-lon-150g-paddy-.jpg"
+    ],
+    "variants": [
+      {
+        "sku": "SNA-051",
+        "label": "150 g",
+        "price": 30000,
+        "stock": 9,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  },
+  {
+    "name": "Sữa Bột Cho Mèo Dr.Kyan Precaten Hương Vanilla",
+    "slug": "sua-bot-cho-meo-dr-kyan-precaten-huong-vanilla",
+    "description": "Sữa bột Dr.Kyan Precaten hương vanilla dành cho mèo. Pha đúng tỷ lệ và cách chuẩn bị được ghi trên bao bì; dùng dụng cụ sạch để lấy bột và pha sữa. Đóng kín sản phẩm sau khi sử dụng và giữ ở nơi khô mát.",
+    "brand": "Dr.Kyan",
+    "petType": "cat",
+    "categoryId": {
+      "$oid": "2e1a3f33568f173ed2f6c947"
+    },
+    "images": [
+      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/object/public/product-images/products/7b193700-dbe7-4628-8ae3-fd10efb3135e/3c3370ce-4fc4-4467-b762-cc551a1194a3/s-a-b-t-m-o-dr-kyan-precaten-h-ng-vanilla-paddy-pe.png"
+    ],
+    "variants": [
+      {
+        "sku": "DRK-052",
+        "label": "Mặc định",
+        "price": 42000,
+        "stock": 47,
+        "reservedStock": 0
+      }
+    ],
+    "ratingAvg": 5.0,
+    "ratingCount": null
+  }
+]

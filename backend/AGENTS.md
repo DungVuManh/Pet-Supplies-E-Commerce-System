@@ -24,6 +24,8 @@ These instructions apply to `backend/`. Keep this file aligned with the code and
   No price/category/image or reservation edits. See `../docs/specs/staff-product-update.md`.
   `src/scripts/seed.js` provides
   development/test sample data for all 13 non-User models using existing users.
+  Its catalog is bundled in `src/scripts/data/categories.json` (10 flat categories)
+  and `products.json` (52 products with descriptions and fixed stock from 1 to 50).
 - Use Node.js 24.x and npm 11+ as declared in `package.json`. Run commands from
   `backend/`. Use `npm ci` to install the locked dependencies.
 - The tracked backend has no `.nvmrc`, Docker Compose file, ESLint configuration,
@@ -46,8 +48,14 @@ On macOS/Linux, use `cp .env.example .env`. `npm run dev` starts Nodemon on
 once and `npm run test:watch` runs it in watch mode. Supertest needs permission to
 open local loopback sockets, but the tests do not require a running MongoDB server.
 
-`npm run seed` connects to the configured MongoDB and inserts missing samples;
-it does not delete or overwrite existing documents or create/modify User data.
+`npm run seed` connects to the configured MongoDB and inserts missing samples.
+For the 52 bundled product SKUs, it also synchronizes descriptions/physical stock
+and unsets legacy `soldCount`. Prices, reservations, other product fields, products
+outside the catalog and existing non-Product documents are preserved. It never
+creates or modifies User data. Stock was randomized once in JSON, not on each run.
+Product updates validate the full candidate and match the read description/variant
+snapshot before writing; stock below existing reservations or a stale snapshot
+stops the seed. Unchanged products keep their timestamps on subsequent runs.
 It requires an existing customer and at least one staff/admin, selected by lowest
 MongoDB `_id` per role. Missing users stop the seed before index creation/data
 writes. It refuses `NODE_ENV=production`. Offline sample orders require Staff;
@@ -161,7 +169,8 @@ response)`); routers import those handlers and export the Express router.
 - `tests/seed.test.js` uses real Mongoose queries/save middleware and mocks only
   collection operations at the database boundary
   to check all 13 seeded models, references, totals, repeated runs, preservation of
-  existing data, missing-user preflight and disconnect behavior. It never seeds
+  existing data, the 52-product catalog, product synchronization/reservation guards,
+  missing-user preflight and disconnect behavior. It never seeds
   the configured database or calls Firebase/payment/email services.
 - Check any command or file mentioned here against the current tree before
   updating instructions. Do not claim a server or MongoDB smoke test passed
