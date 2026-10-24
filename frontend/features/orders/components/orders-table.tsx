@@ -109,7 +109,7 @@ export function OrdersTable({ orders, totalOrders }: OrdersTableProps) {
               {/* Cột 5: Thao tác Chi tiết */}
               <div className="col-span-1 text-right">
                 <Link
-                  href="/checkout/success"
+                  href={`/orders/${order.id}`}
                   className="text-xs font-semibold text-blue-600 hover:underline inline-flex items-center gap-0.5"
                 >
                   <span>Chi tiết</span>

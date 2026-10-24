@@ -99,3 +99,4 @@ export function OrdersView() {
 }
 
 export default OrdersView;
+export { OrderDetailView } from "./components/order-detail-view";

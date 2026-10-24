@@ -20,3 +20,44 @@ export type CustomerOrder = {
   status: "pending" | "shipping" | "completed" | "cancelled";
   statusLabel: string;       // Nhãn hiển thị: "Chờ xử lý", "Đang giao", ...
 };
+
+export type OrderDetailProductItem = {
+  id: string;
+  name: string;
+  description: string;
+  sku: string;
+  price: number;
+  quantity: number;
+  image: string;
+};
+
+export type OrderTimelineStep = {
+  id: string;
+  title: string;
+  description: string;
+  status: "completed" | "active" | "pending";
+};
+
+export type OrderDetail = {
+  id: string;
+  orderCode: string;
+  orderDate: string;
+  orderTime: string;
+  itemCount: number;
+  status: "pending" | "shipping" | "completed" | "cancelled";
+  statusLabel: string;
+  timeline: OrderTimelineStep[];
+  items: OrderDetailProductItem[];
+  subtotal: number;
+  shippingFee: number;
+  discount: number;
+  totalAmount: number;
+  paymentMethod: string;
+  paymentStatus: string;
+  transactionCode: string;
+  shippingAddress: {
+    fullName: string;
+    phone: string;
+    address: string;
+  };
+};
