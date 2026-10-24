@@ -5,7 +5,6 @@
 
 import type { BackendCartResponse } from "../types";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 const GUEST_TOKEN_KEY = "petly_guest_token";
 
 // Lấy hoặc tạo guest token trong localStorage
@@ -28,7 +27,7 @@ export async function addToCartApi(payload: {
 }): Promise<BackendCartResponse> {
   const guestToken = getOrCreateGuestToken();
 
-  const response = await fetch(`${BASE_URL}/api/v1/cart/items`, {
+  const response = await fetch("/api/v1/cart/items", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -57,7 +56,7 @@ export async function addToCartApi(payload: {
 export async function getCartApi(): Promise<BackendCartResponse> {
   const guestToken = getOrCreateGuestToken();
 
-  const response = await fetch(`${BASE_URL}/api/v1/cart?guestToken=${encodeURIComponent(guestToken)}`, {
+  const response = await fetch(`/api/v1/cart?guestToken=${encodeURIComponent(guestToken)}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -86,7 +85,7 @@ export async function updateCartItemQuantityApi(
 ): Promise<BackendCartResponse> {
   const guestToken = getOrCreateGuestToken();
 
-  const response = await fetch(`${BASE_URL}/api/v1/cart/items/${encodeURIComponent(sku)}`, {
+  const response = await fetch(`/api/v1/cart/items/${encodeURIComponent(sku)}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -109,7 +108,7 @@ export async function removeCartItemApi(sku: string): Promise<BackendCartRespons
   const guestToken = getOrCreateGuestToken();
 
   const response = await fetch(
-    `${BASE_URL}/api/v1/cart/items/${encodeURIComponent(sku)}?guestToken=${encodeURIComponent(guestToken)}`,
+    `/api/v1/cart/items/${encodeURIComponent(sku)}?guestToken=${encodeURIComponent(guestToken)}`,
     {
       method: "DELETE",
       headers: {
