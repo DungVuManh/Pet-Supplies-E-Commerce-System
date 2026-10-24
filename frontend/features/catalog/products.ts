@@ -1,5 +1,13 @@
 export type CategoryId = "dog" | "cat" | "food" | "accessories";
 
+export type ProductVariantItem = {
+  sku: string;
+  label: string;
+  price: number;
+  stock: number;
+  availableStock?: number;
+};
+
 export type Product = {
   id: string;
   brand: string;
@@ -8,6 +16,11 @@ export type Product = {
   price: number;
   image: string;
   categories: readonly CategoryId[];
+  images?: string[];
+  variants?: ProductVariantItem[];
+  ratingAvg?: number;
+  ratingCount?: number;
+  inStock?: boolean;
 };
 
 export const categories = [

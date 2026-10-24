@@ -54,7 +54,7 @@ export function ProductGrid({
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {products.map((product) => (
-        <Link href="/listProduct/detailProduct" key={product._id}>
+        <Link href={`/listProduct/detailProduct?id=${product._id}`} key={product._id}>
           <ProductCard
             product={{
               id: product._id,

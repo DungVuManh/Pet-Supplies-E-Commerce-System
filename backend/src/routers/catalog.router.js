@@ -8,12 +8,16 @@ import {
   getAllProducts,
   getBrands,
   getCategories,
+  getProductDetail,
 } from "../controllers/catalog.controller.js";
 
 const router = Router();
 
 // GET /api/catalog/products
 router.get("/products", getAllProducts);
+
+// GET /api/catalog/products/:id - Chi tiết sản phẩm
+router.get("/products/:id", getProductDetail);
 
 // GET /api/catalog/categories
 router.get("/categories", getCategories);

@@ -2,9 +2,14 @@
 //   2. getCategories  - Lấy danh sách danh mục
 //   3. getBrands      - Lấy danh sách thương hiệu
 
+import mongoose from "mongoose";
+import { AppError } from "../common/errors/app-error.js";
 import { Category } from "../models/category.model.js";
 import { Product } from "../models/product.model.js";
-import { parseCatalogQuery } from "../validators/catalog.validator.js";
+import {
+  parseCatalogQuery,
+  parseProductId,
+} from "../validators/catalog.validator.js";
 
 
 function buildPriceFilter(priceRanges) {
@@ -88,7 +93,7 @@ export async function getAllProducts(request, response, next) {
 
     if (search && search.trim()) {
       const searchRegex = new RegExp(
-        search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), 
+        search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
         "i"
       );
       mongoFilter.$or = [
@@ -108,7 +113,7 @@ export async function getAllProducts(request, response, next) {
     // Lọc theo khoảng giá
     const priceConditions = buildPriceFilter(priceRanges);
     if (priceConditions) {
-      
+
       if (mongoFilter.$or) {
         mongoFilter.$and = [{ $or: mongoFilter.$or }, { $or: priceConditions }];
         delete mongoFilter.$or;
@@ -119,17 +124,17 @@ export async function getAllProducts(request, response, next) {
 
     const sortOption = buildSortOption(sort);
 
-  const skip = (page - 1) * limit;
+    const skip = (page - 1) * limit;
 
-  
+
     const [products, totalCount] = await Promise.all([
       Product.find(mongoFilter)
-        .populate("categoryId", "name slug") 
+        .populate("categoryId", "name slug")
         .sort(sortOption)
-        .skip(skip) 
-        .limit(limit)   
-        .lean(),        
-      Product.countDocuments(mongoFilter), 
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Product.countDocuments(mongoFilter),
     ]);
 
 
@@ -150,7 +155,7 @@ export async function getAllProducts(request, response, next) {
       },
     });
   } catch (error) {
-    next(error); 
+    next(error);
   }
 }
 
@@ -189,6 +194,78 @@ export async function getBrands(request, response, next) {
     response.json({
       success: true,
       data: { brands: filteredBrands },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// 4. GET /api/catalog/products/:id - Lấy chi tiết một sản phẩm khi click card
+export async function getProductDetail(request, response, next) {
+  try {
+    const id = parseProductId(request.params);
+
+    const mongoFilter = { isActive: true };
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      mongoFilter._id = id;
+    } else {
+      mongoFilter["variants.sku"] = id;
+    }
+
+    const product = await Product.findOne(mongoFilter)
+      .populate("categoryId", "name slug")
+      .lean();
+
+    if (!product) {
+      throw new AppError("Không tìm thấy sản phẩm hoặc sản phẩm đã ngừng kinh doanh.", 404, "NOT_FOUND");
+    }
+
+    const variants = (product.variants || []).map((v) => {
+      const stock = v.stock ?? 0;
+      const reservedStock = v.reservedStock ?? 0;
+      return {
+        sku: v.sku,
+        label: v.label,
+        price: v.price,
+        stock,
+        reservedStock,
+        availableStock: Math.max(0, stock - reservedStock),
+      };
+    });
+
+    const prices = variants.map((v) => v.price).filter((p) => p != null);
+    const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+    const totalAvailableStock = variants.reduce((sum, v) => sum + v.availableStock, 0);
+
+    const formattedProduct = {
+      _id: product._id,
+      id: product._id.toString(),
+      name: product.name,
+      brand: product.brand || "",
+      description: product.description || "",
+      petType: product.petType,
+      category: product.categoryId?.name || "Chưa phân loại",
+      categorySlug: product.categoryId?.slug || "",
+      image: product.images?.[0] || "/images/products/royal-canin-mini-adult.png",
+      images:
+        product.images && product.images.length > 0
+          ? product.images
+          : [product.images?.[0] || "/images/products/royal-canin-mini-adult.png"],
+      price: minPrice,
+      variants,
+      ratingAvg: product.ratingAvg,
+      ratingCount: product.ratingCount,
+      inStock: totalAvailableStock > 0,
+      totalStock: totalAvailableStock,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
+    };
+
+    response.json({
+      success: true,
+      data: {
+        product: formattedProduct,
+      },
     });
   } catch (error) {
     next(error);

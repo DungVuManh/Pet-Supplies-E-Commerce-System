@@ -3,6 +3,7 @@ import type {
   CatalogFilter,
   GetBrandsResponse,
   GetCategoriesResponse,
+  GetProductDetailResponse,
   GetProductsResponse,
 } from "../types";
 
@@ -103,5 +104,34 @@ export async function getBrandsApi(): Promise<GetBrandsResponse> {
 
   const data: GetBrandsResponse = await response.json();
   console.log("[CatalogService] Thương hiệu nhận được:", data.data.brands);
+  return data;
+}
+
+/**
+ * 4. Gọi API lấy thông tin chi tiết một sản phẩm khi click card
+ */
+export async function getProductDetailApi(
+  id: string
+): Promise<GetProductDetailResponse> {
+  const url = `${BASE_URL}/api/v1/catalog/products/${encodeURIComponent(id)}`;
+  console.log("[CatalogService] GET Product Detail URL:", url);
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    console.error(
+      "[CatalogService] Lỗi khi lấy chi tiết sản phẩm:",
+      response.status,
+      response.statusText
+    );
+    throw new Error(`Lỗi server: ${response.status} ${response.statusText}`);
+  }
+
+  const data: GetProductDetailResponse = await response.json();
+  console.log("[CatalogService] Chi tiết sản phẩm nhận được:", data.data.product);
   return data;
 }

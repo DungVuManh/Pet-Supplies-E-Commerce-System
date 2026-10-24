@@ -80,3 +80,14 @@ export type CatalogFilter = {
   sort: string;
   page: number;
 };
+
+// Kết quả API lấy chi tiết một sản phẩm
+export type GetProductDetailResponse = {
+  success: boolean;
+  data: {
+    product: CatalogProduct & {
+      inStock: boolean;
+      totalStock: number;
+    };
+  };
+};

@@ -47,3 +47,14 @@ export function parseCatalogQuery(query) {
 
   return result.data;
 }
+
+export function parseProductId(params) {
+  const schema = z.object({
+    id: z.string().trim().min(1, "Product ID không được để trống"),
+  });
+  const result = schema.safeParse(params);
+  if (!result.success) {
+    throw new AppError("ID sản phẩm không hợp lệ.", 400, "VALIDATION_ERROR");
+  }
+  return result.data.id;
+}
