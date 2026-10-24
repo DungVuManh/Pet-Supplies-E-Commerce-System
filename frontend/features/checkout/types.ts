@@ -1,7 +1,3 @@
-// =============================================================
-// features/checkout/types.ts
-// Định nghĩa kiểu dữ liệu cho màn hình Thanh toán (Checkout)
-// =============================================================
 
 export type ShippingAddress = {
   fullName: string;

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useMemo, useState } from "react";
 import { DeliveryAddressCard } from "./components/delivery-address-card";
 import { OrderReviewCard } from "./components/order-review-card";
@@ -16,6 +17,8 @@ export * from "./types";
 export * from "./mock-data";
 
 export function CheckoutView() {
+  const router = useRouter();
+
   // State phương thức thanh toán ("vnpay" hoặc "cod")
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>("vnpay");
 
@@ -45,11 +48,8 @@ export function CheckoutView() {
   }, [items, shippingMethod]);
 
   function handleSubmitOrder() {
-    alert(
-      `Đặt hàng thành công với phương thức: ${
-        paymentMethod === "vnpay" ? "VNPay" : "COD (Tiền mặt)"
-      }!\nTổng thanh toán: ${summary.total.toLocaleString("vi-VN")} đ`
-    );
+    // Chuyển hướng sang màn hình Kết quả thanh toán
+    router.push("/checkout/result");
   }
 
   return (
