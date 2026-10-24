@@ -6,6 +6,7 @@ import { errorMiddleware } from "./common/middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./common/middlewares/not-found.middleware.js";
 import authRouter from "./routers/auth.router.js";
 import catalogRouter from "./routers/catalog.router.js";
+import accountRouter from "./routers/account.router.js";
 import productRouter from "./routers/product.router.js";
 import workspaceRouter from "./routers/workspace.router.js";
 
@@ -14,7 +15,7 @@ export function createApp(config) {
  app.locals.config = config;
  app.disable("x-powered-by");
  app.use(
-  ["/api/v1/auth", "/api/v1/staff", "/api/v1/admin"],
+  ["/api/v1/auth", "/api/v1/account", "/api/v1/staff", "/api/v1/admin"],
   (_request, response, next) => {
    response.set("Cache-Control", "no-store");
    next();
@@ -46,9 +47,10 @@ export function createApp(config) {
  //    },
  //   }),
  //  );
- app.use(express.json({ limit: "100kb" }));
- app.use(express.urlencoded({ extended: false, limit: "100kb" }));
+ app.use(express.json({ limit: "10mb" }));
+ app.use(express.urlencoded({ extended: false, limit: "10mb" }));
  app.use("/api/v1/auth", authRouter);
+ app.use("/api/v1/account", accountRouter);
  app.use("/api/v1/products", productRouter);
  app.use("/api/v1/catalog", catalogRouter);
  app.use("/api/v1", workspaceRouter);

@@ -78,9 +78,9 @@ export function OrdersList() {
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState<string | null>(null);
 
- // Reset the draft when navigation changes the committed URL query.
- if (previousQuery !== urlQuery) {
-  setPreviousQuery(urlQuery);
+ const [prevUrlQuery, setPrevUrlQuery] = useState(urlQuery);
+ if (urlQuery !== prevUrlQuery) {
+  setPrevUrlQuery(urlQuery);
   setSearchInput(urlQuery);
  }
 

@@ -15,6 +15,9 @@ const userSchema = new mongoose.Schema(
    immutable: true,
   },
   termsAcceptedAt: { type: Date, required: true },
+  dob: { type: Date },
+  gender: { type: String, enum: ["male", "female", "other"], default: "female" },
+  avatarUrl: { type: String, default: "/images/customer-avatar.jpg" },
  },
  { timestamps: true, bufferCommands: false },
 );
@@ -52,5 +55,9 @@ export function publicUser(user) {
   fullName: user.fullName,
   phone: user.phone,
   role: user.role,
+  dob: user.dob,
+  gender: user.gender || "female",
+  avatarUrl: user.avatarUrl || "/images/customer-avatar.jpg",
+  createdAt: user.createdAt,
  };
 }

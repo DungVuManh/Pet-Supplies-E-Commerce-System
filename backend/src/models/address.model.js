@@ -5,6 +5,7 @@ const addressSchema = new mongoose.Schema(
  {
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   ...addressFields,
+  addressType: { type: String, enum: ["home", "office"], default: "home" },
   isDefault: { type: Boolean, default: false },
  },
  { timestamps: true, bufferCommands: false },

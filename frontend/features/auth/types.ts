@@ -6,6 +6,8 @@ export type AuthUser = {
   fullName: string;
   phone: string;
   role: Role;
+  avatarUrl?: string;
+  createdAt?: string;
 };
 
 export type RegistrationProfile = { fullName: string; phone: string; terms: boolean };
