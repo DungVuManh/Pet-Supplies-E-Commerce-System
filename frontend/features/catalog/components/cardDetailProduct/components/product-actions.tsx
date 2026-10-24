@@ -13,6 +13,8 @@ type ProductActionsProps = {
   isLove: boolean;
   isOutOfStock: boolean;
   isAddingToCart?: boolean;
+  isBuyingNow?: boolean;
+  createdOrderId?: string | null;
   cartFeedback?: {
     type: "success" | "error";
     message: string;
@@ -22,6 +24,7 @@ type ProductActionsProps = {
   onToggleLove: () => void;
   onAddToCart?: () => void;
   onBuyNow?: () => void;
+  onCancelBuyNow?: () => void;
 };
 
 export function ProductActions({
@@ -29,12 +32,15 @@ export function ProductActions({
   isLove,
   isOutOfStock,
   isAddingToCart = false,
+  isBuyingNow = false,
+  createdOrderId = null,
   cartFeedback = null,
   onIncreaseQuantity,
   onDecreaseQuantity,
   onToggleLove,
   onAddToCart,
   onBuyNow,
+  onCancelBuyNow,
 }: ProductActionsProps) {
   return (
     <div>
@@ -74,16 +80,28 @@ export function ProductActions({
           <span>{isAddingToCart ? "Đang thêm..." : "Thêm vào giỏ hàng"}</span>
         </button>
 
-        {/* Nút Mua ngay */}
-        <button
-          type="button"
-          disabled={isOutOfStock || isAddingToCart}
-          onClick={onBuyNow}
-          className="flex flex-1 min-w-32 items-center justify-center gap-2 rounded-md bg-orange-500 py-3 px-4 font-semibold text-white hover:bg-orange-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed shadow-sm"
-        >
-          <Zap size={18} />
-          <span>Mua ngay</span>
-        </button>
+        {/* Nút Mua ngay hoặc Hủy mua ngay nếu đã tạo đơn */}
+        {createdOrderId ? (
+          <button
+            type="button"
+            disabled={isBuyingNow}
+            onClick={onCancelBuyNow}
+            className="flex flex-1 min-w-32 items-center justify-center gap-2 rounded-md bg-rose-600 py-3 px-4 font-semibold text-white hover:bg-rose-700 transition-colors shadow-sm"
+          >
+            <span>✕</span>
+            <span>{isBuyingNow ? "Đang hủy..." : "Hủy mua ngay"}</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            disabled={isOutOfStock || isAddingToCart || isBuyingNow}
+            onClick={onBuyNow}
+            className="flex flex-1 min-w-32 items-center justify-center gap-2 rounded-md bg-orange-500 py-3 px-4 font-semibold text-white hover:bg-orange-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed shadow-sm"
+          >
+            <Zap size={18} />
+            <span>{isBuyingNow ? "Đang xử lý..." : "Mua ngay"}</span>
+          </button>
+        )}
 
         {/* Nút Lưu yêu thích */}
         <button

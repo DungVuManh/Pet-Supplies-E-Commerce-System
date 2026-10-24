@@ -1,3 +1,8 @@
+// =============================================================
+// backend/src/controllers/order.controller.js
+// Controller xử lý đơn hàng cho cả Staff Workspace và Khách hàng (Mua ngay & Cart)
+// =============================================================
+
 import { AppError } from "../common/errors/app-error.js";
 import { Order } from "../models/order.model.js";
 import { Product } from "../models/product.model.js";
@@ -7,32 +12,148 @@ import {
   computeDateRange,
   parseOrderId,
   parseOrderQuery,
-  staffOrderTransitions,
   staffOrderStatuses,
+  staffOrderTransitions,
 } from "../validators/order.validator.js";
 
-// Present legacy delivered orders as completed without rewriting stored orders or audit history.
-const staffOrderStatus = (status) => status === "delivered" ? "completed" : status;
-
 const SORT_MAP = {
-  createdAt_desc: { createdAt: -1, _id: -1 },
-  createdAt_asc: { createdAt: 1, _id: 1 },
-  total_desc: { total: -1, _id: -1 },
-  total_asc: { total: 1, _id: 1 },
+  createdAt_desc: { createdAt: -1 },
+  createdAt_asc: { createdAt: 1 },
+  total_desc: { total: -1 },
+  total_asc: { total: 1 },
 };
+
+function staffOrderStatus(status) {
+  if (status === "delivered") return "completed";
+  return status;
+}
+
+function generateOrderCode() {
+  return `ORD${Date.now()}${Math.floor(100 + Math.random() * 900)}`;
+}
+
+// -------------------------------------------------------------
+// 1. DÀNH CHO CUSTOMER & GUEST (Mua ngay & Cart)
+// -------------------------------------------------------------
+
+/**
+ * POST /api/v1/orders - Tạo đơn hàng vào MongoDB
+ */
+export async function createOrder(request, response, next) {
+  try {
+    const { items, shippingAddress, guestInfo, paymentMethod = "COD" } = request.body;
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return response.status(400).json({ success: false, message: "Đơn hàng phải có ít nhất 1 sản phẩm." });
+    }
+
+    const orderItems = [];
+    let subtotal = 0;
+
+    for (const item of items) {
+      const product = await Product.findById(item.productId);
+      if (!product) continue;
+
+      const variant = product.variants?.find((v) => v.sku === item.variantSku);
+      const unitPrice = variant?.price ?? product.price ?? item.unitPrice ?? 0;
+      const qty = item.qty || item.quantity || 1;
+
+      orderItems.push({
+        productId: product._id,
+        variantSku: item.variantSku || "default",
+        name: product.name,
+        unitPrice,
+        qty,
+      });
+
+      subtotal += unitPrice * qty;
+    }
+
+    const shippingFee = 30000;
+    const discount = 0;
+    const total = subtotal + shippingFee - discount;
+
+    const customerId = request.user?._id || undefined;
+    const finalGuestInfo = customerId
+      ? undefined
+      : {
+          name: guestInfo?.name || "Khách mua ngay",
+          phone: guestInfo?.phone || "0900000000",
+          email: guestInfo?.email || undefined,
+        };
+
+    const finalAddress = {
+      recipientName: shippingAddress?.recipientName || finalGuestInfo?.name || "Khách mua ngay",
+      phone: shippingAddress?.phone || finalGuestInfo?.phone || "0900000000",
+      province: shippingAddress?.province || "Hà Nội",
+      district: shippingAddress?.district || "Cầu Giấy",
+      ward: shippingAddress?.ward || "Dịch Vọng",
+      street: shippingAddress?.street || "Số 1 Đường Cầu Giấy",
+    };
+
+    const newOrder = await Order.create({
+      orderCode: generateOrderCode(),
+      customerId,
+      guestInfo: finalGuestInfo,
+      items: orderItems,
+      shippingAddress: finalAddress,
+      subtotal,
+      discount,
+      shippingFee,
+      total,
+      paymentMethod,
+      orderStatus: "pending",
+      paymentStatus: "unpaid",
+      channel: "online",
+    });
+
+    response.status(201).json({
+      success: true,
+      data: {
+        order: newOrder,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * DELETE /api/v1/orders/:id - Xóa đơn hàng khi hủy mua ngay
+ */
+export async function deleteOrder(request, response, next) {
+  try {
+    const { id } = request.params;
+    const deletedOrder = await Order.findByIdAndDelete(id);
+
+    if (!deletedOrder) {
+      return response.status(404).json({ success: false, message: "Không tìm thấy đơn hàng để xóa." });
+    }
+
+    response.status(200).json({
+      success: true,
+      message: "Đã hủy và xóa đơn hàng thành công.",
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// -------------------------------------------------------------
+// 2. DÀNH CHO STAFF WORKSPACE (Quản lý đơn hàng)
+// -------------------------------------------------------------
 
 export async function listStaffOrders(request, response, next) {
   try {
-    const params = parseOrderQuery(request.query);
-    const { query, status, dateFrom, dateTo, sort, page, pageSize } = params;
+    const { query, status, dateFrom, dateTo, sort, page, pageSize } = parseOrderQuery(request.query);
 
+    const baseConditions = [];
     const searchFilter = buildOrderSearchFilter(query);
-    const dateRange = computeDateRange(dateFrom, dateTo);
-
-    const baseConditions = [{ creationState: { $nin: ["pending"] } }];
     if (Object.keys(searchFilter).length > 0) {
       baseConditions.push(searchFilter);
     }
+
+    const dateRange = computeDateRange(dateFrom, dateTo);
     if (Object.keys(dateRange).length > 0) {
       baseConditions.push({ createdAt: dateRange });
     }
@@ -51,13 +172,11 @@ export async function listStaffOrders(request, response, next) {
     let total = 0;
 
     try {
-      // 1. Compute summary counts (bypassing status filter)
       const countGroupPromise = Order.aggregate([
         { $match: baseFilter },
         { $group: { _id: "$orderStatus", count: { $sum: 1 } } },
       ]);
 
-      // 2. Compute filtered list & total count
       const filterWithStatus =
         status === "all"
           ? baseFilter
@@ -167,7 +286,6 @@ export async function getStaffOrderDetail(request, response, next) {
       throw new AppError("Không tìm thấy đơn hàng.", 404, "ORDER_NOT_FOUND");
     }
 
-    // Batch product enrichment
     const productIds = [
       ...new Set(order.items?.map((item) => item.productId?.toString()).filter(Boolean)),
     ];
@@ -179,12 +297,10 @@ export async function getStaffOrderDetail(request, response, next) {
           productMap.set(p._id.toString(), p);
         }
       } catch {
-        // If product lookup fails, keep order snapshot without throwing
         console.warn("[getStaffOrderDetail] Failed to batch load products for order", id);
       }
     }
 
-    // Batch user enrichment
     const userIds = [
       ...new Set(
         [
