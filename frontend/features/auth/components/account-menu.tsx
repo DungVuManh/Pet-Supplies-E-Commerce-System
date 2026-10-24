@@ -41,8 +41,15 @@ export function AccountMenu() {
         className="mt-3 flex min-h-11 items-center font-semibold text-brand hover:underline">
         {user.role === "staff" ? "Dashboard nhân viên" : "Dashboard quản trị"}
       </Link>}
+      <Link
+        href="/orders"
+        className="mt-3 flex min-h-11 items-center font-semibold  hover:underline"
+      >
+        Đơn hàng
+      </Link>
       <button type="button" disabled={pending} className="mt-3 min-h-11 text-sm font-semibold text-brand hover:underline disabled:opacity-50" onClick={() => { void logout(); }}>{pending ? "Đang đăng xuất…" : "Đăng xuất"}</button>
       {failure && <p role="alert" className="mt-2 text-xs text-danger">{failure}</p>}
     </div>
+
   </details>;
 }
