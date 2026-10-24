@@ -1,7 +1,5 @@
-// =============================================================
 // features/catalog/components/cardDetailProduct/services/cart.service.ts
 // Service gửi yêu cầu thêm sản phẩm vào giỏ hàng lưu vào MongoDB
-// =============================================================
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 const GUEST_TOKEN_KEY = "petly_guest_token";
@@ -51,7 +49,7 @@ export async function addToCartApi(
       "Content-Type": "application/json",
       "x-guest-token": guestToken,
     },
-    credentials: "include", // Mang theo session cookie nếu user đã đăng nhập
+    credentials: "include",
     body: JSON.stringify({
       ...payload,
       guestToken,
@@ -64,7 +62,6 @@ export async function addToCartApi(
     throw new Error(data.error?.message || "Không thể thêm sản phẩm vào giỏ hàng");
   }
 
-  // Nếu backend trả về guestToken mới, cập nhật vào localStorage
   if (data.data?.guestToken && typeof window !== "undefined") {
     localStorage.setItem(GUEST_TOKEN_KEY, data.data.guestToken);
   }

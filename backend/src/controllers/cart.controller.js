@@ -194,18 +194,23 @@ export async function addToCart(request, response, next) {
 }
 
 /**
- * 2. GET /api/v1/cart - Lấy danh sách sản phẩm trong giỏ hàng hiện tại
+ * 2. GET /api/v1/cart - Lấy dữ liệu giỏ hàng từ MongoDB
  */
 export async function getCart(request, response, next) {
   try {
+    // 1. Xác định giỏ hàng thuộc về ai (User đã đăng nhập hay Khách vãng lai)
     const owner = resolveOwner(request, request.query?.guestToken);
     const filter = owner.isUser
       ? { userId: owner.userId }
       : { guestToken: owner.guestToken };
 
+    // 2. Tìm giỏ hàng trong database
     const cart = await Cart.findOne(filter);
+
+    // 3. Ghép chi tiết sản phẩm và tính toán tổng tiền
     const formattedCart = await formatCartResponse(cart);
 
+    // 4. Trả kết quả về client
     response.status(200).json({
       success: true,
       data: {

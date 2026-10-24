@@ -8,8 +8,6 @@ import { useCart } from "../cart-provider";
 export function CartPreview() {
   const { quantity } = useCart();
 
-  const displayCount = quantity > 0 ? quantity : 4;
-
   return (
     <Link
       href="/cart"
@@ -38,7 +36,7 @@ export function CartPreview() {
 
       {/* Badge số lượng */}
       <span className="flex size-5 items-center justify-center rounded-full bg-blue-600 text-[11px] font-bold text-white">
-        {displayCount}
+        {quantity}
       </span>
     </Link>
   );

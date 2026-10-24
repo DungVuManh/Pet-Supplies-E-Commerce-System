@@ -1,7 +1,5 @@
-// =============================================================
-// features/catalog/components/cardDetailProduct/services/product-detail.service.ts
+
 // Service gọi API lấy thông tin chi tiết một sản phẩm
-// =============================================================
 
 import type { GetProductDetailResponse } from "../../listProduct/types";
 

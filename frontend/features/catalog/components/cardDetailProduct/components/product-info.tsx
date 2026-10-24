@@ -24,8 +24,6 @@ export function ProductInfo({
   ratingAvg,
   ratingCount,
 }: ProductInfoProps) {
-  console.log(ratingCount)
-
   return (
     <div>
       {/* Thương hiệu & Đánh giá */}

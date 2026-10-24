@@ -12,6 +12,7 @@ export function CartView() {
   const {
     items,
     summary,
+    isLoading,
     promoCodeInput,
     promoMessage,
     promoError,
@@ -53,6 +54,7 @@ export function CartView() {
         <div className="lg:col-span-8 flex flex-col gap-6">
           <CartItemsTable
             items={items}
+            isLoading={isLoading}
             onIncreaseQuantity={increaseQuantity}
             onDecreaseQuantity={decreaseQuantity}
             onRemoveItem={removeItem}

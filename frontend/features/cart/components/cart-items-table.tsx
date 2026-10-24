@@ -6,6 +6,7 @@ import type { CartItem } from "../types";
 
 type CartItemsTableProps = {
   items: CartItem[];
+  isLoading?: boolean;
   onIncreaseQuantity: (id: string) => void;
   onDecreaseQuantity: (id: string) => void;
   onRemoveItem: (id: string) => void;
@@ -17,14 +18,25 @@ function formatVND(value: number): string {
 
 export function CartItemsTable({
   items,
+  isLoading = false,
   onIncreaseQuantity,
   onDecreaseQuantity,
   onRemoveItem,
 }: CartItemsTableProps) {
+  if (isLoading) {
+    return (
+      <div className="rounded-2xl border border-line bg-surface p-12 text-center text-muted">
+        <div className="inline-block size-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+        <p className="mt-3 text-sm font-medium">Đang tải giỏ hàng...</p>
+      </div>
+    );
+  }
+
   if (items.length === 0) {
     return (
       <div className="rounded-2xl border border-line bg-surface p-12 text-center text-muted">
-        Giỏ hàng của bạn đang trống.
+        <p className="text-base font-semibold text-ink">Giỏ hàng của bạn đang trống.</p>
+        <p className="mt-1 text-xs text-muted">Hãy thêm những món đồ ưng ý cho thú cưng của bạn nhé!</p>
       </div>
     );
   }
