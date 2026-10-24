@@ -2,14 +2,17 @@ import { AppError } from "../common/errors/app-error.js";
 import { Order } from "../models/order.model.js";
 import { Product } from "../models/product.model.js";
 import { User } from "../models/user.model.js";
-import { orderStatuses } from "../models/shared.schema.js";
 import {
   buildOrderSearchFilter,
   computeDateRange,
   parseOrderId,
   parseOrderQuery,
   staffOrderTransitions,
+  staffOrderStatuses,
 } from "../validators/order.validator.js";
+
+// Present legacy delivered orders as completed without rewriting stored orders or audit history.
+const staffOrderStatus = (status) => status === "delivered" ? "completed" : status;
 
 const SORT_MAP = {
   createdAt_desc: { createdAt: -1, _id: -1 },
@@ -42,7 +45,7 @@ export async function listStaffOrders(request, response, next) {
         : { $and: baseConditions };
 
     let summaryAll = 0;
-    const statusCounts = Object.fromEntries(orderStatuses.map((s) => [s, 0]));
+    const statusCounts = Object.fromEntries(staffOrderStatuses.map((s) => [s, 0]));
 
     let items = [];
     let total = 0;
@@ -59,7 +62,7 @@ export async function listStaffOrders(request, response, next) {
         status === "all"
           ? baseFilter
           : {
-              ...(baseConditions.length > 0 ? { $and: [...baseConditions, { orderStatus: status }] } : { orderStatus: status }),
+              $and: [...baseConditions, { orderStatus: status === "completed" ? { $in: ["completed", "delivered"] } : status }],
             };
 
       const sortObj = SORT_MAP[sort] || SORT_MAP.createdAt_desc;
@@ -82,8 +85,9 @@ export async function listStaffOrders(request, response, next) {
       ]);
 
       for (const group of groupResults) {
-        if (group._id in statusCounts) {
-          statusCounts[group._id] = group.count;
+        const status = staffOrderStatus(group._id);
+        if (status in statusCounts) {
+          statusCounts[status] += group.count;
         }
         summaryAll += group.count;
       }
@@ -106,7 +110,7 @@ export async function listStaffOrders(request, response, next) {
           },
           itemCount,
           total: order.total,
-          orderStatus: order.orderStatus,
+          orderStatus: staffOrderStatus(order.orderStatus),
           paymentMethod: order.paymentMethod,
           paymentStatus: order.paymentStatus,
           channel: order.channel,
@@ -236,8 +240,8 @@ export async function getStaffOrderDetail(request, response, next) {
 
     const statusHistory = (order.statusHistory || [])
       .map((h) => ({
-        from: h.from || null,
-        to: h.to,
+        from: staffOrderStatus(h.from) || null,
+        to: staffOrderStatus(h.to),
         at: h.at ? new Date(h.at).toISOString() : new Date().toISOString(),
         actorName: h.by ? userMap.get(h.by.toString()) || null : null,
       }))
@@ -274,7 +278,7 @@ export async function getStaffOrderDetail(request, response, next) {
       shippingFee: order.shippingFee || 0,
       total: order.total,
       promotionCode: order.promotionCode || null,
-      orderStatus: order.orderStatus,
+      orderStatus: staffOrderStatus(order.orderStatus),
       paymentMethod: order.paymentMethod,
       paymentStatus: order.paymentStatus,
       channel: order.channel,

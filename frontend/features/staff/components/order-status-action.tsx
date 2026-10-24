@@ -82,8 +82,7 @@ export function OrderStatusAction({ order }: { order: StaffOrderDetail }) {
           {confirming && <button type="button" disabled={busy} className={secondaryButton} onClick={() => setConfirming(false)}>Quay lại</button>}
         </div>
       </form> : <p className="mt-4 text-sm text-muted">
-        {order.orderStatus === "shipping" ? "Đơn đang giao. Bước hoàn thành dành cho khách hàng xác nhận nhận hàng."
-          : "Đơn hàng không có bước cập nhật tiếp theo dành cho staff."}
+        Đơn hàng không có bước cập nhật tiếp theo dành cho staff.
       </p>}
   </section>;
 }

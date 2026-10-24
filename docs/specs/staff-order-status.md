@@ -1,10 +1,13 @@
 # Staff cập nhật trạng thái đơn hàng
 
 Phạm vi được chốt trong chat: chỉ triển khai phần Staff. Luồng đơn online:
-`pending → confirmed → processing → shipping`; chỉ hủy từ `pending`/`confirmed`.
-`processing` hiển thị “Đang chuẩn bị”. Khách xác nhận nhận hàng để hoàn thành là
-bước triển khai riêng; Staff không được chuyển sang `delivered`/`completed`.
-Đơn offline đã hoàn thành tiếp tục chỉ đọc. Trạng thái `delivered` cũ vẫn đọc được.
+`pending → confirmed → processing → shipping → completed`; chỉ hủy từ `pending`/`confirmed`.
+Theo yêu cầu cập nhật ngày 23/10/2026, màn hình dùng đúng sáu trạng thái:
+“Chờ xử lý”, “Đã xác nhận”, “Đang chuẩn bị”, “Đang giao”, “Hoàn thành”, “Đã hủy”.
+Staff được hoàn thành đơn đang giao, không được bỏ bước hoặc quay ngược trạng thái.
+Đơn offline đã hoàn thành tiếp tục chỉ đọc. `delivered` không còn là trạng thái
+trên giao diện hoặc bộ lọc Staff; đơn/lịch sử cũ được trả về dưới nhãn `completed`,
+tính vào bộ lọc và tổng đếm Hoàn thành, không sửa dữ liệu/lịch sử đã lưu.
 
 ## Hợp đồng và quy tắc
 

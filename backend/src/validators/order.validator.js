@@ -2,6 +2,8 @@ import { z } from "zod";
 import { AppError } from "../common/errors/app-error.js";
 import { orderStatuses } from "../models/shared.schema.js";
 
+export const staffOrderStatuses = ["pending", "confirmed", "processing", "shipping", "completed", "cancelled"];
+
 const VIETNAMESE_ACCENT_MAP = {
   a: "[aàáảãạăằắẳẵặâầấẩẫậ]",
   e: "[eèéẻẽẹêềếểễệ]",
@@ -104,7 +106,7 @@ const integerParamSchema = (min, max, defaultValue) =>
 export const staffOrderQuerySchema = z
   .object({
     query: z.string().trim().max(100).default(""),
-    status: z.enum(["all", ...orderStatuses]).default("all"),
+    status: z.enum(["all", ...staffOrderStatuses]).default("all"),
     dateFrom: z
       .string()
       .refine(isValidCalendarDate, "dateFrom phải có định dạng YYYY-MM-DD hợp lệ")
@@ -159,7 +161,7 @@ export const staffOrderTransitions = {
   pending: ["confirmed", "cancelled"],
   confirmed: ["processing", "cancelled"],
   processing: ["shipping"],
-  shipping: [],
+  shipping: ["completed"],
   delivered: [],
   completed: [],
   cancelled: [],
@@ -167,7 +169,7 @@ export const staffOrderTransitions = {
 
 const staffOrderStatusSchema = z.object({
   expectedStatus: z.enum(orderStatuses),
-  orderStatus: z.enum(["confirmed", "processing", "shipping", "cancelled"]),
+  orderStatus: z.enum(["confirmed", "processing", "shipping", "completed", "cancelled"]),
   shipping: z.object({
     carrier: z.string().trim().max(100).default(""),
     trackingNumber: z.string().trim().max(100).default(""),

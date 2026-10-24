@@ -49,6 +49,7 @@ describe("Staff Orders validation & query helpers", () => {
   it("rejects unknown query parameters and invalid enums", () => {
     expect(() => parseOrderQuery({ unknown: "param" })).toThrowError();
     expect(() => parseOrderQuery({ status: "packing" })).toThrowError();
+    expect(() => parseOrderQuery({ status: "delivered" })).toThrowError();
     expect(() => parseOrderQuery({ sort: "invalid_sort" })).toThrowError();
   });
 

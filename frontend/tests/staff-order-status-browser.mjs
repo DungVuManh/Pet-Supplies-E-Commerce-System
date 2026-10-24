@@ -11,7 +11,7 @@ const { chromium } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODUL
 const frontend = fileURLToPath(new URL("../", import.meta.url));
 const origin = "http://127.0.0.1:3023", id = "a".repeat(24);
 const user = { id: "b".repeat(24), role: "staff", fullName: "Staff kiểm thử", phone: "0912345678", email: "staff@example.test" };
-const transitions = { pending: ["confirmed", "cancelled"], confirmed: ["processing", "cancelled"], processing: ["shipping"], shipping: [], cancelled: [] };
+const transitions = { pending: ["confirmed", "cancelled"], confirmed: ["processing", "cancelled"], processing: ["shipping"], shipping: ["completed"], completed: [], cancelled: [] };
 let state = "pending", history = [], shipping = null, failure = "", submissions = [];
 function detail() {
   return { id, orderCode: "ORDER-TEST", createdAt: "2026-10-22T09:00:00.000Z", channel: "online",
@@ -25,6 +25,10 @@ async function api(path, method, body, headers) {
   const fail = (code, status) => ({ status, body: { success: false, error: { code } } });
   if (["/api/v1/auth/me", "/api/v1/staff/dashboard"].includes(path)) return ok({ user });
   if (path === "/api/v1/auth/csrf") return ok({ csrfToken: "x".repeat(43) });
+  if (path === "/api/v1/staff/orders") return ok({
+    items: [detail()], pagination: { page: 1, pageSize: 8, total: 1, totalPages: 1 },
+    summary: { all: 1, statusCounts: { pending: 0, confirmed: 0, processing: 0, shipping: 1, completed: 0, cancelled: 0 } },
+  });
   if (path === `/api/v1/staff/orders/${id}`) return ok({ order: detail() });
   if (path === `/api/v1/staff/orders/${id}/status` && method === "PATCH") {
     assert.equal(headers["x-csrf-token"], "x".repeat(43));
@@ -88,8 +92,15 @@ try {
   await select.locator('option[value="shipping"]').waitFor({ state: "attached" });
   await panel.getByLabel("Đơn vị vận chuyển (tùy chọn)").fill("Shipper tự do");
   await begin(); await confirm();
-  await panel.getByText("Đơn đang giao.", { exact: false }).waitFor();
+  await select.locator('option[value="completed"]').waitFor({ state: "attached" });
   assert.deepEqual(submissions.at(-1).shipping, { carrier: "Shipper tự do", trackingNumber: "" });
+  assert.deepEqual(await values(), ["completed"]);
+  await begin(); await confirm();
+  await panel.getByText("Đơn hàng không có bước cập nhật tiếp theo dành cho staff.").waitFor();
+  assert.equal(state, "completed");
+  assert.deepEqual(submissions.at(-1), { expectedStatus: "shipping", orderStatus: "completed" });
+  await page.reload();
+  await panel.getByText("Đơn hàng không có bước cập nhật tiếp theo dành cho staff.").waitFor();
   assert.equal(await panel.getByRole("combobox").count(), 0);
   state = "confirmed"; history = []; await page.reload(); await select.waitFor();
   await select.selectOption("cancelled"); await begin(); await confirm();
@@ -98,9 +109,27 @@ try {
   await begin(); await confirm(); await panel.getByRole("alert").waitFor();
   assert.equal(await panel.getByRole("button", { name: "Cập nhật trạng thái", exact: true }).count(), 0);
   await panel.getByRole("button", { name: "Tải lại đơn hàng" }).click();
-  await panel.getByText("Đơn đang giao.", { exact: false }).waitFor();
+  await select.locator('option[value="completed"]').waitFor({ state: "attached" });
   assert.equal(history.length, 1); assert.deepEqual(errors, []);
   console.log("PASS confirmation/back, double-submit guard, persisted refresh, conflict reload, optional shipping, terminal states and lost-response recovery");
+  await page.goto(`${origin}/staff/orders`);
+  const filter = page.getByRole("combobox").filter({ has: page.locator('option[value="pending"]') });
+  await filter.waitFor();
+  assert.deepEqual(await filter.locator("option").allTextContents(), [
+    "Tất cả trạng thái", "Chờ xử lý", "Đã xác nhận", "Đang chuẩn bị", "Đang giao", "Hoàn thành", "Đã hủy",
+  ]);
+  const tabs = page.getByLabel("Lọc nhanh theo trạng thái");
+  assert.equal(await tabs.getByRole("button").count(), 7);
+  assert.equal(await page.getByText("Đã giao", { exact: true }).count(), 0);
+  await filter.selectOption("cancelled");
+  await page.waitForURL("**/staff/orders?status=cancelled");
+  assert.equal(await filter.inputValue(), "cancelled");
+  await tabs.getByRole("button", { name: "Hoàn thành", exact: false }).click();
+  await page.waitForURL("**/staff/orders?status=completed");
+  assert.equal(await filter.inputValue(), "completed");
+  assert.deepEqual(errors, []);
+  console.log("PASS six status filters and cancellation/completion navigation");
+  await page.goto(`${origin}/staff/orders/${id}`); await select.waitFor();
   assert.equal(await panel.evaluate((el) => getComputedStyle(el).paddingTop), "24px",
     "Visual checks require compiled Tailwind CSS; Webpack does not run this project's Turbopack-only CSS loader.");
   const screenshots = resolve(frontend, ".next/staff-order-status-browser"); await mkdir(screenshots, { recursive: true });
@@ -109,6 +138,13 @@ try {
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true, `body overflow ${width}`);
     await page.screenshot({ path: resolve(screenshots, `status-${width}.png`), fullPage: true });
   }
+  await page.goto(`${origin}/staff/orders?status=completed`); await filter.waitFor();
+  for (const width of [320, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 1024 });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true, `list body overflow ${width}`);
+    await page.screenshot({ path: resolve(screenshots, `orders-${width}.png`), fullPage: true });
+  }
+  assert.deepEqual(errors, []);
   console.log("PASS responsive layouts");
 } finally {
   await browser?.close(); next.kill(); fixture.closeAllConnections();

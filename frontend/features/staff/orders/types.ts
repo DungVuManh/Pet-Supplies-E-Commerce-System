@@ -3,12 +3,11 @@ export type OrderStatus =
   | "confirmed"
   | "processing"
   | "shipping"
-  | "delivered"
   | "completed"
   | "cancelled";
 
 export type PaymentMethod = "COD" | "ONLINE" | "CASH";
-export type StaffEditableOrderStatus = "confirmed" | "processing" | "shipping" | "cancelled";
+export type StaffEditableOrderStatus = "confirmed" | "processing" | "shipping" | "completed" | "cancelled";
 export type StaffOrderStatusUpdate = {
   expectedStatus: OrderStatus;
   orderStatus: StaffEditableOrderStatus;
@@ -130,7 +129,6 @@ export const orderStatusLabels: Record<OrderStatus, string> = {
   confirmed: "Đã xác nhận",
   processing: "Đang chuẩn bị",
   shipping: "Đang giao",
-  delivered: "Đã giao",
   completed: "Hoàn thành",
   cancelled: "Đã hủy",
 };
@@ -142,7 +140,6 @@ export const orderStatusTones: Record<OrderStatus, BadgeTone> = {
   confirmed: "info",
   processing: "info",
   shipping: "info",
-  delivered: "success",
   completed: "success",
   cancelled: "neutral",
 };
