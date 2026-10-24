@@ -5,6 +5,7 @@
 // Cột phải chi tiết đơn: Tóm tắt tiền, phương thức thanh toán & nút Hủy đơn
 // =============================================================
 
+import Link from "next/link";
 import React from "react";
 import type { OrderDetail } from "../types";
 
@@ -80,13 +81,22 @@ export function OrderSummarySidebar({
       {/* Khối 3: Thao tác Hủy đơn & Hỗ trợ */}
       <div className="space-y-3">
         {canCancel && (
-          <button
-            type="button"
-            onClick={onRequestCancel}
-            className="w-full rounded-xl bg-rose-50 border border-rose-200 py-3 text-sm font-semibold text-rose-600 hover:bg-rose-100 hover:text-rose-700 transition-colors shadow-sm"
-          >
-            Hủy đơn hàng
-          </button>
+          onRequestCancel ? (
+            <button
+              type="button"
+              onClick={onRequestCancel}
+              className="w-full rounded-xl bg-rose-50 border border-rose-200 py-3 text-sm font-semibold text-rose-600 hover:bg-rose-100 hover:text-rose-700 transition-colors shadow-sm"
+            >
+              Hủy đơn hàng
+            </button>
+          ) : (
+            <Link
+              href={`/orders/${order.id}/cancel`}
+              className="block text-center w-full rounded-xl bg-rose-50 border border-rose-200 py-3 text-sm font-semibold text-rose-600 hover:bg-rose-100 hover:text-rose-700 transition-colors shadow-sm"
+            >
+              Hủy đơn hàng
+            </Link>
+          )
         )}
 
         <div className="text-center">

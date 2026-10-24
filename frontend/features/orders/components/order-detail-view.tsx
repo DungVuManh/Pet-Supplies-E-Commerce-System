@@ -2,7 +2,8 @@
 
 // Màn hình Chi tiết đơn hàng
 import Link from "next/link";
-import React, { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import React, { useMemo } from "react";
 import { AccountSidebar } from "./account-sidebar";
 import { OrderDetailItems } from "./order-detail-items";
 import { OrderSummarySidebar } from "./order-summary-sidebar";
@@ -15,7 +16,28 @@ type OrderDetailViewProps = {
 };
 
 export function OrderDetailView({ orderId }: OrderDetailViewProps) {
-  const [order] = useState<OrderDetail>(MOCK_ORDER_DETAIL);
+  const searchParams = useSearchParams();
+  const isCancelled = searchParams.get("cancelled") === "true";
+
+  const order: OrderDetail = useMemo(() => {
+    if (!isCancelled) return MOCK_ORDER_DETAIL;
+
+    return {
+      ...MOCK_ORDER_DETAIL,
+      status: "cancelled",
+      statusLabel: "Đã hủy",
+      timeline: MOCK_ORDER_DETAIL.timeline.map((step) =>
+        step.id === "step-2"
+          ? {
+              ...step,
+              title: "Đã hủy đơn",
+              description: "Bởi khách hàng",
+              status: "completed" as const,
+            }
+          : step
+      ),
+    };
+  }, [isCancelled]);
 
   return (
     <div className="container">
@@ -37,6 +59,19 @@ export function OrderDetailView({ orderId }: OrderDetailViewProps) {
             <span>/</span>
             <span className="text-ink font-medium">Chi tiết</span>
           </nav>
+
+          {/* Thông báo nếu vừa hủy đơn thành công */}
+          {isCancelled && (
+            <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800 flex items-center gap-3">
+              <span className="text-base">ℹ️</span>
+              <div>
+                <p className="font-bold">Đơn hàng đã được hủy thành công</p>
+                <p className="text-rose-700 mt-0.5">
+                  Số tiền 1.100.000 đ sẽ được hoàn về tài khoản VNPay trong 3-7 ngày làm việc.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Header: Tiêu đề đơn hàng & badge trạng thái */}
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4">

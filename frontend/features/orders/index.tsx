@@ -100,3 +100,4 @@ export function OrdersView() {
 
 export default OrdersView;
 export { OrderDetailView } from "./components/order-detail-view";
+export { OrderCancelView } from "./components/order-cancel-view";
