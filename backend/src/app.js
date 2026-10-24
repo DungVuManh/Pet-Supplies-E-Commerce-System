@@ -9,6 +9,7 @@ import catalogRouter from "./routers/catalog.router.js";
 import accountRouter from "./routers/account.router.js";
 import productRouter from "./routers/product.router.js";
 import workspaceRouter from "./routers/workspace.router.js";
+import cartRouter from "./routers/cart.router.js";
 
 export function createApp(config) {
  const app = express();
@@ -53,6 +54,7 @@ export function createApp(config) {
  app.use("/api/v1/account", accountRouter);
  app.use("/api/v1/products", productRouter);
  app.use("/api/v1/catalog", catalogRouter);
+ app.use("/api/v1/cart", cartRouter);
  app.use("/api/v1", workspaceRouter);
  app.use(notFoundMiddleware);
  app.use(errorMiddleware);

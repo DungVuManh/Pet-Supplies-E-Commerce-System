@@ -5,6 +5,7 @@
 // Component chính: Màn hình chi tiết sản phẩm kết hợp các sub-components
 // =============================================================
 
+import { useRouter } from "next/navigation";
 import React from "react";
 import type { Product } from "./types";
 import { ProductActions } from "./components/product-actions";
@@ -15,6 +16,8 @@ import { ProductVariants } from "./components/product-variants";
 import { useProductDetail } from "./hooks/use-product-detail";
 
 export function DetailProduct({ product }: { product: Product }) {
+  const router = useRouter();
+
   const {
     images,
     activeImage,
@@ -31,9 +34,18 @@ export function DetailProduct({ product }: { product: Product }) {
     decreaseQuantity,
     isLove,
     toggleLove,
+    isAddingToCart,
+    cartFeedback,
+    handleAddToCart,
   } = useProductDetail(product);
 
   const isOutOfStock = currentStock <= 0;
+
+  // Xử lý nút "Mua ngay": thêm vào giỏ và chuyển hướng ngay sang trang giỏ hàng
+  const handleBuyNow = async () => {
+    await handleAddToCart();
+    router.push("/cart");
+  };
 
   return (
     <div>
@@ -71,9 +83,13 @@ export function DetailProduct({ product }: { product: Product }) {
             quantity={quantity}
             isLove={isLove}
             isOutOfStock={isOutOfStock}
+            isAddingToCart={isAddingToCart}
+            cartFeedback={cartFeedback}
             onIncreaseQuantity={increaseQuantity}
             onDecreaseQuantity={decreaseQuantity}
             onToggleLove={toggleLove}
+            onAddToCart={handleAddToCart}
+            onBuyNow={handleBuyNow}
           />
         </div>
       </article>
