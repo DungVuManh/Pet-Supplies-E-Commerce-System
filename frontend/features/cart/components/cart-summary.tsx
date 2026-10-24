@@ -50,12 +50,22 @@ export function CartSummary({ summary }: CartSummaryProps) {
         <p className="mt-1 text-xs text-muted">Đã bao gồm VAT (nếu có).</p>
       </div>
 
-      <Link
-        href="/checkout"
-        className="mt-6 block w-full rounded-xl bg-blue-600 py-3.5 px-4 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
-      >
-        Tiến hành thanh toán
-      </Link>
+      {summary.distinctCount > 0 ? (
+        <Link
+          href="/checkout"
+          className="mt-6 block w-full rounded-xl bg-blue-600 py-3.5 px-4 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
+        >
+          Tiếp tục thanh toán
+        </Link>
+      ) : (
+        <button
+          type="button"
+          disabled
+          className="mt-6 block w-full rounded-xl bg-gray-300 py-3.5 px-4 text-center text-sm font-semibold text-gray-500 cursor-not-allowed"
+        >
+          Tiếp tục thanh toán
+        </button>
+      )}
     </div>
   );
 }

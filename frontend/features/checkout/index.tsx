@@ -1,60 +1,169 @@
 "use client";
 
+// =============================================================
+// features/checkout/index.tsx
+// Màn hình Thanh toán: Tải sản phẩm từ API giỏ hàng hiện tại (MongoDB)
+// =============================================================
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { DeliveryAddressCard } from "./components/delivery-address-card";
 import { OrderReviewCard } from "./components/order-review-card";
 import { PaymentMethodCard } from "./components/payment-method-card";
 import { ShippingMethodCard } from "./components/shipping-method-card";
-import {
-  MOCK_CHECKOUT_ITEMS,
-  MOCK_SHIPPING_ADDRESS,
-  MOCK_SHIPPING_METHOD,
-} from "./mock-data";
-import type { CheckoutSummary, PaymentMethodType } from "./types";
+import type {
+  CheckoutOrderItem,
+  CheckoutSummary,
+  PaymentMethodType,
+  ShippingAddress,
+  ShippingMethod,
+} from "./types";
+import { getCartApi } from "@/features/cart/services/cart.service";
+import { createOrderApi } from "@/features/orders/services/order.service";
+
 export * from "./types";
-export * from "./mock-data";
+
+const DEFAULT_SHIPPING_ADDRESS: ShippingAddress = {
+  fullName: "Khách hàng",
+  phone: "0900000000",
+  address: "Số 1 Cầu Giấy, Phường Dịch Vọng, Quận Cầu Giấy, Hà Nội",
+};
+
+const DEFAULT_SHIPPING_METHOD: ShippingMethod = {
+  id: "standard",
+  name: "Giao hàng tiêu chuẩn",
+  price: 30000,
+  estimatedDelivery: "2–3 ngày làm việc",
+};
+
+const DEFAULT_SUMMARY: CheckoutSummary = {
+  totalQuantity: 0,
+  subtotal: 0,
+  shippingFee: 30000,
+  discount: 0,
+  total: 30000,
+};
 
 export function CheckoutView() {
   const router = useRouter();
 
-  // State phương thức thanh toán ("vnpay" hoặc "cod")
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>("vnpay");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>("cod");
+  const [items, setItems] = useState<CheckoutOrderItem[]>([]);
+  const [address, setAddress] = useState<ShippingAddress>(DEFAULT_SHIPPING_ADDRESS);
+  const [shippingMethod] = useState<ShippingMethod>(DEFAULT_SHIPPING_METHOD);
+  const [summary, setSummary] = useState<CheckoutSummary>(DEFAULT_SUMMARY);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Dữ liệu mẫu sản phẩm và địa chỉ
-  const [items] = useState(MOCK_CHECKOUT_ITEMS);
-  const [address] = useState(MOCK_SHIPPING_ADDRESS);
-  const [shippingMethod] = useState(MOCK_SHIPPING_METHOD);
+  // 1. Gọi API cart có sẵn từ MongoDB để hiển thị lại thông tin đơn hàng
+  useEffect(() => {
+    async function loadCartData() {
+      try {
+        setIsLoading(true);
+        const res = await getCartApi();
+        const cart = res.data?.cart;
 
-  // Tính tổng kết đơn hàng
-  const summary: CheckoutSummary = useMemo(() => {
-    const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
-    const subtotal = items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
+        if (cart) {
+          // Format sản phẩm từ cart sang format hiển thị checkout
+          const mappedItems: CheckoutOrderItem[] = (cart.items || []).map((item) => ({
+            id: item.id || item.sku,
+            name: item.name,
+            description: item.description || (item.label ? `Phân loại: ${item.label}` : ""),
+            sku: item.sku,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image || "/images/products/royal-canin-mini-adult.png",
+          }));
+
+          setItems(mappedItems);
+
+          if (cart.summary) {
+            setSummary({
+              totalQuantity: cart.summary.totalQuantity,
+              subtotal: cart.summary.subtotal,
+              shippingFee: cart.summary.shippingFee || 30000,
+              discount: cart.summary.discount || 0,
+              total: cart.summary.total,
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Lỗi khi tải giỏ hàng cho checkout:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadCartData();
+  }, []);
+
+  // 2. Gửi đơn hàng khi bấm Đặt hàng & thanh toán
+  async function handleSubmitOrder() {
+    if (items.length === 0) {
+      alert("Giỏ hàng đang trống, không thể thanh toán.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      await createOrderApi({
+        items: items.map((item) => {
+          const productId = item.id.includes("_") ? item.id.split("_")[0] : item.id;
+          return {
+            productId,
+            variantSku: item.sku,
+            qty: item.quantity,
+          };
+        }),
+        shippingAddress: {
+          recipientName: address.fullName,
+          phone: address.phone,
+          street: address.address,
+          province: "Hà Nội",
+          district: "Cầu Giấy",
+          ward: "Dịch Vọng",
+        },
+        guestInfo: {
+          name: address.fullName,
+          phone: address.phone,
+        },
+        paymentMethod: paymentMethod === "vnpay" ? "ONLINE" : "COD",
+      });
+
+      // Cập nhật lại số lượng giỏ hàng trên Header
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("cart-updated"));
+      }
+
+      router.push("/checkout/result");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Có lỗi xảy ra khi tạo đơn hàng.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  // Giao diện khi giỏ hàng trống
+  if (!isLoading && items.length === 0) {
+    return (
+      <div className="w-full py-16 text-center">
+        <h2 className="text-2xl font-bold text-ink">Giỏ hàng của bạn đang trống</h2>
+        <p className="mt-2 text-sm text-muted">Vui lòng chọn sản phẩm vào giỏ trước khi tiến hành thanh toán.</p>
+        <Link
+          href="/listProduct/allProducts"
+          className="mt-6 inline-block rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors shadow-sm"
+        >
+          Khám phá sản phẩm
+        </Link>
+      </div>
     );
-    const shippingFee = shippingMethod.price;
-    const discount = 0;
-    const total = subtotal + shippingFee - discount;
-
-    return {
-      totalQuantity,
-      subtotal,
-      shippingFee,
-      discount,
-      total,
-    };
-  }, [items, shippingMethod]);
-
-  function handleSubmitOrder() {
-    // Chuyển hướng sang màn hình Kết quả thanh toán
-    router.push("/checkout/result");
   }
 
   return (
     <div className="w-full">
-      {/* 1. Breadcrumbs & Bước thanh toán */}
+      {/* 1. Breadcrumbs */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
         <nav aria-label="Breadcrumb" className="text-xs text-muted">
           <ol className="flex items-center gap-1.5">
@@ -74,7 +183,6 @@ export function CheckoutView() {
           </ol>
         </nav>
 
-        {/* Badge bước thực hiện */}
         <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600 border border-blue-100/80">
           Bước 2 / 3 · Đặt hàng
         </span>
@@ -92,27 +200,20 @@ export function CheckoutView() {
 
       {/* 3. Bố cục 2 cột chính */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* CỘT TRÁI (7/12 hoặc 8/12): Các bước thông tin */}
+        {/* CỘT TRÁI: Địa chỉ giao hàng & Phương thức */}
         <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-6">
-          {/* 1. Địa chỉ giao hàng */}
           <DeliveryAddressCard address={address} />
-
-          {/* 2. Phương thức vận chuyển */}
           <ShippingMethodCard method={shippingMethod} />
-
-          {/* 3. Phương thức thanh toán */}
           <PaymentMethodCard
             selectedMethod={paymentMethod}
             onSelectMethod={setPaymentMethod}
           />
-
-          {/* Điều khoản cam kết */}
           <p className="text-xs text-muted leading-relaxed">
             Bằng việc đặt hàng, bạn đồng ý với Điều khoản mua hàng và Chính sách bảo mật của Petly.
           </p>
         </div>
 
-        {/* CỘT PHẢI (5/12 hoặc 4/12): Xem lại đơn hàng & Đặt hàng */}
+        {/* CỘT PHẢI: Xem lại đơn hàng & Đặt hàng */}
         <div className="lg:col-span-5 xl:col-span-4">
           <OrderReviewCard
             items={items}

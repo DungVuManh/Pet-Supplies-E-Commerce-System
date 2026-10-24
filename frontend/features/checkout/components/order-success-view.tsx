@@ -8,18 +8,23 @@
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-import {
-  MOCK_CHECKOUT_ITEMS,
-  MOCK_SHIPPING_ADDRESS,
-} from "../mock-data";
+import type { CheckoutOrderItem, ShippingAddress } from "../types";
 
 function formatVND(value: number): string {
   return value.toLocaleString("vi-VN") + " đ";
 }
 
-export function OrderSuccessView() {
-  const items = MOCK_CHECKOUT_ITEMS;
-  const address = MOCK_SHIPPING_ADDRESS;
+export function OrderSuccessView({
+  items = [],
+  address = {
+    fullName: "Khách hàng",
+    phone: "0900000000",
+    address: "Hà Nội",
+  },
+}: {
+  items?: CheckoutOrderItem[];
+  address?: ShippingAddress;
+}) {
 
   return (
     <div className="w-full">
