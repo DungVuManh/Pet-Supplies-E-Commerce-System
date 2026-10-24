@@ -153,38 +153,43 @@ Designs: `docs/designs/Admin/` (Auth designs excluded; authentication is already
 
 ## 7. Cancellation requests: `/admin/cancellations`
 
-- [ ] Mock: requests linked to existing order IDs, with reason, value, and requester
-- [ ] Tabs: Chờ duyệt / Đã chấp nhận / Đã từ chối. Search and status.
-- [ ] Populated table with approve/reject actions that move the row between tabs locally and show a notice
-- [ ] Empty state ("Chưa có yêu cầu chờ duyệt", "Xem tất cả yêu cầu"), plus loading and error states
+- [x] Mock: requests linked to existing order IDs, with reason, value, and requester
+- [x] Tabs: Chờ duyệt / Đã chấp nhận / Đã từ chối. Search and status.
+- [x] Populated table with approve/reject actions that move the row between tabs locally and show a notice
+- [x] Empty state ("Chưa có yêu cầu chờ duyệt", "Xem tất cả yêu cầu"), plus loading and error states
 - [ ] **🛑 Commit checkpoint: Cancellation requests**
+
 
 ## 8. Inventory: `/admin/inventory`
 
-- [ ] Mock: stock per SKU with threshold, available quantity, and warning, plus import/export history entries
-- [ ] Tabs: Tất cả sản phẩm / Sắp hết hàng / Lịch sử nhập xuất
-- [ ] Populated table: SKU / NGƯỠNG, SẢN PHẨM, KHẢ DỤNG, CẢNH BÁO, THAO TÁC (links to the product detail)
-- [ ] Empty state (RC-ZERO example), plus loading and error states. "+ Tạo phiếu nhập" (demo).
+- [x] Mock: stock per SKU with threshold, available quantity, and warning, plus import/export history entries
+- [x] Tabs: Tất cả sản phẩm / Sắp hết hàng / Lịch sử nhập xuất
+- [x] Populated table: SKU / NGƯỠNG, SẢN PHẨM, KHẢ DỤNG, CẢNH BÁO, THAO TÁC (links to the product detail)
+- [x] Empty state (RC-ZERO example), plus loading and error states. "+ Tạo phiếu nhập" (demo).
 - [ ] **🛑 Commit checkpoint: Inventory**
+
 
 ## 9. Reports
 
-- [ ] Secondary links: Tài chính / Bán hàng / Tồn kho. `/admin/reports` redirects to finance.
+- [x] Secondary links: Tài chính / Bán hàng / Tồn kho. `/admin/reports` redirects to finance.
 
 ### 9a. Financial report: `/admin/reports/finance`
-- [ ] KPI cards: gross, refunds, net, and pending reconciliation (warning). The net-revenue line chart.
-- [ ] Payment-channel table (BANK / VNPAY / COD) with reconciliation badges. Date chip and "Xuất Excel" (demo).
+- [x] KPI cards: gross, refunds, net, and pending reconciliation (warning). The net-revenue line chart.
+- [x] Payment-channel table (BANK / VNPAY / COD) with reconciliation badges. Date chip and "Xuất Excel" (demo).
 - [ ] **🛑 Commit checkpoint: Financial report**
 
+
 ### 9b. Sales report: `/admin/reports/sales`
-- [ ] Tabs: Theo sản phẩm / danh mục / nhân viên / thời gian (each re-groups the mock data)
-- [ ] 3 KPI cards, the "Số lượng bán theo ngày" bar chart, and the best-seller table with pagination
+- [x] Tabs: Theo sản phẩm / danh mục / nhân viên / thời gian (each re-groups the mock data)
+- [x] 3 KPI cards, the "Số lượng bán theo ngày" bar chart, and the best-seller table with pagination
 - [ ] **🛑 Commit checkpoint: Sales report**
 
+
 ### 9c. Inventory report: `/admin/reports/inventory`
-- [ ] 4 KPI cards. Filters: search, category, period.
-- [ ] Table: opening / in / out / closing / threshold / warning. Footnote formula "Tồn cuối = Tồn đầu + Nhập − Xuất", enforced by a test.
+- [x] 4 KPI cards. Filters: search, category, period.
+- [x] Table: opening / in / out / closing / threshold / warning. Footnote formula "Tồn cuối = Tồn đầu + Nhập − Xuất", enforced by a test.
 - [ ] **🛑 Commit checkpoint: Inventory report**
+
 
 ## 10. Notifications: `/admin/notifications`
 
