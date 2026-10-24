@@ -376,59 +376,83 @@ export function OrdersList() {
    </div>
 
    {/* Orders Table */}
-   <TableFrame>
-    <TableHead>
-     <Th>Mã đơn / Ngày đặt</Th>
-     <Th>Khách hàng / Thanh toán</Th>
-     <Th right>Tổng tiền</Th>
-     <Th>Trạng thái</Th>
-     <Th>Thao tác</Th>
-    </TableHead>
-    <tbody>
-     {loading ? (
-      <tr>
-       <td colSpan={5} className="p-8 text-center text-muted">
-        Đang tải danh sách đơn hàng...
-       </td>
-      </tr>
-     ) : data?.items && data.items.length > 0 ? (
-      data.items.map((order) => (
-       <tr key={order.id}>
-        <Td>
-         <strong>#{order.orderCode}</strong>
-         <p className="mt-2 text-xs text-muted">
-          {formatOrderDateTime(order.createdAt)}
-         </p>
-        </Td>
-        <Td>
-         {order.customer.name || "Khách vãng lai"}
-         <p className="mt-2 text-xs text-muted">
-          {order.customer.phone} · {order.itemCount} sản phẩm ·{" "}
-          {order.paymentMethod}
-         </p>
-        </Td>
-        <Td right>
-         <strong>{money(order.total)}</strong>
-        </Td>
-        <Td>
-         <Badge tone={orderStatusTones[order.orderStatus]}>
-          {orderStatusLabels[order.orderStatus]}
-         </Badge>
-        </Td>
-        <Td>
-         <ActionLink href={`/staff/orders/${order.id}`}>Chi tiết</ActionLink>
-        </Td>
+   <div className="min-w-0 whitespace-nowrap [&_table]:min-w-0 [&_table]:table-fixed [&_th]:overflow-hidden [&_th]:px-2 [&_th]:text-ellipsis [&_td]:overflow-hidden [&_td]:px-2 [&_td]:text-ellipsis">
+    <TableFrame>
+     <colgroup>
+      <col className="w-[22%]" />
+      <col className="w-[13%]" />
+      <col className="w-[17%]" />
+      <col className="w-[10%]" />
+      <col className="w-[14%]" />
+      <col className="w-[15%]" />
+      <col className="w-[9%]" />
+     </colgroup>
+     <TableHead>
+      <Th>Mã đơn</Th>
+      <Th>Ngày đặt</Th>
+      <Th>Khách hàng</Th>
+      <Th right>Số sản phẩm</Th>
+      <Th right>Tổng tiền</Th>
+      <Th>Trạng thái</Th>
+      <Th>Thao tác</Th>
+     </TableHead>
+     <tbody>
+      {loading ? (
+       <tr>
+        <td colSpan={7} className="p-8 text-center text-muted">
+         Đang tải danh sách đơn hàng...
+        </td>
        </tr>
-      ))
-     ) : (
-      <tr>
-       <td colSpan={5} className="p-8 text-center text-muted">
-        Không có đơn hàng phù hợp.
-       </td>
-      </tr>
-     )}
-    </tbody>
-   </TableFrame>
+      ) : data?.items && data.items.length > 0 ? (
+       data.items.map((order) => (
+        <tr key={order.id}>
+         <Td>
+          <strong title={order.orderCode}>#{order.orderCode}</strong>
+         </Td>
+         <Td>
+          <span
+           title={formatOrderDateTime(order.createdAt)}
+           className="text-xs text-muted"
+          >
+           {formatOrderDateTime(order.createdAt)}
+          </span>
+         </Td>
+         <Td>
+          <span title={order.customer.name || "Khách vãng lai"}>
+           {order.customer.name || "Khách vãng lai"}
+          </span>
+         </Td>
+         <Td right>{order.itemCount}</Td>
+         <Td right>
+          <strong title={money(order.total)}>{money(order.total)}</strong>
+         </Td>
+         <Td>
+          <span
+           title={orderStatusLabels[order.orderStatus]}
+           className="block truncate [&>span]:max-w-full [&>span]:px-2"
+          >
+           <Badge tone={orderStatusTones[order.orderStatus]}>
+            <span className="truncate">
+             {orderStatusLabels[order.orderStatus]}
+            </span>
+           </Badge>
+          </span>
+         </Td>
+         <Td>
+          <ActionLink href={`/staff/orders/${order.id}`}>Chi tiết</ActionLink>
+         </Td>
+        </tr>
+       ))
+      ) : (
+       <tr>
+        <td colSpan={7} className="p-8 text-center text-muted">
+         Không có đơn hàng phù hợp.
+        </td>
+       </tr>
+      )}
+     </tbody>
+    </TableFrame>
+   </div>
 
    {/* Pagination Footer */}
    {data && data.pagination.totalPages > 0 && (
