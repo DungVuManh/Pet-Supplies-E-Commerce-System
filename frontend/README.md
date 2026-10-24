@@ -158,7 +158,7 @@ identity from verified Firebase tokens. Dashboard Server Components check the
 session and exact role through Express before rendering, with a Suspense boundary
 for request-time access. Staff/Admin shells are outside the storefront layout;
 Admin uses scoped teal brand tokens. Staff domain screens currently share typed frontend mock data; only identity and role checks use Express. Missing sessions redirect to `/login`, wrong
-roles to `/forbidden`, and service failures offer retry. Next rewrites auth/staff/admin/cart requests to
+roles to `/forbidden`, and service failures offer retry. Next rewrites auth/staff/admin/cart/catalog/order requests to
 `BACKEND_ORIGIN` (default `http://127.0.0.1:3001`); private credentials belong only
 in the backend. Analytics, phone OTP, Google sign-in and checkout are not included.
 

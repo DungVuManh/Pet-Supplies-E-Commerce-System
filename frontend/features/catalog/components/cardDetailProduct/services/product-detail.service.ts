@@ -3,12 +3,10 @@
 
 import type { GetProductDetailResponse } from "../../listProduct/types";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-
 export async function fetchProductDetailApi(
   id: string
 ): Promise<GetProductDetailResponse> {
-  const url = `${BASE_URL}/api/v1/catalog/products/${encodeURIComponent(id)}`;
+  const url = `/api/v1/catalog/products/${encodeURIComponent(id)}`;
 
   const response = await fetch(url, {
     method: "GET",

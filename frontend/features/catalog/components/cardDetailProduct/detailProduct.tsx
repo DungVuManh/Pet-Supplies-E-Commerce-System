@@ -14,7 +14,7 @@ import { ProductInfo } from "./components/product-info";
 import { ProductTabs } from "./components/product-tabs";
 import { ProductVariants } from "./components/product-variants";
 import { useProductDetail } from "./hooks/use-product-detail";
-import { createOrderApi, deleteOrderApi } from "@/features/orders/services/order.service";
+import { createOrderApi } from "@/features/orders/services/order.service";
 
 export function DetailProduct({ product }: { product: Product }) {
   const router = useRouter();
@@ -42,7 +42,6 @@ export function DetailProduct({ product }: { product: Product }) {
 
   const isOutOfStock = currentStock <= 0;
 
-  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
   const [isBuyingNow, setIsBuyingNow] = useState(false);
   const [orderFeedback, setOrderFeedback] = useState<{
     type: "success" | "error";
@@ -68,39 +67,15 @@ export function DetailProduct({ product }: { product: Product }) {
       });
 
       const orderId = res.data?.order?._id;
-      if (orderId) {
-        setCreatedOrderId(orderId);
-        setOrderFeedback({
-          type: "success",
-          message: "Đã tạo đơn hàng thành công! Bạn có thể thanh toán hoặc hủy.",
-        });
+      if (!orderId) {
+        throw new Error("Không nhận được mã đơn hàng để chuyển đến thanh toán.");
       }
+
+      router.push(`/checkout?orderId=${encodeURIComponent(orderId)}`);
     } catch (err) {
       setOrderFeedback({
         type: "error",
         message: err instanceof Error ? err.message : "Không thể tạo đơn mua ngay.",
-      });
-    } finally {
-      setIsBuyingNow(false);
-    }
-  };
-
-  // 2. Hủy mua ngay: Xóa đơn hàng vừa tạo khỏi MongoDB
-  const handleCancelBuyNow = async () => {
-    if (!createdOrderId) return;
-    try {
-      setIsBuyingNow(true);
-      await deleteOrderApi(createdOrderId);
-      setCreatedOrderId(null);
-      setOrderFeedback({
-        type: "success",
-        message: "Đã hủy và xóa đơn hàng thành công.",
-      });
-      setTimeout(() => setOrderFeedback(null), 3000);
-    } catch (err) {
-      setOrderFeedback({
-        type: "error",
-        message: err instanceof Error ? err.message : "Không thể hủy đơn hàng.",
       });
     } finally {
       setIsBuyingNow(false);
@@ -145,31 +120,13 @@ export function DetailProduct({ product }: { product: Product }) {
             isOutOfStock={isOutOfStock}
             isAddingToCart={isAddingToCart}
             isBuyingNow={isBuyingNow}
-            createdOrderId={createdOrderId}
             cartFeedback={orderFeedback || cartFeedback}
             onIncreaseQuantity={increaseQuantity}
             onDecreaseQuantity={decreaseQuantity}
             onToggleLove={toggleLove}
             onAddToCart={handleAddToCart}
             onBuyNow={handleBuyNow}
-            onCancelBuyNow={handleCancelBuyNow}
           />
-
-          {/* Khi đơn hàng đã được tạo vào DB: hiển thị nút tiến hành thanh toán */}
-          {createdOrderId && (
-            <div className="mt-4 p-4 rounded-xl border border-emerald-200 bg-emerald-50 flex items-center justify-between gap-4 animate-in fade-in">
-              <span className="text-sm font-semibold text-emerald-900">
-                Đơn hàng #{createdOrderId.slice(-6).toUpperCase()} đã tạo xong trong hệ thống!
-              </span>
-              <button
-                type="button"
-                onClick={() => router.push(`/checkout?orderId=${createdOrderId}`)}
-                className="px-4 py-2 bg-emerald-600 text-white font-semibold text-sm rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
-              >
-                Tiến hành thanh toán →
-              </button>
-            </div>
-          )}
         </div>
       </article>
 
