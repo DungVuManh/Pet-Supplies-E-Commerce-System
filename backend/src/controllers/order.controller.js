@@ -73,28 +73,29 @@ export async function createOrder(request, response, next) {
     const discount = 0;
     const total = subtotal + shippingFee - discount;
 
-    const customerId = request.user?._id || undefined;
-    const finalGuestInfo = customerId
-      ? undefined
-      : {
-          name: guestInfo?.name || "Khách mua ngay",
-          phone: guestInfo?.phone || "0900000000",
-          email: guestInfo?.email || undefined,
-        };
+    // 2. Xác định customerId (lấy từ session, body hoặc khách hàng customer mặc định trong DB)
+    let customerId = request.user?._id || request.body.customerId;
+    if (!customerId) {
+      const defaultCustomer = await User.findOne({ role: "customer" }).lean();
+      if (defaultCustomer) {
+        customerId = defaultCustomer._id;
+      }
+    }
 
+    // 3. Chuẩn hóa địa chỉ giao hàng
     const finalAddress = {
-      recipientName: shippingAddress?.recipientName || finalGuestInfo?.name || "Khách mua ngay",
-      phone: shippingAddress?.phone || finalGuestInfo?.phone || "0900000000",
-      province: shippingAddress?.province || "Hà Nội",
-      district: shippingAddress?.district || "Cầu Giấy",
-      ward: shippingAddress?.ward || "Dịch Vọng",
-      street: shippingAddress?.street || "Số 1 Đường Cầu Giấy",
+      recipientName: shippingAddress?.recipientName || "null",
+      phone: shippingAddress?.phone || "null",
+      province: shippingAddress?.province || "null",
+      district: shippingAddress?.district || "null",
+      ward: shippingAddress?.ward || "null",
+      street: shippingAddress?.street || "null",
     };
 
+    // 4. Tạo document order đảm bảo đầy đủ chính xác tất cả các trường
     const newOrder = await Order.create({
       orderCode: generateOrderCode(),
       customerId,
-      guestInfo: finalGuestInfo,
       items: orderItems,
       shippingAddress: finalAddress,
       subtotal,
@@ -102,9 +103,15 @@ export async function createOrder(request, response, next) {
       shippingFee,
       total,
       paymentMethod,
-      orderStatus: "pending",
       paymentStatus: "unpaid",
+      orderStatus: "pending",
       channel: "online",
+      statusHistory: [
+        {
+          to: "pending",
+          at: new Date(),
+        },
+      ],
     });
 
     response.status(201).json({
@@ -162,8 +169,8 @@ export async function listStaffOrders(request, response, next) {
       baseConditions.length === 0
         ? {}
         : baseConditions.length === 1
-        ? baseConditions[0]
-        : { $and: baseConditions };
+          ? baseConditions[0]
+          : { $and: baseConditions };
 
     let summaryAll = 0;
     const statusCounts = Object.fromEntries(staffOrderStatuses.map((s) => [s, 0]));
@@ -181,8 +188,8 @@ export async function listStaffOrders(request, response, next) {
         status === "all"
           ? baseFilter
           : {
-              $and: [...baseConditions, { orderStatus: status === "completed" ? { $in: ["completed", "delivered"] } : status }],
-            };
+            $and: [...baseConditions, { orderStatus: status === "completed" ? { $in: ["completed", "delivered"] } : status }],
+          };
 
       const sortObj = SORT_MAP[sort] || SORT_MAP.createdAt_desc;
 
@@ -371,9 +378,9 @@ export async function getStaffOrderDetail(request, response, next) {
     const shipping =
       order.shipping?.carrier || order.shipping?.trackingNumber
         ? {
-            carrier: order.shipping.carrier || "",
-            trackingNumber: order.shipping.trackingNumber || "",
-          }
+          carrier: order.shipping.carrier || "",
+          trackingNumber: order.shipping.trackingNumber || "",
+        }
         : null;
 
     const createdByStaff = order.createdByStaffId

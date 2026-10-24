@@ -108,7 +108,7 @@ export function CheckoutView() {
     try {
       setIsSubmitting(true);
 
-      await createOrderApi({
+      const res = await createOrderApi({
         items: items.map((item) => {
           const productId = item.id.includes("_") ? item.id.split("_")[0] : item.id;
           return {
@@ -121,23 +121,33 @@ export function CheckoutView() {
           recipientName: address.fullName,
           phone: address.phone,
           street: address.address,
-          province: "Hà Nội",
-          district: "Cầu Giấy",
-          ward: "Dịch Vọng",
+          province: "TP. Hồ Chí Minh",
+          district: "Quận 1",
+          ward: "Phường Bến Nghé",
         },
         guestInfo: {
           name: address.fullName,
           phone: address.phone,
         },
-        paymentMethod: paymentMethod === "vnpay" ? "ONLINE" : "COD",
+        paymentMethod: "COD", // Trước mắt mặc định cho đặt COD
       });
+
+      const order = res.data?.order;
 
       // Cập nhật lại số lượng giỏ hàng trên Header
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("cart-updated"));
       }
 
-      router.push("/checkout/result");
+      // Chuyển hướng tới màn hình thông báo Đặt hàng thành công với 4 trường cần thiết
+      const queryParams = new URLSearchParams({
+        orderCode: order?.orderCode || "",
+        total: String(order?.total ?? summary.total),
+        paymentMethod: order?.paymentMethod || "COD",
+        createdAt: order?.createdAt || new Date().toISOString(),
+      });
+
+      router.push(`/checkout/result?${queryParams.toString()}`);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Có lỗi xảy ra khi tạo đơn hàng.");
     } finally {

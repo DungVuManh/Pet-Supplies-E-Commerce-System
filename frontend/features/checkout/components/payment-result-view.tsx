@@ -2,20 +2,51 @@
 
 // =============================================================
 // features/checkout/components/payment-result-view.tsx
-// Màn hình 1: Kết quả thanh toán (Thành công & Chưa hoàn tất)
+// Màn hình thông báo Đặt hàng thành công (hiển thị Mã đơn, Số tiền, Phương thức, Thời gian)
 // =============================================================
 
 import Link from "next/link";
-import React, { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import React from "react";
+
+function formatVND(value: number): string {
+  return value.toLocaleString("vi-VN") + " đ";
+}
+
+function formatDateTime(dateStr?: string | null): string {
+  if (!dateStr) return new Date().toLocaleString("vi-VN");
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${day}/${month}/${year} · ${hours}:${minutes}`;
+}
 
 export function PaymentResultView() {
-  // Cho phép chuyển đổi xem thử trạng thái Thành công hay Không thành công
-  const [activeTab, setActiveTab] = useState<"both" | "success" | "failed">("both");
+  const searchParams = useSearchParams();
+
+  // Đọc các trường trả về từ URL
+  const orderCode = searchParams.get("orderCode") || "ORD" + Date.now();
+  const total = Number(searchParams.get("total") || 0);
+  const paymentMethod = searchParams.get("paymentMethod") || "COD";
+  const createdAt = searchParams.get("createdAt");
+
+  const displayMethod =
+    paymentMethod === "COD"
+      ? "COD · Thanh toán khi nhận hàng"
+      : paymentMethod === "ONLINE"
+      ? "VNPay · Thanh toán trực tuyến"
+      : paymentMethod;
 
   return (
-    <div className="w-full">
+    <div className="w-full max-w-2xl mx-auto">
       {/* 1. Breadcrumbs */}
-      <nav aria-label="Breadcrumb" className="text-xs text-muted mb-3">
+      <nav aria-label="Breadcrumb" className="text-xs text-muted mb-4">
         <ol className="flex items-center gap-1.5">
           <li>
             <Link href="/" className="hover:text-brand transition-colors">
@@ -29,198 +60,135 @@ export function PaymentResultView() {
             </Link>
           </li>
           <li aria-hidden="true">/</li>
-          <li className="font-medium text-ink">Kết quả</li>
+          <li className="font-medium text-ink">Kết quả đặt hàng</li>
         </ol>
       </nav>
 
-      {/* 2. Tiêu đề trang */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-ink tracking-tight">
-            Kết quả thanh toán
+      {/* 2. Thẻ thông báo Đặt hàng thành công */}
+      <div className="rounded-2xl border border-line bg-surface p-8 shadow-sm">
+        {/* Tag trạng thái */}
+        <div className="mb-4 text-center">
+          <span className="inline-block rounded-full bg-emerald-50 px-3.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-100">
+            Đặt hàng thành công
+          </span>
+        </div>
+
+        {/* Icon tick xanh và lời chúc */}
+        <div className="text-center my-4">
+          <div className="mx-auto size-16 rounded-full border-2 border-emerald-500 bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl font-bold">
+            ✓
+          </div>
+          <h1 className="mt-4 text-2xl font-bold text-ink">
+            Đặt hàng thành công!
           </h1>
-          <p className="mt-1 text-sm text-muted">
-            Hai trạng thái thay thế của bước thanh toán — chỉ một trạng thái xuất hiện cho mỗi giao dịch.
+          <p className="mt-2 text-sm text-muted max-w-md mx-auto leading-relaxed">
+            Cảm ơn bạn đã mua hàng tại Petly. Đơn hàng của bạn đã được ghi nhận vào hệ thống và đang được chuẩn bị.
           </p>
         </div>
 
-        {/* Nút lọc tab để người học dễ test từng trạng thái */}
-        <div className="inline-flex rounded-xl border border-line bg-surface p-1 text-xs font-semibold">
-          <button
-            type="button"
-            onClick={() => setActiveTab("both")}
-            className={`px-3 py-1.5 rounded-lg transition-colors ${
-              activeTab === "both" ? "bg-blue-600 text-white" : "text-muted hover:text-ink"
-            }`}
+        {/* 3. Khung chi tiết 4 trường bắt buộc: Mã đơn, Số tiền, Phương thức, Thời gian */}
+        <div className="my-6 rounded-xl bg-gray-50/80 p-5 border border-line/60 space-y-3 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-muted">Mã đơn hàng:</span>
+            <span className="font-bold text-ink font-mono text-base">
+              #{orderCode}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-muted">Số tiền:</span>
+            <span className="font-bold text-blue-600 text-lg">
+              {formatVND(total)}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-muted">Phương thức:</span>
+            <span className="font-semibold text-ink">
+              {displayMethod}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-muted">Thời gian:</span>
+            <span className="font-medium text-ink">
+              {formatDateTime(createdAt)}
+            </span>
+          </div>
+        </div>
+
+        {/* 4. Nút hành động */}
+        <div className="space-y-3 mt-8">
+          <Link
+            href="/orders"
+            className="block w-full rounded-xl bg-blue-600 py-3.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
           >
-            Xem cả hai
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("success")}
-            className={`px-3 py-1.5 rounded-lg transition-colors ${
-              activeTab === "success" ? "bg-emerald-600 text-white" : "text-muted hover:text-ink"
-            }`}
+            Xem danh sách đơn hàng
+          </Link>
+          <Link
+            href="/listProduct/allProducts"
+            className="block w-full rounded-xl border border-line bg-surface py-3.5 text-center text-sm font-semibold text-ink hover:bg-gray-50 transition-colors"
           >
-            Chỉ Thành công
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("failed")}
-            className={`px-3 py-1.5 rounded-lg transition-colors ${
-              activeTab === "failed" ? "bg-rose-600 text-white" : "text-muted hover:text-ink"
-            }`}
-          >
-            Chỉ Thất bại
-          </button>
+            Tiếp tục mua sắm
+          </Link>
         </div>
       </div>
 
-      {/* 3. Lưới hiển thị 2 trạng thái theo đúng thiết kế */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-        {/* ========================================================= */}
-        {/* TRẠNG THÁI A: THÀNH CÔNG */}
-        {/* ========================================================= */}
-        {(activeTab === "both" || activeTab === "success") && (
-          <div className="rounded-2xl border border-line bg-surface p-8 shadow-sm flex flex-col justify-between">
-            {/* Tag trạng thái */}
-            <div className="mb-6">
-              <span className="inline-block rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 border border-emerald-100">
-                Trạng thái A · Thành công
-              </span>
-            </div>
+      {/* ================================================================
+        TODO: THANH TOÁN ONLINE - Mở comment khi tích hợp VNPay / Stripe
 
-            {/* Icon tick xanh và thông báo */}
-            <div className="text-center my-4">
-              <div className="mx-auto size-16 rounded-full border-2 border-emerald-500 bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl font-bold">
-                ✓
-              </div>
-              <h2 className="mt-4 text-2xl font-bold text-ink">
-                Thanh toán thành công
-              </h2>
-              <p className="mt-1.5 text-xs text-muted max-w-sm mx-auto">
-                Petly đã nhận thanh toán. Đơn hàng của bạn đang được chuẩn bị.
-              </p>
-            </div>
+        --- TRƯỜNG HỢP 1: Thanh toán online THÀNH CÔNG ---
+        (dùng khi status từ VNPay trả về = "success")
 
-            {/* Khung thông tin hóa đơn */}
-            <div className="my-6 rounded-xl bg-gray-50/80 p-5 border border-line/60 space-y-2.5 text-xs">
-              <div className="flex justify-between">
-                <span className="text-muted">Đơn hàng:</span>
-                <span className="font-semibold text-ink">#PA261012018</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted">Số tiền:</span>
-                <span className="font-semibold text-ink">1.100.000 đ</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted">Phương thức:</span>
-                <span className="font-semibold text-ink">VNPay</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted">Mã giao dịch:</span>
-                <span className="font-semibold text-ink">VNP261012083842</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted">Thời gian:</span>
-                <span className="font-semibold text-ink">12/10/2026 · 10:42</span>
-              </div>
-            </div>
-
-            {/* 2 nút thao tác */}
-            <div className="space-y-3">
-              <Link
-                href="/checkout/success"
-                className="block w-full rounded-xl bg-blue-600 py-3 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
-              >
-                Xem xác nhận đơn hàng
-              </Link>
-              <Link
-                href="/listProduct/allProducts"
-                className="block w-full rounded-xl border border-line bg-surface py-3 text-center text-sm font-semibold text-ink hover:bg-gray-50 transition-colors"
-              >
-                Tiếp tục mua sắm
-              </Link>
-            </div>
+        <div className="rounded-2xl border border-line bg-surface p-8 shadow-sm">
+          <div className="mb-4 text-center">
+            <span className="inline-block rounded-full bg-emerald-50 px-3.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-100">
+              Thanh toán thành công
+            </span>
           </div>
-        )}
-
-        {/* ========================================================= */}
-        {/* TRẠNG THÁI B: CHƯA HOÀN TẤT (THẤT BẠI) */}
-        {/* ========================================================= */}
-        {(activeTab === "both" || activeTab === "failed") && (
-          <div className="rounded-2xl border border-line bg-surface p-8 shadow-sm flex flex-col justify-between">
-            {/* Tag trạng thái */}
-            <div className="mb-6">
-              <span className="inline-block rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700 border border-rose-100">
-                Trạng thái B · Không thành công
-              </span>
+          <div className="text-center my-4">
+            <div className="mx-auto size-16 rounded-full border-2 border-emerald-500 bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl font-bold">
+              ✓
             </div>
-
-            {/* Icon gạch chéo đỏ và thông báo */}
-            <div className="text-center my-4">
-              <div className="mx-auto size-16 rounded-full border-2 border-rose-500 bg-rose-50 text-rose-600 flex items-center justify-center text-2xl font-bold">
-                ✕
-              </div>
-              <h2 className="mt-4 text-2xl font-bold text-ink">
-                Thanh toán chưa hoàn tất
-              </h2>
-              <p className="mt-1.5 text-xs text-muted max-w-sm mx-auto">
-                Giao dịch không thành công do quá thời gian thanh toán. Bạn chưa bị trừ tiền.
-              </p>
-            </div>
-
-            {/* Khung thông tin giao dịch lỗi */}
-            <div className="my-6 rounded-xl bg-gray-50/80 p-5 border border-line/60 space-y-2.5 text-xs">
-              <div className="flex justify-between">
-                <span className="text-muted">Đơn hàng:</span>
-                <span className="font-semibold text-ink">#PA261012018</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted">Số tiền:</span>
-                <span className="font-semibold text-ink">1.100.000 đ</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted">Phương thức:</span>
-                <span className="font-semibold text-ink">VNPay</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted">Mã lỗi:</span>
-                <span className="font-semibold text-rose-600">VNP-15 · Hết thời gian</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted">Thời gian:</span>
-                <span className="font-semibold text-ink">12/10/2026 · 10:42</span>
-              </div>
-            </div>
-
-            {/* 2 nút thao tác */}
-            <div className="space-y-3">
-              <Link
-                href="/checkout"
-                className="block w-full rounded-xl bg-blue-600 py-3 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
-              >
-                Thử thanh toán lại
-              </Link>
-              <Link
-                href="/checkout"
-                className="block w-full rounded-xl border border-line bg-surface py-3 text-center text-sm font-semibold text-ink hover:bg-gray-50 transition-colors"
-              >
-                Đổi phương thức thanh toán
-              </Link>
-            </div>
+            <h1 className="mt-4 text-2xl font-bold text-ink">Thanh toán thành công!</h1>
+            <p className="mt-2 text-sm text-muted">
+              Đơn hàng đã được thanh toán và xác nhận.
+            </p>
           </div>
-        )}
-      </div>
+          -- Hiển thị 4 trường: orderCode, total, paymentMethod, createdAt --
+        </div>
 
-      {/* Dòng ghi chú hỗ trợ ở dưới cùng */}
-      <p className="mt-8 text-center text-xs text-muted">
-        Nếu tài khoản đã bị trừ tiền nhưng chưa có xác nhận, vui lòng liên hệ{" "}
-        <a href="tel:1900636789" className="text-blue-600 font-semibold hover:underline">
-          1900 636 789
-        </a>{" "}
-        và cung cấp mã đơn hàng.
-      </p>
+        --- TRƯỜNG HỢP 2: Thanh toán online THẤT BẠI ---
+        (dùng khi status từ VNPay trả về = "failed")
+
+        <div className="rounded-2xl border border-red-200 bg-surface p-8 shadow-sm">
+          <div className="mb-4 text-center">
+            <span className="inline-block rounded-full bg-red-50 px-3.5 py-1 text-xs font-semibold text-red-700 border border-red-100">
+              Thanh toán thất bại
+            </span>
+          </div>
+          <div className="text-center my-4">
+            <div className="mx-auto size-16 rounded-full border-2 border-red-400 bg-red-50 text-red-600 flex items-center justify-center text-2xl font-bold">
+              ✗
+            </div>
+            <h1 className="mt-4 text-2xl font-bold text-ink">Thanh toán thất bại!</h1>
+            <p className="mt-2 text-sm text-muted">
+              Giao dịch không thành công. Vui lòng thử lại hoặc chọn phương thức khác.
+            </p>
+          </div>
+          <div className="space-y-3 mt-8">
+            <button className="block w-full rounded-xl bg-red-600 py-3.5 text-center text-sm font-semibold text-white">
+              Thử lại thanh toán
+            </button>
+            <Link href="/cart" className="block w-full rounded-xl border border-line py-3.5 text-center text-sm font-semibold text-ink">
+              Quay lại giỏ hàng
+            </Link>
+          </div>
+        </div>
+
+      ================================================================ */}
     </div>
   );
 }
+
+export default PaymentResultView;
