@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import {
  money,
@@ -264,18 +265,19 @@ export function ProductsList() {
 
    <TableFrame>
     <TableHead>
-     <Th>SKU</Th>
      <Th>Sản phẩm</Th>
+     <Th>SKU</Th>
+     <Th>Danh mục</Th>
+     <Th right>Tồn kho</Th>
      <Th right>Giá bán</Th>
-     <Th right>Số lượng</Th>
-     <Th>Tồn kho</Th>
+     <Th>Trạng thái tồn kho</Th>
      <Th>Trạng thái</Th>
      <Th>Thao tác</Th>
     </TableHead>
     <tbody>
      {loading ? (
       <tr>
-       <td colSpan={7} className="p-8 text-center text-muted">
+       <td colSpan={8} className="p-8 text-center text-muted">
         Đang tải dữ liệu sản phẩm từ máy chủ...
        </td>
       </tr>
@@ -283,19 +285,30 @@ export function ProductsList() {
       rows.map((p) => (
        <tr key={p.sku}>
         <Td>
-         <strong>{p.sku}</strong>
+         <div className="flex items-center gap-3">
+          <Image
+           src={p.image || "/images/products/royal-canin-mini-adult.png"}
+           alt=""
+           width={40}
+           height={40}
+           className="h-10 w-10 shrink-0 rounded-lg bg-canvas object-contain"
+          />
+          <span>{p.name}</span>
+         </div>
         </Td>
         <Td>
-         {p.name}
-         <p className="mt-2 text-xs text-muted">{p.category}</p>
+         <strong className="whitespace-nowrap">{p.sku}</strong>
+        </Td>
+        <Td>
+         <p className="whitespace-nowrap">{p.category}</p>
+        </Td>
+        <Td right>
+         <strong>{p.physical}</strong>
+         <p className="mt-2 text-xs text-muted">{p.reserved} giữ chỗ</p>
+         <p className="mt-2 text-xs text-muted">{p.availableStock} khả dụng</p>
         </Td>
         <Td right>
          <strong>{money(p.price)}</strong>
-        </Td>
-        <Td right>
-         <strong>{p.physical} thực tế</strong>
-         <p className="mt-2 text-xs text-muted">{p.reserved} giữ chỗ</p>
-         <p className="mt-2 text-xs text-muted">{p.availableStock} khả dụng</p>
         </Td>
         <Td>
          <Badge tone={stockTones[p.stockStatus]}>
@@ -308,7 +321,9 @@ export function ProductsList() {
          </Badge>
         </Td>
         <Td>
-         <ActionLink href={`/staff/products/${p.sku}`}>Chi tiết</ActionLink>
+         <ActionLink href={`/staff/products/${p.sku}`}>
+          <p className="whitespace-nowrap">Chi tiết</p>
+         </ActionLink>
         </Td>
        </tr>
       ))
