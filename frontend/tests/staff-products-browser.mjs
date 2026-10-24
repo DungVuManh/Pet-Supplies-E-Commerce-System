@@ -67,7 +67,7 @@ const fixture = createServer((request, response) => {
    ? {
       items,
       categories: items.map((p) => p.category),
-      summary: { totalProducts: 3, totalActive: 2, totalHidden: 1 },
+      summary: { totalProducts: items.length, totalActive: items.filter((p) => p.status === "active").length, totalHidden: items.filter((p) => p.status === "hidden").length },
      }
    : { user };
  response.writeHead(200, {
@@ -129,7 +129,7 @@ try {
       ? {
          items,
          categories: items.map((p) => p.category),
-         summary: { totalProducts: 3, totalActive: 2, totalHidden: 1 },
+         summary: { totalProducts: items.length, totalActive: items.filter((p) => p.status === "active").length, totalHidden: items.filter((p) => p.status === "hidden").length },
         }
       : { user },
    }),
@@ -228,6 +228,54 @@ try {
  console.log(
   "PASS product columns, thumbnails/fallback, both statuses, detail links, quantities, filters, empty state and keyboard reset",
  );
+ items.push(...Array.from({ length: 22 }, (_, index) => ({
+  ...items[index % 3], sku: `PAGE-${index + 1}`, name: `Sản phẩm phân trang ${index + 1}`,
+ })));
+ items.forEach((item, index) => { if (index < 10) item.brand = "Nhóm mười"; });
+ await page.reload();
+ await page.getByRole("cell", { name: "PAGE-1", exact: false }).waitFor();
+ const pagination = page.getByRole("navigation", { name: "Phân trang sản phẩm" });
+ const previous = pagination.getByRole("button", { name: /Trước/ });
+ const nextPage = pagination.getByRole("button", { name: /Tiếp/ });
+ assert.equal(await page.locator("tbody tr").count(), 10);
+ assert.equal(await previous.isDisabled(), true);
+ await pagination.getByText("Trang 1 / 3", { exact: true }).waitFor();
+ await nextPage.click();
+ await page.getByRole("cell", { name: "PAGE-8", exact: true }).waitFor();
+ assert.equal(await page.locator("tbody tr").count(), 10);
+ await nextPage.click();
+ await pagination.getByText("Trang 3 / 3", { exact: true }).waitFor();
+ assert.equal(await page.locator("tbody tr").count(), 5);
+ await page.getByText("Hiển thị 21–25 trong 25 sản phẩm", { exact: true }).waitFor();
+ assert.equal(await nextPage.isDisabled(), true);
+ await previous.focus();
+ await page.keyboard.press("Enter");
+ await pagination.getByText("Trang 2 / 3", { exact: true }).waitFor();
+ assert.equal(await page.locator("tbody tr").count(), 10);
+ for (const [label, value] of [["Danh mục", "Phụ kiện"], ["Trạng thái", "hidden"], ["Tồn khả dụng", "out"]]) {
+  await page.getByRole("combobox", { name: label, exact: true }).selectOption(value);
+  await pagination.getByText("Trang 1 / 1", { exact: true }).waitFor();
+  assert.equal(await page.locator("tbody tr").count(), 8);
+  assert.equal(await previous.isDisabled(), true);
+  assert.equal(await nextPage.isDisabled(), true);
+  await page.getByRole("button", { name: "Xóa bộ lọc" }).click();
+  await nextPage.click();
+ }
+ await page.getByLabel("Tìm kiếm", { exact: true }).fill("nhom muoi");
+ await pagination.getByText("Trang 1 / 1", { exact: true }).waitFor();
+ assert.equal(await page.locator("tbody tr").count(), 10);
+ assert.equal(await nextPage.isDisabled(), true);
+ await page.getByRole("button", { name: "Xóa bộ lọc" }).click();
+ await nextPage.click();
+ await page.getByLabel("Tìm kiếm", { exact: true }).fill("khong-ton-tai");
+ await page.getByText("Hiển thị 0–0 trong 0 sản phẩm", { exact: true }).waitFor();
+ assert.equal(await page.locator("tbody tr").count(), 0);
+ await pagination.getByText("Trang 1 / 1", { exact: true }).waitFor();
+ await page.getByRole("button", { name: "Xóa bộ lọc" }).click();
+ assert.equal(await page.locator("tbody tr").count(), 10);
+ await pagination.getByText("Trang 1 / 3", { exact: true }).waitFor();
+ assert.deepEqual(errors, []);
+ console.log("PASS ten-product pages, last-page remainder, keyboard navigation, filtered counts, exact ten, empty state and filter resets");
  assert.equal(
   await page
    .locator("table")

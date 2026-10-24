@@ -24,6 +24,8 @@ import {
  secondaryButton,
 } from "./staff-ui";
 
+const PAGE_SIZE = 10;
+
 export type StaffProductItem = {
  productId?: string;
  sku: string;
@@ -59,6 +61,7 @@ export function ProductsList() {
  const [status, setStatus] = useState<ProductStatus | "all">("all");
  const [stock, setStock] = useState<StockStatus | "all">("all");
  const [notice, setNotice] = useState("");
+ const [page, setPage] = useState(1);
 
  useEffect(() => {
   let isMounted = true;
@@ -144,6 +147,7 @@ export function ProductsList() {
   setCategory("all");
   setStatus("all");
   setStock("all");
+  setPage(1);
  };
 
  // Filter items in memory
@@ -164,6 +168,11 @@ export function ProductsList() {
    return true;
   });
  }, [items, query, category, status, stock]);
+
+ const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+ const currentPage = Math.min(page, totalPages);
+ const offset = (currentPage - 1) * PAGE_SIZE;
+ const pageRows = rows.slice(offset, offset + PAGE_SIZE);
 
  return (
   <>
@@ -192,7 +201,7 @@ export function ProductsList() {
      className="flex flex-wrap items-center gap-4 rounded-lg bg-canvas p-4"
      aria-label="Tổng quan tồn kho"
     >
-     <strong>{items.length} sản phẩm</strong>
+     <strong>{summary.totalProducts} sản phẩm</strong>
      {(["available", "low", "out"] as const).map((state) => (
       <Badge key={state} tone={stockTones[state]}>
        {items.filter((p) => p.stockStatus === state).length}{" "}
@@ -208,7 +217,10 @@ export function ProductsList() {
      <input
       className={control}
       value={query}
-      onChange={(e) => setQuery(e.target.value)}
+      onChange={(e) => {
+       setQuery(e.target.value);
+       setPage(1);
+      }}
       placeholder="Tên sản phẩm hoặc mã SKU"
      />
     </label>
@@ -217,7 +229,10 @@ export function ProductsList() {
      <select
       className={control}
       value={category}
-      onChange={(e) => setCategory(e.target.value)}
+      onChange={(e) => {
+       setCategory(e.target.value);
+       setPage(1);
+      }}
      >
       <option value="all">Tất cả danh mục</option>
       {categories.map((c) => (
@@ -232,7 +247,10 @@ export function ProductsList() {
      <select
       className={control}
       value={status}
-      onChange={(e) => setStatus(e.target.value as ProductStatus | "all")}
+      onChange={(e) => {
+       setStatus(e.target.value as ProductStatus | "all");
+       setPage(1);
+      }}
      >
       <option value="all">Tất cả</option>
       <option value="active">Đang bán</option>
@@ -244,7 +262,10 @@ export function ProductsList() {
      <select
       className={control}
       value={stock}
-      onChange={(e) => setStock(e.target.value as StockStatus | "all")}
+      onChange={(e) => {
+       setStock(e.target.value as StockStatus | "all");
+       setPage(1);
+      }}
      >
       <option value="all">Tất cả</option>
       {Object.entries(stockLabels).map(([v, l]) => (
@@ -282,7 +303,7 @@ export function ProductsList() {
        </td>
       </tr>
      ) : (
-      rows.map((p) => (
+      pageRows.map((p) => (
        <tr key={p.sku}>
         <Td>
          <div className="flex items-center gap-3">
@@ -304,11 +325,9 @@ export function ProductsList() {
         </Td>
         <Td right>
          <strong>{p.physical}</strong>
-         <p className="mt-2 text-xs text-muted">{p.reserved} giữ chỗ</p>
-         <p className="mt-2 text-xs text-muted">{p.availableStock} khả dụng</p>
         </Td>
         <Td right>
-         <strong>{money(p.price)}</strong>
+         <strong className="whitespace-nowrap">{money(p.price)}</strong>
         </Td>
         <Td>
          <Badge tone={stockTones[p.stockStatus]}>
@@ -337,18 +356,35 @@ export function ProductsList() {
     </p>
    )}
 
-   <div className="flex flex-wrap justify-between gap-4 text-xs text-muted">
-    <p>
-     Hiển thị {rows.length} trong {summary.totalProducts} sản phẩm
-    </p>
-    <p>
-     ‹ Trước　
-     <strong className="rounded-full bg-brand-subtle px-4 py-2 text-brand">
-      Trang 1 / 1
-     </strong>
-     　Tiếp ›
-    </p>
-   </div>
+   {!loading && (
+    <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-muted">
+     <p role="status">
+      Hiển thị {rows.length ? offset + 1 : 0}–{offset + pageRows.length} trong{" "}
+      {rows.length} sản phẩm
+     </p>
+     <nav className="flex items-center gap-3" aria-label="Phân trang sản phẩm">
+      <button
+       type="button"
+       disabled={currentPage <= 1}
+       onClick={() => setPage(currentPage - 1)}
+       className="min-h-10 rounded px-3 font-semibold text-brand hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-40"
+      >
+       ‹ Trước
+      </button>
+      <strong className="whitespace-nowrap rounded-full bg-brand-subtle px-4 py-2 text-brand">
+       Trang {currentPage} / {totalPages}
+      </strong>
+      <button
+       type="button"
+       disabled={currentPage >= totalPages}
+       onClick={() => setPage(currentPage + 1)}
+       className="min-h-10 rounded px-3 font-semibold text-brand hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-40"
+      >
+       Tiếp ›
+      </button>
+     </nav>
+    </div>
+   )}
 
    <p className="text-xs text-muted">
     Staff được sửa nội dung, trạng thái và số lượng. Giá bán và danh mục do quản
