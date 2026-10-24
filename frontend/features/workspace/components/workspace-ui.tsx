@@ -106,14 +106,16 @@ export function Field({ label, htmlFor, children, className = "" }: { label: str
 }
 
 export function Pagination({ from, to, total, page = 1, pages = 1, onPage }: { from: number; to: number; total: number; page?: number; pages?: number; onPage?: (page: number) => void }) {
-  const shown = Array.from({ length: Math.min(pages, 3) }, (_, i) => i + 1);
+  // Up to three page numbers around the current page, as in the designs ("1 2 3 …").
+  const first = Math.max(1, Math.min(page - 1, pages - 2));
+  const shown = Array.from({ length: Math.min(pages, 3) }, (_, i) => first + i);
   const pageStyle = (current: boolean) => `inline-flex h-8 min-w-8 items-center justify-center rounded-lg px-2 ${current ? "bg-brand-subtle font-semibold text-brand" : "text-muted hover:text-ink"}`;
   return <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-6 py-4 text-xs text-muted">
     <p>{total === 0 ? "0 bản ghi" : `Hiển thị ${from}–${to} / ${total.toLocaleString("vi-VN")} bản ghi`}</p>
     <nav aria-label="Phân trang"><ul className="flex items-center gap-1 text-sm">
       <li><button type="button" className={pageStyle(false)} disabled={!onPage || page <= 1} onClick={onPage && (() => onPage(page - 1))} aria-label="Trang trước">‹</button></li>
       {shown.map((n) => <li key={n}><button type="button" className={pageStyle(n === page)} disabled={!onPage} aria-current={n === page ? "page" : undefined} onClick={onPage && (() => onPage(n))}>{n}</button></li>)}
-      {pages > 3 && <li aria-hidden="true" className="px-1">…</li>}
+      {(shown.at(-1) ?? pages) < pages &&<li aria-hidden="true" className="px-1">…</li>}
       <li><button type="button" className={pageStyle(false)} disabled={!onPage || page >= pages} onClick={onPage && (() => onPage(page + 1))} aria-label="Trang sau">›</button></li>
     </ul></nav>
   </div>;

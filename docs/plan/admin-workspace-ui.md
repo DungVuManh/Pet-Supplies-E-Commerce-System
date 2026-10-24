@@ -65,16 +65,20 @@ Designs: `docs/designs/Admin/` (Auth designs excluded; authentication is already
 - [x] Replace the placeholder dashboard page
 - [x] Tests: the chart ends at the net-revenue KPI, the stock alert lists only below-threshold items, and activity statuses and links are valid
 - [x] Fix from the review: `Pagination` attaches `onClick` only when `onPage` is given, so Server Components can render it. `admin/layout.tsx` moves the session check into a Suspense-wrapped `AdminSession` child, so client navigations into `/admin` pass Cache Components validation.
-- [ ] Visual check against `Dashboard.png` (you)
-- [ ] **🛑 Commit checkpoint: Dashboard**
+- [x] Visual check against `Dashboard.png` (confirmed by user)
+- [x] **🛑 Commit checkpoint: Dashboard**
 
 ## 2. Users
 
 ### 2a. User list: `/admin/users`
-- [ ] Mock: users (KH*/NV* codes, join date, contact, role, status). Counts must match the tabs: 348 / 342 / 6.
-- [ ] Header with "+ Thêm người dùng" (demo notice) and a secondary link to "Vai trò & phân quyền"
-- [ ] Tabs: Tất cả / Customer / Staff. Filters: search, role, status. Table and pagination.
-- [ ] "Quyền truy cập được kiểm soát" callout
+- [x] Mock: users (KH*/NV* codes, join date, contact, role, status). The 6 designed rows come first, followed by deterministic filler, so the tabs read 348 / 342 / 6 and pagination is real (`mock/users.ts`). Accent-insensitive search lives in `mock/text.ts`.
+- [x] Header with "+ Thêm người dùng" (demo notice) and a secondary link to "Vai trò & phân quyền"
+- [x] Tabs: Tất cả / Customer / Staff (immediate). Filters: search, role, status (applied by "Lọc dữ liệu"). Table and 6-row pagination with a page window (`Pagination` now shows the 3 pages around the current one).
+- [x] Empty state with "Xóa bộ lọc", plus `?state=loading|error` review states
+- [x] "Quyền truy cập được kiểm soát" callout
+- [x] `tsconfig.json`: enable `allowImportingTsExtensions` (valid with `noEmit`) so mock modules can import each other with the `.ts` extension that `node --test` requires
+- [x] Tests: tab counts, designed first page, unique IDs, phone format, accent-insensitive search, combined filters
+- [ ] Visual check against `User.png` row 1 col 1 (you)
 - [ ] **🛑 Commit checkpoint: User list**
 
 ### 2b. User detail: `/admin/users/[id]`
