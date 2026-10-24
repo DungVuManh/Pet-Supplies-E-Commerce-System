@@ -157,68 +157,77 @@ Designs: `docs/designs/Admin/` (Auth designs excluded; authentication is already
 
 ## 7. Cancellation requests: `/admin/cancellations`
 
-- [ ] Mock: requests linked to existing order IDs, with reason, value, and requester
-- [ ] Tabs: Chờ duyệt / Đã chấp nhận / Đã từ chối. Search and status.
-- [ ] Populated table with approve/reject actions that move the row between tabs locally and show a notice
-- [ ] Empty state ("Chưa có yêu cầu chờ duyệt", "Xem tất cả yêu cầu"), plus loading and error states
+- [x] Mock: requests linked to existing order IDs, with reason, value, and requester
+- [x] Tabs: Chờ duyệt / Đã chấp nhận / Đã từ chối. Search and status.
+- [x] Populated table with approve/reject actions that move the row between tabs locally and show a notice
+- [x] Empty state ("Chưa có yêu cầu chờ duyệt", "Xem tất cả yêu cầu"), plus loading and error states
 - [ ] **🛑 Commit checkpoint: Cancellation requests**
+
 
 ## 8. Inventory: `/admin/inventory`
 
-- [ ] Mock: stock per SKU with threshold, available quantity, and warning, plus import/export history entries
-- [ ] Tabs: Tất cả sản phẩm / Sắp hết hàng / Lịch sử nhập xuất
-- [ ] Populated table: SKU / NGƯỠNG, SẢN PHẨM, KHẢ DỤNG, CẢNH BÁO, THAO TÁC (links to the product detail)
-- [ ] Empty state (RC-ZERO example), plus loading and error states. "+ Tạo phiếu nhập" (demo).
+- [x] Mock: stock per SKU with threshold, available quantity, and warning, plus import/export history entries
+- [x] Tabs: Tất cả sản phẩm / Sắp hết hàng / Lịch sử nhập xuất
+- [x] Populated table: SKU / NGƯỠNG, SẢN PHẨM, KHẢ DỤNG, CẢNH BÁO, THAO TÁC (links to the product detail)
+- [x] Empty state (RC-ZERO example), plus loading and error states. "+ Tạo phiếu nhập" (demo).
 - [ ] **🛑 Commit checkpoint: Inventory**
+
 
 ## 9. Reports
 
-- [ ] Secondary links: Tài chính / Bán hàng / Tồn kho. `/admin/reports` redirects to finance.
+- [x] Secondary links: Tài chính / Bán hàng / Tồn kho. `/admin/reports` redirects to finance.
 
 ### 9a. Financial report: `/admin/reports/finance`
-- [ ] KPI cards: gross, refunds, net, and pending reconciliation (warning). The net-revenue line chart.
-- [ ] Payment-channel table (BANK / VNPAY / COD) with reconciliation badges. Date chip and "Xuất Excel" (demo).
+- [x] KPI cards: gross, refunds, net, and pending reconciliation (warning). The net-revenue line chart.
+- [x] Payment-channel table (BANK / VNPAY / COD) with reconciliation badges. Date chip and "Xuất Excel" (demo).
 - [ ] **🛑 Commit checkpoint: Financial report**
 
+
 ### 9b. Sales report: `/admin/reports/sales`
-- [ ] Tabs: Theo sản phẩm / danh mục / nhân viên / thời gian (each re-groups the mock data)
-- [ ] 3 KPI cards, the "Số lượng bán theo ngày" bar chart, and the best-seller table with pagination
+- [x] Tabs: Theo sản phẩm / danh mục / nhân viên / thời gian (each re-groups the mock data)
+- [x] 3 KPI cards, the "Số lượng bán theo ngày" bar chart, and the best-seller table with pagination
 - [ ] **🛑 Commit checkpoint: Sales report**
 
+
 ### 9c. Inventory report: `/admin/reports/inventory`
-- [ ] 4 KPI cards. Filters: search, category, period.
-- [ ] Table: opening / in / out / closing / threshold / warning. Footnote formula "Tồn cuối = Tồn đầu + Nhập − Xuất", enforced by a test.
+- [x] 4 KPI cards. Filters: search, category, period.
+- [x] Table: opening / in / out / closing / threshold / warning. Footnote formula "Tồn cuối = Tồn đầu + Nhập − Xuất", enforced by a test.
 - [ ] **🛑 Commit checkpoint: Inventory report**
+
 
 ## 10. Notifications: `/admin/notifications`
 
-- [ ] Mock: notifications of type order, stock, and system, with read/saved flags
-- [ ] Tabs: Chưa đọc (n) / Tất cả thông báo / Đã lưu. Filters: search, type, status. An unread-count pill.
-- [ ] Populated list: mark read and save locally
-- [ ] Empty state ("Bạn đã đọc hết thông báo", "Xem tất cả thông báo"), loading skeleton, and error ("Lỗi kết nối", "Thử lại")
-- [ ] "Cài đặt thông báo" links to `/admin/system/settings`. The top-bar "Thông báo" link points here.
+- [x] Mock: notifications of type order, stock, and system, with read/saved flags
+- [x] Tabs: Chưa đọc (n) / Tất cả thông báo / Đã lưu. Filters: search, type, status. An unread-count pill.
+- [x] Populated list: mark read and save locally
+- [x] Empty state ("Bạn đã đọc hết thông báo", "Xem tất cả thông báo"), loading skeleton, and error ("Lỗi kết nối", "Thử lại")
+- [x] "Cài đặt thông báo" links to `/admin/system/settings`. The top-bar "Thông báo" link points here.
 - [ ] **🛑 Commit checkpoint: Notifications**
+
 
 ## 11. System
 
-- [ ] Secondary links: Cấu hình / Chính sách / Nhật ký. `/admin/system` redirects to settings.
+- [x] Secondary links: Cấu hình / Chính sách / Nhật ký. `/admin/system` redirects to settings.
 
 ### 11a. Store configuration: `/admin/system/settings`
-- [ ] "Thông tin cửa hàng" form (currency read-only), the "Vận chuyển" toggles and free-shipping threshold
-- [ ] "Phương thức thanh toán" toggles and account holder, "Thông báo" toggles
-- [ ] "Lưu cấu hình" with validation and a mock save
+- [x] "Thông tin cửa hàng" form (currency read-only), the "Vận chuyển" toggles and free-shipping threshold
+- [x] "Phương thức thanh toán" toggles and account holder, "Thông báo" toggles
+- [x] "Lưu cấu hình" with validation and a mock save
 - [ ] **🛑 Commit checkpoint: Store configuration**
 
+
 ### 11b. Store policies: `/admin/system/policies`
-- [ ] Policy list (đổi trả / hủy đơn / hoàn tiền / bảo mật) with a selected state and status badges
-- [ ] Editor: status, effective date, formatting-toolbar mock, and the content textarea. "Xem trước" (demo) and "Lưu & công bố" (mock).
+- [x] Policy list (đổi trả / hủy đơn / hoàn tiền / bảo mật) with a selected state and status badges
+- [x] Editor: status, effective date, formatting-toolbar mock, and the content textarea. "Xem trước" (demo) and "Lưu & công bố" (mock).
 - [ ] **🛑 Commit checkpoint: Store policies**
 
+
 ### 11c. Audit log: `/admin/system/audit-log`
-- [ ] Mock: log entries (time, actor, action, detail, IP, target, result)
-- [ ] Filters: search, action, period. Table with Thành công / Bị từ chối badges and pagination.
-- [ ] "Nhật ký chỉ đọc" callout and "Xuất nhật ký" (demo)
+- [x] Mock: log entries (time, actor, action, detail, IP, target, result)
+- [x] Filters: search, action, period. Table with Thành công / Bị từ chối badges and pagination.
+- [x] "Nhật ký chỉ đọc" callout and "Xuất nhật ký" (demo)
 - [ ] **🛑 Commit checkpoint: Audit log**
+
 
 ## 12. Final verification
 
