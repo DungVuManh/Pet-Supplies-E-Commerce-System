@@ -4,7 +4,7 @@
 // =============================================================
 
 import { Router } from "express";
-import { createOrder, deleteOrder, getMyOrders, getOrderDetail } from "../controllers/order.controller.js";
+import { createOrder, cancelOrder, deleteOrder, getMyOrders, getOrderDetail } from "../controllers/order.controller.js";
 import {
   optionalAuth,
   readCookies,
@@ -24,7 +24,8 @@ router.get("/:id", optionalAuth, getOrderDetail);
 // 3. POST /api/v1/orders - Tạo đơn hàng (Mua ngay & Cart)
 router.post("/", optionalAuth, createOrder);
 
-// 4. DELETE /api/v1/orders/:id - Xóa đơn hàng khi hủy
-router.delete("/:id", deleteOrder);
+// 4. PATCH /api/v1/orders/:id/cancel & DELETE /:id - Hủy đơn hàng (chuyển sang 'cancelled')
+router.patch("/:id/cancel", cancelOrder);
+router.delete("/:id", cancelOrder);
 
 export default router;

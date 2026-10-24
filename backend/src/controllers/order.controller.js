@@ -123,25 +123,54 @@ export async function createOrder(request, response, next) {
 }
 
 /**
- * DELETE /api/v1/orders/:id - Xóa đơn hàng khi hủy mua ngay
+ * PATCH /api/v1/orders/:id/cancel hoặc DELETE /api/v1/orders/:id - Hủy đơn hàng (orderStatus: 'cancelled')
  */
-export async function deleteOrder(request, response, next) {
+export async function cancelOrder(request, response, next) {
   try {
     const { id } = request.params;
-    const deletedOrder = await Order.findByIdAndDelete(id);
+    const { reason, note } = request.body || {};
 
-    if (!deletedOrder) {
-      return response.status(404).json({ success: false, message: "Không tìm thấy đơn hàng để xóa." });
+    const order = await Order.findById(id);
+
+    if (!order) {
+      return response.status(404).json({ success: false, message: "Không tìm thấy đơn hàng để hủy." });
     }
+
+    if (order.orderStatus === "cancelled") {
+      return response.status(400).json({ success: false, message: "Đơn hàng này đã được hủy trước đó." });
+    }
+
+    // Cập nhật trạng thái sang 'cancelled' thay vì xóa khỏi MongoDB
+    const fromStatus = order.orderStatus;
+    const updatedOrder = await Order.findByIdAndUpdate(
+      id,
+      {
+        $set: { orderStatus: "cancelled" },
+        $push: {
+          statusHistory: {
+            from: fromStatus,
+            to: "cancelled",
+            at: new Date(),
+          },
+        },
+      },
+      { new: true }
+    );
 
     response.status(200).json({
       success: true,
-      message: "Đã hủy và xóa đơn hàng thành công.",
+      message: "Đã hủy đơn hàng thành công.",
+      data: {
+        order: updatedOrder,
+      },
     });
   } catch (error) {
     next(error);
   }
 }
+
+// Giữ alias deleteOrder để tương thích ngược
+export const deleteOrder = cancelOrder;
 
 /**
  * GET /api/v1/orders/my-orders - Lấy danh sách đơn hàng của người dùng đang đăng nhập
@@ -239,12 +268,17 @@ export async function getOrderDetail(request, response, next) {
     const { status, statusLabel } = statusMap[order.orderStatus] || { status: "pending", statusLabel: "Chờ xử lý" };
 
     // Tạo timeline tự động theo trạng thái hiện tại
-    const timelineSteps = [
-      { id: "step-1", title: "Đã đặt hàng", description: `${orderDate} · ${orderTime}`, status: "completed" },
-      { id: "step-2", title: "Đang chuẩn bị", description: "Xác nhận đơn", status: status === "pending" ? "active" : status === "cancelled" ? "completed" : "completed" },
-      { id: "step-3", title: "Đang giao", description: "Trên đường giao", status: status === "shipping" ? "active" : status === "completed" ? "completed" : "pending" },
-      { id: "step-4", title: "Hoàn thành", description: "Nhận hàng thành công", status: status === "completed" ? "completed" : "pending" },
-    ];
+    const timelineSteps = status === "cancelled"
+      ? [
+          { id: "step-1", title: "Đã đặt hàng", description: `${orderDate} · ${orderTime}`, status: "completed" },
+          { id: "step-cancelled", title: "Đã hủy đơn", description: "Đơn hàng đã được hủy", status: "completed" },
+        ]
+      : [
+          { id: "step-1", title: "Đã đặt hàng", description: `${orderDate} · ${orderTime}`, status: "completed" },
+          { id: "step-2", title: "Đang chuẩn bị", description: "Xác nhận đơn", status: status === "pending" ? "active" : "completed" },
+          { id: "step-3", title: "Đang giao", description: "Trên đường giao", status: status === "shipping" ? "active" : status === "completed" ? "completed" : "pending" },
+          { id: "step-4", title: "Hoàn thành", description: "Nhận hàng thành công", status: status === "completed" ? "completed" : "pending" },
+        ];
 
     // Map danh sách sản phẩm trong đơn
     const items = order.items.map((item, index) => ({

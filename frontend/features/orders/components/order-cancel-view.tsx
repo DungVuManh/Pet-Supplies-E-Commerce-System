@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { AccountSidebar } from "./account-sidebar";
 import { useOrderDetail } from "../hooks/use-order-detail";
-import { deleteOrderApi } from "../services/order.service";
+import { cancelOrderApi } from "../services/order.service";
 
 type OrderCancelViewProps = {
   orderId?: string;
@@ -46,8 +46,8 @@ export function OrderCancelView({ orderId }: OrderCancelViewProps) {
     try {
       setIsSubmitting(true);
 
-      // Gọi API xóa/hủy đơn hàng trong MongoDB
-      await deleteOrderApi(orderId);
+      // Gọi API cập nhật trạng thái đơn hàng sang 'cancelled' trong MongoDB
+      await cancelOrderApi(orderId, selectedReason, cancelNote);
 
       setIsSubmitted(true);
 

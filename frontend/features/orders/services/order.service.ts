@@ -46,23 +46,27 @@ export async function createOrderApi(payload: CreateOrderPayload) {
   return data;
 }
 
-// 2. DELETE /api/v1/orders/:id - Hủy và xóa đơn hàng vừa tạo trong DB
-export async function deleteOrderApi(orderId: string) {
-  const response = await fetch(`/api/v1/orders/${encodeURIComponent(orderId)}`, {
-    method: "DELETE",
+// 2. PATCH /api/v1/orders/:id/cancel - Hủy đơn hàng (cập nhật trạng thái sang 'cancelled')
+export async function cancelOrderApi(orderId: string, reason?: string, note?: string) {
+  const response = await fetch(`/api/v1/orders/${encodeURIComponent(orderId)}/cancel`, {
+    method: "PATCH",
     headers: {
       "Content-Type": "application/json",
     },
     credentials: "include",
+    body: JSON.stringify({ reason, note }),
   });
 
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.message || "Không thể xóa đơn hàng.");
+    throw new Error(data.message || "Không thể hủy đơn hàng.");
   }
 
   return data;
 }
+
+// Giữ alias deleteOrderApi để tương thích code cũ nếu có
+export const deleteOrderApi = cancelOrderApi;
 
 // 3. GET /api/v1/orders/my-orders - Lấy danh sách đơn hàng của user đang đăng nhập
 export async function getMyOrdersApi() {
