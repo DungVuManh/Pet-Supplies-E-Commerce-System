@@ -128,5 +128,58 @@ test("inventory report enforces formula: closing = opening + inQty - outQty", ()
   assert.equal(cats[0].sku, "CT-BEN-10L");
 });
 
+import { filterNotifications, initialNotifications, unreadNotificationsCount } from "../features/admin/mock/notifications.ts";
+
+test("notifications mock contains order, stock and system types with read/saved flags", () => {
+  assert.ok(initialNotifications.length >= 6);
+  const types = new Set(initialNotifications.map((n) => n.type));
+  assert.ok(types.has("order"));
+  assert.ok(types.has("stock"));
+  assert.ok(types.has("system"));
+
+  assert.equal(unreadNotificationsCount(initialNotifications), 3);
+
+  const unreadOnly = filterNotifications(initialNotifications, { tab: "unread" });
+  assert.equal(unreadOnly.length, 3);
+  assert.ok(unreadOnly.every((n) => !n.read));
+
+  const savedOnly = filterNotifications(initialNotifications, { tab: "saved" });
+  assert.equal(savedOnly.length, 2);
+  assert.ok(savedOnly.every((n) => n.saved));
+
+  const stockOnly = filterNotifications(initialNotifications, { type: "Kho hàng" });
+  assert.ok(stockOnly.length >= 2);
+  assert.ok(stockOnly.every((n) => n.type === "stock"));
+});
+
+import { auditLogEntries, defaultPolicies, defaultStoreSettings, filterAuditLog } from "../features/admin/mock/system.ts";
+
+test("system mock data covers settings, policies, and audit log entries", () => {
+  // Settings checks
+  assert.equal(defaultStoreSettings.currency, "VND – Việt Nam đồng");
+  assert.ok(defaultStoreSettings.freeShippingThreshold > 0);
+
+  // Policies checks
+  assert.equal(defaultPolicies.length, 4);
+  for (const pol of defaultPolicies) {
+    assert.ok(pol.status in adminStatusTones, pol.status);
+    assert.ok(pol.content.length > 50);
+  }
+
+  // Audit log checks
+  assert.ok(auditLogEntries.length >= 6);
+  for (const entry of auditLogEntries) {
+    assert.ok(entry.result in adminStatusTones, entry.result);
+    assert.ok(entry.actor.length > 0);
+    assert.ok(entry.action.length > 0);
+  }
+
+  const filteredLogs = filterAuditLog(auditLogEntries, { action: "Khóa tài khoản" });
+  assert.equal(filteredLogs.length, 1);
+  assert.equal(filteredLogs[0].target, "KH0003");
+});
+
+
+
 
 

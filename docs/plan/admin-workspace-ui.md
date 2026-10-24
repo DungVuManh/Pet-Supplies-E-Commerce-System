@@ -193,33 +193,37 @@ Designs: `docs/designs/Admin/` (Auth designs excluded; authentication is already
 
 ## 10. Notifications: `/admin/notifications`
 
-- [ ] Mock: notifications of type order, stock, and system, with read/saved flags
-- [ ] Tabs: Chưa đọc (n) / Tất cả thông báo / Đã lưu. Filters: search, type, status. An unread-count pill.
-- [ ] Populated list: mark read and save locally
-- [ ] Empty state ("Bạn đã đọc hết thông báo", "Xem tất cả thông báo"), loading skeleton, and error ("Lỗi kết nối", "Thử lại")
-- [ ] "Cài đặt thông báo" links to `/admin/system/settings`. The top-bar "Thông báo" link points here.
+- [x] Mock: notifications of type order, stock, and system, with read/saved flags
+- [x] Tabs: Chưa đọc (n) / Tất cả thông báo / Đã lưu. Filters: search, type, status. An unread-count pill.
+- [x] Populated list: mark read and save locally
+- [x] Empty state ("Bạn đã đọc hết thông báo", "Xem tất cả thông báo"), loading skeleton, and error ("Lỗi kết nối", "Thử lại")
+- [x] "Cài đặt thông báo" links to `/admin/system/settings`. The top-bar "Thông báo" link points here.
 - [ ] **🛑 Commit checkpoint: Notifications**
+
 
 ## 11. System
 
-- [ ] Secondary links: Cấu hình / Chính sách / Nhật ký. `/admin/system` redirects to settings.
+- [x] Secondary links: Cấu hình / Chính sách / Nhật ký. `/admin/system` redirects to settings.
 
 ### 11a. Store configuration: `/admin/system/settings`
-- [ ] "Thông tin cửa hàng" form (currency read-only), the "Vận chuyển" toggles and free-shipping threshold
-- [ ] "Phương thức thanh toán" toggles and account holder, "Thông báo" toggles
-- [ ] "Lưu cấu hình" with validation and a mock save
+- [x] "Thông tin cửa hàng" form (currency read-only), the "Vận chuyển" toggles and free-shipping threshold
+- [x] "Phương thức thanh toán" toggles and account holder, "Thông báo" toggles
+- [x] "Lưu cấu hình" with validation and a mock save
 - [ ] **🛑 Commit checkpoint: Store configuration**
 
+
 ### 11b. Store policies: `/admin/system/policies`
-- [ ] Policy list (đổi trả / hủy đơn / hoàn tiền / bảo mật) with a selected state and status badges
-- [ ] Editor: status, effective date, formatting-toolbar mock, and the content textarea. "Xem trước" (demo) and "Lưu & công bố" (mock).
+- [x] Policy list (đổi trả / hủy đơn / hoàn tiền / bảo mật) with a selected state and status badges
+- [x] Editor: status, effective date, formatting-toolbar mock, and the content textarea. "Xem trước" (demo) and "Lưu & công bố" (mock).
 - [ ] **🛑 Commit checkpoint: Store policies**
 
+
 ### 11c. Audit log: `/admin/system/audit-log`
-- [ ] Mock: log entries (time, actor, action, detail, IP, target, result)
-- [ ] Filters: search, action, period. Table with Thành công / Bị từ chối badges and pagination.
-- [ ] "Nhật ký chỉ đọc" callout and "Xuất nhật ký" (demo)
+- [x] Mock: log entries (time, actor, action, detail, IP, target, result)
+- [x] Filters: search, action, period. Table with Thành công / Bị từ chối badges and pagination.
+- [x] "Nhật ký chỉ đọc" callout and "Xuất nhật ký" (demo)
 - [ ] **🛑 Commit checkpoint: Audit log**
+
 
 ## 12. Final verification
 
