@@ -47,7 +47,7 @@ export function AccountMenu() {
       >
         Đơn hàng
       </Link>
-      <button type="button" disabled={pending} className="mt-3 min-h-11 text-sm font-semibold text-brand hover:underline disabled:opacity-50" onClick={() => { void logout(); }}>{pending ? "Đang đăng xuất…" : "Đăng xuất"}</button>
+      <button type="button" disabled={pending} className=" min-h-11 text-sm font-semibold text-brand hover:underline disabled:opacity-50" onClick={() => { void logout(); }}>{pending ? "Đang đăng xuất…" : "Đăng xuất"}</button>
       {failure && <p role="alert" className="mt-2 text-xs text-danger">{failure}</p>}
     </div>
 
