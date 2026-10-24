@@ -1,7 +1,3 @@
-// =============================================================
-// features/catalog/components/listProduct/services/catalog.service.ts
-// Service chỉ chứa các hàm gọi API, không import React (Pure TypeScript)
-// =============================================================
 
 import type {
   CatalogFilter,

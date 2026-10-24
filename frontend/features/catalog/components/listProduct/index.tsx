@@ -1,10 +1,5 @@
 "use client";
 
-// =============================================================
-// features/catalog/components/listProduct/index.tsx
-// Component chính: Kết hợp hook useProductList và các UI components
-// =============================================================
-
 import React from "react";
 import { FilterSidebar } from "./components/filter-sidebar";
 import { ProductGrid } from "./components/product-grid";
