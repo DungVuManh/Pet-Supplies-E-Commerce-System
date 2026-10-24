@@ -78,3 +78,18 @@ export async function getMyOrdersApi() {
 
   return data; // { success: true, data: { orders: [...] } }
 }
+
+// 4. GET /api/v1/orders/:id - Lấy chi tiết 1 đơn hàng theo ID
+export async function getOrderDetailApi(orderId: string) {
+  const response = await fetch(`/api/v1/orders/${encodeURIComponent(orderId)}`, {
+    method: "GET",
+    credentials: "include",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Không thể tải chi tiết đơn hàng.");
+  }
+
+  return data; // { success: true, data: { order: {...} } }
+}

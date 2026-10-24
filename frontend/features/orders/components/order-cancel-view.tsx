@@ -2,14 +2,15 @@
 
 // =============================================================
 // features/orders/components/order-cancel-view.tsx
-// Màn hình Hủy đơn hàng (khớp 100% ảnh thiết kế bên phải)
+// Màn hình Hủy đơn hàng - Gọi API thật, không dùng mock data
 // =============================================================
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { AccountSidebar } from "./account-sidebar";
-import { MOCK_ORDER_DETAIL } from "../mock-data";
+import { useOrderDetail } from "../hooks/use-order-detail";
+import { deleteOrderApi } from "../services/order.service";
 
 type OrderCancelViewProps = {
   orderId?: string;
@@ -29,22 +30,60 @@ function formatVND(value: number): string {
 
 export function OrderCancelView({ orderId }: OrderCancelViewProps) {
   const router = useRouter();
-  const order = MOCK_ORDER_DETAIL;
+
+  // Gọi API lấy thông tin đơn hàng để hiển thị
+  const { order, isLoading, error } = useOrderDetail(orderId);
 
   const [selectedReason, setSelectedReason] = useState(CANCEL_REASONS[0]);
-  const [cancelNote, setCancelNote] = useState(
-    "Tôi muốn chọn thức ăn phù hợp hơn với cân nặng của Milo."
-  );
+  const [cancelNote, setCancelNote] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   // Xử lý khi bấm nút "Xác nhận hủy đơn"
-  const handleConfirmCancel = () => {
-    setIsSubmitted(true);
-    // Sau 1.5 giây điều hướng về màn hình đơn hàng với trạng thái hủy
-    setTimeout(() => {
-      router.push(`/orders/${order.id}?cancelled=true`);
-    }, 1500);
+  const handleConfirmCancel = async () => {
+    if (!orderId) return;
+
+    try {
+      setIsSubmitting(true);
+
+      // Gọi API xóa/hủy đơn hàng trong MongoDB
+      await deleteOrderApi(orderId);
+
+      setIsSubmitted(true);
+
+      // Sau 1.5 giây quay về danh sách đơn hàng
+      setTimeout(() => {
+        router.push("/orders");
+      }, 1500);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Không thể hủy đơn hàng, vui lòng thử lại.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  // Hiển thị loading
+  if (isLoading) {
+    return (
+      <div className="container py-16 text-center text-sm text-muted">
+        Đang tải thông tin đơn hàng...
+      </div>
+    );
+  }
+
+  // Hiển thị lỗi
+  if (error || !order) {
+    return (
+      <div className="container py-16 text-center text-sm text-red-600">
+        {error || "Không tìm thấy đơn hàng."}
+        <div className="mt-4">
+          <Link href="/orders" className="text-blue-600 hover:underline">
+            Quay lại danh sách đơn
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container">
@@ -64,6 +103,10 @@ export function OrderCancelView({ orderId }: OrderCancelViewProps) {
               Đơn hàng
             </Link>
             <span>/</span>
+            <Link href={`/orders/${orderId}`} className="hover:text-ink transition-colors">
+              Chi tiết
+            </Link>
+            <span>/</span>
             <span className="text-ink font-medium">Hủy đơn</span>
           </nav>
 
@@ -77,20 +120,20 @@ export function OrderCancelView({ orderId }: OrderCancelViewProps) {
             </p>
           </div>
 
-          {/* Thông báo hủy thành công nếu đã bấm xác nhận */}
+          {/* Thông báo hủy thành công */}
           {isSubmitted && (
             <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 flex items-center gap-3">
               <span className="text-xl">✅</span>
               <div>
                 <p className="font-bold">Hủy đơn hàng thành công!</p>
                 <p className="text-xs text-emerald-700 mt-0.5">
-                  Đang chuyển hướng về trang chi tiết đơn hàng...
+                  Đang chuyển hướng về danh sách đơn hàng...
                 </p>
               </div>
             </div>
           )}
 
-          {/* Hai cột: Cột trái form chọn lý do & Cột phải tóm tắt hoàn tiền */}
+          {/* Hai cột: Form lý do & Tóm tắt đơn */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Cột trái: Form lý do hủy (7 cột) */}
             <div className="lg:col-span-7 space-y-6">
@@ -116,7 +159,7 @@ export function OrderCancelView({ orderId }: OrderCancelViewProps) {
                         checked={selectedReason === reason}
                         onChange={() => setSelectedReason(reason)}
                         className="w-4 h-4 text-blue-600 border-line focus:ring-blue-500 cursor-pointer"
-                        disabled={isSubmitted}
+                        disabled={isSubmitted || isSubmitting}
                       />
                       <span className="group-hover:text-blue-600 transition-colors">
                         {reason}
@@ -138,19 +181,19 @@ export function OrderCancelView({ orderId }: OrderCancelViewProps) {
                     rows={3}
                     value={cancelNote}
                     onChange={(e) => setCancelNote(e.target.value)}
-                    disabled={isSubmitted}
+                    disabled={isSubmitted || isSubmitting}
                     placeholder="Nhập thông tin thêm nếu có..."
                     className="w-full rounded-xl border border-line bg-surface p-3.5 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none transition-all disabled:opacity-50"
                   />
                 </div>
               </div>
 
-              {/* Hàng nút bấm: Giữ đơn hàng & Xác nhận hủy đơn */}
+              {/* Nút bấm: Giữ đơn & Xác nhận hủy */}
               <div className="flex items-center gap-4">
                 <button
                   type="button"
-                  onClick={() => router.push(`/orders/${order.id}`)}
-                  disabled={isSubmitted}
+                  onClick={() => router.push(`/orders/${orderId}`)}
+                  disabled={isSubmitted || isSubmitting}
                   className="px-6 py-2.5 rounded-xl border border-line bg-surface text-sm font-semibold text-ink hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
                   Giữ đơn hàng
@@ -158,10 +201,10 @@ export function OrderCancelView({ orderId }: OrderCancelViewProps) {
                 <button
                   type="button"
                   onClick={handleConfirmCancel}
-                  disabled={isSubmitted}
+                  disabled={isSubmitted || isSubmitting}
                   className="px-6 py-2.5 rounded-xl bg-rose-50 border border-rose-200 text-sm font-semibold text-rose-600 hover:bg-rose-100 transition-colors disabled:opacity-50"
                 >
-                  {isSubmitted ? "Đang hủy đơn..." : "Xác nhận hủy đơn"}
+                  {isSubmitting ? "Đang hủy đơn..." : "Xác nhận hủy đơn"}
                 </button>
               </div>
             </div>
@@ -181,7 +224,7 @@ export function OrderCancelView({ orderId }: OrderCancelViewProps) {
                   </span>
                 </div>
                 <div className="text-xs text-muted pt-1">
-                  Đã thanh toán:{" "}
+                  Tổng đơn:{" "}
                   <span className="font-bold text-ink">
                     {formatVND(order.totalAmount)}
                   </span>
