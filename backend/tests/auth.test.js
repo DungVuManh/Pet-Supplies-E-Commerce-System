@@ -17,7 +17,7 @@ const profile = {
  _id: "mongo-customer",
  firebaseUid: claims.uid,
  email: claims.email,
- fullName: "Khách hàng Petly",
+ fullName: "Khách hàng Petjoy",
  phone: "0912345678",
  role: "customer",
  secret: "never-return",

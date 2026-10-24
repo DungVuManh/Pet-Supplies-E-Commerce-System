@@ -123,9 +123,9 @@ export async function seedSampleData() {
       ],
     },
     {
-      name: "Dây dắt đệm êm Petly",
+      name: "Dây dắt đệm êm Petjoy",
       categoryName: "Phụ kiện",
-      brand: "Petly",
+      brand: "Petjoy",
       petType: "dog",
       description: "Dây dắt có tay cầm đệm êm chống đau tay, khóa kim loại chắc chắn phù hợp dắt thú cưng đi dạo.",
       images: ["/images/products/kong-ball.png"],
@@ -137,7 +137,7 @@ export async function seedSampleData() {
     {
       name: "Bát ăn inox chống trượt",
       categoryName: "Phụ kiện",
-      brand: "Petly",
+      brand: "Petjoy",
       petType: "all",
       description: "Bát ăn inox cao cấp viền silicon chống trượt, dễ dàng vệ sinh sạch sẽ.",
       images: ["/images/products/kong-ball.png"],
@@ -186,7 +186,7 @@ export async function seedSampleData() {
 
   const setting = await ensureSample(Setting, { _id: "global" }, { lowStockThreshold: 5, shippingFee: 30000 });
   const shippingAddress = {
-    recipientName: "Khách hàng mẫu Petly", phone: "0900000000", province: "TP. Hồ Chí Minh",
+    recipientName: "Khách hàng mẫu Petjoy", phone: "0900000000", province: "TP. Hồ Chí Minh",
     district: "Quận 1", ward: "Phường Bến Nghé", street: "123 Đường Mẫu",
   };
   const ownerKey = String(customer._id);

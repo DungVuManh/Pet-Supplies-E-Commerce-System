@@ -80,7 +80,7 @@ export function LoginForm() {
       <p className="text-center text-sm text-muted">
         Chưa có tài khoản? <Link href="/register" className="ml-1 font-semibold text-brand hover:underline">Đăng ký ngay</Link>
       </p>
-      <p className="text-xs text-muted">Thông tin của bạn được bảo mật và chỉ sử dụng để mang đến trải nghiệm tốt hơn tại Petly.</p>
+      <p className="text-xs text-muted">Thông tin của bạn được bảo mật và chỉ sử dụng để mang đến trải nghiệm tốt hơn tại Petjoy.</p>
     </>
   );
 }

@@ -43,8 +43,23 @@ Order items retain `name`, `unitPrice`, `qty` and `variantSku`; shipping address
 are embedded snapshots, independent of saved addresses. Document validation checks
 subtotal against item snapshots and total against subtotal minus discount plus
 shipping fee. Online guest orders require guest contact details; offline orders
-require `createdByStaffId`. Each order requires a shipping-address snapshot under
-BR-08. Moving to `shipping` requires carrier and tracking information.
+require `createdByStaffId`. Online orders require a shipping-address snapshot;
+Staff-created in-store sales do not request a delivery address. Existing offline
+address snapshots remain valid. Manual shipping permits optional carrier and tracking information.
+
+Payment methods also include `CASH` for Staff in-store sales. That creation API
+explicitly records completed/paid and deducts physical stock without consuming
+reserved stock, using sequential writes with Payment/AuditLog and best-effort
+compensation on standalone MongoDB. CASH cannot be used for
+online orders. `COD` and `ONLINE` retain their existing behavior/defaults.
+Order's optional hidden creationRequestId/creationRequestHash fields support
+same-intent replay; a partial unique Staff/request index leaves old orders untouched.
+The optional `creationState` is `pending` while a standalone sale is being written,
+and `complete` only after stock, Payment and AuditLog writes succeed. Pending
+orders are hidden from Staff list/detail/summary and return no recovery receipt.
+Legacy orders without this field remain visible. Failed/uncertain compensation
+keeps the pending key blocked for manual reconciliation. This flow cannot provide
+multi-document atomicity or automatic recovery after a process crash.
 
 Order/payment statuses use the proposed SRS values. Defaults are `pending` for
 orders, `unpaid` for COD payments, and `pending` for online payments. The schema

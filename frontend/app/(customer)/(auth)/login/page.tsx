@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Đăng nhập" };
 
 export default function LoginPage() {
   return (
-    <AuthCard title="Chào mừng trở lại!" description="Đăng nhập để tiếp tục chăm sóc các bé cùng Petly.">
+    <AuthCard title="Chào mừng trở lại!" description="Đăng nhập để tiếp tục chăm sóc các bé cùng Petjoy.">
       <LoginForm />
     </AuthCard>
   );
