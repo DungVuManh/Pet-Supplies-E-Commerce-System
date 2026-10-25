@@ -1,37 +1,74 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
-import type { Product } from "@/features/catalog/products";
-import { addCartItem, cartQuantity, cartTotal, type CartItem } from "./cart";
+// =============================================================
+// features/cart/cart-provider.tsx
+// Context quản lý giỏ hàng toàn ứng dụng, đồng bộ dữ liệu với MongoDB bằng useEffect
+// =============================================================
+
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { addToCartApi, getCartApi } from "./services/cart.service";
 
 type CartContextValue = {
-  items: readonly CartItem[];
   quantity: number;
   total: number;
-  addItem: (product: Product) => void;
-  removeItem: (id: string) => void;
+  refreshCart: () => Promise<void>;
+  addItem?: (product: { id: string; variants?: Array<{ sku: string }> }) => Promise<void>;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [announcement, setAnnouncement] = useState("");
+  const [quantity, setQuantity] = useState<number>(0);
+  const [total, setTotal] = useState<number>(0);
 
-  function addItem(product: Product) {
-    setItems((current) => addCartItem(current, product));
-    setAnnouncement(`Đã thêm ${product.name} vào giỏ hàng.`);
-  }
+  // Gọi API lấy số lượng và tổng tiền từ DB
+  const syncCartFromDb = async () => {
+    try {
+      const res = await getCartApi();
+      const cartSummary = res.data?.cart?.summary;
+      if (cartSummary) {
+        setQuantity(cartSummary.totalQuantity ?? 0);
+        setTotal(cartSummary.total ?? 0);
+      }
+    } catch {
+      // Khi chưa có cart trong DB thì giữ 0
+      setQuantity(0);
+      setTotal(0);
+    }
+  };
 
-  function removeItem(id: string) {
-    setItems((current) => current.filter((item) => item.product.id !== id));
-    setAnnouncement("Đã xóa sản phẩm khỏi giỏ hàng.");
-  }
+  // useEffect lấy dữ liệu khi khởi động và lắng nghe event cart-updated
+  useEffect(() => {
+    syncCartFromDb();
+
+    const handleCartUpdated = () => {
+      syncCartFromDb();
+    };
+
+    window.addEventListener("cart-updated", handleCartUpdated);
+    return () => {
+      window.removeEventListener("cart-updated", handleCartUpdated);
+    };
+  }, []);
+
+  const addItem = async (product: { id: string; variants?: Array<{ sku: string }> }) => {
+    try {
+      const sku = product.variants?.[0]?.sku || "default";
+      await addToCartApi({
+        productId: product.id,
+        variantSku: sku,
+        quantity: 1,
+      });
+      await syncCartFromDb();
+      window.dispatchEvent(new Event("cart-updated"));
+    } catch (err) {
+      console.error("Lỗi khi thêm vào giỏ hàng:", err);
+    }
+  };
 
   return (
-    <CartContext.Provider value={{ items, quantity: cartQuantity(items), total: cartTotal(items), addItem, removeItem }}>
+    <CartContext.Provider value={{ quantity, total, refreshCart: syncCartFromDb, addItem }}>
       {children}
-      <p role="status" aria-atomic="true" className="sr-only">{announcement}</p>
     </CartContext.Provider>
   );
 }

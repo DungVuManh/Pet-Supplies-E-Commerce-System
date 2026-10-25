@@ -11,6 +11,6 @@ export function ProfileFields({ errors, prefix }: { errors: AuthErrors; prefix: 
 
 export function TermsCheckbox({ error, id }: { error?: string; id: string }) {
   return <Checkbox id={id} name="terms" required error={error}>
-    Tôi đồng ý với Điều khoản sử dụng và Chính sách bảo mật của Petly.
+    Tôi đồng ý với Điều khoản sử dụng và Chính sách bảo mật của Petjoy.
   </Checkbox>;
 }

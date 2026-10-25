@@ -18,7 +18,7 @@ export function CompleteProfileForm({ remember, onSuccess, onCancel }: {
   });
   return <form noValidate onSubmit={onSubmit} onChange={onChange} aria-label="Hoàn tất hồ sơ" aria-busy={pending}>
     <fieldset disabled={pending} className="flex min-w-0 flex-col gap-4">
-      <p role="status" className="text-sm text-muted">Tài khoản đã có trên Firebase. Hãy hoàn tất hồ sơ để tiếp tục sử dụng Petly.</p>
+      <p role="status" className="text-sm text-muted">Tài khoản đã có trên Firebase. Hãy hoàn tất hồ sơ để tiếp tục sử dụng Petjoy.</p>
       <ProfileFields errors={errors} prefix="complete-profile" />
       <TermsCheckbox id="complete-profile-terms" error={errors.terms} />
       <Button type="submit">{pending ? "Đang lưu hồ sơ…" : "Hoàn tất và đăng nhập"}</Button>

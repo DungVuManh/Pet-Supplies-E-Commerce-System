@@ -3,11 +3,16 @@ export type OrderStatus =
   | "confirmed"
   | "processing"
   | "shipping"
-  | "delivered"
   | "completed"
   | "cancelled";
 
-export type PaymentMethod = "COD" | "ONLINE";
+export type PaymentMethod = "COD" | "ONLINE" | "CASH";
+export type StaffEditableOrderStatus = "confirmed" | "processing" | "shipping" | "completed" | "cancelled";
+export type StaffOrderStatusUpdate = {
+  expectedStatus: OrderStatus;
+  orderStatus: StaffEditableOrderStatus;
+  shipping?: StaffOrderShippingInfo;
+};
 export type PaymentStatus = "unpaid" | "pending" | "paid" | "failed";
 export type OrderChannel = "online" | "offline";
 export type SortOption = "createdAt_desc" | "createdAt_asc" | "total_desc" | "total_asc";
@@ -107,6 +112,7 @@ export interface StaffOrderDetail {
   createdByStaff: string | null;
   items: StaffOrderDetailItem[];
   statusHistory: StaffOrderStatusHistoryItem[];
+  allowedNextStatuses: StaffEditableOrderStatus[];
 }
 
 export interface StaffOrdersFilterState {
@@ -121,9 +127,8 @@ export interface StaffOrdersFilterState {
 export const orderStatusLabels: Record<OrderStatus, string> = {
   pending: "Chờ xử lý",
   confirmed: "Đã xác nhận",
-  processing: "Đang đóng gói",
+  processing: "Đang chuẩn bị",
   shipping: "Đang giao",
-  delivered: "Đã giao",
   completed: "Hoàn thành",
   cancelled: "Đã hủy",
 };
@@ -135,7 +140,6 @@ export const orderStatusTones: Record<OrderStatus, BadgeTone> = {
   confirmed: "info",
   processing: "info",
   shipping: "info",
-  delivered: "success",
   completed: "success",
   cancelled: "neutral",
 };
@@ -155,6 +159,7 @@ export const paymentStatusTones: Record<PaymentStatus, BadgeTone> = {
 };
 
 export const paymentMethodLabels: Record<PaymentMethod, string> = {
+  CASH: "Tiền mặt tại quầy",
   COD: "COD",
   ONLINE: "Thanh toán trực tuyến",
 };

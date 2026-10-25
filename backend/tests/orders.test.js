@@ -1,7 +1,11 @@
 import request from "supertest";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "../src/app.js";
 import { parseEnvironment } from "../src/config/env.js";
+import * as firebase from "../src/config/firebase.js";
+import { Order } from "../src/models/order.model.js";
+import { Product } from "../src/models/product.model.js";
+import { userRepository } from "../src/models/user.model.js";
 import {
   buildOrderSearchFilter,
   buildPhoneRegex,
@@ -49,6 +53,7 @@ describe("Staff Orders validation & query helpers", () => {
   it("rejects unknown query parameters and invalid enums", () => {
     expect(() => parseOrderQuery({ unknown: "param" })).toThrowError();
     expect(() => parseOrderQuery({ status: "packing" })).toThrowError();
+    expect(() => parseOrderQuery({ status: "delivered" })).toThrowError();
     expect(() => parseOrderQuery({ sort: "invalid_sort" })).toThrowError();
   });
 
@@ -128,5 +133,125 @@ describe("Staff Orders HTTP boundaries", () => {
     );
     expect(response.status).toBe(401);
     expect(response.body.error.code).toBe("UNAUTHENTICATED");
+  });
+});
+
+describe("Customer order creation HTTP", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("persists guest information when creating an online order", async () => {
+    const productId = "507f1f77bcf86cd799439011";
+    const guestInfo = { name: "Khách mua hàng", phone: "0901234567" };
+    const createdOrder = {
+      _id: "607f1f77bcf86cd799439099",
+      orderCode: "ORD123",
+      total: 450000,
+      paymentMethod: "COD",
+      createdAt: new Date().toISOString(),
+    };
+
+    vi.spyOn(Product, "findById").mockResolvedValue({
+      _id: productId,
+      name: "Thức ăn thú cưng",
+      price: 420000,
+      variants: [{ sku: "PET-001", price: 420000 }],
+    });
+    const createOrder = vi.spyOn(Order, "create").mockResolvedValue(createdOrder);
+
+    const response = await request(createApp(config))
+      .post("/api/v1/orders")
+      .send({
+        items: [{ productId, variantSku: "PET-001", qty: 1 }],
+        guestInfo,
+        shippingAddress: {
+          recipientName: guestInfo.name,
+          phone: guestInfo.phone,
+          province: "Hà Nội",
+          district: "Cầu Giấy",
+          ward: "Dịch Vọng",
+          street: "Số 1",
+        },
+      })
+      .expect(201);
+
+    expect(createOrder).toHaveBeenCalledWith(
+      expect.objectContaining({ guestInfo }),
+    );
+    expect(response.body.data.order.orderCode).toBe(createdOrder.orderCode);
+  });
+
+  it("uses the authenticated customer's profile ID instead of a client-provided ID", async () => {
+    const customerId = "507f1f77bcf86cd799439099";
+    const productId = "507f1f77bcf86cd799439011";
+    const customer = {
+      _id: customerId,
+      firebaseUid: "firebase-customer",
+      role: "customer",
+    };
+    const createdOrder = {
+      _id: "607f1f77bcf86cd799439099",
+      orderCode: "ORD456",
+      total: 450000,
+      paymentMethod: "COD",
+      createdAt: new Date().toISOString(),
+    };
+
+    vi.spyOn(firebase, "getFirebaseAuth").mockReturnValue({
+      verifySessionCookie: vi.fn().mockResolvedValue({ uid: customer.firebaseUid }),
+    });
+    vi.spyOn(userRepository, "findByUid").mockResolvedValue(customer);
+    vi.spyOn(Product, "findById").mockResolvedValue({
+      _id: productId,
+      name: "Thức ăn thú cưng",
+      price: 420000,
+      variants: [{ sku: "PET-001", price: 420000 }],
+    });
+    const createOrder = vi.spyOn(Order, "create").mockResolvedValue(createdOrder);
+
+    const response = await request(createApp(config))
+      .post("/api/v1/orders")
+      .set("Cookie", "petly-session=signed-session")
+      .send({
+        customerId: "507f1f77bcf86cd799439010",
+        items: [{ productId, variantSku: "PET-001", qty: 1 }],
+        guestInfo: { name: "Client name", phone: "0900000000" },
+        shippingAddress: {
+          recipientName: "Khách hàng",
+          phone: "0912345678",
+          province: "Hà Nội",
+          district: "Cầu Giấy",
+          ward: "Dịch Vọng",
+          street: "Số 1",
+        },
+      })
+      .expect(201);
+
+    expect(userRepository.findByUid).toHaveBeenCalledWith(customer.firebaseUid);
+    expect(createOrder).toHaveBeenCalledWith(
+      expect.objectContaining({ customerId, guestInfo: undefined }),
+    );
+    expect(response.body.data.order.orderCode).toBe(createdOrder.orderCode);
+  });
+
+  it("rejects order creation when a product ID does not exist", async () => {
+    vi.spyOn(Product, "findById").mockResolvedValue(null);
+    const createOrder = vi.spyOn(Order, "create");
+
+    const response = await request(createApp(config))
+      .post("/api/v1/orders")
+      .send({
+        items: [{
+          productId: "507f1f77bcf86cd799439011",
+          variantSku: "PET-001",
+          qty: 1,
+        }],
+        guestInfo: { name: "Khách mua hàng", phone: "0901234567" },
+      })
+      .expect(404);
+
+    expect(response.body.error.code).toBe("PRODUCT_NOT_FOUND");
+    expect(createOrder).not.toHaveBeenCalled();
   });
 });

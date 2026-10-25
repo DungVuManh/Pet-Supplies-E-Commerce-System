@@ -7,6 +7,10 @@ const petProfileSchema = new mongoose.Schema(
   species: { type: String, required: true, trim: true },
   breed: { type: String, trim: true },
   dob: Date,
+  age: { type: String, trim: true },
+  weight: { type: Number },
+  notes: { type: String, trim: true },
+  avatarUrl: { type: String },
  },
  { collection: "petProfiles", timestamps: true, bufferCommands: false },
 );

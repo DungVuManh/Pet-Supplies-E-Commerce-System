@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AllProduct } from "@/features/catalog/components/allproduct";
+import { AllProduct } from "@/features/catalog/components/listProduct";
 
 export const metadata: Metadata = { title: "Sản phẩm đồ dùng và dinh dưỡng cho thú cưng" };
 

@@ -2,6 +2,9 @@
 
 Ngày: 22/10/2026. Trạng thái: **bản thảo để duyệt, chưa triển khai**.
 
+Phần cập nhật trạng thái đã được mở rộng theo yêu cầu người dùng sau tài liệu
+chỉ đọc này; hợp đồng hiện tại nằm ở [staff-order-status.md](staff-order-status.md).
+
 ## 1. Mục tiêu, hiện trạng và phạm vi
 
 Thay dữ liệu mock trên `/staff/orders` và `/staff/orders/[id]` bằng dữ liệu MongoDB,
@@ -80,11 +83,14 @@ model chưa có assignment và đây không phải màn hình hiệu suất cá 
 | --- | --- |
 | pending | Chờ xử lý |
 | confirmed | Đã xác nhận |
-| processing | Đang đóng gói |
+| processing | Đang chuẩn bị |
 | shipping | Đang giao |
-| delivered | Đã giao |
 | completed | Hoàn thành |
 | cancelled | Đã hủy |
+
+Theo cập nhật ngày 23/10/2026, `delivered` cũ được API Staff trả về và thống kê
+trong nhóm `completed`, kể cả lịch sử. Bộ lọc `completed` bao gồm cả hai giá trị
+đã lưu; không ghi đè dữ liệu cũ. Luồng cập nhật xem `staff-order-status.md`.
 
 Giữ orderStatus và paymentStatus riêng. Payment status dùng unpaid/pending/paid/failed
 với nhãn Chưa thanh toán/Chờ thanh toán/Đã thanh toán/Thanh toán thất bại.

@@ -19,8 +19,8 @@ export function getClientAuth(): Promise<Auth> {
       const [{ getApps, initializeApp }, { initializeAuth, getAuth, inMemoryPersistence }] = await Promise.all([
         import("firebase/app"), import("firebase/auth"),
       ]);
-      const existing = getApps().find((app) => app.name === "petly-web-auth");
-      return existing ? getAuth(existing) : initializeAuth(initializeApp(config, "petly-web-auth"), {
+      const existing = getApps().find((app) => app.name === "petjoy-web-auth");
+      return existing ? getAuth(existing) : initializeAuth(initializeApp(config, "petjoy-web-auth"), {
         persistence: inMemoryPersistence,
       });
     })().catch((error) => { authPromise = undefined; throw error; });

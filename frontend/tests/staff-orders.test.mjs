@@ -47,16 +47,17 @@ test("StaffOrdersApiError retains HTTP status and application error code", () =>
   assert.equal(error.message, "Không tìm thấy đơn hàng.");
 });
 
-test("Order statuses and payment mappings cover all 7 order statuses and 4 payment statuses", () => {
+test("Order statuses and payment mappings cover the 6 staff statuses and 4 payment statuses", () => {
   const expectedOrderStatuses = [
     "pending",
     "confirmed",
     "processing",
     "shipping",
-    "delivered",
     "completed",
     "cancelled",
   ];
+  assert.deepEqual(Object.keys(orderStatusLabels), expectedOrderStatuses);
+  assert.deepEqual(Object.keys(orderStatusTones), expectedOrderStatuses);
   for (const status of expectedOrderStatuses) {
     assert.ok(orderStatusLabels[status], `Missing label for status: ${status}`);
     assert.ok(orderStatusTones[status], `Missing tone for status: ${status}`);

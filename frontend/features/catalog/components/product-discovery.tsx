@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { categories, filterProducts } from "../products";
 import { CategoryCard } from "./category-card";
-import { ProductCard } from "./product-card";
+import { ProductCard } from "./listProduct/components/product-card";
 
 export function ProductDiscovery() {
   const params = useSearchParams();

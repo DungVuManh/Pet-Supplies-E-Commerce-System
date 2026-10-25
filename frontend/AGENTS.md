@@ -8,7 +8,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-## Petly design contract
+## Petjoy design contract
 
 Read `design.md` before implementing or changing frontend UI. Follow its Figma
 sources, role-specific tokens, component boundaries, and review constraints.
