@@ -49,6 +49,7 @@ export function createApp(config) {
  //    },
  //   }),
  //  );
+ 
  app.use(express.json({ limit: "10mb" }));
  app.use(express.urlencoded({ extended: false, limit: "10mb" }));
  app.use("/api/v1/auth", authRouter);

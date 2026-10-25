@@ -6,153 +6,44 @@
 // =============================================================
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { DeliveryAddressCard } from "./components/delivery-address-card";
 import { OrderReviewCard } from "./components/order-review-card";
 import { PaymentMethodCard } from "./components/payment-method-card";
 import { ShippingMethodCard } from "./components/shipping-method-card";
-import type {
-  CheckoutOrderItem,
-  CheckoutSummary,
-  PaymentMethodType,
-  ShippingAddress,
-  ShippingMethod,
-} from "./types";
-import { getCartApi } from "@/features/cart/services/cart.service";
-import { createOrderApi } from "@/features/orders/services/order.service";
+import { useCheckout } from "./hooks/use-checkout";
 
 export * from "./types";
 
-const DEFAULT_SHIPPING_ADDRESS: ShippingAddress = {
-  fullName: "Khách hàng",
-  phone: "0900000000",
-  address: "Số 1 Cầu Giấy, Phường Dịch Vọng, Quận Cầu Giấy, Hà Nội",
-};
-
-const DEFAULT_SHIPPING_METHOD: ShippingMethod = {
-  id: "standard",
-  name: "Giao hàng tiêu chuẩn",
-  price: 30000,
-  estimatedDelivery: "2–3 ngày làm việc",
-};
-
-const DEFAULT_SUMMARY: CheckoutSummary = {
-  totalQuantity: 0,
-  subtotal: 0,
-  shippingFee: 30000,
-  discount: 0,
-  total: 30000,
-};
-
 export function CheckoutView() {
-  const router = useRouter();
+  const {
+    address,
+    handleSubmitOrder,
+    isLoading,
+    isSubmitting,
+    items,
+    loadCart,
+    loadError,
+    paymentMethod,
+    setPaymentMethod,
+    submitError,
+    summary,
+    shippingMethod,
+  } = useCheckout();
 
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>("cod");
-  const [items, setItems] = useState<CheckoutOrderItem[]>([]);
-  const [address, setAddress] = useState<ShippingAddress>(DEFAULT_SHIPPING_ADDRESS);
-  const [shippingMethod] = useState<ShippingMethod>(DEFAULT_SHIPPING_METHOD);
-  const [summary, setSummary] = useState<CheckoutSummary>(DEFAULT_SUMMARY);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // 1. Gọi API cart có sẵn từ MongoDB để hiển thị lại thông tin đơn hàng
-  useEffect(() => {
-    async function loadCartData() {
-      try {
-        setIsLoading(true);
-        const res = await getCartApi();
-        const cart = res.data?.cart;
-
-        if (cart) {
-          // Format sản phẩm từ cart sang format hiển thị checkout
-          const mappedItems: CheckoutOrderItem[] = (cart.items || []).map((item) => ({
-            id: item.id || item.sku,
-            productId: item.productId,
-            name: item.name,
-            description: item.description || (item.label ? `Phân loại: ${item.label}` : ""),
-            sku: item.sku,
-            price: item.price,
-            quantity: item.quantity,
-            image: item.image || "/images/products/royal-canin-mini-adult.png",
-          }));
-
-          setItems(mappedItems);
-
-          if (cart.summary) {
-            setSummary({
-              totalQuantity: cart.summary.totalQuantity,
-              subtotal: cart.summary.subtotal,
-              shippingFee: cart.summary.shippingFee || 30000,
-              discount: cart.summary.discount || 0,
-              total: cart.summary.total,
-            });
-          }
-        }
-      } catch (error) {
-        console.error("Lỗi khi tải giỏ hàng cho checkout:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadCartData();
-  }, []);
-
-  // 2. Gửi đơn hàng khi bấm Đặt hàng & thanh toán
-  async function handleSubmitOrder() {
-    if (items.length === 0) {
-      alert("Giỏ hàng đang trống, không thể thanh toán.");
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-
-      const res = await createOrderApi({
-        items: items.map((item) => {
-          return {
-            productId: item.productId,
-            variantSku: item.sku,
-            qty: item.quantity,
-          };
-        }),
-        shippingAddress: {
-          recipientName: address.fullName,
-          phone: address.phone,
-          street: address.address,
-          province: "TP. Hồ Chí Minh",
-          district: "Quận 1",
-          ward: "Phường Bến Nghé",
-        },
-        guestInfo: {
-          name: address.fullName,
-          phone: address.phone,
-        },
-        paymentMethod: "COD", // Trước mắt mặc định cho đặt COD
-      });
-
-      const order = res.data?.order;
-
-      // Cập nhật lại số lượng giỏ hàng trên Header
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new Event("cart-updated"));
-      }
-
-      // Chuyển hướng tới màn hình thông báo Đặt hàng thành công với 4 trường cần thiết
-      const queryParams = new URLSearchParams({
-        orderCode: order?.orderCode || "",
-        total: String(order?.total ?? summary.total),
-        paymentMethod: order?.paymentMethod || "COD",
-        createdAt: order?.createdAt || new Date().toISOString(),
-      });
-
-      router.push(`/checkout/result?${queryParams.toString()}`);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Có lỗi xảy ra khi tạo đơn hàng.");
-    } finally {
-      setIsSubmitting(false);
-    }
+  if (loadError) {
+    return (
+      <div className="w-full py-16 text-center" role="alert">
+        <p className="text-sm text-red-700">{loadError}</p>
+        <button
+          type="button"
+          onClick={() => void loadCart()}
+          className="mt-4 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+        >
+          Thử tải lại
+        </button>
+      </div>
+    );
   }
 
   // Giao diện khi giỏ hàng trống
@@ -210,6 +101,12 @@ export function CheckoutView() {
 
       {/* 3. Bố cục 2 cột chính */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {submitError && (
+          <p className="lg:col-span-12 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700" role="alert">
+            {submitError}
+          </p>
+        )}
+
         {/* CỘT TRÁI: Địa chỉ giao hàng & Phương thức */}
         <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-6">
           <DeliveryAddressCard address={address} />
