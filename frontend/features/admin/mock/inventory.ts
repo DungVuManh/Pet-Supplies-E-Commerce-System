@@ -1,4 +1,5 @@
 import type { AdminStatus } from "../status";
+import { matchesQuery } from "./text.ts";
 
 /** Stock levels shared by the dashboard, inventory and inventory-report screens. */
 export type StockLevel = {
@@ -37,7 +38,7 @@ export const stockLevels: StockLevel[] = [
     sku: "CT-BEN-10L",
     name: "Cát vệ sinh Catsan 10 L",
     shortName: "Catsan 10 L",
-    category: "Vệ sinh & chăm sóc",
+    category: "Vệ sinh & cát mèo",
     brand: "Catsan",
     unit: "bao",
     available: 8,
@@ -47,7 +48,7 @@ export const stockLevels: StockLevel[] = [
     sku: "KG-CL-M",
     name: "Đồ chơi KONG Classic M",
     shortName: "KONG Classic M",
-    category: "Đồ chơi",
+    category: "Đồ chơi cho chó",
     brand: "KONG",
     unit: "cái",
     available: 12,
@@ -57,7 +58,7 @@ export const stockLevels: StockLevel[] = [
     sku: "PT-HN-M",
     name: "Dây yếm Petkit size M",
     shortName: "Petkit size M",
-    category: "Phụ kiện",
+    category: "Phụ kiện cho chó",
     brand: "Petkit",
     unit: "cái",
     available: 6,
@@ -170,20 +171,11 @@ export const stockHistory: StockHistoryEntry[] = [
   },
 ];
 
-function normalize(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9]+/g, " ")
-    .trim()
-    .toLowerCase();
-}
-
 export function filterStockLevels(
   items: StockLevel[],
   filter: { search?: string; status?: string; lowStockOnly?: boolean }
 ): StockLevel[] {
-  const query = filter.search ? normalize(filter.search) : "";
+  const query = filter.search ?? "";
   const statusFilter = filter.status && filter.status !== "Tất cả" ? filter.status : null;
 
   return items.filter((item) => {
@@ -196,7 +188,7 @@ export function filterStockLevels(
 
     if (!query) return true;
     const searchable = `${item.sku} ${item.name} ${item.category} ${item.brand}`;
-    return normalize(searchable).includes(query);
+    return matchesQuery(query, searchable);
   });
 }
 
@@ -205,9 +197,9 @@ export function filterStockHistory(
   search?: string
 ): StockHistoryEntry[] {
   if (!search) return entries;
-  const query = normalize(search);
+  const query = search;
   return entries.filter((entry) => {
     const searchable = `${entry.id} ${entry.sku} ${entry.productName} ${entry.type} ${entry.performer} ${entry.note}`;
-    return normalize(searchable).includes(query);
+    return matchesQuery(query, searchable);
   });
 }

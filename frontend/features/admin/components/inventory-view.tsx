@@ -225,7 +225,7 @@ export function InventoryView() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] border-collapse text-left">
                 <caption className="sr-only">Lịch sử nhập xuất kho hàng</caption>
-                <thead className="bg-canvas text-xs text-muted">
+                <thead className="bg-canvas text-xs uppercase text-muted">
                   <tr>
                     <Th className="w-48">Mã phiếu / Thời gian</Th>
                     <Th>Sản phẩm</Th>
@@ -274,7 +274,7 @@ export function InventoryView() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] border-collapse text-left">
                 <caption className="sr-only">Danh sách tồn kho sản phẩm</caption>
-                <thead className="bg-canvas text-xs text-muted">
+                <thead className="bg-canvas text-xs uppercase text-muted">
                   <tr>
                     <Th className="w-44">SKU / Ngưỡng</Th>
                     <Th>Sản phẩm</Th>

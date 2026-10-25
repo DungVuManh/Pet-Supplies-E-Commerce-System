@@ -10,16 +10,21 @@ import { card, control, primaryLink } from "@/features/workspace/components/work
 
 export function StoreSettingsView() {
   const [form, setForm] = useState<StoreSettings>(defaultStoreSettings);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState<{ storeName?: string; contactEmail?: string }>({});
   const [notice, setNotice] = useState("");
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!form.storeName.trim()) {
-      setError("Vui lòng nhập tên cửa hàng.");
+    const found: typeof errors = {};
+    if (!form.storeName.trim()) found.storeName = "Vui lòng nhập tên cửa hàng.";
+    if (form.contactEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contactEmail.trim())) found.contactEmail = "Nhập email hợp lệ, ví dụ hello@petly.vn.";
+    setErrors(found);
+    const first = Object.keys(found)[0];
+    if (first) {
+      setNotice("");
+      document.getElementById(first === "storeName" ? "store-name" : "store-email")?.focus();
       return;
     }
-    setError("");
     setNotice("Đã lưu cấu hình hệ thống thành công (bản demo không lưu vào cơ sở dữ liệu).");
   };
 
@@ -33,7 +38,7 @@ export function StoreSettingsView() {
           <button
             type="submit"
             form="store-settings-form"
-            className={primaryLink}
+            className={`${primaryLink} min-h-12 px-8`}
           >
             Lưu cấu hình
           </button>
@@ -63,18 +68,9 @@ export function StoreSettingsView() {
         </div>
       )}
 
-      {/* Error message */}
-      {error && (
-        <div
-          role="alert"
-          className="rounded-lg border border-danger/20 bg-danger-subtle px-6 py-4 text-sm font-medium text-danger"
-        >
-          {error}
-        </div>
-      )}
-
       <form
         id="store-settings-form"
+        noValidate
         onSubmit={handleSubmit}
         className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]"
       >
@@ -94,12 +90,15 @@ export function StoreSettingsView() {
                   type="text"
                   required
                   value={form.storeName}
+                  aria-invalid={errors.storeName ? true : undefined}
+                  aria-describedby={errors.storeName ? "store-name-error" : undefined}
                   onChange={(e) => {
                     setForm({ ...form, storeName: e.target.value });
-                    setError("");
+                    setErrors({ ...errors, storeName: undefined });
                   }}
-                  className={control}
+                  className={`${control} ${errors.storeName ? "border-danger" : ""}`}
                 />
+                {errors.storeName && <p id="store-name-error" role="alert" className="text-xs text-danger">{errors.storeName}</p>}
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -111,9 +110,15 @@ export function StoreSettingsView() {
                     id="store-email"
                     type="email"
                     value={form.contactEmail}
-                    onChange={(e) => setForm({ ...form, contactEmail: e.target.value })}
-                    className={control}
+                    aria-invalid={errors.contactEmail ? true : undefined}
+                    aria-describedby={errors.contactEmail ? "store-email-error" : undefined}
+                    onChange={(e) => {
+                      setForm({ ...form, contactEmail: e.target.value });
+                      setErrors({ ...errors, contactEmail: undefined });
+                    }}
+                    className={`${control} ${errors.contactEmail ? "border-danger" : ""}`}
                   />
+                  {errors.contactEmail && <p id="store-email-error" role="alert" className="text-xs text-danger">{errors.contactEmail}</p>}
                 </div>
 
                 <div className="flex min-w-0 flex-col gap-2">

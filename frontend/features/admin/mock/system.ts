@@ -1,4 +1,5 @@
 import type { AdminStatus } from "../status";
+import { matchesQuery } from "./text.ts";
 
 /* -------------------------------------------------------------------------- */
 /* 11a. Store Configuration Data                                              */
@@ -215,26 +216,26 @@ export const auditLogEntries: AuditLogEntry[] = [
   },
 ];
 
-function normalize(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9]+/g, " ")
-    .trim()
-    .toLowerCase();
+/** Admin screen for the record a log entry changed: users, orders, policies, settings, otherwise a product SKU. */
+export function auditTargetHref(target: string) {
+  if (/^(KH|NV)\d+$/.test(target)) return `/admin/users/${target}`;
+  if (/^PA\d+$/.test(target)) return `/admin/orders?q=${target}`;
+  if (target.startsWith("POL-")) return "/admin/system/policies";
+  if (target.startsWith("CFG-")) return "/admin/system/settings";
+  return `/admin/products/${target}`;
 }
 
 export function filterAuditLog(
   entries: AuditLogEntry[],
   filter: { search?: string; action?: string }
 ): AuditLogEntry[] {
-  const query = filter.search ? normalize(filter.search) : "";
+  const query = filter.search ?? "";
   const actionFilter = filter.action && filter.action !== "Tất cả hành động" ? filter.action : null;
 
   return entries.filter((entry) => {
     if (actionFilter && entry.action !== actionFilter) return false;
     if (!query) return true;
     const searchable = `${entry.actor} ${entry.target} ${entry.action} ${entry.detail} ${entry.ip}`;
-    return normalize(searchable).includes(query);
+    return matchesQuery(query, searchable);
   });
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Download, Package, XCircle, CheckCircle2 } from "lucide-react";
@@ -262,9 +263,9 @@ export function CancellationsView() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] border-collapse text-left">
                 <caption className="sr-only">Danh sách yêu cầu hủy đơn</caption>
-                <thead className="bg-canvas text-xs text-muted">
+                <thead className="bg-canvas text-xs uppercase text-muted">
                   <tr>
-                    <Th className="w-36">Yêu cầu</Th>
+                    <Th className="w-44">Yêu cầu</Th>
                     <Th>Đơn hàng / Lý do</Th>
                     <Th className="w-36">Giá trị</Th>
                     <Th className="w-48">Người yêu cầu</Th>
@@ -279,9 +280,9 @@ export function CancellationsView() {
                       </Td>
                       <Td>
                         <div className="min-w-0">
-                          <p className="font-semibold text-brand">
+                          <Link href={`/admin/orders?q=${row.orderId}`} className="font-semibold text-brand hover:underline">
                             #{row.orderId}
-                          </p>
+                          </Link>
                           <p className="mt-1 text-xs text-muted line-clamp-2">
                             {row.reason}
                           </p>
@@ -304,14 +305,14 @@ export function CancellationsView() {
                             <button
                               type="button"
                               onClick={() => handleApprove(row)}
-                              className="inline-flex min-h-8 items-center justify-center rounded-lg bg-brand px-3 text-xs font-semibold text-white hover:bg-brand-hover"
+                              className="inline-flex min-h-8 items-center justify-center whitespace-nowrap rounded-lg bg-brand px-3 text-xs font-semibold text-white hover:bg-brand-hover"
                             >
                               Chấp nhận
                             </button>
                             <button
                               type="button"
                               onClick={() => handleReject(row)}
-                              className="inline-flex min-h-8 items-center justify-center rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-danger hover:bg-danger-subtle"
+                              className="inline-flex min-h-8 items-center justify-center whitespace-nowrap rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-danger hover:bg-danger-subtle"
                             >
                               Từ chối
                             </button>

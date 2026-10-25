@@ -1,4 +1,5 @@
 import type { AdminStatus } from "../status";
+import { matchesQuery } from "./text.ts";
 
 export const reportPeriod = "01–12/10/2026";
 
@@ -132,12 +133,12 @@ export const productSales: ProductSalesRow[] = [
     share: "24,8% doanh thu danh mục",
     revenue: 7_770_000,
     quantity: 42,
-    unit: "túi",
+    unit: "bao",
   },
   {
     sku: "KG-CL-M",
     name: "Đồ chơi KONG Classic M",
-    staff: "Lê Văn Nam",
+    staff: "Hoàng Gia Bảo",
     orders: 20,
     share: "18,5% doanh thu danh mục",
     revenue: 4_250_000,
@@ -177,7 +178,7 @@ export type CategorySalesRow = {
 export const categorySales: CategorySalesRow[] = [
   { category: "Thức ăn cho chó", revenue: 55_050_000, orders: 118, quantity: 180, share: "41,5% tổng doanh thu" },
   { category: "Thức ăn cho mèo", revenue: 42_450_000, orders: 92, quantity: 215, share: "32,0% tổng doanh thu" },
-  { category: "Vệ sinh & chăm sóc", revenue: 18_650_000, orders: 40, quantity: 125, share: "14,1% tổng doanh thu" },
+  { category: "Vệ sinh & cát mèo", revenue: 18_650_000, orders: 40, quantity: 125, share: "14,1% tổng doanh thu" },
   { category: "Đồ chơi & Phụ kiện", revenue: 16_500_000, orders: 36, quantity: 122, share: "12,4% tổng doanh thu" },
 ];
 
@@ -192,7 +193,7 @@ export type StaffSalesRow = {
 export const staffSales: StaffSalesRow[] = [
   { staff: "Phạm Thu Hà", role: "Nhân viên kinh doanh", revenue: 58_420_000, orders: 126, topProduct: "Royal Canin Mini Adult 2 kg" },
   { staff: "Vũ Đức Long", role: "Nhân viên kinh doanh", revenue: 44_630_000, orders: 95, topProduct: "Royal Canin Indoor 2 kg" },
-  { staff: "Lê Văn Nam", role: "Nhân viên kho vận & bán lẻ", revenue: 29_600_000, orders: 65, topProduct: "Đồ chơi KONG Classic M" },
+  { staff: "Hoàng Gia Bảo", role: "Nhân viên kho vận & bán lẻ", revenue: 29_600_000, orders: 65, topProduct: "Đồ chơi KONG Classic M" },
 ];
 
 export type TimeSalesRow = {
@@ -260,7 +261,7 @@ export const inventoryReportRows: InventoryReportRow[] = [
   {
     sku: "CT-BEN-10L",
     name: "Cát vệ sinh Catsan 10 L",
-    category: "Vệ sinh & chăm sóc",
+    category: "Vệ sinh & cát mèo",
     opening: 30,
     inQty: 20,
     outQty: 42,
@@ -271,7 +272,7 @@ export const inventoryReportRows: InventoryReportRow[] = [
   {
     sku: "KG-CL-M",
     name: "Đồ chơi KONG Classic M",
-    category: "Đồ chơi",
+    category: "Đồ chơi cho chó",
     opening: 24,
     inQty: 12,
     outQty: 24,
@@ -282,7 +283,7 @@ export const inventoryReportRows: InventoryReportRow[] = [
   {
     sku: "PT-HN-M",
     name: "Dây yếm Petkit size M",
-    category: "Phụ kiện",
+    category: "Phụ kiện cho chó",
     opening: 18,
     inQty: 8,
     outQty: 20,
@@ -303,26 +304,17 @@ export const inventoryReportRows: InventoryReportRow[] = [
   },
 ];
 
-function normalize(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9]+/g, " ")
-    .trim()
-    .toLowerCase();
-}
-
 export function filterInventoryReport(
   rows: InventoryReportRow[],
   filter: { search?: string; category?: string }
 ): InventoryReportRow[] {
-  const query = filter.search ? normalize(filter.search) : "";
+  const query = filter.search ?? "";
   const cat = filter.category && filter.category !== "Tất cả danh mục" ? filter.category : null;
 
   return rows.filter((row) => {
     if (cat && row.category !== cat) return false;
     if (!query) return true;
     const searchable = `${row.sku} ${row.name} ${row.category}`;
-    return normalize(searchable).includes(query);
+    return matchesQuery(query, searchable);
   });
 }

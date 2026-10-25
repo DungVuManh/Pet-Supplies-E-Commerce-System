@@ -173,7 +173,7 @@ Designs: `docs/designs/Admin/` (Auth designs excluded; authentication is already
 - [x] Shared fix: `Badge` never wraps ("Đang đóng gói" broke onto two lines)
 - [x] Tests: Staff orders shared, linked orders exist, tab grouping covers every order, filters
 - [x] Browser check: all 4 states vs `Order.png`, tabs/status/search, empty + reset, dashboard and user links, 1440 and 320
-- [ ] **🛑 Commit checkpoint: Orders**
+- [x] **🛑 Commit checkpoint: Orders**
 
 ## 7. Cancellation requests: `/admin/cancellations`
 
@@ -248,6 +248,17 @@ Designs: `docs/designs/Admin/` (Auth designs excluded; authentication is already
 - [x] "Nhật ký chỉ đọc" callout and "Xuất nhật ký" (demo)
 - [ ] **🛑 Commit checkpoint: Audit log**
 
+
+## Review of phases 7–11 (teammate screens)
+
+- [x] Browser review as Admin of every route at 1440 and 320, plus the `?state=` previews: no console errors, no page-level horizontal scroll, and `/admin/reports` and `/admin/system` redirect correctly
+- [x] Search: cancellations, inventory, inventory history, inventory report, notifications, and audit log used a local `normalize()` that deleted "đ/Đ", so "Vũ Đức Long" could not be found as "duc" or "Đức". They now use the shared `matchesQuery`.
+- [x] Data consistency: inventory and report categories use the category tree names (Vệ sinh & cát mèo, Đồ chơi cho chó, Phụ kiện cho chó), the Catsan sales unit is "bao" like its product, and "Lê Văn Nam" (not a staff account) is replaced by NV0003 Hoàng Gia Bảo
+- [x] Audit log: pagination showed "/ 1.842 bản ghi" with a single page, so it now counts the shown rows. "Chi tiết" linked back to the same page with an unused `?id=` and now opens the affected record (`auditTargetHref`). The target column no longer uses a monospace font.
+- [x] Cancellations: the order ID links to `/admin/orders?q=…`. Approve and reject buttons and the timestamps no longer wrap, and the headers are uppercase as in `Order.png` (inventory headers too).
+- [x] Store settings: the browser's native `required` check blocked the Vietnamese error, so the form is now `noValidate`, with inline errors, `aria-invalid`, and focus for the store name and the contact email format
+- [x] Header buttons on notifications, settings, and policies are 48px like the other Admin headers
+- [x] Tests: đ/accent search on the teammate filters, audit link targets resolve, and report and inventory categories, units, and staff agree with products and users
 
 ## 12. Final verification
 

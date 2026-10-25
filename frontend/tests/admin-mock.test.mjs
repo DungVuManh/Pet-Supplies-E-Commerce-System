@@ -6,11 +6,11 @@ import { cumulativeRevenue, overview, recentActivity } from "../features/admin/m
 import { countUsers, filterUsers, getUser, getUserDetail, users } from "../features/admin/mock/users.ts";
 import { defaultPermissions, togglePermission } from "../features/admin/mock/permissions.ts";
 import { parseAmount, validateCategory, validateProduct, validateUser } from "../features/admin/validation.ts";
-import { categoryDeleteBlocker, categoryProductCount, countProducts, filterProducts, getProduct, productStatus, products } from "../features/admin/mock/products.ts";
-import { categoryPath, categoryTree, filterCategories, getCategory } from "../features/admin/mock/categories.ts";
+import { categoryDeleteBlocker, categoryProductCount, countProducts, filterProducts, getProduct, productCategoryName, productStatus, products } from "../features/admin/mock/products.ts";
+import { categories, categoryPath, categoryTree, filterCategories, getCategory } from "../features/admin/mock/categories.ts";
 import { filterMasterData, masterData, masterTabs, petTypeOptions, unitOptions } from "../features/admin/mock/master-data.ts";
 import { adminOrders, countOrders, filterOrders, getAdminOrder, orderStatusLabel } from "../features/admin/mock/orders.ts";
-import { productSales } from "../features/admin/mock/reports.ts";
+import { productSales, staffSales } from "../features/admin/mock/reports.ts";
 
 const allUsers = { tab: "all", query: "", role: "all", status: "all" };
 
@@ -166,6 +166,43 @@ test("order tabs group statuses and filters combine with search", () => {
   assert.ok(filterOrders({ ...all, query: "minh anh" }).length >= 2);
 });
 
+test("teammate screens search Vietnamese names with đ/Đ and ignore accents", () => {
+  assert.deepEqual(filterAuditLog(auditLogEntries, { search: "duc long" }).map((e) => e.actor), ["Vũ Đức Long"]);
+  assert.deepEqual(filterAuditLog(auditLogEntries, { search: "Đức" }).map((e) => e.actor), ["Vũ Đức Long"]);
+  assert.ok(filterCancellations(initialCancellations, { search: "dat nham" }).length >= 1, "“Đặt nhầm” matches without accents");
+  assert.ok(filterNotifications(initialNotifications, { tab: "all", search: "don hang" }).length >= 1, "“Đơn hàng” matches “don hang”");
+  assert.deepEqual(filterStockLevels(stockLevels, { search: "do choi" }).map((i) => i.sku), ["KG-CL-M"]);
+});
+
+test("audit log details open the affected record", () => {
+  assert.deepEqual(auditLogEntries.map((e) => auditTargetHref(e.target)), [
+    "/admin/products/RC-MA-2KG", "/admin/users/KH0003", "/admin/orders?q=PA261011009",
+    "/admin/system/policies", "/admin/products/RC-IN-2KG", "/admin/system/settings",
+  ]);
+  for (const entry of auditLogEntries) {
+    const href = auditTargetHref(entry.target);
+    if (href.startsWith("/admin/products/")) assert.ok(getProduct(entry.target), entry.target);
+    if (href.startsWith("/admin/users/")) assert.ok(getUser(entry.target), entry.target);
+    if (href.startsWith("/admin/orders")) assert.ok(getAdminOrder(entry.target), entry.target);
+  }
+});
+
+test("report and inventory data agree with products, categories and staff accounts", () => {
+  const leafNames = new Set(categories.filter((c) => c.parent || c.code === "DM009").map((c) => c.name));
+  for (const level of stockLevels) {
+    assert.ok(leafNames.has(level.category), `inventory category ${level.category}`);
+    assert.equal(level.category, productCategoryName(getProduct(level.sku)), level.sku);
+    assert.equal(level.unit, getProduct(level.sku).unit.toLowerCase(), `unit of ${level.sku}`);
+  }
+  for (const row of inventoryReportRows) assert.equal(row.category, productCategoryName(getProduct(row.sku)), row.sku);
+  const staffNames = new Set(users.filter((u) => u.role === "staff").map((u) => u.fullName));
+  for (const row of productSales) {
+    assert.ok(staffNames.has(row.staff), `sales staff ${row.staff}`);
+    assert.equal(row.unit, getProduct(row.sku).unit.toLowerCase(), `sales unit of ${row.sku}`);
+  }
+  for (const row of staffSales) assert.ok(staffNames.has(row.staff), `staff report ${row.staff}`);
+});
+
 test("dashboard revenue chart ends at the net revenue KPI and only grows", () => {
   assert.equal(Math.round(cumulativeRevenue.at(-1)?.value * 1_000_000), overview.netRevenue);
   for (let i = 1; i < cumulativeRevenue.length; i += 1) assert.ok(cumulativeRevenue[i].value >= cumulativeRevenue[i - 1].value);
@@ -314,7 +351,7 @@ test("notifications mock contains order, stock and system types with read/saved 
   assert.ok(stockOnly.every((n) => n.type === "stock"));
 });
 
-import { auditLogEntries, defaultPolicies, defaultStoreSettings, filterAuditLog } from "../features/admin/mock/system.ts";
+import { auditLogEntries, auditTargetHref, defaultPolicies, defaultStoreSettings, filterAuditLog } from "../features/admin/mock/system.ts";
 
 test("system mock data covers settings, policies, and audit log entries", () => {
   // Settings checks

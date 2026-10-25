@@ -1,4 +1,5 @@
 import type { AdminStatus } from "../status";
+import { matchesQuery } from "./text.ts";
 
 export type CancellationStatus = Extract<AdminStatus, "Chờ duyệt" | "Đã chấp nhận" | "Đã từ chối">;
 
@@ -91,20 +92,11 @@ export function getCancellation(id: string): CancellationRequest | undefined {
   return initialCancellations.find((req) => req.id === id);
 }
 
-function normalize(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9]+/g, " ")
-    .trim()
-    .toLowerCase();
-}
-
 export function filterCancellations(
   requests: CancellationRequest[],
   filter: { search?: string; status?: string }
 ): CancellationRequest[] {
-  const query = filter.search ? normalize(filter.search) : "";
+  const query = filter.search ?? "";
   const statusFilter = filter.status && filter.status !== "Tất cả" ? filter.status : null;
 
   return requests.filter((req) => {
@@ -112,6 +104,6 @@ export function filterCancellations(
     if (!query) return true;
 
     const searchable = `${req.id} ${req.orderId} ${req.customer} ${req.reason} ${req.requesterRole}`;
-    return normalize(searchable).includes(query);
+    return matchesQuery(query, searchable);
   });
 }

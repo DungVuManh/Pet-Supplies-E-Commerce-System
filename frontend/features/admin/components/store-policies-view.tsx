@@ -40,7 +40,7 @@ export function StorePoliciesView() {
             <button
               type="button"
               onClick={handleSave}
-              className={primaryLink}
+              className={`${primaryLink} min-h-12 px-8`}
             >
               Lưu & công bố
             </button>

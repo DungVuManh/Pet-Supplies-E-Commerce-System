@@ -109,7 +109,7 @@ export function NotificationsView() {
   };
 
   const actionHeader = (
-    <Link href="/admin/system/settings" className={secondaryButton}>
+    <Link href="/admin/system/settings" className={`${secondaryButton} min-h-12`}>
       Cài đặt thông báo
     </Link>
   );

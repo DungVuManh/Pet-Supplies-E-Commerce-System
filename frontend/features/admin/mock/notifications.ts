@@ -1,3 +1,4 @@
+import { matchesQuery } from "./text.ts";
 export type NotificationType = "order" | "stock" | "system";
 
 export type NotificationItem = {
@@ -81,15 +82,6 @@ export const initialNotifications: NotificationItem[] = [
   },
 ];
 
-function normalize(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9]+/g, " ")
-    .trim()
-    .toLowerCase();
-}
-
 export const notificationTypeLabels: Record<NotificationType, string> = {
   order: "Đơn hàng",
   stock: "Kho hàng",
@@ -105,7 +97,7 @@ export function filterNotifications(
     status?: string;
   }
 ): NotificationItem[] {
-  const query = filter.search ? normalize(filter.search) : "";
+  const query = filter.search ?? "";
   const typeFilter =
     filter.type && filter.type !== "Tất cả"
       ? (Object.entries(notificationTypeLabels).find(([, label]) => label === filter.type)?.[0] as NotificationType)
@@ -126,7 +118,7 @@ export function filterNotifications(
     // Search query
     if (!query) return true;
     const searchable = `${item.title} ${item.detail} ${item.reference || ""} ${notificationTypeLabels[item.type]}`;
-    return normalize(searchable).includes(query);
+    return matchesQuery(query, searchable);
   });
 }
 

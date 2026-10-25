@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Download, ShieldCheck } from "lucide-react";
 import { AdminPageHeader, DataTable, StatusBadge, Stack, Td, Th } from "./admin-ui";
 import { SystemNav } from "./system-nav";
-import { auditLogEntries, filterAuditLog } from "../mock/system";
+import { auditLogEntries, auditTargetHref, filterAuditLog } from "../mock/system";
 import { ActionLink, InfoCallout, Pagination, card, control, secondaryButton } from "@/features/workspace/components/workspace-ui";
 import { DemoNotice } from "@/features/workspace/components/demo-notice";
 
@@ -126,9 +126,9 @@ export function AuditLogView() {
         }
         footer={
           <Pagination
-            from={1}
+            from={filteredEntries.length ? 1 : 0}
             to={filteredEntries.length}
-            total={1842}
+            total={filteredEntries.length}
           />
         }
       >
@@ -145,12 +145,12 @@ export function AuditLogView() {
                 </p>
               </div>
             </Td>
-            <Td className="font-mono text-sm font-semibold">{row.target}</Td>
+            <Td className="font-semibold">{row.target}</Td>
             <Td>
               <StatusBadge status={row.result} />
             </Td>
             <Td>
-              <ActionLink href={`/admin/system/audit-log?id=${row.id}`}>Chi tiết</ActionLink>
+              <ActionLink href={auditTargetHref(row.target)}>Chi tiết</ActionLink>
             </Td>
           </tr>
         ))}
