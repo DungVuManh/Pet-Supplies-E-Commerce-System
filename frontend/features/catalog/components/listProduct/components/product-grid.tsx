@@ -7,7 +7,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ProductCard } from "../../product-card";
+import { ProductCard } from "./product-card";
 import type { CatalogProduct } from "../types";
 
 type ProductGridProps = {
