@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { LayoutDashboard, LogOut, MapPin, PawPrint, ShoppingCart, UserRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../auth-provider";
 import { authApi } from "../api";
 import { authErrorMessage } from "../errors";
+
+const menuItemClassName = "flex min-h-11 w-full items-center gap-3 rounded-lg px-2 text-left text-sm font-medium text-ink transition-colors hover:bg-brand-subtle hover:text-brand";
 
 export function AccountMenu() {
  const { user, status, acceptUser, refresh } = useAuth();
@@ -123,7 +126,7 @@ export function AccountMenu() {
  return (
   <details ref={detailsRef} className="relative text-sm">
    <summary
-    className="inline-flex max-w-44 cursor-pointer list-none items-center gap-2 truncate font-semibold hover:text-brand [&::-webkit-details-marker]:hidden sm:max-w-56"
+    className="inline-flex min-h-11 max-w-32 cursor-pointer list-none items-center gap-2 truncate rounded-lg font-semibold hover:text-brand [&::-webkit-details-marker]:hidden sm:max-w-56"
     aria-label={`Tài khoản ${user.fullName}`}
    >
     <span className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full border border-line bg-canvas">
@@ -138,7 +141,7 @@ export function AccountMenu() {
     </span>
     <span className="truncate">{user.fullName}</span>
    </summary>
-   <div className="absolute right-0 top-full z-20 mt-3 w-64 max-w-[calc(100vw-3rem)] whitespace-normal rounded-lg border border-line bg-surface p-4 shadow-lg">
+   <div className="absolute right-0 top-full z-20 mt-3 w-64 max-w-[calc(100vw-3rem)] whitespace-normal rounded-lg border border-line bg-surface p-4 shadow-sm">
     <div className="flex items-center gap-3 border-b border-line/60 pb-3">
      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-line bg-canvas">
       <Image
@@ -156,58 +159,68 @@ export function AccountMenu() {
      </div>
     </div>
 
-    {user.role !== "customer" ? (
-     <Link
-      href={`/${user.role}/dashboard`}
-      prefetch={false}
-      onClick={closeMenu}
-      className="mt-3 flex min-h-11 items-center font-semibold text-brand hover:underline"
-     >
-      {user.role === "staff" ? "Dashboard nhân viên" : "Dashboard quản trị"}
-     </Link>
-    ) : (
-     <div className="mt-3 flex flex-col border-t border-line/60 pt-2 text-xs">
+    <div className="mt-2 flex flex-col">
+     {user.role !== "customer" ? (
       <Link
-       href="/account/profile"
+       href={`/${user.role}/dashboard`}
+       prefetch={false}
        onClick={closeMenu}
-       className="flex min-h-9 items-center font-medium text-ink hover:text-brand"
+       className={menuItemClassName}
       >
-       👤 Thông tin tài khoản
+       <LayoutDashboard aria-hidden="true" className="h-4 w-4 shrink-0" />
+       {user.role === "staff" ? "Dashboard nhân viên" : "Dashboard quản trị"}
       </Link>
-      <Link
-       href="/account/pets"
-       onClick={closeMenu}
-       className="flex min-h-9 items-center font-medium text-ink hover:text-brand"
-      >
-       🐾 Thú cưng của tôi
-      </Link>
-      <Link
-       href="/account/addresses"
-       onClick={closeMenu}
-       className="flex min-h-9 items-center font-medium text-ink hover:text-brand"
-      >
-       📍 Sổ địa chỉ nhận hàng
-      </Link>{" "}
-      <Link
-       href="/orders"
-       onClick={closeMenu}
-       className="flex min-h-9 items-center font-medium text-ink hover:text-brand"
-      >
-       🛒 Đơn hàng của tôi
-      </Link>
-     </div>
-    )}
+     ) : (
+      <>
+       <Link
+        href="/account/profile"
+        onClick={closeMenu}
+        className={menuItemClassName}
+       >
+        <UserRound aria-hidden="true" className="h-4 w-4 shrink-0" />
+        Thông tin tài khoản
+       </Link>
+       <Link
+        href="/account/pets"
+        onClick={closeMenu}
+        className={menuItemClassName}
+       >
+        <PawPrint aria-hidden="true" className="h-4 w-4 shrink-0" />
+        Thú cưng của tôi
+       </Link>
+       <Link
+        href="/account/addresses"
+        onClick={closeMenu}
+        className={menuItemClassName}
+       >
+        <MapPin aria-hidden="true" className="h-4 w-4 shrink-0" />
+        Sổ địa chỉ nhận hàng
+       </Link>
+       <Link
+        href="/orders"
+        onClick={closeMenu}
+        className={menuItemClassName}
+       >
+        <ShoppingCart aria-hidden="true" className="h-4 w-4 shrink-0" />
+        Đơn hàng của tôi
+       </Link>
+      </>
+     )}
+    </div>
 
-    <button
-     type="button"
-     disabled={pending}
-     className="mt-3 min-h-11 text-sm font-semibold text-brand hover:underline disabled:opacity-50"
-     onClick={() => {
-      void logout();
-     }}
-    >
-     {pending ? "Đang đăng xuất…" : "Đăng xuất"}
-    </button>
+    <div className="mt-2 border-t border-line/60 pt-2">
+     <button
+      type="button"
+      disabled={pending}
+      className={`${menuItemClassName} disabled:opacity-50`}
+      onClick={() => {
+       void logout();
+      }}
+     >
+      <LogOut aria-hidden="true" className="h-4 w-4 shrink-0" />
+      {pending ? "Đang đăng xuất…" : "Đăng xuất"}
+     </button>
+    </div>
     {failure && (
      <p role="alert" className="mt-2 text-xs text-danger">
       {failure}
