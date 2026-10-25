@@ -11,6 +11,7 @@ export function slugify(value: string) {
 /** Every word of the query must appear somewhere in the given fields. */
 export function matchesQuery(query: string, ...fields: string[]) {
   const haystack = searchKey(fields.join(" "));
-  const compact = haystack.replace(/\s+/g, "");
-  return searchKey(query).split(" ").filter(Boolean).every((token) => haystack.includes(token) || compact.includes(token));
+  // Digits also match across spaces so "0934567890" finds "0934 567 890"; words must match as written.
+  const digits = haystack.replace(/\s+/g, "");
+  return searchKey(query).split(" ").filter(Boolean).every((token) => haystack.includes(token) || (/^\d+$/.test(token) && digits.includes(token)));
 }

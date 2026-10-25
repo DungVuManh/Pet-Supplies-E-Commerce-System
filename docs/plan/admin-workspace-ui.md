@@ -142,7 +142,7 @@ Designs: `docs/designs/Admin/` (Auth designs excluded; authentication is already
 - [x] Filters: search and status. A matching child keeps its parent row (shown muted) so the hierarchy stays readable. The tree table indents child rows with a child-arrow icon and marks roots with a folder. Each row has edit (link) and delete icon buttons with accessible names. Delete is refused with the reason (`categoryDeleteBlocker`: linked products or child categories).
 - [x] Footnote and "+ Thêm danh mục" (demo). Names stay on one line, so at 320px the table scrolls inside its card.
 - [x] Browser check: search, empty state + reset, delete blocked, 1440 and 320
-- [ ] **🛑 Commit checkpoint: Category tree**
+- [x] **🛑 Commit checkpoint: Category tree**
 
 ### 4b. Edit category: `/admin/categories/[code]/edit`
 - [x] Form: name*, code (read-only), parent (root categories only; locked with a hint when the category has children), slug, description, display order, status. `validateCategory` checks the name, slug format, and order ≥ 1.
@@ -151,13 +151,16 @@ Designs: `docs/designs/Admin/` (Auth designs excluded; authentication is already
 - [x] Shared `control` gains a disabled look (canvas background, muted text), matching `TextField`
 - [x] Tests: tree order, derived counts, slugs, filter keeps the parent, delete blockers, validation
 - [x] Browser check: parent ↔ side card, slug error + focus, save, delete blocked, Hủy, locked parent, 1440 and 320
-- [ ] **🛑 Commit checkpoint: Edit category**
+- [x] **🛑 Commit checkpoint: Edit category**
 
 ## 5. Master data: `/admin/master-data`
 
-- [ ] Mock: pet types (5), breeds (24), brands (12), units (6), shipping methods (3)
-- [ ] Tabs with counts switch the dataset. The "+ Thêm …" label follows the active tab (demo).
-- [ ] Filters, table, and pagination. The "Dữ liệu liên quan" and "Quy ước vận hành" cards.
+- [x] Mock (`mock/master-data.ts`): pet types (5), breeds (24; each pet type's breed count comes from the breed list: 12/8/2/2/0), brands (12, taken from the products; filler brands were narrowed so the catalog uses exactly 12), units (6), shipping methods (3; fees as in `System.png`). Brand and unit product counts are derived from the product data. The product edit form now reads pet types (active only, so not "Cá cảnh") and units from master data.
+- [x] Tabs with counts switch the dataset and reset the filters. The "+ Thêm …" label and column headers follow the active tab (demo).
+- [x] Filters, table, and pagination. "Chi tiết →" explains that no detail screen is designed yet instead of linking to a 404. The "Dữ liệu liên quan" and "Quy ước vận hành" cards are built from the data.
+- [x] Fixes: `matchesQuery` ignores spaces only for all-digit tokens (phone numbers); "ca canh" had matched "thucANHat". `TabNav` labels no longer wrap, so the tab bar scrolls at 320px.
+- [x] Tests: tab counts, pet/breed and brand/unit consistency with products, unique codes, filters
+- [x] Browser check: every tab, filters, empty state + reset, paging, Chi tiết notice, product edit options, 1440 and 320
 - [ ] **🛑 Commit checkpoint: Master data**
 
 ## 6. Orders: `/admin/orders`

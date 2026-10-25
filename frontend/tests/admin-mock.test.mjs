@@ -8,6 +8,7 @@ import { defaultPermissions, togglePermission } from "../features/admin/mock/per
 import { parseAmount, validateCategory, validateProduct, validateUser } from "../features/admin/validation.ts";
 import { categoryDeleteBlocker, categoryProductCount, countProducts, filterProducts, getProduct, productStatus, products } from "../features/admin/mock/products.ts";
 import { categoryPath, categoryTree, filterCategories, getCategory } from "../features/admin/mock/categories.ts";
+import { filterMasterData, masterData, masterTabs, petTypeOptions, unitOptions } from "../features/admin/mock/master-data.ts";
 import { productSales } from "../features/admin/mock/reports.ts";
 
 const allUsers = { tab: "all", query: "", role: "all", status: "all" };
@@ -117,6 +118,29 @@ test("category filter keeps the parent of a matching child and the delete rule e
 test("category form validation", () => {
   assert.deepEqual(validateCategory({ name: "Thức ăn cho chó", slug: "thuc-an-cho-cho", order: "1" }), {});
   assert.deepEqual(Object.keys(validateCategory({ name: "T", slug: "Thức ăn", order: "0" })).sort(), ["name", "order", "slug"]);
+});
+
+test("master data tab counts match the design and agree with products and breeds", () => {
+  assert.deepEqual(masterTabs.map((t) => masterData[t.kind].length), [5, 24, 12, 6, 3]);
+  assert.deepEqual(masterData.pets.map((r) => `${r.code} ${r.metric} ${r.status}`),
+    ["PET-DOG 12 giống Hoạt động", "PET-CAT 8 giống Hoạt động", "PET-BIRD 2 giống Hoạt động", "PET-HAM 2 giống Hoạt động", "PET-FISH 0 giống Tạm ngưng"]);
+  const brandTotal = masterData.brands.reduce((sum, r) => sum + Number.parseInt(r.metric, 10), 0);
+  const unitTotal = masterData.units.reduce((sum, r) => sum + Number.parseInt(r.metric, 10), 0);
+  assert.equal(brandTotal, products.length);
+  assert.equal(unitTotal, products.length);
+  assert.ok(products.every((p) => unitOptions.includes(p.unit)), "every product unit is a master-data unit");
+  assert.ok(!petTypeOptions.includes("Cá cảnh"), "paused pet types are not offered in product forms");
+  for (const kind of Object.keys(masterData)) {
+    assert.equal(new Set(masterData[kind].map((r) => r.code)).size, masterData[kind].length, `unique codes in ${kind}`);
+    assert.ok(masterData[kind].every((r) => r.status in adminStatusTones));
+  }
+});
+
+test("master data filters search code, name and description and status", () => {
+  assert.deepEqual(filterMasterData("pets", { query: "ca canh", status: "all" }).map((r) => r.code), ["PET-FISH"]);
+  assert.deepEqual(filterMasterData("pets", { query: "", status: "Tạm ngưng" }).map((r) => r.code), ["PET-FISH"]);
+  assert.equal(filterMasterData("breeds", { query: "meo", status: "all" }).length, 8);
+  assert.equal(filterMasterData("brands", { query: "RC-ZERO", status: "all" }).length, 0);
 });
 
 test("dashboard revenue chart ends at the net revenue KPI and only grows", () => {

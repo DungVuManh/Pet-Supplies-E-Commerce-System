@@ -94,7 +94,7 @@ export function Breadcrumbs({ items }: { items: { label: string; href?: string }
 export type TabItem = { label: string; href?: string; onSelect?: () => void; active: boolean };
 /** Underline tabs: links for sub-pages, buttons for local filters. */
 export function TabNav({ items, label }: { items: TabItem[]; label: string }) {
-  const style = (active: boolean) => `inline-flex min-h-11 shrink-0 items-center border-b-2 px-4 ${active ? "border-brand font-semibold text-brand" : "border-transparent text-muted hover:text-ink"}`;
+  const style = (active: boolean) => `inline-flex min-h-11 shrink-0 items-center whitespace-nowrap border-b-2 px-4 ${active ? "border-brand font-semibold text-brand" : "border-transparent text-muted hover:text-ink"}`;
   return <nav aria-label={label} className="max-w-full overflow-x-auto border-b border-line"><ul className="flex">{items.map((item) => <li key={item.label}>
     {item.href
       ? <Link href={item.href} aria-current={item.active ? "page" : undefined} className={style(item.active)}>{item.label}</Link>

@@ -67,13 +67,13 @@ const designed: Product[] = [
 
 /** Filler per category so per-category totals match the categories design (124 products in all). */
 const fillerPlan: { code: string; count: number; prefix: string; pet: string; unit: string; base: number; names: string[]; brands: string[] }[] = [
-  { code: "DM002", count: 23, prefix: "DF", pet: "Chó", unit: "Túi", base: 150_000, names: ["Hạt cho chó trưởng thành", "Hạt cho chó con", "Pate cho chó", "Bánh thưởng cho chó"], brands: ["Royal Canin", "Pedigree", "SmartHeart", "Ganador"] },
-  { code: "DM003", count: 13, prefix: "DT", pet: "Chó", unit: "Cái", base: 90_000, names: ["Bóng cao su", "Xương gặm", "Dây kéo co"], brands: ["KONG", "Nylabone", "Petkit"] },
+  { code: "DM002", count: 23, prefix: "DF", pet: "Chó", unit: "Túi", base: 150_000, names: ["Hạt cho chó trưởng thành", "Hạt cho chó con", "Pate cho chó", "Bánh thưởng cho chó"], brands: ["Royal Canin", "Pedigree", "SmartHeart"] },
+  { code: "DM003", count: 13, prefix: "DT", pet: "Chó", unit: "Cái", base: 90_000, names: ["Bóng cao su", "Xương gặm", "Dây kéo co"], brands: ["KONG", "Petkit", "Trixie"] },
   { code: "DM004", count: 9, prefix: "DA", pet: "Chó", unit: "Cái", base: 120_000, names: ["Vòng cổ", "Dây dắt", "Bát ăn inox"], brands: ["Petkit", "Trixie"] },
-  { code: "DM006", count: 30, prefix: "CF", pet: "Mèo", unit: "Gói", base: 25_000, names: ["Pate cho mèo", "Hạt cho mèo trưởng thành", "Súp thưởng cho mèo"], brands: ["Whiskas", "Me-O", "Royal Canin", "Ciao"] },
-  { code: "DM007", count: 15, prefix: "CL", pet: "Mèo", unit: "Bao", base: 140_000, names: ["Cát đậu nành", "Cát khoáng", "Cát gỗ"], brands: ["Catsan", "Cat's Best", "Kit Cat"] },
+  { code: "DM006", count: 30, prefix: "CF", pet: "Mèo", unit: "Gói", base: 25_000, names: ["Pate cho mèo", "Hạt cho mèo trưởng thành", "Súp thưởng cho mèo"], brands: ["Whiskas", "Me-O", "Royal Canin"] },
+  { code: "DM007", count: 15, prefix: "CL", pet: "Mèo", unit: "Bao", base: 140_000, names: ["Cát đậu nành", "Cát khoáng", "Cát gỗ"], brands: ["Catsan", "Cat's Best"] },
   { code: "DM008", count: 8, prefix: "CA", pet: "Mèo", unit: "Cái", base: 110_000, names: ["Cần câu mèo", "Trụ cào móng", "Nhà cây cho mèo"], brands: ["Petkit", "Trixie"] },
-  { code: "DM009", count: 20, prefix: "HC", pet: "Chó", unit: "Chai", base: 95_000, names: ["Sữa tắm", "Thuốc nhỏ gáy", "Vitamin tổng hợp"], brands: ["Bio-Groom", "Bayer", "Virbac"] },
+  { code: "DM009", count: 20, prefix: "HC", pet: "Chó", unit: "Chai", base: 95_000, names: ["Sữa tắm", "Thuốc nhỏ gáy", "Vitamin tổng hợp"], brands: ["Bio-Groom", "Virbac"] },
 ];
 
 function fillerProducts(): Product[] {
@@ -144,8 +144,6 @@ export function productCategoryName(product: Product) {
 }
 
 export const brandOptions = [...new Set(products.map((product) => product.brand))].sort((a, b) => a.localeCompare(b, "vi"));
-export const unitOptions = ["Túi", "Hộp", "Cái", "Gói", "Bao", "Chai"];
-export const petTypeOptions = ["Chó", "Mèo", "Chim", "Hamster", "Cá cảnh"];
 
 export function formatVnd(value: number) {
   return `${value.toLocaleString("vi-VN")} ₫`;
