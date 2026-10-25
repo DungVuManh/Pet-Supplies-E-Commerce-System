@@ -134,9 +134,11 @@ describe("checkout models", () => {
   await expect(new Order(data).validate()).rejects.toThrow("qty");
  });
 
- it("requires tracking before shipping and timestamps status history", async () => {
+ it("allows manual shipping without tracking and timestamps status history", async () => {
   const data = { ...orderData(), orderStatus: "shipping" };
-  await expect(new Order(data).validate()).rejects.toThrow("carrier and tracking");
+  await expect(new Order(data).validate()).resolves.toBeUndefined();
+  await expect(new Order({ ...data, shipping: { carrier: "Shipper tự do" } }).validate()).resolves.toBeUndefined();
+  await expect(new Order({ ...data, shipping: { trackingNumber: "x".repeat(101) } }).validate()).rejects.toThrow("trackingNumber");
   const order = new Order({
    ...data, shipping: { carrier: "Manual", trackingNumber: "TRACK-1" },
    statusHistory: [{ from: "processing", to: "shipping", by: userId }],

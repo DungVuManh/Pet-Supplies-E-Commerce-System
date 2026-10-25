@@ -1,4 +1,4 @@
-# Petly frontend
+# Petjoy frontend
 
 Next.js App Router, React, TypeScript, and Tailwind CSS. Implemented screens:
 `Customer/Product/Home`, shared sign-in/registration, a mock-data Staff operations workspace, and the Admin dashboard shell.
@@ -22,16 +22,74 @@ npm run dev:frontend
 - `/forgot-password`: email password recovery.
 - `/staff/dashboard`: Staff-only operations overview with mock metrics, revenue and pending orders.
 - `/staff/orders` and `/staff/orders/[id]`: mock order search, filtering and detail/status flow.
-- `/staff/products`, `/staff/products/[sku]`, `/staff/products/[sku]/edit`: mock catalog list, detail and local edit flow.
-- `/staff/inventory`, `/staff/sales`, `/staff/performance`: mock inventory and reporting screens.
+- Staff order detail now reads MongoDB and supports protected status updates through
+  confirmation, preparation and manual shipping, with cancellation before preparation.
+  Shipping details are optional; Staff cannot mark delivery complete. See the
+  [status contract](../docs/specs/staff-order-status.md).
+
+Optional status UI regression check after a production build:
+`node frontend/tests/staff-order-status-browser.mjs` with `PLAYWRIGHT_MODULE_PATH`
+pointing to an installed Playwright module. Ports 3023/3133 must be free. The test
+uses only fixture APIs, checks confirmation, repeated submits, server refresh,
+conflicts, manual shipping and lost responses, then requires compiled Tailwind CSS
+for responsive checks. A Webpack fallback can verify interactions but cannot pass
+the stylesheet gate because Tailwind is configured only for Turbopack.
+- `/staff/products`: catalog and inventory list with physical, reserved and available quantities, stock alerts and filters; uses the Staff API with a local mock fallback.
+- `/staff/products/[sku]`, `/staff/products/[sku]/edit`: real product detail and
+  protected updates to physical stock, shared visibility and one description.
+  Saving returns to detail; stale snapshots require reload. These pages do not
+  fall back to mock data. See [product update contract](../docs/specs/staff-product-update.md).
+- Optional edit UI regression: after building, run
+  `node frontend/tests/staff-product-edit-browser.mjs` with `PLAYWRIGHT_MODULE_PATH`.
+  It uses fixture APIs on ports 3024/3134, verifies validation/save/re-edit/conflicts/
+  lost responses/error retry, then requires compiled Tailwind for responsive checks.
+- `/staff/inventory`: redirects to `/staff/products`; inventory is managed from the product screen.
+- `/staff/sales`, `/staff/performance`: mock reporting screens.
 - `/admin/dashboard`: Admin only; public profile and workspace empty state.
 - `/forbidden`: wrong-role access explanation and home link.
+
+Optional product/inventory browser check after a production build:
+`node frontend/tests/staff-products-browser.mjs` (set `PLAYWRIGHT_MODULE_PATH` to
+an installed Playwright module). It uses isolated fixture data on ports 3131 and
+3021, checks the old inventory redirect, quantities, stock filters and keyboard
+reset, then verifies compiled styles and responsive layouts. Screenshots go to
+`frontend/.next/staff-products-browser/`. The stylesheet check requires the
+configured Turbopack build; the Webpack fallback does not run the Tailwind loader.
 
 Home and the guest cart remain public. Authentication requires Firebase,
 the Express backend and MongoDB. Follow [authentication setup](../docs/authentication.md)
 to configure both environment files and enable Email/Password in Firebase.
 
 ## Structure
+
+### Staff in-store sales
+
+`/staff/orders/new` uses the existing Staff guard/shell and feature components in
+`features/staff/orders/`. Its relative API calls use the existing Staff rewrite.
+Customers and sellable SKUs come from protected backend lookups; there is no mock
+fallback. Pending request IDs (UUID only, no contact/cart information) are kept in
+sessionStorage so a reload can recover a committed receipt without creating twice.
+Do not replace backend price/stock validation with frontend calculations.
+
+The backend currently supports standalone MongoDB with sequential writes and
+best-effort compensation; incomplete requests do not return successful receipts.
+Process crashes or uncertain writes may require manual reconciliation. See the
+[spec](../docs/specs/staff-order-create.md). The form currently supports CASH only,
+immediate pickup, zero delivery charge and no promotions.
+
+Optional browser check after a production build:
+
+```powershell
+# Supply an independently installed Playwright module; requires Chrome.
+$env:PLAYWRIGHT_MODULE_PATH = '/absolute/path/to/playwright'
+node frontend/tests/staff-sale-browser.mjs
+```
+
+Run from the repository root. The script starts a fixture API on 3001 and the
+built frontend on 3020; both ports must be free. It uses fake data and a fake
+session accepted only by that isolated fixture API, not production Firebase.
+It checks both customer modes, empty/error/retry, reload recovery, keyboard and
+320/768/1024/1440px layouts. Screenshots go to `.next/staff-sale-browser/`.
 
 ```text
 app/
@@ -100,7 +158,7 @@ identity from verified Firebase tokens. Dashboard Server Components check the
 session and exact role through Express before rendering, with a Suspense boundary
 for request-time access. Staff/Admin shells are outside the storefront layout;
 Admin uses scoped teal brand tokens. Staff domain screens currently share typed frontend mock data; only identity and role checks use Express. Missing sessions redirect to `/login`, wrong
-roles to `/forbidden`, and service failures offer retry. Next rewrites auth/staff/admin requests to
+roles to `/forbidden`, and service failures offer retry. Next rewrites auth/staff/admin/cart/catalog/order requests to
 `BACKEND_ORIGIN` (default `http://127.0.0.1:3001`); private credentials belong only
 in the backend. Analytics, phone OTP, Google sign-in and checkout are not included.
 

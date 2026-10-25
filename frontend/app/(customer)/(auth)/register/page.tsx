@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Đăng ký" };
 
 export default function RegisterPage() {
   return (
-    <AuthCard title="Tạo tài khoản Petly" description="Đồng hành cùng bạn và những người bạn nhỏ." compact>
+    <AuthCard title="Tạo tài khoản Petjoy" description="Đồng hành cùng bạn và những người bạn nhỏ." compact>
       <RegisterForm />
     </AuthCard>
   );

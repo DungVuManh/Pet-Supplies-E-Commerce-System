@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useCart } from "@/features/cart/cart-provider";
 import { formatCurrency } from "@/lib/format-currency";
-import type { Product } from "../products";
+import type { Product } from "../../../products";
 
 export function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
@@ -21,17 +21,17 @@ export function ProductCard({ product }: { product: Product }) {
       </div>
       <p className="text-[11px] font-semibold uppercase tracking-[1px] text-muted">{product.brand}</p>
       <h3 className="text-[15px] font-semibold leading-[normal]">{product.name}</h3>
-      <p className="text-xs text-muted">{product.description}</p>
+      {/* <p className="text-xs text-muted">{product.description}</p> */}
       <div className="mt-auto flex items-center justify-between gap-2">
         <p className="text-lg font-semibold">{formatCurrency(product.price)}</p>
-        <button
+        {/* <button
           type="button"
           aria-label={`Thêm ${product.name} vào giỏ hàng`}
           onClick={() => addItem(product)}
           className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-brand-subtle transition-colors hover:bg-line md:size-8"
         >
           <Image src="/icons/plus.svg" width={16} height={16} alt="" />
-        </button>
+        </button> */}
       </div>
     </article>
   );

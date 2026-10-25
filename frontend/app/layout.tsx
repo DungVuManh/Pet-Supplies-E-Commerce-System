@@ -10,8 +10,8 @@ const inter = localFont({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Petly", template: "%s | Petly" },
-  description: "Petly — Chăm sóc trọn vẹn, yêu thương mỗi ngày.",
+  title: { default: "Petjoy", template: "%s | Petjoy" },
+  description: "Petjoy — Chăm sóc trọn vẹn, yêu thương mỗi ngày.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

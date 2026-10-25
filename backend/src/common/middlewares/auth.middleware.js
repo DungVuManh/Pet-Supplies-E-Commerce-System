@@ -71,6 +71,15 @@ export async function requireAuth(request, response, next) {
  next();
 }
 
+export function optionalAuth(request, response, next) {
+ const { sessionName } = cookieSettings(request);
+ if (!request.authCookies[sessionName]) {
+  next();
+  return;
+ }
+ return requireAuth(request, response, next);
+}
+
 export function requireRole(role) {
  return (request, _response, next) => {
   if (!request.user) throw new AppError("Bạn chưa đăng nhập.", 401, "UNAUTHENTICATED");

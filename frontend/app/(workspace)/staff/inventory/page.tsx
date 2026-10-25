@@ -1,3 +1,5 @@
-import { InventoryList } from "@/features/staff/components/inventory-list";
-export const metadata = { title: "Tồn kho" };
-export default function InventoryPage(){ return <InventoryList />; }
+import { redirect } from "next/navigation";
+
+export default function InventoryPage() {
+  redirect("/staff/products");
+}

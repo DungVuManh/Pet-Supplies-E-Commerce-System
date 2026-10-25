@@ -1,0 +1,102 @@
+[
+  {
+    "_id": {
+      "$oid": "d0c819886b75e27b14a79c9b"
+    },
+    "name": "Dành cho chó",
+    "slug": "danh-cho-cho",
+    "petType": "dog",
+    "description": "",
+    "image": "https://paddy.vn/collection-icons/dog.png"
+  },
+  {
+    "_id": {
+      "$oid": "256c6fdc728096bef7d7df5e"
+    },
+    "name": "Dành cho mèo",
+    "slug": "danh-cho-meo",
+    "petType": "cat",
+    "description": "",
+    "image": "https://paddy.vn/collection-icons/dryfood.png"
+  },
+  {
+    "_id": {
+      "$oid": "87a044d446e33d87b0e11980"
+    },
+    "name": "Dây dắt, phụ kiện",
+    "slug": "day-dat-phu-kien",
+    "petType": "both",
+    "description": "",
+    "image": "https://paddy.vn/collection-icons/leash.png"
+  },
+  {
+    "_id": {
+      "$oid": "05968ccf4df0e1b19218cc59"
+    },
+    "name": "Quần áo",
+    "slug": "quan-ao",
+    "petType": "both",
+    "description": "",
+    "image": ""
+  },
+  {
+    "_id": {
+      "$oid": "7f9a4cbaea10a2c367d6c3a2"
+    },
+    "name": "Bát bình chứa đựng",
+    "slug": "bat-binh-chua-dung",
+    "petType": "both",
+    "description": "",
+    "image": "https://paddy.vn/collection-icons/bowl.png"
+  },
+  {
+    "_id": {
+      "$oid": "f4ff338557649a8b9c9de23b"
+    },
+    "name": "Đồ vận chuyển, nuôi nhốt",
+    "slug": "do-van-chuyen-nuoi-nhot",
+    "petType": "both",
+    "description": "",
+    "image": "https://paddy.vn/collection-icons/carrier.png"
+  },
+  {
+    "_id": {
+      "$oid": "dccd78bd9b7efd2a9d73459c"
+    },
+    "name": "Sữa tắm, Khử mùi",
+    "slug": "sua-tam-khu-mui",
+    "petType": "both",
+    "description": "",
+    "image": "https://paddy.vn/collection-icons/hygiene.png"
+  },
+  {
+    "_id": {
+      "$oid": "c4b1a948c8beba8a027dca13"
+    },
+    "name": "Hỗ trợ chăm sóc",
+    "slug": "ho-tro-cham-soc",
+    "petType": "both",
+    "description": "",
+    "image": "https://paddy.vn/collection-icons/health.png"
+  },
+  {
+    "_id": {
+      "$oid": "2e1a3f33568f173ed2f6c947"
+    },
+    "name": "Bổ sung dinh dưỡng",
+    "slug": "bo-sung-dinh-duong",
+    "petType": "both",
+    "description": "",
+    "image": "https://paddy.vn/collection-icons/milk.png"
+  },
+  {
+    "_id": {
+      "$oid": "06916c6d39be37007dfaa95c"
+    },
+    "name": "Thú Y",
+    "slug": "thu-y",
+    "petType": "both",
+    "description": "",
+    "image": "https://paddy.vn/collection-icons/pill.png"
+  }
+]
