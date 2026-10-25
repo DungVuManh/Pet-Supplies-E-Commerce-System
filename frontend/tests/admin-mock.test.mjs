@@ -5,7 +5,10 @@ import { isLowStock, lowStockLevels, lowStockTotal, stockLevels } from "../featu
 import { cumulativeRevenue, overview, recentActivity } from "../features/admin/mock/overview.ts";
 import { countUsers, filterUsers, getUser, getUserDetail, users } from "../features/admin/mock/users.ts";
 import { defaultPermissions, togglePermission } from "../features/admin/mock/permissions.ts";
-import { validateUser } from "../features/admin/validation.ts";
+import { parseAmount, validateProduct, validateUser } from "../features/admin/validation.ts";
+import { countProducts, filterProducts, getProduct, productStatus, products } from "../features/admin/mock/products.ts";
+import { categoryPath } from "../features/admin/mock/categories.ts";
+import { productSales } from "../features/admin/mock/reports.ts";
 
 const allUsers = { tab: "all", query: "", role: "all", status: "all" };
 
@@ -52,6 +55,47 @@ test("permission matrix keeps Admin locked and toggles only the chosen cell", ()
   const next = togglePermission(defaultPermissions, "finance", "staff");
   assert.equal(next.find((item) => item.id === "finance")?.roles.staff, true);
   assert.equal(defaultPermissions.find((item) => item.id === "finance")?.roles.staff, false, "original matrix is not mutated");
+});
+
+const allProducts = { tab: "all", query: "", category: "all", status: "all" };
+
+test("product tabs and first page match the product list design", () => {
+  assert.equal(countProducts("all"), 124);
+  assert.equal(countProducts("Đang bán"), 118);
+  assert.equal(countProducts("Đã ẩn"), 6);
+  assert.equal(new Set(products.map((p) => p.sku)).size, products.length);
+  assert.deepEqual(filterProducts(allProducts).slice(0, 6).map((p) => `${p.id} ${p.sku}`),
+    ["SP0001 RC-MA-2KG", "SP0002 RC-IN-2KG", "SP0003 CT-BEN-10L", "SP0004 KG-CL-M", "SP0005 PT-HN-M", "SP0006 WM-PATE-85"]);
+  assert.equal(productStatus(getProduct("CT-BEN-10L")), "Sắp hết hàng");
+  assert.equal(productStatus(getProduct("WM-PATE-85")), "Đã ẩn");
+  assert.equal(getProduct("NOPE"), undefined);
+});
+
+test("products agree with inventory, the dashboard low-stock total and category counts", () => {
+  for (const level of stockLevels) assert.equal(getProduct(level.sku)?.stock, level.available, level.sku);
+  assert.equal(products.filter((p) => p.stock < p.threshold).length, lowStockTotal);
+  const perLeaf = (code) => products.filter((p) => p.categoryCode === code).length;
+  assert.deepEqual(["DM002", "DM003", "DM004", "DM006", "DM007", "DM008", "DM009"].map(perLeaf), [24, 14, 10, 32, 16, 8, 20]);
+  assert.ok(products.every((p) => p.categoryCode !== "DM001" && p.categoryCode !== "DM005"), "products sit in leaf categories");
+  for (const row of [...productSales, ...inventoryReportRows]) assert.ok(getProduct(row.sku), `report links to ${row.sku}`);
+});
+
+test("product filters combine category scope, status and accent-insensitive search", () => {
+  assert.equal(filterProducts({ ...allProducts, category: "DM001" }).length, 48);
+  assert.ok(filterProducts({ ...allProducts, category: "DM001" }).every((p) => ["DM002", "DM003", "DM004"].includes(p.categoryCode)));
+  assert.deepEqual(filterProducts({ ...allProducts, query: "cat ve sinh catsan" }).map((p) => p.sku), ["CT-BEN-10L"]);
+  assert.equal(filterProducts({ ...allProducts, status: "Sắp hết hàng" }).length, lowStockTotal);
+  assert.equal(filterProducts({ ...allProducts, tab: "Đã ẩn", status: "Đang bán" }).length, 0);
+  assert.equal(categoryPath("DM002"), "Chó / Thức ăn cho chó");
+});
+
+test("product form validation and amount parsing", () => {
+  const valid = { name: "Royal Canin Mini Adult 2 kg", sku: "RC-MA-2KG", categoryCode: "DM002", price: "450.000", cost: "325.000", stock: "120", threshold: "20" };
+  assert.deepEqual(validateProduct(valid), {});
+  assert.equal(parseAmount("450.000"), 450000);
+  assert.ok(Number.isNaN(parseAmount("45a")));
+  assert.deepEqual(Object.keys(validateProduct({ ...valid, name: "R", sku: "rc ma", categoryCode: "", price: "0", stock: "-1" })).sort(),
+    ["categoryCode", "name", "price", "sku", "stock"]);
 });
 
 test("dashboard revenue chart ends at the net revenue KPI and only grows", () => {

@@ -88,7 +88,7 @@ Designs: `docs/designs/Admin/` (Auth designs excluded; authentication is already
 - [x] Activity-history table
 - [x] `notFound()` for an unknown id. `params` is read inside a Suspense-wrapped child so list → detail navigation passes Cache Components validation (the same pattern applies to every dynamic Admin route).
 - [x] Browser check as Admin at 1440 and 320: matches `User.png`, no console errors, no horizontal scroll
-- [ ] **🛑 Commit checkpoint: User detail**
+- [x] **🛑 Commit checkpoint: User detail**
 
 ### 2c. Edit user: `/admin/users/[id]/edit`
 - [x] Form: name*, account code (read-only), email*, phone*, role*, status, address, and an internal-note textarea (reuses `components/ui/TextField`)
@@ -97,7 +97,7 @@ Designs: `docs/designs/Admin/` (Auth designs excluded; authentication is already
 - [x] Hủy (back to detail) / Lưu thay đổi (header button submits the form through `form=`)
 - [x] Fix: `app/globals.css` `:focus-visible` and `::selection` read `--brand` directly, so focus rings are teal in Admin (they were blue). The source compiles correctly with Tailwind; the running dev server needs a restart to pick up the CSS change.
 - [x] Browser check as Admin at 1440 and 320: error state, focus, role card, save notice, and Hủy navigation
-- [ ] **🛑 Commit checkpoint: Edit user**
+- [x] **🛑 Commit checkpoint: Edit user**
 
 ### 2d. Roles & permissions: `/admin/users/roles`
 - [x] "Nguyên tắc phân quyền" callout
@@ -105,29 +105,34 @@ Designs: `docs/designs/Admin/` (Auth designs excluded; authentication is already
 - [x] "Lưu phân quyền" mock save and the legend
 - [x] Tests: KH0001 detail values, every user resolves a detail, validation rules, permission toggling keeps Admin fixed and does not mutate defaults
 - [x] Browser check as Admin at 1440 and 320
-- [ ] **🛑 Commit checkpoint: Roles & permissions**
+- [x] **🛑 Commit checkpoint: Roles & permissions**
 
 ## 3. Products
 
 ### 3a. Product list: `/admin/products`
-- [ ] Mock: products SP0001–SP0006 plus filler so the counts reach 124 / 118 / 6, with SKU, category, brand, price, and status
-- [ ] Header: "Xuất danh sách" (demo) and "+ Thêm sản phẩm" (demo)
-- [ ] Tabs: Tất cả / Đang bán / Đã ẩn. Filters: search, category, status. Table, pagination, and the VND footnote.
+- [x] Mock (`mock/products.ts`): products SP0001–SP0006 plus deterministic filler, so the counts reach 124 / 118 / 6. The 6 designed SKUs take their stock from `mock/inventory.ts`. Per-category totals match the categories design (24/14/10, 32/16/8, 20), and exactly 8 products are below threshold, matching the dashboard's `lowStockTotal`. The category tree base lives in `mock/categories.ts` (phase 4 extends it).
+- [x] Header: "Xuất danh sách" (demo) and "+ Thêm sản phẩm" (demo)
+- [x] Tabs: Tất cả / Đang bán / Đã ẩn. Filters: search, category (a parent includes its children), status. Table, pagination, and the VND footnote with a link to Kho hàng.
+- [x] Status badge derived from data: Đã ẩn, otherwise Sắp hết hàng when stock < threshold, otherwise Đang bán. KG-CL-M and PT-HN-M therefore show "Sắp hết hàng", where `Product.png` shows "Đang bán", to stay consistent with the dashboard and inventory warnings.
+- [x] Browser check: tabs, filters, empty state + reset, paging, 320px
 - [ ] **🛑 Commit checkpoint: Product list**
 
 ### 3b. Product detail: `/admin/products/[sku]`
-- [ ] Image gallery: main image plus 3 thumbnails, using the repo product images
-- [ ] Info card: status, sale price, cost, available stock, category, brand, unit, updated by
-- [ ] Tabs: Mô tả sản phẩm / Thông tin bổ sung / Lịch sử thay đổi
-- [ ] "Ẩn sản phẩm" (local toggle) and "Chỉnh sửa"
-- [ ] `notFound()` for an unknown SKU
+- [x] Image card: main image plus its thumbnail. The repo has one photo per product (none for Petkit and Whiskas, which get a "Chưa có ảnh" tile), so the design's 3 thumbnails can't be filled with real images.
+- [x] Info card: status, sale price, cost, available stock, category path, brand, unit / weight, updated by
+- [x] Tabs: Mô tả sản phẩm / Thông tin bổ sung / Lịch sử thay đổi (the last edit plus that SKU's movements from `stockHistory`)
+- [x] "Ẩn sản phẩm" / "Hiện sản phẩm" (local toggle with notice) and "Chỉnh sửa"
+- [x] `notFound()` for an unknown SKU (params read inside Suspense)
+- [x] Browser check: hide toggle, tabs, 1440 and 320
 - [ ] **🛑 Commit checkpoint: Product detail**
 
 ### 3c. Edit product: `/admin/products/[sku]/edit`
-- [ ] "Thông tin cơ bản": name*, SKU*, brand, category*, pet type, description
-- [ ] "Giá bán & tồn kho": price*, cost, stock*, unit, warning threshold
-- [ ] Side cards: image with "Tải ảnh lên" (demo) and the "Hiển thị" status select, "Ẩn sản phẩm", "Xóa sản phẩm" (blocked with the "đã có đơn hàng" message)
-- [ ] Validation and mock save, Hủy / Lưu sản phẩm
+- [x] "Thông tin cơ bản": name*, SKU*, brand, category* (leaf categories only), pet type, description
+- [x] "Giá bán & tồn kho": price*, cost, stock*, unit, warning threshold. Money fields reformat to "450.000" on blur.
+- [x] Side cards: image with "Tải ảnh lên" (demo) and the "Hiển thị" status select, "Ẩn sản phẩm", "Xóa sản phẩm" (blocked with the "đã có đơn hàng" message, or a demo notice for products without orders)
+- [x] Validation (`validateProduct`, `parseAmount` in `validation.ts`) with focus on the first error, mock save, Hủy / Lưu sản phẩm
+- [x] Tests: tab counts, designed first page, statuses, inventory/dashboard/category/report consistency, filters, validation
+- [x] Browser check: errors + focus, formatting, delete blocked, save, Hủy, 1440 and 320
 - [ ] **🛑 Commit checkpoint: Edit product**
 
 ## 4. Categories

@@ -2,6 +2,27 @@
 export type UserFormValues = { fullName: string; email: string; phone: string };
 export type FormErrors<T> = Partial<Record<keyof T, string>>;
 
+/** Reads "450.000" or "450000" as 450000; empty or non-numeric input gives NaN. */
+export function parseAmount(value: string) {
+  const digits = value.replace(/[.\s]/g, "");
+  return /^\d+$/.test(digits) ? Number(digits) : Number.NaN;
+}
+
+export type ProductFormValues = { name: string; sku: string; categoryCode: string; price: string; cost: string; stock: string; threshold: string };
+
+export function validateProduct(values: ProductFormValues): FormErrors<ProductFormValues> {
+  const errors: FormErrors<ProductFormValues> = {};
+  if (values.name.trim().length < 3) errors.name = "Nhập tên sản phẩm (ít nhất 3 ký tự).";
+  if (!/^[A-Z0-9]+(-[A-Z0-9]+)*$/.test(values.sku.trim())) errors.sku = "SKU gồm chữ in hoa, số và dấu gạch ngang, ví dụ RC-MA-2KG.";
+  if (!values.categoryCode) errors.categoryCode = "Chọn danh mục.";
+  const price = parseAmount(values.price);
+  if (!(price > 0)) errors.price = "Giá bán phải là số lớn hơn 0.";
+  if (values.cost.trim() && Number.isNaN(parseAmount(values.cost))) errors.cost = "Giá vốn phải là số không âm.";
+  if (Number.isNaN(parseAmount(values.stock))) errors.stock = "Tồn kho phải là số nguyên không âm.";
+  if (values.threshold.trim() && Number.isNaN(parseAmount(values.threshold))) errors.threshold = "Ngưỡng cảnh báo phải là số nguyên không âm.";
+  return errors;
+}
+
 export function validateUser(values: UserFormValues): FormErrors<UserFormValues> {
   const errors: FormErrors<UserFormValues> = {};
   if (values.fullName.trim().length < 2) errors.fullName = "Nhập họ và tên (ít nhất 2 ký tự).";
