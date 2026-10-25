@@ -47,11 +47,12 @@ input[type="checkbox"]:not(:disabled) {
   cursor: pointer;
 }
 
+/* Read --brand directly: --color-brand is resolved at :root and would ignore workspace overrides. */
 :focus-visible {
-  outline: 2px solid var(--color-brand);
+  outline: 2px solid var(--brand);
   outline-offset: 4px;
 }
 
 ::selection {
-  background: var(--color-brand-subtle);
+  background: var(--brand-subtle);
 }
