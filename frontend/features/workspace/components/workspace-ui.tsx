@@ -18,7 +18,7 @@ export function MetricCard({ label, value, detail }: { label: string; value: str
 
 export type BadgeTone = "success" | "warning" | "info" | "danger" | "neutral";
 const tones: Record<BadgeTone, string> = { success: "bg-success-subtle text-success", warning: "bg-warning-subtle text-warning", info: "bg-brand-subtle text-brand", danger: "bg-danger-subtle text-danger", neutral: "bg-canvas text-muted" };
-export function Badge({ children, tone = "neutral" }: { children: ReactNode; tone?: BadgeTone }) { return <span className={`inline-flex min-h-8 items-center rounded-full px-3 text-xs font-semibold ${tones[tone]}`}>{children}</span>; }
+export function Badge({ children, tone = "neutral" }: { children: ReactNode; tone?: BadgeTone }) { return <span className={`inline-flex min-h-8 items-center whitespace-nowrap rounded-full px-3 text-xs font-semibold ${tones[tone]}`}>{children}</span>; }
 
 export function TableFrame({ children }: { children: ReactNode }) { return <div className={`${card} min-w-0 max-w-full overflow-x-auto`}><table className="w-full min-w-[760px] border-collapse text-left">{children}</table></div>; }
 export function TableHead({ children }: { children: ReactNode }) { return <thead className="bg-canvas text-xs uppercase text-muted"><tr>{children}</tr></thead>; }

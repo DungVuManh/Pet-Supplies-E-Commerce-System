@@ -9,6 +9,7 @@ import { parseAmount, validateCategory, validateProduct, validateUser } from "..
 import { categoryDeleteBlocker, categoryProductCount, countProducts, filterProducts, getProduct, productStatus, products } from "../features/admin/mock/products.ts";
 import { categoryPath, categoryTree, filterCategories, getCategory } from "../features/admin/mock/categories.ts";
 import { filterMasterData, masterData, masterTabs, petTypeOptions, unitOptions } from "../features/admin/mock/master-data.ts";
+import { adminOrders, countOrders, filterOrders, getAdminOrder, orderStatusLabel } from "../features/admin/mock/orders.ts";
 import { productSales } from "../features/admin/mock/reports.ts";
 
 const allUsers = { tab: "all", query: "", role: "all", status: "all" };
@@ -141,6 +142,28 @@ test("master data filters search code, name and description and status", () => {
   assert.deepEqual(filterMasterData("pets", { query: "", status: "Tạm ngưng" }).map((r) => r.code), ["PET-FISH"]);
   assert.equal(filterMasterData("breeds", { query: "meo", status: "all" }).length, 8);
   assert.equal(filterMasterData("brands", { query: "RC-ZERO", status: "all" }).length, 0);
+});
+
+test("admin orders include every Staff order and every order linked from other admin screens", () => {
+  const ids = new Set(adminOrders.map((o) => o.id));
+  assert.equal(ids.size, adminOrders.length, "unique order IDs");
+  for (const order of orders) assert.deepEqual(getAdminOrder(order.id), order, `shared with Staff: ${order.id}`);
+  const linked = [...recentActivity.map((r) => r.href), ...users.flatMap((u) => getUserDetail(u.id).activity.map((a) => a.href))]
+    .filter((href) => href.startsWith("/admin/orders?q=")).map((href) => href.split("=")[1]);
+  for (const id of linked) assert.ok(ids.has(id), `linked order ${id} exists`);
+  for (const request of initialCancellations) assert.ok(ids.has(request.orderId), `cancellation ${request.id} order exists`);
+  assert.ok(adminOrders.every((o) => orderStatusLabel[o.status] in adminStatusTones));
+});
+
+test("order tabs group statuses and filters combine with search", () => {
+  const all = { tab: "all", query: "", status: "all" };
+  assert.equal(countOrders("all"), adminOrders.length);
+  assert.ok(filterOrders({ ...all, tab: "processing" }).every((o) => o.status === "pending" || o.status === "packing"));
+  assert.equal(["processing", "shipping", "completed", "cancelled"].reduce((sum, tab) => sum + countOrders(tab), 0), adminOrders.length);
+  assert.deepEqual(filterOrders({ ...all, query: "#PA261012018" }).map((o) => o.id), ["PA261012018"]);
+  assert.deepEqual(filterOrders({ ...all, query: "PA999" }), []);
+  assert.deepEqual(filterOrders({ ...all, tab: "all", status: "pending", query: "PA999" }), []);
+  assert.ok(filterOrders({ ...all, query: "minh anh" }).length >= 2);
 });
 
 test("dashboard revenue chart ends at the net revenue KPI and only grows", () => {

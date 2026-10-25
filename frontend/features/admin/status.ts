@@ -19,6 +19,7 @@ export const adminStatusTones = {
   "Sắp hết": "warning",
   "Bản nháp": "warning",
   "Đang giao": "info",
+  "Đang đóng gói": "info",
   "Đã khóa": "danger",
   "Bị từ chối": "danger",
   "Đã từ chối": "danger",

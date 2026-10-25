@@ -161,15 +161,18 @@ Designs: `docs/designs/Admin/` (Auth designs excluded; authentication is already
 - [x] Fixes: `matchesQuery` ignores spaces only for all-digit tokens (phone numbers); "ca canh" had matched "thucANHat". `TabNav` labels no longer wrap, so the tab bar scrolls at 320px.
 - [x] Tests: tab counts, pet/breed and brand/unit consistency with products, unique codes, filters
 - [x] Browser check: every tab, filters, empty state + reset, paging, Chi tiết notice, product edit options, 1440 and 320
-- [ ] **🛑 Commit checkpoint: Master data**
+- [x] **🛑 Commit checkpoint: Master data**
 
 ## 6. Orders: `/admin/orders`
 
-- [ ] Mock: orders reusing the Staff order shape and IDs (`#PA261012018` …) so the two workspaces agree
-- [ ] Tabs: Tất cả / Chờ xử lý / Đang giao / Hoàn thành / Đã hủy. Search and status select in the "Danh sách đơn hàng" card.
-- [ ] Populated table: MÃ ĐƠN / KHÁCH HÀNG / TỔNG TIỀN / TRẠNG THÁI / THAO TÁC
-- [ ] Empty state: "Không tìm thấy đơn hàng" with "Xóa bộ lọc". Loading state: skeleton, disabled export. Error state: "Thử lại".
-- [ ] "Xuất đơn hàng" (demo) and the period footnote
+- [x] Mock (`mock/orders.ts`): every Staff order (same objects and IDs, `#PA261012018` …) plus 9 earlier orders in the period, so all 17 period orders are covered, including `#PA261002031` linked from user KH0001's activity. Every cancellation request's order exists. Packing orders show "Đang đóng gói" (new info tone) but belong to the "Chờ xử lý" tab.
+- [x] Tabs (no counts, as designed): Tất cả đơn / Chờ xử lý / Đang giao / Hoàn thành / Đã hủy. Search (order ID with or without #, customer, phone) and status select in the "Danh sách đơn hàng" card apply as you type. `?q=` pre-fills the search, so dashboard and user-activity links open the right order.
+- [x] Populated table: MÃ ĐƠN / KHÁCH HÀNG / TỔNG TIỀN / TRẠNG THÁI / THAO TÁC, with pagination and a count pill. "Chi tiết →" explains that there is no admin order-detail screen.
+- [x] Empty state: "Không tìm thấy đơn hàng" with "Xóa bộ lọc". Loading state: skeleton, disabled export and filters. Error state: "Thử lại". Each has its designed card footer and footnote.
+- [x] "Xuất đơn hàng" (demo) and the period footnote
+- [x] Shared fix: `Badge` never wraps ("Đang đóng gói" broke onto two lines)
+- [x] Tests: Staff orders shared, linked orders exist, tab grouping covers every order, filters
+- [x] Browser check: all 4 states vs `Order.png`, tabs/status/search, empty + reset, dashboard and user links, 1440 and 320
 - [ ] **🛑 Commit checkpoint: Orders**
 
 ## 7. Cancellation requests: `/admin/cancellations`
