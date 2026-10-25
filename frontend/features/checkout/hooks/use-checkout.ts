@@ -2,21 +2,18 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getCartApi } from "@/features/cart/services/cart.service";
+import { getCartApi, removeCartItemApi } from "@/features/cart/services/cart.service";
 import { createOrderApi } from "@/features/orders/services/order.service";
+import { getCheckoutAddress } from "../services/checkout.service"
+import { useAuth } from "@/features/auth/auth-provider";
+import { CheckoutAddress } from "../services/checkout.service";
+
 import type {
   CheckoutOrderItem,
   CheckoutSummary,
   PaymentMethodType,
-  ShippingAddress,
   ShippingMethod,
 } from "../types";
-
-const DEFAULT_SHIPPING_ADDRESS: ShippingAddress = {
-  fullName: "Khách hàng",
-  phone: "0900000000",
-  address: "Số 1 Cầu Giấy, Phường Dịch Vọng, Quận Cầu Giấy, Hà Nội",
-};
 
 const DEFAULT_SHIPPING_METHOD: ShippingMethod = {
   id: "standard",
@@ -60,22 +57,31 @@ async function getCheckoutCartData(): Promise<CheckoutCartData> {
     })),
     summary: cart.summary
       ? {
-          totalQuantity: cart.summary.totalQuantity,
-          subtotal: cart.summary.subtotal,
-          shippingFee: cart.summary.shippingFee || 30000,
-          discount: cart.summary.discount || 0,
-          total: cart.summary.total,
-        }
+        totalQuantity: cart.summary.totalQuantity,
+        subtotal: cart.summary.subtotal,
+        shippingFee: cart.summary.shippingFee || 30000,
+        discount: cart.summary.discount || 0,
+        total: cart.summary.total,
+      }
       : null,
   };
 }
 
 export function useCheckout() {
   const router = useRouter();
+  const { status: authStatus, user } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>("cod");
   const [items, setItems] = useState<CheckoutOrderItem[]>([]);
-  const [address] = useState<ShippingAddress>(DEFAULT_SHIPPING_ADDRESS);
-  const [summary, setSummary] = useState<CheckoutSummary>(DEFAULT_SUMMARY);
+  const [address, setAdress] = useState<CheckoutAddress>({
+    _id: "",
+    recipientName: "",
+    phone: "",
+    province: "",
+    district: "",
+    ward: "",
+    street: "",
+    isDefault: false,
+  }); const [summary, setSummary] = useState<CheckoutSummary>(DEFAULT_SUMMARY);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -103,6 +109,26 @@ export function useCheckout() {
   useEffect(() => {
     let isActive = true;
 
+    if (authStatus !== "ready" || !user) return;
+
+    getCheckoutAddress().then((addresses) => {
+      const selectedAddress =
+        addresses.find((item) => item.isDefault) ?? addresses[0];
+
+      if (selectedAddress) {
+        setAdress({
+          _id: selectedAddress._id,
+          recipientName: selectedAddress.recipientName,
+          phone: selectedAddress.phone,
+          province: selectedAddress.province,
+          district: selectedAddress.district,
+          ward: selectedAddress.ward,
+          street: selectedAddress.street,
+          isDefault: selectedAddress.isDefault,
+        });
+      }
+    });
+
     getCheckoutCartData()
       .then((data) => {
         if (isActive) applyCartData(data);
@@ -121,7 +147,7 @@ export function useCheckout() {
     return () => {
       isActive = false;
     };
-  }, [applyCartData]);
+  }, [applyCartData, authStatus, user]);
 
   const handleSubmitOrder = useCallback(async () => {
     if (items.length === 0) {
@@ -140,21 +166,28 @@ export function useCheckout() {
           qty: item.quantity,
         })),
         shippingAddress: {
-          recipientName: address.fullName,
+          recipientName: address.recipientName,
           phone: address.phone,
-          street: address.address,
-          province: "TP. Hồ Chí Minh",
-          district: "Quận 1",
-          ward: "Phường Bến Nghé",
+          province: address.province,
+          district: address.district,
+          ward: address.ward,
+          street: address.street
         },
         guestInfo: {
-          name: address.fullName,
+          name: address.recipientName,
           phone: address.phone,
         },
         paymentMethod: "COD",
       });
 
       const order = response.data?.order;
+
+      // Xóa các sản phẩm vừa thanh toán khỏi giỏ hàng
+      await Promise.allSettled(
+        items.map((item) => removeCartItemApi(item.sku))
+      );
+
+      setItems([]);
       window.dispatchEvent(new Event("cart-updated"));
 
       const queryParams = new URLSearchParams({

@@ -3,10 +3,12 @@
 // Controller xử lý đơn hàng cho cả Staff Workspace và Khách hàng (Mua ngay & Cart)
 // =============================================================
 
+import mongoose from "mongoose";
 import { AppError } from "../common/errors/app-error.js";
 import { Order } from "../models/order.model.js";
 import { Product } from "../models/product.model.js";
 import { User } from "../models/user.model.js";
+import { Cart } from "../models/cart.model.js";
 import {
   buildOrderSearchFilter,
   computeDateRange,
@@ -110,6 +112,31 @@ export async function createOrder(request, response, next) {
         },
       ],
     });
+
+    // Xóa các sản phẩm vừa mua khỏi giỏ hàng
+    try {
+      const guestToken =
+        request.headers["x-guest-token"] ||
+        request.authCookies?.["petly-guest-token"] ||
+        request.query?.guestToken ||
+        request.body?.guestToken;
+
+      const filters = [];
+      if (customerId) filters.push({ userId: customerId });
+      if (guestToken) filters.push({ guestToken });
+
+      if (filters.length > 0 && (mongoose.connection?.readyState === 1 || Boolean(Cart.updateMany?.mock))) {
+        const purchasedSkus = orderItems.map((item) => item.variantSku);
+        if (purchasedSkus.length > 0) {
+          await Cart.updateMany(
+            { $or: filters },
+            { $pull: { items: { variantSku: { $in: purchasedSkus } } } }
+          );
+        }
+      }
+    } catch (cartError) {
+      console.error("Lỗi khi xóa sản phẩm đã mua khỏi giỏ hàng:", cartError);
+    }
 
     response.status(201).json({
       success: true,

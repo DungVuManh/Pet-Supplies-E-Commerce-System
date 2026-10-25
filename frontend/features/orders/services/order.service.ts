@@ -3,6 +3,8 @@
 // Service gọi API đặt hàng, hủy đơn hàng, và lấy danh sách đơn của tôi
 // =============================================================
 
+import { getOrCreateGuestToken } from "@/features/cart/services/cart.service";
+
 export type CreateOrderItemPayload = {
   productId: string;
   variantSku: string;
@@ -25,17 +27,24 @@ export type CreateOrderPayload = {
     email?: string;
   };
   paymentMethod?: "COD" | "ONLINE";
+  guestToken?: string;
 };
 
 // 1. POST /api/v1/orders - Tạo đơn hàng trực tiếp vào MongoDB
 export async function createOrderApi(payload: CreateOrderPayload) {
+  const guestToken = payload.guestToken || getOrCreateGuestToken();
+
   const response = await fetch("/api/v1/orders", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "x-guest-token": guestToken,
     },
     credentials: "include",
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      ...payload,
+      guestToken,
+    }),
   });
 
   const data = await response.json();

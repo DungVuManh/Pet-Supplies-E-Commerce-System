@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import type { ShippingAddress } from "../types";
+import type { CheckoutAddress } from "../services/checkout.service";
 
 type DeliveryAddressCardProps = {
-  address: ShippingAddress;
+  address: CheckoutAddress;
   onChangeClick?: () => void;
 };
 
@@ -38,10 +38,10 @@ export function DeliveryAddressCard({
 
           <div>
             <p className="font-semibold text-sm text-ink">
-              {address.fullName} · {address.phone}
+              {address.recipientName} · {address.phone}
             </p>
             <p className="text-sm text-muted mt-1 leading-relaxed">
-              {address.address}
+              {address.street},{address.ward},{address.district},{address.province}
             </p>
           </div>
         </div>
