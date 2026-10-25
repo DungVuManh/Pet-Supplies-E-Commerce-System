@@ -1,4 +1,4 @@
-import { categoryScope, getCategory } from "./categories.ts";
+import { categoryScope, childCategories, getCategory } from "./categories.ts";
 import { getStockItem } from "./inventory.ts";
 import { matchesQuery } from "./text.ts";
 
@@ -123,6 +123,20 @@ export function filterProducts({ tab, query, category, status }: ProductFilter) 
     && (!scope || scope.includes(product.categoryCode))
     && (status === "all" || productStatus(product) === status)
     && matchesQuery(query, product.sku, product.id, product.name, product.brand));
+}
+
+/** Products linked to a category, including those in its child categories. */
+export function categoryProductCount(code: string) {
+  const scope = categoryScope(code);
+  return products.filter((product) => scope.includes(product.categoryCode)).length;
+}
+
+/** Why a category cannot be deleted, or null when nothing blocks it (deletion itself awaits the backend). */
+export function categoryDeleteBlocker(code: string) {
+  const linked = categoryProductCount(code);
+  if (linked > 0) return `còn ${linked} sản phẩm liên kết`;
+  if (childCategories(code).length > 0) return "còn danh mục con";
+  return null;
 }
 
 export function productCategoryName(product: Product) {

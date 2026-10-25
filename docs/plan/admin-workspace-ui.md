@@ -115,7 +115,7 @@ Designs: `docs/designs/Admin/` (Auth designs excluded; authentication is already
 - [x] Tabs: Tất cả / Đang bán / Đã ẩn. Filters: search, category (a parent includes its children), status. Table, pagination, and the VND footnote with a link to Kho hàng.
 - [x] Status badge derived from data: Đã ẩn, otherwise Sắp hết hàng when stock < threshold, otherwise Đang bán. KG-CL-M and PT-HN-M therefore show "Sắp hết hàng", where `Product.png` shows "Đang bán", to stay consistent with the dashboard and inventory warnings.
 - [x] Browser check: tabs, filters, empty state + reset, paging, 320px
-- [ ] **🛑 Commit checkpoint: Product list**
+- [x] **🛑 Commit checkpoint: Product list**
 
 ### 3b. Product detail: `/admin/products/[sku]`
 - [x] Image card: main image plus its thumbnail. The repo has one photo per product (none for Petkit and Whiskas, which get a "Chưa có ảnh" tile), so the design's 3 thumbnails can't be filled with real images.
@@ -124,7 +124,7 @@ Designs: `docs/designs/Admin/` (Auth designs excluded; authentication is already
 - [x] "Ẩn sản phẩm" / "Hiện sản phẩm" (local toggle with notice) and "Chỉnh sửa"
 - [x] `notFound()` for an unknown SKU (params read inside Suspense)
 - [x] Browser check: hide toggle, tabs, 1440 and 320
-- [ ] **🛑 Commit checkpoint: Product detail**
+- [x] **🛑 Commit checkpoint: Product detail**
 
 ### 3c. Edit product: `/admin/products/[sku]/edit`
 - [x] "Thông tin cơ bản": name*, SKU*, brand, category* (leaf categories only), pet type, description
@@ -133,20 +133,24 @@ Designs: `docs/designs/Admin/` (Auth designs excluded; authentication is already
 - [x] Validation (`validateProduct`, `parseAmount` in `validation.ts`) with focus on the first error, mock save, Hủy / Lưu sản phẩm
 - [x] Tests: tab counts, designed first page, statuses, inventory/dashboard/category/report consistency, filters, validation
 - [x] Browser check: errors + focus, formatting, delete blocked, save, Hủy, 1440 and 320
-- [ ] **🛑 Commit checkpoint: Edit product**
+- [x] **🛑 Commit checkpoint: Edit product**
 
 ## 4. Categories
 
 ### 4a. Category tree: `/admin/categories`
-- [ ] Mock: parent/child tree DM001–DM009 with product counts and status
-- [ ] Filters: search and status. The tree table indents child rows with a folder or child-arrow icon. Each row has edit (link) and delete (demo, blocked when it has products) icon buttons with accessible names.
-- [ ] Footnote and "+ Thêm danh mục" (demo)
+- [x] Mock (`mock/categories.ts`): parent/child tree DM001–DM009 with slug, description, display order, and status. Product counts are derived from the product data (`categoryProductCount`, including children: 48/24/14/10, 56/32/16/8, 20).
+- [x] Filters: search and status. A matching child keeps its parent row (shown muted) so the hierarchy stays readable. The tree table indents child rows with a child-arrow icon and marks roots with a folder. Each row has edit (link) and delete icon buttons with accessible names. Delete is refused with the reason (`categoryDeleteBlocker`: linked products or child categories).
+- [x] Footnote and "+ Thêm danh mục" (demo). Names stay on one line, so at 320px the table scrolls inside its card.
+- [x] Browser check: search, empty state + reset, delete blocked, 1440 and 320
 - [ ] **🛑 Commit checkpoint: Category tree**
 
 ### 4b. Edit category: `/admin/categories/[code]/edit`
-- [ ] Form: name*, code (read-only), parent, slug, description, display order, status
-- [ ] "Thông tin liên kết" card, the "Không thể xóa danh mục" callout when linked products exist, and "Xóa danh mục"
-- [ ] Mock save, Hủy / Lưu danh mục, and `notFound()`
+- [x] Form: name*, code (read-only), parent (root categories only; locked with a hint when the category has children), slug, description, display order, status. `validateCategory` checks the name, slug format, and order ≥ 1.
+- [x] "Thông tin liên kết" card (Danh mục con / gốc badge and parent follow the selection), the "Không thể xóa danh mục" callout when something blocks deletion, and "Xóa danh mục"
+- [x] Mock save, Hủy (back to the tree) / Lưu danh mục, and `notFound()` (params read inside Suspense)
+- [x] Shared `control` gains a disabled look (canvas background, muted text), matching `TextField`
+- [x] Tests: tree order, derived counts, slugs, filter keeps the parent, delete blockers, validation
+- [x] Browser check: parent ↔ side card, slug error + focus, save, delete blocked, Hủy, locked parent, 1440 and 320
 - [ ] **🛑 Commit checkpoint: Edit category**
 
 ## 5. Master data: `/admin/master-data`

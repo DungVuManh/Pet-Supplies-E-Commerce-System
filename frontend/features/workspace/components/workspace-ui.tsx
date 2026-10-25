@@ -9,7 +9,7 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
 export const primaryLink = "inline-flex min-h-10 items-center justify-center rounded-lg bg-brand px-6 font-semibold text-white hover:bg-brand-hover";
 export const secondaryButton = "inline-flex min-h-10 items-center justify-center rounded-lg border border-line bg-surface px-6 font-semibold hover:bg-brand-subtle";
 export const dangerButton = "inline-flex min-h-10 items-center justify-center rounded-lg bg-danger-subtle px-6 font-semibold text-danger hover:bg-danger hover:text-white";
-export const control ="h-12 min-w-0 rounded-lg border border-line bg-surface px-4 text-sm focus:border-brand";
+export const control = "h-12 min-w-0 rounded-lg border border-line bg-surface px-4 text-sm focus:border-brand disabled:cursor-not-allowed disabled:bg-canvas disabled:text-muted";
 export const card = "rounded-lg border border-line bg-surface";
 
 export function MetricCard({ label, value, detail }: { label: string; value: string; detail: string }) {

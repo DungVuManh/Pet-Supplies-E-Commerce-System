@@ -5,9 +5,9 @@ import { isLowStock, lowStockLevels, lowStockTotal, stockLevels } from "../featu
 import { cumulativeRevenue, overview, recentActivity } from "../features/admin/mock/overview.ts";
 import { countUsers, filterUsers, getUser, getUserDetail, users } from "../features/admin/mock/users.ts";
 import { defaultPermissions, togglePermission } from "../features/admin/mock/permissions.ts";
-import { parseAmount, validateProduct, validateUser } from "../features/admin/validation.ts";
-import { countProducts, filterProducts, getProduct, productStatus, products } from "../features/admin/mock/products.ts";
-import { categoryPath } from "../features/admin/mock/categories.ts";
+import { parseAmount, validateCategory, validateProduct, validateUser } from "../features/admin/validation.ts";
+import { categoryDeleteBlocker, categoryProductCount, countProducts, filterProducts, getProduct, productStatus, products } from "../features/admin/mock/products.ts";
+import { categoryPath, categoryTree, filterCategories, getCategory } from "../features/admin/mock/categories.ts";
 import { productSales } from "../features/admin/mock/reports.ts";
 
 const allUsers = { tab: "all", query: "", role: "all", status: "all" };
@@ -96,6 +96,27 @@ test("product form validation and amount parsing", () => {
   assert.ok(Number.isNaN(parseAmount("45a")));
   assert.deepEqual(Object.keys(validateProduct({ ...valid, name: "R", sku: "rc ma", categoryCode: "", price: "0", stock: "-1" })).sort(),
     ["categoryCode", "name", "price", "sku", "stock"]);
+});
+
+test("category tree matches the design order, codes, slugs and derived product counts", () => {
+  assert.deepEqual(categoryTree().map((c) => c.code), ["DM001", "DM002", "DM003", "DM004", "DM005", "DM006", "DM007", "DM008", "DM009"]);
+  assert.deepEqual(categoryTree().map((c) => categoryProductCount(c.code)), [48, 24, 14, 10, 56, 32, 16, 8, 20]);
+  assert.equal(getCategory("DM002")?.slug, "thuc-an-cho-cho");
+  assert.equal(getCategory("DM007")?.slug, "ve-sinh-cat-meo");
+  assert.equal(getCategory("NOPE"), undefined);
+});
+
+test("category filter keeps the parent of a matching child and the delete rule explains blockers", () => {
+  const rows = filterCategories({ query: "cat meo", status: "all" });
+  assert.deepEqual(rows.map((r) => [r.category.code, r.context]), [["DM005", true], ["DM007", false]]);
+  assert.equal(filterCategories({ query: "", status: "Đã ẩn" }).length, 0);
+  assert.equal(categoryDeleteBlocker("DM002"), "còn 24 sản phẩm liên kết");
+  assert.match(categoryDeleteBlocker("DM001"), /48 sản phẩm/);
+});
+
+test("category form validation", () => {
+  assert.deepEqual(validateCategory({ name: "Thức ăn cho chó", slug: "thuc-an-cho-cho", order: "1" }), {});
+  assert.deepEqual(Object.keys(validateCategory({ name: "T", slug: "Thức ăn", order: "0" })).sort(), ["name", "order", "slug"]);
 });
 
 test("dashboard revenue chart ends at the net revenue KPI and only grows", () => {
