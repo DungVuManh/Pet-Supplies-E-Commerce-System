@@ -324,7 +324,7 @@ server, không tải toàn bộ Orders/PII vào browser để tự cộng.
 
 ### P8 — Tích hợp Hiệu suất cá nhân
 
-- **Trạng thái:** TODO.
+- **Trạng thái:** DONE.
 - **Mục tiêu:** Hiển thị đúng công việc được ghi nhận của Staff hiện tại.
 - **Công việc:** Nối identity/period/distinct counts/series/activity; giải thích
   định nghĩa đơn đã xử lý; thay KPI SLA/target không có nguồn theo D7;
@@ -401,7 +401,7 @@ lại trong lượt lập plan**, không khẳng định chúng còn tồn tại
 - [x] P5 — Client/controls/states/chart.
 - [x] P6 — Tổng quan.
 - [x] P7 — Doanh số.
-- [ ] P8 — Hiệu suất cá nhân.
+- [x] P8 — Hiệu suất cá nhân.
 - [ ] P9 — Tổng kiểm chứng và bàn giao.
 
 **Tiếp tục theo từng bước đã duyệt; mỗi bước hoàn thành có commit riêng trên `trinhpk`. Không push.**
@@ -445,3 +445,8 @@ Overview route/view, shared states, sidebar bỏ ca giả/aria-current và brows
 ### Bằng chứng P7
 
 Sales page/view dùng API, bỏ export/demo, filter day/week/month + URL/reload/Back/Forward, empty/error/retry đạt browser; 6 client tests và focused lint đạt. Đã xem ảnh desktop/mobile, sửa ô date co nhỏ ở 320 và thêm kiểm width; browser chạy lại đạt bốn viewport. Giới hạn Webpack dev/Tailwind test copy như P6, production build chưa đạt do baseline.
+
+
+### Bằng chứng P8
+
+Performance page/view dùng actor API, distinct đơn/thao tác/hủy, activity và unsupported KPI rõ ràng. 6 client tests/focused lint đạt; tsc vẫn đúng 7 lỗi baseline. Browser cả 3 màn hình đạt, gồm đổi actor, đổi role Customer→forbidden, dates, keyboard, responsive 4 viewport và empty/error/retry; đã xem ảnh Performance 320/1440. ReportControls dùng useId tránh trùng ID khi Next Activity giữ page ẩn. Giới hạn build/live services giữ như P6.

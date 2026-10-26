@@ -110,20 +110,20 @@ try {
     await page.getByRole("heading", { name: "Thống kê doanh số" }).waitFor();
     await page.getByText("Sản phẩm từ API", { exact: true }).waitFor();
     assert.equal(await page.getByRole("button", { name: "Xuất báo cáo" }).count(), 0);
-    await page.getByLabel("Từ ngày", { exact: true }).fill("2026-09-01");
-    await page.getByLabel("Đến ngày", { exact: true }).fill("2026-09-30");
+    await page.getByLabel("Từ ngày", { exact: true }).filter({ visible: true }).fill("2026-09-01");
+    await page.getByLabel("Đến ngày", { exact: true }).filter({ visible: true }).fill("2026-09-30");
     await page.getByRole("combobox", { name: /Nhóm theo/ }).selectOption("week");
     await page.getByRole("button", { name: "Áp dụng", exact: true }).click();
     await page.getByRole("heading", { name: "Doanh số theo tuần", exact: true }).waitFor();
     assert.match(page.url(), /dateFrom=2026-09-01/); assert.ok(requests.some((q) => q.includes("groupBy=week")));
     await page.reload(); await page.getByRole("heading", { name: "Doanh số theo tuần", exact: true }).waitFor();
-    assert.equal(await page.getByLabel("Từ ngày", { exact: true }).inputValue(), "2026-09-01");
+    assert.equal(await page.getByLabel("Từ ngày", { exact: true }).filter({ visible: true }).inputValue(), "2026-09-01");
     await page.getByRole("combobox", { name: /Nhóm theo/ }).selectOption("month");
     await page.getByRole("button", { name: "Áp dụng", exact: true }).click();
     await page.getByRole("heading", { name: "Doanh số theo tháng", exact: true }).waitFor();
     await page.goBack(); await page.getByRole("heading", { name: "Doanh số theo tuần", exact: true }).waitFor();
     await page.goForward(); await page.getByRole("heading", { name: "Doanh số theo tháng", exact: true }).waitFor();
-    await page.getByLabel("Từ ngày", { exact: true }).fill("2026-10-20");
+    await page.getByLabel("Từ ngày", { exact: true }).filter({ visible: true }).fill("2026-10-20");
     await page.getByRole("button", { name: "Áp dụng", exact: true }).click();
     await page.getByText("Chọn khoảng ngày hợp lệ, tối đa 366 ngày.", { exact: true }).waitFor();
     await page.getByRole("button", { name: "7 ngày gần nhất", exact: true }).click();
@@ -131,7 +131,7 @@ try {
     for (const width of [320, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 1024 });
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
-      assert.ok((await page.getByLabel("Từ ngày", { exact: true }).boundingBox()).width >= 140, "Date control must remain readable");
+      assert.ok((await page.getByLabel("Từ ngày", { exact: true }).filter({ visible: true }).boundingBox()).width >= 140, "Date control must remain readable");
       await page.screenshot({ path: resolve(screenshots, `sales-${width}.png`), fullPage: true });
     }
     empty = true; await page.getByRole("button", { name: "Tải lại dữ liệu" }).click();
@@ -141,6 +141,34 @@ try {
     failure = false; empty = false; await page.getByRole("button", { name: "Thử lại" }).click();
     await page.getByText("Sản phẩm từ API", { exact: true }).waitFor();
     console.log("PASS sales period/group filters, URL reload/back/forward, validation, empty/error/retry and responsive.");
+  }
+  if (process.env.STAFF_DASHBOARD_TEST_PERFORMANCE === "1") {
+    await page.getByRole("link", { name: "Hiệu suất cá nhân", exact: true }).filter({ visible: true }).click();
+    await page.getByRole("heading", { name: "Hiệu suất cá nhân", exact: true }).waitFor();
+    await page.getByText("Xác nhận đơn", { exact: true }).waitFor();
+    assert.equal(await page.getByText("Chưa có dữ liệu", { exact: true }).count(), 3);
+    assert.equal(await page.getByRole("combobox").count(), 0);
+    await page.getByLabel("Từ ngày", { exact: true }).filter({ visible: true }).fill("2026-10-01");
+    await page.getByRole("button", { name: "Áp dụng", exact: true }).focus(); await page.keyboard.press("Enter");
+    await page.waitForURL(/dateFrom=2026-10-01/); await page.getByText("Xác nhận đơn", { exact: true }).waitFor();
+    assert.ok(!new URL(page.url()).searchParams.has("staffId"));
+    for (const width of [320, 768, 1024, 1440]) {
+      await page.setViewportSize({ width, height: 1024 });
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+      assert.ok((await page.getByLabel("Từ ngày", { exact: true }).filter({ visible: true }).boundingBox()).width >= 140);
+      await page.screenshot({ path: resolve(screenshots, `performance-${width}.png`), fullPage: true });
+    }
+    failure = true; await page.getByRole("button", { name: "Tải lại dữ liệu" }).click();
+    await page.getByRole("alert").filter({ hasText: "Chưa thể tải báo cáo" }).waitFor();
+    assert.equal(await page.getByText("Xác nhận đơn", { exact: true }).count(), 0);
+    failure = false; empty = true; await page.getByRole("button", { name: "Thử lại" }).click();
+    await page.getByText("Bạn chưa có hoạt động được ghi nhận trong kỳ này.", { exact: true }).waitFor();
+    user.id = "d".repeat(24); user.fullName = "Nhân viên thứ hai";
+    await page.reload(); await page.getByText(/Nhân viên thứ hai · Chỉ hiển thị/).waitFor();
+    assert.equal(await page.getByText("LIVE-ORDER", { exact: true }).count(), 0);
+    role = "customer"; await page.reload(); await page.waitForURL(/\/forbidden/);
+    role = "staff"; empty = false;
+    console.log("PASS performance personal identity, dates, unavailable KPI, activity, empty/error/retry, second actor, role change and responsive.");
   }
   const guest = await browser.newContext(), guestPage = await guest.newPage();
   await guestPage.goto(`${origin}/staff/dashboard`); await guestPage.waitForURL(/\/login/);

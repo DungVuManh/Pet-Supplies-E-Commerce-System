@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
 import { control, secondaryButton } from "./staff-ui";
 import type { Period, GroupBy } from "../analytics/types";
 import { periodError, reportQuery } from "../analytics/query";
@@ -9,6 +9,7 @@ import { periodError, reportQuery } from "../analytics/query";
 export function ReportControls({ performance = false, period, query = "", onChange }: {
   performance?: boolean; period?: Period; query?: string; onChange?: (query: string) => void;
 }) {
+  const errorId = useId();
   const params = new URLSearchParams(query);
   const initial = { dateFrom: params.get("dateFrom") ?? period?.dateFrom ?? "", dateTo: params.get("dateTo") ?? period?.dateTo ?? "",
     groupBy: (params.get("groupBy") ?? period?.groupBy ?? "day") as GroupBy };
@@ -28,7 +29,7 @@ export function ReportControls({ performance = false, period, query = "", onChan
     <div className="flex flex-wrap items-end gap-4">
       <label className="grid w-full min-w-0 gap-2 font-medium sm:w-auto">Từ ngày
         <input type="date" required min="2000-01-01" max="2099-12-31" className={`${control} w-full`} value={draft.dateFrom}
-          aria-invalid={Boolean(error)} aria-describedby={error ? "report-filter-error" : undefined}
+          aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined}
           onChange={(e) => setDraft({ ...draft, dateFrom: e.target.value })} /></label>
       <label className="grid w-full min-w-0 gap-2 font-medium sm:w-auto">Đến ngày
         <input type="date" required min="2000-01-01" max="2099-12-31" className={`${control} w-full`} value={draft.dateTo}
@@ -41,6 +42,6 @@ export function ReportControls({ performance = false, period, query = "", onChan
       <button type="button" disabled={!onChange} className={secondaryButton} onClick={() => onChange?.("")}>7 ngày gần nhất</button>
       <span className="text-xs text-muted">{performance ? "Chỉ dữ liệu của bạn" : "Toàn cửa hàng"} · UTC+07</span>
     </div>
-    {error && <p id="report-filter-error" role="alert" className="text-danger">{error}</p>}
+    {error && <p id={errorId} role="alert" className="text-danger">{error}</p>}
   </form>;
 }
