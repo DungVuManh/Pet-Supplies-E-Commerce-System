@@ -50,13 +50,13 @@ async function browser() {
 describe("Staff order status", () => {
   it("persists every permitted forward step and one history entry per step without changing payment", async () => {
     const { send } = await browser();
-    for (const [from, to] of [["pending", "confirmed"], ["confirmed", "processing"], ["processing", "shipping"], ["shipping", "completed"]]) {
+    for (const [from, to] of [["pending", "confirmed"], ["confirmed", "processing"], ["processing", "shipping"]]) {
       const response = await send({ expectedStatus: from, orderStatus: to }).expect(200);
       expect(response.body.data.order).toEqual({ id, orderStatus: to });
       expect(response.headers["cache-control"]).toBe("no-store");
       expect(order.statusHistory.at(-1)).toMatchObject({ from, to, by: actor, at: expect.any(Date) });
     }
-    expect(order.statusHistory).toHaveLength(4);
+    expect(order.statusHistory).toHaveLength(3);
     expect(order.paymentStatus).toBe("unpaid");
     expect(order.shipping).toBeUndefined();
     expect(update.mock.calls.every(([, change]) => Object.keys(change.$set).join() === "orderStatus")).toBe(true);
@@ -67,7 +67,7 @@ describe("Staff order status", () => {
     await send({ expectedStatus: "processing", orderStatus: "shipping", shipping: { carrier: " Shipper tự do " } }).expect(200);
     expect(order.shipping).toEqual({ carrier: "Shipper tự do", trackingNumber: "" });
     const response = await agent.get(`/api/v1/staff/orders/${id}`).set("Cookie", cookie).expect(200);
-    expect(response.body.data.order.allowedNextStatuses).toEqual(["completed"]);
+    expect(response.body.data.order.allowedNextStatuses).toEqual([]);
     expect(response.body.data.order.shipping).toEqual(order.shipping);
   });
   it("keeps legacy delivered orders readable as completed without rewriting history", async () => {
@@ -110,10 +110,14 @@ describe("Staff order status", () => {
   it("rejects skipping, reversing, terminal/offline changes and the removed delivered step", async () => {
     const { send } = await browser();
     for (const [from, to] of [["pending", "shipping"], ["processing", "confirmed"], ["processing", "cancelled"],
-      ["shipping", "cancelled"], ["pending", "completed"], ["confirmed", "completed"], ["processing", "completed"],
+      ["shipping", "cancelled"],
       ["delivered", "processing"], ["completed", "processing"], ["cancelled", "confirmed"]]) {
       order.orderStatus = from;
       await send({ expectedStatus: from, orderStatus: to }).expect(409);
+    }
+    for (const from of ["pending", "confirmed", "processing", "shipping"]) {
+      order.orderStatus = from;
+      await send({ expectedStatus: from, orderStatus: "completed" }).expect(400);
     }
     order.orderStatus = "shipping";
     await send({ expectedStatus: "shipping", orderStatus: "delivered" }).expect(400);

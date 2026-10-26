@@ -1,10 +1,11 @@
 # Staff cập nhật trạng thái đơn hàng
 
-Phạm vi được chốt trong chat: chỉ triển khai phần Staff. Luồng đơn online:
-`pending → confirmed → processing → shipping → completed`; chỉ hủy từ `pending`/`confirmed`.
+Luồng đơn online: `pending → confirmed → processing → shipping → completed`; chỉ hủy từ
+`pending`/`confirmed`. Staff xử lý ba bước đầu và chỉ Customer sở hữu đơn mới có thể
+xác nhận đã nhận hàng để chuyển từ `shipping` sang `completed`.
 Theo yêu cầu cập nhật ngày 23/10/2026, màn hình dùng đúng sáu trạng thái:
 “Chờ xử lý”, “Đã xác nhận”, “Đang chuẩn bị”, “Đang giao”, “Hoàn thành”, “Đã hủy”.
-Staff được hoàn thành đơn đang giao, không được bỏ bước hoặc quay ngược trạng thái.
+Staff không được hoàn thành đơn đang giao, bỏ bước hoặc quay ngược trạng thái.
 Đơn offline đã hoàn thành tiếp tục chỉ đọc. `delivered` không còn là trạng thái
 trên giao diện hoặc bộ lọc Staff; đơn/lịch sử cũ được trả về dưới nhãn `completed`,
 tính vào bộ lọc và tổng đếm Hoàn thành, không sửa dữ liệu/lịch sử đã lưu.
@@ -16,6 +17,11 @@ tính vào bộ lọc và tổng đếm Hoàn thành, không sửa dữ liệu/l
   Shipping chỉ nhận khi chuyển sang `shipping`; carrier/trackingNumber tùy chọn,
   trim, tối đa 100 ký tự mỗi trường. Không tích hợp API vận chuyển.
 - GET chi tiết trả thêm `allowedNextStatuses`, do backend quyết định.
+- PATCH `/api/v1/orders/:id/receipt-confirmation`, đúng role Customer,
+  JSON/Origin/CSRF và no-store. Không nhận body nghiệp vụ. Server chỉ cập nhật
+  đơn online của chính Customer đang `shipping`; ghi atomically `completed` và
+  history `{ from: "shipping", to: "completed", by, at }`. Đơn không thuộc
+  Customer trả 404; trạng thái không còn hợp lệ trả 409.
 - Khi xác nhận: kiểm tra snapshot/liên hệ hợp lệ, tồn khả dụng hiện tại đủ cho
   các SKU; ONLINE yêu cầu paymentStatus đã là `paid`. Kiểm tra kho chỉ là kiểm tra
   tại thời điểm đọc, không phải giữ hàng hay cam kết kho dưới cạnh tranh.
@@ -32,9 +38,10 @@ tính vào bộ lọc và tổng đếm Hoàn thành, không sửa dữ liệu/l
 
 ## Giao diện và kiểm chứng
 
-Chi tiết đơn dùng Staff shell/token sẵn có, chọn các bước hợp lệ, nhập vận chuyển
-tùy chọn, xác nhận trước khi gửi, khóa gửi lặp, hiển thị lỗi/thành công và tải lại
-badge/lịch sử từ server. Không giả thông báo thành công khi chưa lưu.
+Chi tiết đơn Staff chọn các bước hợp lệ tới `shipping`, nhập vận chuyển tùy chọn,
+xác nhận trước khi gửi, khóa gửi lặp, hiển thị lỗi/thành công và tải lại badge/lịch
+sử từ server. Trên chi tiết đơn Customer, nút “Đã nhận được hàng” chỉ hiện khi đơn
+đang giao; thao tác có xác nhận, khóa gửi lặp và tải lại trạng thái từ server.
 
 Code: validators/order.validator.js, controllers/order-status.controller.js,
 routers/workspace.router.js, model Order và feature Staff Orders frontend.

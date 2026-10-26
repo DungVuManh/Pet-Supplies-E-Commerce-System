@@ -273,7 +273,7 @@ export async function getOrderDetail(request, response, next) {
     // Tìm đơn hàng theo ID trong MongoDB
     const order = await Order.findById(id).lean();
 
-    if (!order) {
+    if (!order || String(order.customerId) !== String(request.user?._id)) {
       return response.status(404).json({ success: false, message: "Không tìm thấy đơn hàng." });
     }
 

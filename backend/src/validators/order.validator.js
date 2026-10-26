@@ -161,7 +161,8 @@ export const staffOrderTransitions = {
   pending: ["confirmed", "cancelled"],
   confirmed: ["processing", "cancelled"],
   processing: ["shipping"],
-  shipping: ["completed"],
+  // A shipping order is completed only after its customer confirms receipt.
+  shipping: [],
   delivered: [],
   completed: [],
   cancelled: [],
@@ -169,7 +170,7 @@ export const staffOrderTransitions = {
 
 const staffOrderStatusSchema = z.object({
   expectedStatus: z.enum(orderStatuses),
-  orderStatus: z.enum(["confirmed", "processing", "shipping", "completed", "cancelled"]),
+  orderStatus: z.enum(["confirmed", "processing", "shipping", "cancelled"]),
   shipping: z.object({
     carrier: z.string().trim().max(100).default(""),
     trackingNumber: z.string().trim().max(100).default(""),
