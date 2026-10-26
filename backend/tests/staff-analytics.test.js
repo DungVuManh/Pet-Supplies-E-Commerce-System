@@ -6,6 +6,7 @@ import { parseEnvironment } from "../src/config/env.js";
 import * as firebase from "../src/config/firebase.js";
 import { userRepository } from "../src/models/user.model.js";
 import { Order } from "../src/models/order.model.js";
+import { Product } from "../src/models/product.model.js";
 import { parseAnalyticsQuery } from "../src/validators/staff-analytics.validator.js";
 import { fillSeries, previousPeriod, summaryDto, salesMatch } from "../src/controllers/staff-analytics.helpers.js";
 
@@ -107,5 +108,31 @@ describe("personal performance API", () => {
     const r = await personal().expect(503); expect(r.headers["cache-control"]).toBe("no-store");
     auth.verifySessionCookie.mockRejectedValue({ code: "auth/session-cookie-revoked" });
     await personal().expect(401);
+  });
+});
+
+describe("overview API", () => {
+  const overview = () => request(app).get("/api/v1/staff/analytics/overview").set("Cookie", "petly-session=test");
+  beforeEach(() => {
+    aggregate.mockImplementation((pipeline) => ({ option: async () => {
+      const facet = pipeline.at(-1).$facet;
+      if (facet.actions) return [{ actions: [], cancellations: [], processed: [], activity: [] }];
+      if (facet.counts) return [{ counts: [{ _id: "pending", count: 8 }], items: [] }];
+      return salesResult();
+    } }));
+    vi.spyOn(Product, "aggregate").mockReturnValue({ option: async () => [{ counts: [], items: [] }] });
+  });
+  it("composes real summaries without changing auth bootstrap", async () => {
+    const r = await overview().expect(200);
+    expect(r.body.data.backlog.total).toBe(8); expect(r.body.data.stock.threshold).toBe(10);
+    expect(r.body.data.personal.actor.id).toBe(String(actor));
+    expect(r.headers["cache-control"]).toBe("no-store");
+  });
+  it("fails the report when one dependency fails, rather than showing fake zero", async () => {
+    vi.mocked(Product.aggregate).mockReturnValue({ option: async () => { throw new Error("db"); } });
+    await overview().expect(503);
+    role = "admin"; await overview().expect(403);
+    role = "customer"; await overview().expect(403);
+    await request(app).get("/api/v1/staff/analytics/overview").expect(401);
   });
 });

@@ -1,5 +1,6 @@
 import { Order } from "../models/order.model.js";
 import mongoose from "mongoose";
+import { Product } from "../models/product.model.js";
 import { DAY, TIMEZONE, localDate, startOfDate } from "../validators/staff-analytics.validator.js";
 
 export const visibleOrders = { creationState: { $ne: "pending" } };
@@ -145,4 +146,44 @@ export async function readPerformance(period, user, now) {
     actor: { id: String(user._id), fullName: user.fullName }, ...current,
     previousProcessedOrders: previous.processedOrders, todayProcessedOrders: today.processedOrders,
     unsupported: { averageProcessingMinutes: null, onTimeRate: null, target: null } };
+}
+
+export async function readBacklog() {
+  const [result] = await aggregate(Order, [
+    { $match: { ...visibleOrders, channel: "online", orderStatus: { $in: ["pending", "confirmed", "processing"] } } },
+    { $facet: {
+      counts: [{ $group: { _id: "$orderStatus", count: { $sum: 1 } } }],
+      items: [{ $match: { orderStatus: "pending" } }, { $sort: { createdAt: -1, _id: 1 } }, { $limit: 3 },
+        { $project: { _id: 0, id: { $toString: "$_id" }, orderCode: 1, createdAt: 1, total: 1 } }],
+    } },
+  ]);
+  if (!result) throw new Error("Missing backlog result");
+  const counts = { pending: 0, confirmed: 0, processing: 0 };
+  for (const row of result.counts) counts[row._id] = safeNumber(row.count);
+  return { ...counts, total: safeNumber(counts.pending + counts.confirmed + counts.processing),
+    items: result.items.map((item) => ({ ...item, createdAt: item.createdAt.toISOString(), total: safeNumber(item.total) })) };
+}
+export async function readStockAlerts() {
+  const threshold = 10;
+  const [result] = await aggregate(Product, [
+    { $match: { isActive: true } }, { $unwind: "$variants" },
+    { $set: { availableStock: { $subtract: ["$variants.stock", "$variants.reservedStock"] } } },
+    { $match: { availableStock: { $lte: threshold } } },
+    { $facet: {
+      counts: [{ $group: { _id: { $cond: [{ $lte: ["$availableStock", 0] }, "out", "low"] }, count: { $sum: 1 } } }],
+      items: [{ $sort: { availableStock: 1, _id: 1, "variants.sku": 1 } }, { $limit: 4 },
+        { $project: { _id: 0, productId: { $toString: "$_id" }, sku: "$variants.sku", name: 1, availableStock: 1 } }],
+    } },
+  ]);
+  if (!result) throw new Error("Missing stock result");
+  const counts = { low: 0, out: 0 };
+  for (const row of result.counts) counts[row._id] = safeNumber(row.count);
+  for (const item of result.items) if (!Number.isSafeInteger(item.availableStock)) throw new Error("Invalid inventory");
+  return { threshold, ...counts, total: safeNumber(counts.low + counts.out), items: result.items };
+}
+export async function readOverview(period, user, now) {
+  const [sales, personal, backlog, stock] = await Promise.all([
+    readSales(period, now), readPerformance(todayPeriod(now), user, now), readBacklog(), readStockAlerts(),
+  ]);
+  return { generatedAt: now.toISOString(), timezone: TIMEZONE, scope: "store", sales, personal, backlog, stock };
 }

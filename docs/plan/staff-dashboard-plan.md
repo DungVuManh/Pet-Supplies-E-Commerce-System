@@ -251,7 +251,7 @@ server, không tải toàn bộ Orders/PII vào browser để tự cộng.
 
 ### P4 — API Tổng quan và kiểm chứng aggregate với MongoDB
 
-- **Trạng thái:** TODO.
+- **Trạng thái:** DONE.
 - **Mục tiêu:** Tổng quan dùng cùng công thức Sales/Performance và dữ liệu vận hành thật.
 - **Công việc:** Reuse helper, không gọi HTTP nội bộ giữa controllers; pending preview
   giới hạn, status counts đúng enum, stock alerts theo D8; gắn generatedAt;
@@ -397,7 +397,7 @@ lại trong lượt lập plan**, không khẳng định chúng còn tồn tại
 - [x] P1 — Spec/contract/baseline.
 - [x] P2 — Sales API.
 - [x] P3 — Performance API.
-- [ ] P4 — Overview API và MongoDB integration.
+- [x] P4 — Overview API và MongoDB integration.
 - [ ] P5 — Client/controls/states/chart.
 - [ ] P6 — Tổng quan.
 - [ ] P7 — Doanh số.
@@ -425,3 +425,8 @@ Các lỗi này có trước triển khai Staff; không tự sửa ngoài phạm
 ### Bằng chứng P3
 
 22/22 analytics tests đạt. Actor scope ở match/filter server; distinct Order, cancellation tách riêng, offline không cộng history hai lần, unsupported KPI null. Aggregate fixtures thực ở P4.
+
+
+### Bằng chứng P4
+
+24/24 HTTP/validator tests đạt. MongoDB 8.2 tạm với DB UUID riêng đạt: tiền snapshot, legacy/unpaid/refund/pending, biên UTC+07, day/week/month, nhiều Payment, actor A/B/customer, distinct nhiều ngày, overview bounds, Product bị xóa và snapshot hỏng. Explain chạy trên fixture nhỏ; chưa đủ tải đại diện để thêm index. Đã drop đúng DB test/disconnect, không đọc .env ứng dụng.
