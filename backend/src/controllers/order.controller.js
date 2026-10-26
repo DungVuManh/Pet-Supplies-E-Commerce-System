@@ -25,11 +25,6 @@ const SORT_MAP = {
   total_asc: { total: 1 },
 };
 
-function staffOrderStatus(status) {
-  if (status === "delivered") return "completed";
-  return status;
-}
-
 function generateOrderCode() {
   return `ORD${Date.now()}${Math.floor(100 + Math.random() * 900)}`;
 }
@@ -235,7 +230,6 @@ export async function getMyOrders(request, response, next) {
         pending: { status: "pending", statusLabel: "Chờ xử lý" },
         processing: { status: "pending", statusLabel: "Đang xử lý" },
         shipping: { status: "shipping", statusLabel: "Đang giao" },
-        delivered: { status: "completed", statusLabel: "Hoàn thành" },
         completed: { status: "completed", statusLabel: "Hoàn thành" },
         cancelled: { status: "cancelled", statusLabel: "Đã hủy" },
       };
@@ -287,7 +281,6 @@ export async function getOrderDetail(request, response, next) {
       pending: { status: "pending", statusLabel: "Chờ xử lý" },
       processing: { status: "pending", statusLabel: "Đang xử lý" },
       shipping: { status: "shipping", statusLabel: "Đang giao" },
-      delivered: { status: "completed", statusLabel: "Hoàn thành" },
       completed: { status: "completed", statusLabel: "Hoàn thành" },
       cancelled: { status: "cancelled", statusLabel: "Đã hủy" },
     };
@@ -367,7 +360,7 @@ export async function listStaffOrders(request, response, next) {
   try {
     const { query, status, dateFrom, dateTo, sort, page, pageSize } = parseOrderQuery(request.query);
 
-    const baseConditions = [];
+    const baseConditions = [{ creationState: { $nin: ["pending"] } }];
     const searchFilter = buildOrderSearchFilter(query);
     if (Object.keys(searchFilter).length > 0) {
       baseConditions.push(searchFilter);
@@ -401,7 +394,7 @@ export async function listStaffOrders(request, response, next) {
         status === "all"
           ? baseFilter
           : {
-            $and: [...baseConditions, { orderStatus: status === "completed" ? { $in: ["completed", "delivered"] } : status }],
+            $and: [...baseConditions, { orderStatus: status }],
           };
 
       const sortObj = SORT_MAP[sort] || SORT_MAP.createdAt_desc;
@@ -424,9 +417,9 @@ export async function listStaffOrders(request, response, next) {
       ]);
 
       for (const group of groupResults) {
-        const status = staffOrderStatus(group._id);
-        if (status in statusCounts) {
-          statusCounts[status] += group.count;
+        const groupStatus = group._id;
+        if (groupStatus in statusCounts) {
+          statusCounts[groupStatus] += group.count;
         }
         summaryAll += group.count;
       }
@@ -449,7 +442,7 @@ export async function listStaffOrders(request, response, next) {
           },
           itemCount,
           total: order.total,
-          orderStatus: staffOrderStatus(order.orderStatus),
+          orderStatus: order.orderStatus,
           paymentMethod: order.paymentMethod,
           paymentStatus: order.paymentStatus,
           channel: order.channel,
@@ -576,8 +569,8 @@ export async function getStaffOrderDetail(request, response, next) {
 
     const statusHistory = (order.statusHistory || [])
       .map((h) => ({
-        from: staffOrderStatus(h.from) || null,
-        to: staffOrderStatus(h.to),
+        from: h.from || null,
+        to: h.to,
         at: h.at ? new Date(h.at).toISOString() : new Date().toISOString(),
         actorName: h.by ? userMap.get(h.by.toString()) || null : null,
       }))
@@ -614,7 +607,7 @@ export async function getStaffOrderDetail(request, response, next) {
       shippingFee: order.shippingFee || 0,
       total: order.total,
       promotionCode: order.promotionCode || null,
-      orderStatus: staffOrderStatus(order.orderStatus),
+      orderStatus: order.orderStatus,
       paymentMethod: order.paymentMethod,
       paymentStatus: order.paymentStatus,
       channel: order.channel,

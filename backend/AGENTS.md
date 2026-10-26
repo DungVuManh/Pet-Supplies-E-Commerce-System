@@ -14,9 +14,7 @@ These instructions apply to `backend/`. Keep this file aligned with the code and
   Staff can PATCH `/api/v1/staff/orders/:id/status` with JSON/Origin/CSRF to move
   online orders pending → confirmed → processing → shipping → completed, or cancel pending/confirmed.
   Status/history update atomically in Order using expectedStatus; no stock/payment
-  mutation. Shipping metadata is optional. Staff can complete shipping orders.
-  Staff list/detail/history display legacy delivered as completed; completed filters/counts
-  include both stored values without rewriting old orders or audit history.
+  mutation. Shipping metadata is optional.
   See `../docs/specs/staff-order-status.md` for confirmation guards and the API contract.
   Staff can PATCH `/api/v1/staff/products/:sku` with JSON/Origin/CSRF to edit the
   SKU's physical stock and the Product's shared status/description. An expected

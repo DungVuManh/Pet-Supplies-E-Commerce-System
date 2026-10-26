@@ -163,7 +163,6 @@ export const staffOrderTransitions = {
   processing: ["shipping"],
   // A shipping order is completed only after its customer confirms receipt.
   shipping: [],
-  delivered: [],
   completed: [],
   cancelled: [],
 };

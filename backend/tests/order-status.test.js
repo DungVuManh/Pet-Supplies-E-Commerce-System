@@ -70,30 +70,18 @@ describe("Staff order status", () => {
     expect(response.body.data.order.allowedNextStatuses).toEqual([]);
     expect(response.body.data.order.shipping).toEqual(order.shipping);
   });
-  it("keeps legacy delivered orders readable as completed without rewriting history", async () => {
+  it("filters orders by completed status and returns summary counts", async () => {
     const { agent, cookie } = await browser();
-    order.orderStatus = "delivered";
-    order.statusHistory = [{ from: "shipping", to: "delivered", by: actor, at: new Date() }];
-    const response = await agent.get(`/api/v1/staff/orders/${id}`).set("Cookie", cookie).expect(200);
-    expect(response.body.data.order.orderStatus).toBe("completed");
-    expect(response.body.data.order.statusHistory[0]).toMatchObject({ from: "shipping", to: "completed" });
-    expect(response.body.data.order.allowedNextStatuses).toEqual([]);
-    expect(order.orderStatus).toBe("delivered");
-    expect(order.statusHistory[0].to).toBe("delivered");
-    expect(update).not.toHaveBeenCalled();
-  });
-  it("includes legacy delivered orders in completed filters and summary counts", async () => {
-    const { agent, cookie } = await browser();
-    order.orderStatus = "delivered";
+    order.orderStatus = "completed";
     vi.spyOn(Order, "aggregate").mockResolvedValue([
-      { _id: "completed", count: 2 }, { _id: "delivered", count: 1 }, { _id: "cancelled", count: 1 },
+      { _id: "completed", count: 3 }, { _id: "cancelled", count: 1 },
     ]);
     const listQuery = { select() { return this; }, sort() { return this; }, skip() { return this; }, limit() { return this; }, lean: async () => [order] };
     const find = vi.spyOn(Order, "find").mockReturnValue(listQuery);
     const count = vi.spyOn(Order, "countDocuments").mockResolvedValue(3);
     const response = await agent.get("/api/v1/staff/orders?status=completed").set("Cookie", cookie).expect(200);
     expect(find).toHaveBeenCalledWith({ $and: [
-      { creationState: { $nin: ["pending"] } }, { orderStatus: { $in: ["completed", "delivered"] } },
+      { creationState: { $nin: ["pending"] } }, { orderStatus: "completed" },
     ] });
     expect(count).toHaveBeenCalledWith(find.mock.calls[0][0]);
     expect(response.body.data.items[0].orderStatus).toBe("completed");
@@ -111,7 +99,7 @@ describe("Staff order status", () => {
     const { send } = await browser();
     for (const [from, to] of [["pending", "shipping"], ["processing", "confirmed"], ["processing", "cancelled"],
       ["shipping", "cancelled"],
-      ["delivered", "processing"], ["completed", "processing"], ["cancelled", "confirmed"]]) {
+      ["completed", "processing"], ["cancelled", "confirmed"]]) {
       order.orderStatus = from;
       await send({ expectedStatus: from, orderStatus: to }).expect(409);
     }
