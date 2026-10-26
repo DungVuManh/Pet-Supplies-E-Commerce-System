@@ -59,5 +59,6 @@ export type BackendCartResponse = {
       summary: CartSummary;
     };
     guestToken?: string;
+    message?: string;
   };
 };

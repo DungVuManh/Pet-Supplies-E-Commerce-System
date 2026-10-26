@@ -2,6 +2,7 @@
 export type CheckoutAddress = {
     _id: string;
     recipientName: string;
+    email: string;
     phone: string;
     province: string;
     district: string;
@@ -25,5 +26,5 @@ export async function getCheckoutAddress(): Promise<CheckoutAddress[]> {
     } catch {
         throw new Error("Du lieu điaj chi khong hop le -__-")
     }
-        return data.data?.addresses ?? [];
+    return data.data?.addresses ?? [];
 }

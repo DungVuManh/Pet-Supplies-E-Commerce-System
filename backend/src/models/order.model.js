@@ -64,6 +64,7 @@ const orderSchema = new mongoose.Schema(
    type: mongoose.Schema.Types.ObjectId, ref: "User",
    required() { return this.channel === "offline"; },
   },
+  email: { type: String, trim: true, lowercase: true, match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
   creationRequestId: { type: String, select: false, immutable: true },
   creationRequestHash: { type: String, select: false, immutable: true },
   creationState: { type: String, enum: ["pending", "complete"] },

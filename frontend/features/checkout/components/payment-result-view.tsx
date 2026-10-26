@@ -31,7 +31,7 @@ export function PaymentResultView() {
   const searchParams = useSearchParams();
 
   // Đọc các trường trả về từ URL
-  const orderCode = searchParams.get("orderCode") || "ORD" + Date.now();
+  const orderCode = searchParams.get("orderCode") || "ORD-PENDING";
   const total = Number(searchParams.get("total") || 0);
   const paymentMethod = searchParams.get("paymentMethod") || "COD";
   const createdAt = searchParams.get("createdAt");
