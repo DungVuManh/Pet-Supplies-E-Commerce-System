@@ -8,14 +8,17 @@ import type { Reports } from "../types";
 
 type Result<T> = { key: string; data?: T; error?: Error };
 export function useStaffAnalytics<K extends keyof Reports>(kind: K) {
-  const { user, status } = useAuth();
+  const { user, status, refresh: refreshAuth } = useAuth();
   const router = useRouter(), pathname = usePathname(), params = useSearchParams();
   const query = params.toString();
   const authorized = status === "ready" && user?.role === "staff";
   const [revision, setRevision] = useState(0);
   const [result, setResult] = useState<Result<Reports[K]>>({ key: "" });
   const key = `${kind}:${query}:${user?.id}:${revision}`;
-  const refresh = useCallback(() => setRevision((v) => v + 1), []);
+  const refresh = useCallback(() => {
+    setRevision((v) => v + 1);
+    if (status === "error") void refreshAuth();
+  }, [status, refreshAuth]);
   useEffect(() => {
     if (!authorized) return;
     const controller = new AbortController();

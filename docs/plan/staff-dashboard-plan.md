@@ -289,7 +289,7 @@ server, không tải toàn bộ Orders/PII vào browser để tự cộng.
 
 ### P6 — Tích hợp màn hình Tổng quan
 
-- **Trạng thái:** TODO.
+- **Trạng thái:** DONE.
 - **Mục tiêu:** Dashboard phản ánh vận hành thật và danh tính đang đăng nhập.
 - **Công việc:** Thin Server page + feature view; tên từ auth, ngày từ API; metric,
   chart, stock alert, pending table dùng DTO; link detail theo id thật; giữ CTA new.
@@ -399,7 +399,7 @@ lại trong lượt lập plan**, không khẳng định chúng còn tồn tại
 - [x] P3 — Performance API.
 - [x] P4 — Overview API và MongoDB integration.
 - [x] P5 — Client/controls/states/chart.
-- [ ] P6 — Tổng quan.
+- [x] P6 — Tổng quan.
 - [ ] P7 — Doanh số.
 - [ ] P8 — Hiệu suất cá nhân.
 - [ ] P9 — Tổng kiểm chứng và bàn giao.
@@ -435,3 +435,8 @@ Các lỗi này có trước triển khai Staff; không tự sửa ngoài phạm
 ### Bằng chứng P5
 
 6/6 analytics client/query/chart tests + 30/30 Admin regression tests đạt; focused lint exit 0. Full tsc vẫn đúng 7 lỗi baseline Admin/Cart, không lỗi mới. Typed parsers, abort/timeout, identity-bound results, URL controls và chart zero/empty đã có. Browser race/Back/Forward kiểm ở các bước UI/P9.
+
+
+### Bằng chứng P6
+
+Overview route/view, shared states, sidebar bỏ ca giả/aria-current và browser runner hoàn tất. Focused lint, 6 client tests đạt; tsc không thêm lỗi so baseline. Browser Chrome đạt data/loading/empty/error/retry, guest redirect, 320/768/1024/1440 và keyboard; đã xem screenshot 320/1440. Turbopack dev compile timeout, build CSS worker lỗi cả Node 24.22.1. Browser dùng bản sao riêng dưới .next, Webpack dev + chính Tailwind loader project qua rule chỉ trong bản sao; có assert compiled grid. Không sửa production config, không gọi đây là production build pass và không dừng dev server người dùng.
