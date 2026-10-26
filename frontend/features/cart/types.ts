@@ -27,8 +27,8 @@ export type CartSummary = {
   distinctCount: number;
   totalQuantity: number;
   subtotal: number;
-  shippingFee: number;
-  discount: number;
+  // shippingFee: number;
+  // discount: number;
   total: number;
 };
 
@@ -59,5 +59,6 @@ export type BackendCartResponse = {
       summary: CartSummary;
     };
     guestToken?: string;
+    message?: string;
   };
 };

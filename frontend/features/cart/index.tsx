@@ -20,7 +20,6 @@ export function CartView() {
     increaseQuantity,
     decreaseQuantity,
     removeItem,
-    applyPromoCode,
   } = useCartPage();
 
   return (
@@ -82,14 +81,6 @@ export function CartView() {
         {/* CỘT PHẢI (4/12): Tóm tắt đơn hàng + Mã ưu đãi */}
         <div className="lg:col-span-4 flex flex-col gap-6">
           <CartSummary summary={summary} />
-
-          <PromoCodeCard
-            value={promoCodeInput}
-            onChange={setPromoCodeInput}
-            onApply={applyPromoCode}
-            message={promoMessage}
-            isError={promoError}
-          />
         </div>
       </div>
     </div>

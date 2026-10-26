@@ -61,7 +61,14 @@ export const authApi = {
   async register(idToken: string, profile: RegistrationProfile, remember = false) {
     return parseAuthUser(await mutate("register", "POST", { idToken, ...profile, remember }));
   },
-  async logout() { await mutate("session", "DELETE", {}); },
+  async logout() {
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("petly_auth_user");
+      }
+    } catch {}
+    await mutate("session", "DELETE", {});
+  },
 };
 
 // The server supplies the configured backend origin and only the session cookie.

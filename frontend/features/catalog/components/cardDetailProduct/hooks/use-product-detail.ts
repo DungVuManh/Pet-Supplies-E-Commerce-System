@@ -58,6 +58,13 @@ export function useProductDetail(product: Product) {
         productId: product.id,
         variantSku,
         quantity,
+        name: product.name,
+        price: currentPrice,
+        image: images[0] || product.image,
+        brand: product.brand,
+        label: currentVariant?.label,
+        description: product.description,
+        stock: currentStock,
       });
 
       setCartFeedback({

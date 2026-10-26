@@ -2,7 +2,7 @@
 
 // =============================================================
 // features/checkout/index.tsx
-// Màn hình Thanh toán: Tải sản phẩm từ API giỏ hàng hiện tại (MongoDB)
+// Màn hình Thanh toán: Tải sản phẩm từ giỏ hàng (guest localStorage / user DB)
 // =============================================================
 
 import Link from "next/link";
@@ -10,7 +10,6 @@ import React from "react";
 import { DeliveryAddressCard } from "./components/delivery-address-card";
 import { OrderReviewCard } from "./components/order-review-card";
 import { PaymentMethodCard } from "./components/payment-method-card";
-import { ShippingMethodCard } from "./components/shipping-method-card";
 import { useCheckout } from "./hooks/use-checkout";
 
 export * from "./types";
@@ -18,6 +17,9 @@ export * from "./types";
 export function CheckoutView() {
   const {
     address,
+    handleAddressChange,
+    addressErrors,
+    isGuest,
     handleSubmitOrder,
     isLoading,
     isSubmitting,
@@ -46,8 +48,18 @@ export function CheckoutView() {
     );
   }
 
+  // Giao diện khi đang tải dữ liệu
+  if (isLoading) {
+    return (
+      <div className="w-full py-24 text-center">
+        <div className="inline-block size-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent motion-reduce:animate-[spin_1.5s_linear_infinite]" />
+        <p className="mt-4 text-sm text-muted">Đang tải thông tin thanh toán...</p>
+      </div>
+    );
+  }
+
   // Giao diện khi giỏ hàng trống
-  if (!isLoading && items.length === 0) {
+  if (items.length === 0) {
     return (
       <div className="w-full py-16 text-center">
         <h2 className="text-2xl font-bold text-ink">Giỏ hàng của bạn đang trống</h2>
@@ -102,15 +114,19 @@ export function CheckoutView() {
       {/* 3. Bố cục 2 cột chính */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {submitError && (
-          <p className="lg:col-span-12 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700" role="alert">
+          <p className="lg:col-span-12 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700" role="alert">
             {submitError}
           </p>
         )}
 
         {/* CỘT TRÁI: Địa chỉ giao hàng & Phương thức */}
         <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-6">
-          <DeliveryAddressCard address={address} />
-          <ShippingMethodCard method={shippingMethod} />
+          <DeliveryAddressCard
+            address={address}
+            isGuest={isGuest}
+            onAddressChange={handleAddressChange}
+            addressErrors={addressErrors}
+          />
           <PaymentMethodCard
             selectedMethod={paymentMethod}
             onSelectMethod={setPaymentMethod}
