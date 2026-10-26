@@ -79,3 +79,33 @@ describe("sales API", () => {
     const r = await get().expect(503); expect(JSON.stringify(r.body)).not.toContain("secret");
   });
 });
+
+describe("personal performance API", () => {
+  const personal = (query = "") => request(app).get(`/api/v1/staff/analytics/performance${query}`).set("Cookie", "petly-session=test");
+  beforeEach(() => aggregate.mockImplementation(() => ({ option: async () => [{
+    actions: [{ count: 3 }], cancellations: [{ count: 1 }], processed: [{ _id: "2026-10-26", value: 1 }],
+    activity: [{ orderId: "a".repeat(24), orderCode: "TEST", action: "confirmed", at: now }],
+  }] })));
+  it("scopes every aggregate to the session's ObjectId and allowlists DTO", async () => {
+    const r = await personal("?dateFrom=2026-10-20&dateTo=2026-10-26").expect(200);
+    expect(r.body.data.processedOrders).toBe(1); expect(r.body.data.actionCount).toBe(3);
+    expect(r.body.data.actor).toEqual({ id: String(actor), fullName: "Staff" });
+    expect(r.body.data.unsupported.target).toBeNull();
+    for (const [pipeline] of aggregate.mock.calls) {
+      expect(pipeline[0].$match.$or[0].statusHistory.$elemMatch.by).toEqual(actor);
+      expect(pipeline[0].$match.$or[1].createdByStaffId).toEqual(actor);
+      expect(pipeline[0].$match.creationState).toEqual({ $ne: "pending" });
+    }
+  });
+  it("rejects actor injection, grouping and wrong roles", async () => {
+    await personal("?staffId=another").expect(400); await personal("?groupBy=week").expect(400);
+    for (const value of ["customer", "admin", "unknown"]) { role = value; await personal().expect(403); }
+    expect(aggregate).not.toHaveBeenCalled();
+  });
+  it("returns no-store on dependency/auth failure", async () => {
+    aggregate.mockImplementation(() => ({ option: async () => { throw new Error("db down"); } }));
+    const r = await personal().expect(503); expect(r.headers["cache-control"]).toBe("no-store");
+    auth.verifySessionCookie.mockRejectedValue({ code: "auth/session-cookie-revoked" });
+    await personal().expect(401);
+  });
+});

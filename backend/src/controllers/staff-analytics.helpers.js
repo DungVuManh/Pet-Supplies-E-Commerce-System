@@ -1,4 +1,5 @@
 import { Order } from "../models/order.model.js";
+import mongoose from "mongoose";
 import { DAY, TIMEZONE, localDate, startOfDate } from "../validators/staff-analytics.validator.js";
 
 export const visibleOrders = { creationState: { $ne: "pending" } };
@@ -92,4 +93,56 @@ export async function readSales(period, now) {
     previousPeriod: compact(previous),
     growthPercent: previous.summary.revenue ? Math.round((current.summary.revenue / previous.summary.revenue - 1) * 1000) / 10 : null,
     today: compact(daily), monthToDate: compact(monthly) };
+}
+
+export function performancePipeline(period, actorId) {
+  // Mongoose does not cast aggregation values; never accept this id from query parameters.
+  const actor = new mongoose.Types.ObjectId(String(actorId));
+  const within = (date) => ({ $and: [{ $eq: [{ $type: date }, "date"] },
+    { $gte: [date, period.start] }, { $lt: [date, period.end] }] });
+  const transitions = [["pending", "confirmed"], ["confirmed", "processing"], ["processing", "shipping"],
+    ["pending", "cancelled"], ["confirmed", "cancelled"]];
+  return [
+    { $match: { ...visibleOrders, $or: [
+      { channel: "online", statusHistory: { $elemMatch: { by: actor, at: { $gte: period.start, $lt: period.end } } } },
+      { channel: "offline", createdByStaffId: actor, createdAt: { $gte: period.start, $lt: period.end },
+        orderStatus: { $in: ["completed", "delivered"] }, paymentStatus: "paid" },
+    ] } },
+    { $project: { orderCode: 1, events: { $cond: [{ $eq: ["$channel", "offline"] },
+      [{ action: "offline_sale", at: "$createdAt" }],
+      { $map: { input: { $filter: { input: { $ifNull: ["$statusHistory", []] }, as: "h", cond: { $and: [
+        { $eq: ["$$h.by", actor] }, within("$$h.at"),
+        { $or: transitions.map(([from, to]) => ({ $and: [{ $eq: ["$$h.from", from] }, { $eq: ["$$h.to", to] }] })) },
+      ] } } }, as: "h", in: { action: "$$h.to", at: "$$h.at" } } },
+    ] } } },
+    { $unwind: "$events" },
+    { $facet: {
+      actions: [{ $count: "count" }],
+      cancellations: [{ $match: { "events.action": "cancelled" } }, { $group: { _id: "$_id" } }, { $count: "count" }],
+      processed: [{ $match: { "events.action": { $ne: "cancelled" } } },
+        { $group: { _id: "$_id", first: { $min: "$events.at" } } },
+        { $group: { _id: mongoBucket("$first", "day"), value: { $sum: 1 } } }],
+      activity: [{ $sort: { "events.at": -1, _id: 1, "events.action": 1 } }, { $limit: 10 },
+        { $project: { _id: 0, orderId: { $toString: "$_id" }, orderCode: 1, action: "$events.action", at: "$events.at" } }],
+    } },
+  ];
+}
+export async function readPerformancePeriod(period, actorId) {
+  const [result] = await aggregate(Order, performancePipeline(period, actorId));
+  if (!result) throw new Error("Missing performance result");
+  const series = fillSeries(period, result.processed);
+  return { period: periodDto(period), processedOrders: safeNumber(series.reduce((sum, item) => sum + item.value, 0)),
+    actionCount: safeNumber(result.actions[0]?.count ?? 0), cancelledOrders: safeNumber(result.cancellations[0]?.count ?? 0),
+    series, activity: result.activity.map((item) => ({ orderId: item.orderId, orderCode: item.orderCode,
+      action: item.action, at: item.at.toISOString() })) };
+}
+export async function readPerformance(period, user, now) {
+  const [current, previous, today] = await Promise.all([
+    readPerformancePeriod(period, user._id), readPerformancePeriod(previousPeriod(period), user._id),
+    readPerformancePeriod(todayPeriod(now), user._id),
+  ]);
+  return { generatedAt: now.toISOString(), timezone: TIMEZONE, scope: "self",
+    actor: { id: String(user._id), fullName: user.fullName }, ...current,
+    previousProcessedOrders: previous.processedOrders, todayProcessedOrders: today.processedOrders,
+    unsupported: { averageProcessingMinutes: null, onTimeRate: null, target: null } };
 }

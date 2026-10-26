@@ -234,7 +234,7 @@ server, không tải toàn bộ Orders/PII vào browser để tự cộng.
 
 ### P3 — API hiệu suất theo actor hiện tại
 
-- **Trạng thái:** TODO.
+- **Trạng thái:** DONE.
 - **Mục tiêu:** Chỉ số cá nhân có thể truy nguyên, không đếm thao tác người khác.
 - **Công việc:** Scope actor từ request.user._id ở query trước aggregate; kết hợp
   history và offline creation theo D5/D6; distinct order; hoạt động gần đây giới hạn
@@ -396,7 +396,7 @@ lại trong lượt lập plan**, không khẳng định chúng còn tồn tại
 - [x] Người dùng duyệt kế hoạch và giải quyết D1–D10.
 - [x] P1 — Spec/contract/baseline.
 - [x] P2 — Sales API.
-- [ ] P3 — Performance API.
+- [x] P3 — Performance API.
 - [ ] P4 — Overview API và MongoDB integration.
 - [ ] P5 — Client/controls/states/chart.
 - [ ] P6 — Tổng quan.
@@ -420,3 +420,8 @@ Các lỗi này có trước triển khai Staff; không tự sửa ngoài phạm
 ### Bằng chứng P2
 
 19/19 focused validator/HTTP tests đạt. Aggregate read-only, no-store/exact-role, legacy/pending, snapshot validation, safe-integer và empty/zero guards đã có; kiểm aggregate thực chuyển sang P4.
+
+
+### Bằng chứng P3
+
+22/22 analytics tests đạt. Actor scope ở match/filter server; distinct Order, cancellation tách riêng, offline không cộng history hai lần, unsupported KPI null. Aggregate fixtures thực ở P4.
