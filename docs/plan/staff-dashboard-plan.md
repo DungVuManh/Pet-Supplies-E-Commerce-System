@@ -1,7 +1,7 @@
 # Plan: Staff Tổng quan, Doanh số và Hiệu suất cá nhân
 
 Ngày: **26/10/2026**. Nhánh thực hiện: **`trinhpk`**.
-Trạng thái: **Bản thảo chờ người dùng xác nhận; chưa triển khai chức năng**.
+Trạng thái: **Đã được người dùng duyệt triển khai ngày 26/10/2026; đang thực hiện**.
 
 Tham chiếu: [plan tạo đơn tại quầy](staff-order-create.md),
 [spec tạo đơn tại quầy](../specs/staff-order-create.md),
@@ -143,7 +143,7 @@ test, không thêm index/migration mặc định. Không đọc secrets hoặc D
 
 ## 4. Các quyết định nghiệp vụ cần xác nhận trước code
 
-Các mục dưới đây là **đề xuất**, chưa phải yêu cầu đã duyệt. P1 phải chốt với người dùng.
+Người dùng xác nhận triển khai bằng “làm đi” ngày 26/10/2026. Áp dụng đề xuất D1–D10; chi tiết được đóng băng tại [spec](../specs/staff-dashboard.md).
 
 | ID | Cần chốt | Đề xuất và lý do |
 | --- | --- | --- |
@@ -201,7 +201,7 @@ server, không tải toàn bộ Orders/PII vào browser để tự cộng.
 
 ### P1 — Chốt nghiệp vụ, contract và baseline
 
-- **Trạng thái:** TODO.
+- **Trạng thái:** DONE.
 - **Mục tiêu:** Không triển khai chỉ số dựa trên giả định chưa duyệt.
 - **Công việc:** Nhận xác nhận D1–D10; ghi công thức, nguồn timestamp, phạm vi,
   các metric thiếu dữ liệu và DTO chi tiết vào spec; đọc Next guides phù hợp;
@@ -393,8 +393,8 @@ lại trong lượt lập plan**, không khẳng định chúng còn tồn tại
 ## 8. Checklist bàn giao
 
 - [x] P0 — Phân tích, tạo kế hoạch; không sửa code chức năng.
-- [ ] Người dùng duyệt kế hoạch và giải quyết D1–D10.
-- [ ] P1 — Spec/contract/baseline.
+- [x] Người dùng duyệt kế hoạch và giải quyết D1–D10.
+- [x] P1 — Spec/contract/baseline.
 - [ ] P2 — Sales API.
 - [ ] P3 — Performance API.
 - [ ] P4 — Overview API và MongoDB integration.
@@ -404,5 +404,15 @@ lại trong lượt lập plan**, không khẳng định chúng còn tồn tại
 - [ ] P8 — Hiệu suất cá nhân.
 - [ ] P9 — Tổng kiểm chứng và bàn giao.
 
-**Điểm dừng hiện tại: commit kế hoạch trên `trinhpk`, báo cáo và chờ xác nhận.
-Không bắt đầu P1 hoặc code chức năng trong lượt lập kế hoạch này.**
+**Tiếp tục theo từng bước đã duyệt; mỗi bước hoàn thành có commit riêng trên `trinhpk`. Không push.**
+
+### Bằng chứng P1 (26/10/2026)
+
+Đã duyệt D1–D10, tạo spec chi tiết và đọc Next guides về client fetching,
+useSearchParams/Suspense và auth với Cache Components. Không đổi code chức năng.
+Baseline: backend ngoài sandbox 172/182 đạt (10 lỗi: app 2, auth 3, cart 1,
+models 1, order-status 1, seed 2); lần sandbox bị EACCES loopback không dùng làm
+baseline nghiệp vụ. Frontend tests exit 1 (Auth password/Catalog); lint exit 1
+(3 errors, 17 warnings); tsc exit 1 (7 lỗi Admin roleLabel/CartSummary).
+Build exit 1 cả trong/ngoài sandbox: Turbopack CSS worker exited before connect.
+Các lỗi này có trước triển khai Staff; không tự sửa ngoài phạm vi hoặc hạ kiểm tra.
