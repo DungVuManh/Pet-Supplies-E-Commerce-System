@@ -216,7 +216,7 @@ server, không tải toàn bộ Orders/PII vào browser để tự cộng.
 
 ### P2 — Validation và API doanh số
 
-- **Trạng thái:** TODO.
+- **Trạng thái:** DONE.
 - **Mục tiêu:** Nguồn tổng hợp thật, có ranh giới ngày và quyền rõ ràng.
 - **Công việc:** Zod query; helper kỳ/grouping riêng analytics; named controller
   aggregate Sales theo spec, so sánh kỳ trước, top SKU, month-to-date; mount route
@@ -395,7 +395,7 @@ lại trong lượt lập plan**, không khẳng định chúng còn tồn tại
 - [x] P0 — Phân tích, tạo kế hoạch; không sửa code chức năng.
 - [x] Người dùng duyệt kế hoạch và giải quyết D1–D10.
 - [x] P1 — Spec/contract/baseline.
-- [ ] P2 — Sales API.
+- [x] P2 — Sales API.
 - [ ] P3 — Performance API.
 - [ ] P4 — Overview API và MongoDB integration.
 - [ ] P5 — Client/controls/states/chart.
@@ -416,3 +416,7 @@ baseline nghiệp vụ. Frontend tests exit 1 (Auth password/Catalog); lint exit
 (3 errors, 17 warnings); tsc exit 1 (7 lỗi Admin roleLabel/CartSummary).
 Build exit 1 cả trong/ngoài sandbox: Turbopack CSS worker exited before connect.
 Các lỗi này có trước triển khai Staff; không tự sửa ngoài phạm vi hoặc hạ kiểm tra.
+
+### Bằng chứng P2
+
+19/19 focused validator/HTTP tests đạt. Aggregate read-only, no-store/exact-role, legacy/pending, snapshot validation, safe-integer và empty/zero guards đã có; kiểm aggregate thực chuyển sang P4.
