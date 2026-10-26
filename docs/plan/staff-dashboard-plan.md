@@ -341,7 +341,7 @@ server, không tải toàn bộ Orders/PII vào browser để tự cộng.
 
 ### P9 — Kiểm tra tổng thể và bàn giao
 
-- **Trạng thái:** TODO.
+- **Trạng thái:** DONE.
 - **Mục tiêu:** Ba màn hình nhất quán, có bằng chứng kiểm chứng và không phá luồng cũ.
 - **Công việc:** Kiểm navigation/sidebar active, quyền direct route/API, số liệu giữa
   màn hình, states, responsive/keyboard; full checks; cập nhật tài liệu API và README;
@@ -388,7 +388,7 @@ lại trong lượt lập plan**, không khẳng định chúng còn tồn tại
 | Bước | Trạng thái | Bằng chứng / giới hạn |
 | --- | --- | --- |
 | P0 | DONE | Đọc source/thiết kế local; Git sạch trên trinhpk trước sửa; kiểm Markdown/link/diff trước commit |
-| P1–P9 | TODO | Chưa chạy test/build/browser/DB integration cho chức năng; chờ duyệt |
+| P1–P9 | DONE | Xem bằng chứng từng bước bên dưới; kiểm tra chức năng đạt, production build và checks toàn repo còn lỗi baseline |
 
 ## 8. Checklist bàn giao
 
@@ -402,7 +402,7 @@ lại trong lượt lập plan**, không khẳng định chúng còn tồn tại
 - [x] P6 — Tổng quan.
 - [x] P7 — Doanh số.
 - [x] P8 — Hiệu suất cá nhân.
-- [ ] P9 — Tổng kiểm chứng và bàn giao.
+- [x] P9 — Tổng kiểm chứng và bàn giao.
 
 **Tiếp tục theo từng bước đã duyệt; mỗi bước hoàn thành có commit riêng trên `trinhpk`. Không push.**
 
@@ -450,3 +450,31 @@ Sales page/view dùng API, bỏ export/demo, filter day/week/month + URL/reload/
 ### Bằng chứng P8
 
 Performance page/view dùng actor API, distinct đơn/thao tác/hủy, activity và unsupported KPI rõ ràng. 6 client tests/focused lint đạt; tsc vẫn đúng 7 lỗi baseline. Browser cả 3 màn hình đạt, gồm đổi actor, đổi role Customer→forbidden, dates, keyboard, responsive 4 viewport và empty/error/retry; đã xem ảnh Performance 320/1440. ReportControls dùng useId tránh trùng ID khi Next Activity giữ page ẩn. Giới hạn build/live services giữ như P6.
+
+### Bằng chứng P9 — Bàn giao (26/10/2026)
+
+- Rà soát 3 route: exact Staff, no-store; analytics chỉ aggregate đọc, không đổi
+  schema/index hoặc ghi Order/Product/Payment. Giữ endpoint bootstrap profile cũ.
+- Full backend: 196/206 đạt, gồm 24/24 analytics. 10 lỗi vẫn thuộc 6 file baseline
+  app/auth/cart/models/order-status/seed; không có lỗi analytics mới.
+- Full frontend: 84/88 đạt; 4 lỗi baseline Auth password/Catalog. Focused analytics
+  6/6 và Admin regression 30/30 đạt. Focused lint đạt; full lint còn đúng 3 errors,
+  17 warnings; tsc còn đúng 7 lỗi Admin roleLabel/CartSummary đã ghi P1.
+- MongoDB 8.2 isolated integration chạy lại đạt; database test UUID được drop,
+  không dùng env/database ứng dụng. Chưa benchmark trên dữ liệu production.
+- Browser Chrome đạt cả 3 màn hình: navigation, dates/group, reload/Back/Forward,
+  loading/empty/error/retry, identity A/B, thay đổi role, guest/customer/admin
+  direct access từng route. Bổ sung query cũ chậm không ghi đè query mới.
+- Responsive 320/768/1024/1440, keyboard, date input đủ rộng, compiled Tailwind
+  đạt. Reflow CSS zoom 200% đạt; chưa xác minh zoom native của trình duyệt.
+- Production build chạy lại vẫn lỗi Turbopack CSS worker exited before connect.
+  Một lượt ghi log ngay trong .next bị build dọn thư mục gây EBUSY; đã bỏ cách
+  ghi log đó và chạy lại để xác nhận đúng lỗi baseline. Không coi EBUSY là lỗi app.
+- Browser dùng Webpack development copy + Tailwind loader như P6, không chứng
+  minh production build/Firebase live. Cần build xanh và smoke session Staff với
+  backend cấu hình thật trước release. Không tắt lint/typecheck để vượt lỗi.
+- Cập nhật frontend/README.md, backend/AGENTS.md, spec và browser tests. Không push.
+
+Commit theo bước trước P9: P0 `7d521fa`, P1 `f8dd012`, P2 `0464df0`,
+P3 `d80c34b`, P4 `52ba5bf`, P5 `f3e3b76`, P6 `9d432b5`, P7 `15302e2`,
+P8 `ee2e234`. P9 nằm trong commit chứa bản cập nhật bằng chứng này.

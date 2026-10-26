@@ -154,6 +154,18 @@ response)`); routers import those handlers and export the Express router.
 
 ## Verification
 
+- GET `/api/v1/staff/analytics/overview`, `/sales`, and `/performance` are
+  read-only, exact-Staff and no-store. Keep the existing profile-only
+  `/api/v1/staff/dashboard` contract unchanged. Personal actor scope comes from
+  `request.user`, never query parameters. Metrics and date eligibility are
+  defined in `../docs/specs/staff-dashboard.md`; do not infer cashflow or SLA
+  from order totals/history.
+- `npm test -- tests/staff-analytics.test.js` verifies mocked HTTP/validation
+  boundaries. `node tests/staff-analytics-integration.mjs` verifies real MongoDB
+  aggregation using `MONGOD_BINARY` or explicit `STAFF_ANALYTICS_TEST_MONGODB_URI`.
+  It creates/drops only a UUID test database and never loads application `.env`.
+  Small-fixture explain results do not justify production index changes.
+
 - `tests/env.test.js`, `tests/app.test.js`, and `tests/database.test.js` cover
   configuration, HTTP middleware/error behavior, and mocked
   database lifecycle. Run `npm test` after backend changes.

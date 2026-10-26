@@ -140,6 +140,19 @@ try {
     await page.getByRole("alert").filter({ hasText: "Chưa thể tải báo cáo" }).waitFor();
     failure = false; empty = false; await page.getByRole("button", { name: "Thử lại" }).click();
     await page.getByText("Sản phẩm từ API", { exact: true }).waitFor();
+    delay = 1000;
+    const slowRequest = page.waitForRequest((request) => request.url().includes("analytics/sales?groupBy=week"));
+    await page.evaluate(() => window.history.pushState(null, "", "/staff/sales?groupBy=week"));
+    await slowRequest;
+    // Allow the delayed fixture handler to start before the new query is issued.
+    await new Promise((yes) => setTimeout(yes, 100));
+    delay = 0;
+    await page.evaluate(() => window.history.pushState(null, "", "/staff/sales?groupBy=month"));
+    await page.getByRole("heading", { name: "Doanh số theo tháng", exact: true }).waitFor();
+    await new Promise((yes) => setTimeout(yes, 1100));
+    assert.equal(await page.getByRole("heading", { name: "Doanh số theo tháng", exact: true }).count(), 1);
+    assert.equal(await page.getByRole("heading", { name: "Doanh số theo tuần", exact: true }).count(), 0);
+    console.log("PASS delayed old query cannot overwrite the new sales report.");
     console.log("PASS sales period/group filters, URL reload/back/forward, validation, empty/error/retry and responsive.");
   }
   if (process.env.STAFF_DASHBOARD_TEST_PERFORMANCE === "1") {
@@ -171,8 +184,26 @@ try {
     console.log("PASS performance personal identity, dates, unavailable KPI, activity, empty/error/retry, second actor, role change and responsive.");
   }
   const guest = await browser.newContext(), guestPage = await guest.newPage();
-  await guestPage.goto(`${origin}/staff/dashboard`); await guestPage.waitForURL(/\/login/);
+  for (const screen of ["dashboard", "sales", "performance"]) {
+    await guestPage.goto(`${origin}/staff/${screen}`); await guestPage.waitForURL(/\/login/);
+  }
   await guest.close();
+  for (const deniedRole of ["admin", "customer"]) {
+    role = deniedRole;
+    for (const screen of ["dashboard", "sales", "performance"]) {
+      await page.goto(`${origin}/staff/${screen}`); await page.waitForURL(/\/forbidden/);
+    }
+  }
+  role = "staff";
+  console.log("PASS direct access guards on all three routes for guest, customer and admin.");
+  for (const screen of ["dashboard", "sales", "performance"]) {
+    await page.goto(`${origin}/staff/${screen}`);
+    await page.getByRole("button", { name: "Tải lại dữ liệu" }).waitFor();
+    await page.evaluate(() => { document.documentElement.style.zoom = "2"; });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+    await page.evaluate(() => { document.documentElement.style.zoom = ""; });
+  }
+  console.log("PASS 200% CSS zoom reflow on all reports (not native browser zoom).");
   assert.deepEqual(errors, []);
   console.log(`PASS overview navigation, identity, real DTO display, empty/error/retry/loading, guest guard, responsive styles and keyboard (${dev ? "development" : "production"}).`);
 } catch (error) { console.error(logs.slice(-5000)); throw error; }

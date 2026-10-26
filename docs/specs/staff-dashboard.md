@@ -99,3 +99,15 @@ Kiểm thử validator/HTTP guard, MongoDB aggregate thật trên DB UUID riêng
 request contracts, browser fixtures đủ data/loading/empty/error/race/auth/navigation.
 Fixture không chứng minh Firebase live. Full tests/lint/tsc/build so baseline;
 không nới assertions, disable lint/typecheck hoặc sửa code ngoài phạm vi để giấu lỗi.
+
+### Kết quả kiểm chứng triển khai
+
+HTTP/validator analytics 24/24, client/query/chart 6/6, Admin regression 30/30
+và MongoDB integration trên database UUID riêng đạt. Browser fixture xác minh
+cả ba màn hình, phân quyền trực tiếp từng route, đổi actor/role, response chậm,
+filter/navigation, empty/error/retry và bốn viewport. CSS zoom 200% đạt;
+chưa kiểm zoom native. Browser chạy development copy Webpack với Tailwind loader
+do Turbopack production build vẫn lỗi worker như baseline trước triển khai.
+Không coi fixture là bằng chứng Firebase live. Xem bằng chứng P9 trong
+[plan](../plan/staff-dashboard-plan.md) cho lỗi test/lint/type toàn repo còn tồn
+tại và giới hạn cần xử lý trước release.
