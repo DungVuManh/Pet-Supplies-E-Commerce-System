@@ -28,15 +28,58 @@ const DEFAULT_SHIPPING_METHOD: ShippingMethod = {
 const DEFAULT_SUMMARY: CheckoutSummary = {
   totalQuantity: 0,
   subtotal: 0,
-  shippingFee: 30000,
-  discount: 0,
-  total: 30000,
+  // shippingFee: 30000,
+  // discount: 0,
+  total: 0,
 };
 
 type CheckoutCartData = {
   items: CheckoutOrderItem[];
   summary: CheckoutSummary | null;
 };
+
+// Hàm validate địa chỉ giao hàng dùng trong hook
+export function validateCheckoutAddress(address: CheckoutAddress): Record<string, string> {
+  const errors: Record<string, string> = {};
+
+  if (!address.recipientName?.trim()) {
+    errors.recipientName = "Vui lòng nhập họ tên người nhận.";
+  } else if (address.recipientName.trim().length < 2) {
+    errors.recipientName = "Họ tên người nhận phải có ít nhất 2 ký tự.";
+  }
+
+  if (address.email && address.email.trim()) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email.trim())) {
+      errors.email = "Email không hợp lệ (ví dụ: ten@domain.com).";
+    }
+  }
+
+  if (!address.phone?.trim()) {
+    errors.phone = "Vui lòng nhập số điện thoại.";
+  } else if (!/^[0-9+() -]{8,15}$/.test(address.phone.trim())) {
+    errors.phone = "Số điện thoại không hợp lệ (8 - 15 chữ số).";
+  }
+
+  if (!address.province?.trim()) {
+    errors.province = "Vui lòng chọn Tỉnh / Thành phố.";
+  }
+
+  if (!address.district?.trim()) {
+    errors.district = "Vui lòng chọn Quận / Huyện.";
+  }
+
+  if (!address.ward?.trim()) {
+    errors.ward = "Vui lòng chọn Phường / Xã.";
+  }
+
+  if (!address.street?.trim()) {
+    errors.street = "Vui lòng nhập địa chỉ cụ thể (số nhà, tên đường).";
+  } else if (address.street.trim().length < 3) {
+    errors.street = "Địa chỉ cụ thể quá ngắn (ít nhất 3 ký tự).";
+  }
+
+  return errors;
+}
 
 async function getCheckoutCartData(): Promise<CheckoutCartData> {
   const response = await getCartApi();
@@ -62,9 +105,9 @@ async function getCheckoutCartData(): Promise<CheckoutCartData> {
       ? {
         totalQuantity: cart.summary.totalQuantity,
         subtotal: cart.summary.subtotal,
-        shippingFee: cart.summary.shippingFee || 30000,
-        discount: cart.summary.discount || 0,
-        total: cart.summary.total,
+        // shippingFee: cart.summary.shippingFee || 30000,
+        // discount: cart.summary.discount || 0,
+        total: cart.summary.subtotal,
       }
       : null,
   };
@@ -80,13 +123,13 @@ export function useCheckout() {
   const [address, setAddress] = useState<CheckoutAddress>({
     _id: "",
     recipientName: "",
+    email: "",
     phone: "",
     province: "",
     district: "",
     ward: "",
     street: "",
     isDefault: false,
-    email: "",
   });
   const [addressErrors, setAddressErrors] = useState<Record<string, string>>({});
   const [summary, setSummary] = useState<CheckoutSummary>(DEFAULT_SUMMARY);
@@ -114,16 +157,32 @@ export function useCheckout() {
     }
   }, [applyCartData]);
 
-  // Handler cập nhật từng trường địa chỉ nhập vào
+  // Handler cập nhật từng trường địa chỉ nhập vào và tự động xóa lỗi tương ứng
   const handleAddressChange = useCallback((field: keyof CheckoutAddress, value: string) => {
-    setAddress((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setAddress((prev) => {
+      const next = { ...prev, [field]: value };
+      // Nếu thay đổi Tỉnh -> reset Quận & Phường
+      if (field === "province") {
+        next.district = "";
+        next.ward = "";
+      }
+      // Nếu thay đổi Quận -> reset Phường
+      else if (field === "district") {
+        next.ward = "";
+      }
+      return next;
+    });
+
     setAddressErrors((prev) => {
       if (!prev[field]) return prev;
       const next = { ...prev };
       delete next[field];
+      if (field === "province") {
+        delete next.district;
+        delete next.ward;
+      } else if (field === "district") {
+        delete next.ward;
+      }
       return next;
     });
   }, []);
@@ -146,7 +205,7 @@ export function useCheckout() {
             setAddress({
               _id: selectedAddress._id,
               recipientName: selectedAddress.recipientName,
-              email: selectedAddress.email || "",
+              email: selectedAddress.email || user.email || "",
               phone: selectedAddress.phone,
               province: selectedAddress.province,
               district: selectedAddress.district,
@@ -190,32 +249,8 @@ export function useCheckout() {
       return;
     }
 
-    // Kiểm tra tính hợp lệ của địa chỉ giao hàng
-    const errors: Record<string, string> = {};
-    if (!address.recipientName?.trim()) {
-      errors.recipientName = "Vui lòng nhập họ tên người nhận.";
-    } else if (address.recipientName.trim().length < 2) {
-      errors.recipientName = "Họ tên người nhận phải có ít nhất 2 ký tự.";
-    }
-
-    if (!address.phone?.trim()) {
-      errors.phone = "Vui lòng nhập số điện thoại.";
-    } else if (!/^[0-9+() -]{8,15}$/.test(address.phone.trim())) {
-      errors.phone = "Số điện thoại không hợp lệ (8 - 15 số).";
-    }
-
-    if (!address.province?.trim()) {
-      errors.province = "Vui lòng nhập Tỉnh / Thành phố.";
-    }
-    if (!address.district?.trim()) {
-      errors.district = "Vui lòng nhập Quận / Huyện.";
-    }
-    if (!address.ward?.trim()) {
-      errors.ward = "Vui lòng nhập Phường / Xã.";
-    }
-    if (!address.street?.trim()) {
-      errors.street = "Vui lòng nhập địa chỉ cụ thể / số nhà, tên đường.";
-    }
+    // Validate form địa chỉ trong hooks
+    const errors = validateCheckoutAddress(address);
 
     if (Object.keys(errors).length > 0) {
       setAddressErrors(errors);
@@ -247,7 +282,9 @@ export function useCheckout() {
         guestInfo: {
           name: address.recipientName.trim(),
           phone: address.phone.trim(),
+          email: address.email?.trim() || undefined,
         },
+        email: address.email?.trim() || undefined,
         paymentMethod: paymentMethod === "vnpay" ? ("ONLINE" as const) : ("COD" as const),
       };
 

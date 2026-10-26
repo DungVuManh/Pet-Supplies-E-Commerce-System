@@ -43,7 +43,7 @@ function generateOrderCode() {
  */
 export async function createOrder(request, response, next) {
   try {
-    const { items, shippingAddress, guestInfo, paymentMethod = "COD" } = request.body;
+    const { items, shippingAddress, guestInfo, paymentMethod = "COD", email } = request.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return response.status(400).json({ success: false, message: "Đơn hàng phải có ít nhất 1 sản phẩm." });
@@ -73,9 +73,9 @@ export async function createOrder(request, response, next) {
       subtotal += unitPrice * qty;
     }
 
-    const shippingFee = 30000;
-    const discount = 0;
-    const total = subtotal + shippingFee - discount;
+    // const shippingFee = 30000;
+    // const discount = 0;
+    // const total = subtotal + shippingFee - discount;
 
     // Chỉ lấy customerId từ hồ sơ đã xác thực; không tin ID do client gửi.
     const customerId = request.user?._id;
@@ -94,12 +94,13 @@ export async function createOrder(request, response, next) {
     const newOrder = await Order.create({
       orderCode: generateOrderCode(),
       customerId,
+      email: email || guestInfo?.email || undefined,
       guestInfo: customerId ? undefined : guestInfo,
       items: orderItems,
       shippingAddress: finalAddress,
       subtotal,
-      discount,
-      shippingFee,
+      // discount,
+      // shippingFee,
       total,
       paymentMethod,
       paymentStatus: "unpaid",
@@ -297,15 +298,15 @@ export async function getOrderDetail(request, response, next) {
     // Tạo timeline tự động theo trạng thái hiện tại
     const timelineSteps = status === "cancelled"
       ? [
-          { id: "step-1", title: "Đã đặt hàng", description: `${orderDate} · ${orderTime}`, status: "completed" },
-          { id: "step-cancelled", title: "Đã hủy đơn", description: "Đơn hàng đã được hủy", status: "completed" },
-        ]
+        { id: "step-1", title: "Đã đặt hàng", description: `${orderDate} · ${orderTime}`, status: "completed" },
+        { id: "step-cancelled", title: "Đã hủy đơn", description: "Đơn hàng đã được hủy", status: "completed" },
+      ]
       : [
-          { id: "step-1", title: "Đã đặt hàng", description: `${orderDate} · ${orderTime}`, status: "completed" },
-          { id: "step-2", title: "Đang chuẩn bị", description: "Xác nhận đơn", status: status === "pending" ? "active" : "completed" },
-          { id: "step-3", title: "Đang giao", description: "Trên đường giao", status: status === "shipping" ? "active" : status === "completed" ? "completed" : "pending" },
-          { id: "step-4", title: "Hoàn thành", description: "Nhận hàng thành công", status: status === "completed" ? "completed" : "pending" },
-        ];
+        { id: "step-1", title: "Đã đặt hàng", description: `${orderDate} · ${orderTime}`, status: "completed" },
+        { id: "step-2", title: "Đang chuẩn bị", description: "Xác nhận đơn", status: status === "pending" ? "active" : "completed" },
+        { id: "step-3", title: "Đang giao", description: "Trên đường giao", status: status === "shipping" ? "active" : status === "completed" ? "completed" : "pending" },
+        { id: "step-4", title: "Hoàn thành", description: "Nhận hàng thành công", status: status === "completed" ? "completed" : "pending" },
+      ];
 
     // Map danh sách sản phẩm trong đơn
     const items = order.items.map((item, index) => ({
@@ -341,8 +342,8 @@ export async function getOrderDetail(request, response, next) {
       timeline: timelineSteps,
       items,
       subtotal: order.subtotal,
-      shippingFee: order.shippingFee,
-      discount: order.discount || 0,
+      // shippingFee: order.shippingFee,
+      // discount: order.discount || 0,
       totalAmount: order.total,
       paymentMethod: order.paymentMethod === "COD" ? "COD" : order.paymentMethod,
       paymentStatus: order.paymentStatus === "unpaid" ? "Chưa thanh toán" : "Đã thanh toán",
@@ -610,10 +611,10 @@ export async function getStaffOrderDetail(request, response, next) {
         email,
       },
       subtotal: order.subtotal,
-      discount: order.discount || 0,
-      shippingFee: order.shippingFee || 0,
+      // discount: order.discount || 0,
+      // shippingFee: order.shippingFee || 0,
       total: order.total,
-      promotionCode: order.promotionCode || null,
+      // promotionCode: order.promotionCode || null,
       orderStatus: staffOrderStatus(order.orderStatus),
       paymentMethod: order.paymentMethod,
       paymentStatus: order.paymentStatus,

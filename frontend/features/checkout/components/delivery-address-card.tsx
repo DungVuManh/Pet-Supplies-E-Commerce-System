@@ -1,8 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import React from "react";
+import React, { useMemo } from "react";
 import type { CheckoutAddress } from "../services/checkout.service";
+import {
+  getAllProvinces,
+  getDistrictsByProvince,
+  getWardsByDistrict,
+} from "@/data/province";
 
 type DeliveryAddressCardProps = {
   address: CheckoutAddress;
@@ -19,6 +24,21 @@ export function DeliveryAddressCard({
   addressErrors = {},
   onChangeClick,
 }: DeliveryAddressCardProps) {
+  // Danh sách Tỉnh / Thành phố
+  const provinces = useMemo(() => getAllProvinces(), []);
+
+  // Danh sách Quận / Huyện phụ thuộc vào Tỉnh đã chọn
+  const districts = useMemo(() => {
+    return address.province ? getDistrictsByProvince(address.province) : [];
+  }, [address.province]);
+
+  // Danh sách Phường / Xã phụ thuộc vào Tỉnh & Quận đã chọn
+  const wards = useMemo(() => {
+    return address.province && address.district
+      ? getWardsByDistrict(address.province, address.district)
+      : [];
+  }, [address.province, address.district]);
+
   // Nếu là guest hoặc chưa có địa chỉ lưu sẵn -> Hiển thị form nhập địa chỉ
   const hasSavedAddress = !isGuest && Boolean(address.recipientName?.trim());
 
@@ -34,7 +54,7 @@ export function DeliveryAddressCard({
       </div>
 
       {hasSavedAddress ? (
-        // Đã đăng nhập và có địa chỉ
+        // Đã đăng nhập và có địa chỉ lưu sẵn
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3.5">
             <div className="size-8 shrink-0 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mt-0.5">
@@ -57,6 +77,9 @@ export function DeliveryAddressCard({
             <div>
               <p className="font-semibold text-sm text-ink">
                 {address.recipientName} · {address.phone}
+                {address.email && (
+                  <span className="text-muted font-normal ml-2">({address.email})</span>
+                )}
               </p>
               <p className="text-sm text-muted mt-1 leading-relaxed">
                 {[address.street, address.ward, address.district, address.province]
@@ -111,7 +134,8 @@ export function DeliveryAddressCard({
             </div>
           )}
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {/* Dòng 1: Họ tên, Số điện thoại, Email */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {/* Họ và tên người nhận */}
             <div>
               <label
@@ -126,35 +150,14 @@ export function DeliveryAddressCard({
                 value={address.recipientName}
                 onChange={(e) => onAddressChange?.("recipientName", e.target.value)}
                 placeholder="VD: Nguyễn Văn A"
-                className={`mt-1.5 block w-full rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-hidden transition-colors ${addressErrors.recipientName
-                  ? "border-red-500 focus:border-red-500"
-                  : "border-line focus:border-blue-600"
-                  }`}
+                className={`mt-1.5 block w-full rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-hidden transition-colors ${
+                  addressErrors.recipientName
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-line focus:border-blue-600"
+                }`}
               />
               {addressErrors.recipientName && (
                 <p className="mt-1 text-xs text-red-600">{addressErrors.recipientName}</p>
-              )}
-            </div>
-            <div>
-              <label
-                htmlFor="checkout-recipient-email"
-                className="block text-xs font-semibold text-ink"
-              >
-                Email (Optional) <span className="text-gray-500">*</span>
-              </label>
-              <input
-                id="checkout-recipient-mail"
-                type="email"
-                value={address.email}
-                onChange={(e) => onAddressChange?.("email", e.target.value)}
-                placeholder="VD: [EMAIL_ADDRESS]"
-                className={`mt-1.5 block w-full rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-hidden transition-colors ${addressErrors.email
-                  ? "border-red-500 focus:border-red-500"
-                  : "border-line focus:border-blue-600"
-                  }`}
-              />
-              {addressErrors.email && (
-                <p className="mt-1 text-xs text-red-600">{addressErrors.email}</p>
               )}
             </div>
 
@@ -172,17 +175,44 @@ export function DeliveryAddressCard({
                 value={address.phone}
                 onChange={(e) => onAddressChange?.("phone", e.target.value)}
                 placeholder="VD: 0912345678"
-                className={`mt-1.5 block w-full rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-hidden transition-colors ${addressErrors.phone
-                  ? "border-red-500 focus:border-red-500"
-                  : "border-line focus:border-blue-600"
-                  }`}
+                className={`mt-1.5 block w-full rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-hidden transition-colors ${
+                  addressErrors.phone
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-line focus:border-blue-600"
+                }`}
               />
               {addressErrors.phone && (
                 <p className="mt-1 text-xs text-red-600">{addressErrors.phone}</p>
               )}
             </div>
+
+            {/* Email (Optional) */}
+            <div>
+              <label
+                htmlFor="checkout-recipient-email"
+                className="block text-xs font-semibold text-ink"
+              >
+                Email (nhận mã đơn) <span className="text-muted font-normal">(tùy chọn)</span>
+              </label>
+              <input
+                id="checkout-recipient-email"
+                type="email"
+                value={address.email}
+                onChange={(e) => onAddressChange?.("email", e.target.value)}
+                placeholder="VD: email@example.com"
+                className={`mt-1.5 block w-full rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-hidden transition-colors ${
+                  addressErrors.email
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-line focus:border-blue-600"
+                }`}
+              />
+              {addressErrors.email && (
+                <p className="mt-1 text-xs text-red-600">{addressErrors.email}</p>
+              )}
+            </div>
           </div>
 
+          {/* Dòng 2: Tỉnh / Thành phố, Quận / Huyện, Phường / Xã (Dropdowns lấy từ data/province) */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {/* Tỉnh / Thành phố */}
             <div>
@@ -192,17 +222,35 @@ export function DeliveryAddressCard({
               >
                 Tỉnh / Thành phố <span className="text-red-500">*</span>
               </label>
-              <input
-                id="checkout-province"
-                type="text"
-                value={address.province}
-                onChange={(e) => onAddressChange?.("province", e.target.value)}
-                placeholder="VD: TP. Hồ Chí Minh"
-                className={`mt-1.5 block w-full rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-hidden transition-colors ${addressErrors.province
-                  ? "border-red-500 focus:border-red-500"
-                  : "border-line focus:border-blue-600"
+              <div className="relative mt-1.5">
+                <select
+                  id="checkout-province"
+                  value={address.province}
+                  onChange={(e) => {
+                    const newProv = e.target.value;
+                    onAddressChange?.("province", newProv);
+                    onAddressChange?.("district", "");
+                    onAddressChange?.("ward", "");
+                  }}
+                  className={`block w-full appearance-none rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink focus:outline-hidden transition-colors pr-8 ${
+                    addressErrors.province
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-line focus:border-blue-600"
                   }`}
-              />
+                >
+                  <option value="">-- Chọn Tỉnh / Thành phố --</option>
+                  {provinces.map((prov) => (
+                    <option key={prov} value={prov}>
+                      {prov}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-muted">
+                  <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
               {addressErrors.province && (
                 <p className="mt-1 text-xs text-red-600">{addressErrors.province}</p>
               )}
@@ -216,17 +264,37 @@ export function DeliveryAddressCard({
               >
                 Quận / Huyện <span className="text-red-500">*</span>
               </label>
-              <input
-                id="checkout-district"
-                type="text"
-                value={address.district}
-                onChange={(e) => onAddressChange?.("district", e.target.value)}
-                placeholder="VD: Quận 1"
-                className={`mt-1.5 block w-full rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-hidden transition-colors ${addressErrors.district
-                  ? "border-red-500 focus:border-red-500"
-                  : "border-line focus:border-blue-600"
+              <div className="relative mt-1.5">
+                <select
+                  id="checkout-district"
+                  disabled={!address.province}
+                  value={address.district}
+                  onChange={(e) => {
+                    const newDist = e.target.value;
+                    onAddressChange?.("district", newDist);
+                    onAddressChange?.("ward", "");
+                  }}
+                  className={`block w-full appearance-none rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink focus:outline-hidden transition-colors pr-8 disabled:bg-gray-50 disabled:text-muted disabled:cursor-not-allowed ${
+                    addressErrors.district
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-line focus:border-blue-600"
                   }`}
-              />
+                >
+                  <option value="">
+                    {address.province ? "-- Chọn Quận / Huyện --" : "-- Vui lòng chọn Tỉnh trước --"}
+                  </option>
+                  {districts.map((dist) => (
+                    <option key={dist} value={dist}>
+                      {dist}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-muted">
+                  <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
               {addressErrors.district && (
                 <p className="mt-1 text-xs text-red-600">{addressErrors.district}</p>
               )}
@@ -240,30 +308,46 @@ export function DeliveryAddressCard({
               >
                 Phường / Xã <span className="text-red-500">*</span>
               </label>
-              <input
-                id="checkout-ward"
-                type="text"
-                value={address.ward}
-                onChange={(e) => onAddressChange?.("ward", e.target.value)}
-                placeholder="VD: Phường Bến Nghé"
-                className={`mt-1.5 block w-full rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-hidden transition-colors ${addressErrors.ward
-                  ? "border-red-500 focus:border-red-500"
-                  : "border-line focus:border-blue-600"
+              <div className="relative mt-1.5">
+                <select
+                  id="checkout-ward"
+                  disabled={!address.district}
+                  value={address.ward}
+                  onChange={(e) => onAddressChange?.("ward", e.target.value)}
+                  className={`block w-full appearance-none rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink focus:outline-hidden transition-colors pr-8 disabled:bg-gray-50 disabled:text-muted disabled:cursor-not-allowed ${
+                    addressErrors.ward
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-line focus:border-blue-600"
                   }`}
-              />
+                >
+                  <option value="">
+                    {address.district ? "-- Chọn Phường / Xã --" : "-- Vui lòng chọn Quận/Huyện trước --"}
+                  </option>
+                  {wards.map((w) => (
+                    <option key={w} value={w}>
+                      {w}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-muted">
+                  <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
               {addressErrors.ward && (
                 <p className="mt-1 text-xs text-red-600">{addressErrors.ward}</p>
               )}
             </div>
           </div>
 
-          {/* Địa chỉ chi tiết / Số nhà, tên đường */}
+          {/* Dòng 3: Địa chỉ chi tiết / Số nhà, tên đường */}
           <div>
             <label
               htmlFor="checkout-street"
               className="block text-xs font-semibold text-ink"
             >
-              Địa chỉ chi tiết (Số nhà, tên đường) <span className="text-red-500">*</span>
+              Địa chỉ chi tiết (Số nhà, tên đường, tòa nhà) <span className="text-red-500">*</span>
             </label>
             <input
               id="checkout-street"
@@ -271,10 +355,11 @@ export function DeliveryAddressCard({
               value={address.street}
               onChange={(e) => onAddressChange?.("street", e.target.value)}
               placeholder="VD: Số 123 đường Lê Lợi"
-              className={`mt-1.5 block w-full rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-hidden transition-colors ${addressErrors.street
-                ? "border-red-500 focus:border-red-500"
-                : "border-line focus:border-blue-600"
-                }`}
+              className={`mt-1.5 block w-full rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-hidden transition-colors ${
+                addressErrors.street
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-line focus:border-blue-600"
+              }`}
             />
             {addressErrors.street && (
               <p className="mt-1 text-xs text-red-600">{addressErrors.street}</p>

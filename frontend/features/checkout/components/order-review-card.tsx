@@ -67,20 +67,19 @@ export function OrderReviewCard({
             {formatVND(summary.subtotal)}
           </span>
         </div>
-
-        <div className="flex justify-between text-muted">
+        {/* <div className="flex justify-between text-muted">
           <span>Phí vận chuyển:</span>
           <span className="font-semibold text-ink">
             {formatVND(summary.shippingFee)}
           </span>
-        </div>
+        </div> */}
 
-        <div className="flex justify-between text-muted">
+        {/* <div className="flex justify-between text-muted">
           <span>Giảm giá:</span>
           <span className="font-semibold text-ink">
             {formatVND(summary.discount)}
           </span>
-        </div>
+        </div> */}
       </div>
 
       {/* Tổng thanh toán */}

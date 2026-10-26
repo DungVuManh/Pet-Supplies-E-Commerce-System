@@ -27,8 +27,8 @@ export type CartSummary = {
   distinctCount: number;
   totalQuantity: number;
   subtotal: number;
-  shippingFee: number;
-  discount: number;
+  // shippingFee: number;
+  // discount: number;
   total: number;
 };
 

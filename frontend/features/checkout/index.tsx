@@ -10,7 +10,6 @@ import React from "react";
 import { DeliveryAddressCard } from "./components/delivery-address-card";
 import { OrderReviewCard } from "./components/order-review-card";
 import { PaymentMethodCard } from "./components/payment-method-card";
-import { ShippingMethodCard } from "./components/shipping-method-card";
 import { useCheckout } from "./hooks/use-checkout";
 
 export * from "./types";
@@ -128,7 +127,6 @@ export function CheckoutView() {
             onAddressChange={handleAddressChange}
             addressErrors={addressErrors}
           />
-          <ShippingMethodCard method={shippingMethod} />
           <PaymentMethodCard
             selectedMethod={paymentMethod}
             onSelectMethod={setPaymentMethod}

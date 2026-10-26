@@ -17,26 +17,24 @@ export function PaymentMethodCard({
   return (
     <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
       <h2 className="text-lg font-bold text-ink mb-4">
-        3. Phương thức thanh toán
+        2. Phương thức thanh toán
       </h2>
 
       <div className="space-y-3">
         {/* Tùy chọn 1: VNPay */}
         <div
           onClick={() => onSelectMethod("vnpay")}
-          className={`rounded-xl p-4 flex items-center gap-4 cursor-pointer transition-all ${
-            selectedMethod === "vnpay"
-              ? "border-2 border-blue-500 bg-[#f8fbff]"
-              : "border border-line bg-surface hover:border-gray-300"
-          }`}
+          className={`rounded-xl p-4 flex items-center gap-4 cursor-pointer transition-all ${selectedMethod === "vnpay"
+            ? "border-2 border-blue-500 bg-[#f8fbff]"
+            : "border border-line bg-surface hover:border-gray-300"
+            }`}
         >
           {/* Radio indicator */}
           <div
-            className={`size-5 shrink-0 rounded-full border-2 flex items-center justify-center ${
-              selectedMethod === "vnpay"
-                ? "border-blue-600"
-                : "border-gray-300"
-            }`}
+            className={`size-5 shrink-0 rounded-full border-2 flex items-center justify-center ${selectedMethod === "vnpay"
+              ? "border-blue-600"
+              : "border-gray-300"
+              }`}
           >
             {selectedMethod === "vnpay" && (
               <div className="size-2.5 rounded-full bg-blue-600" />
@@ -72,19 +70,17 @@ export function PaymentMethodCard({
         {/* Tùy chọn 2: COD */}
         <div
           onClick={() => onSelectMethod("cod")}
-          className={`rounded-xl p-4 flex items-center gap-4 cursor-pointer transition-all ${
-            selectedMethod === "cod"
-              ? "border-2 border-blue-500 bg-[#f8fbff]"
-              : "border border-line bg-surface hover:border-gray-300"
-          }`}
+          className={`rounded-xl p-4 flex items-center gap-4 cursor-pointer transition-all ${selectedMethod === "cod"
+            ? "border-2 border-blue-500 bg-[#f8fbff]"
+            : "border border-line bg-surface hover:border-gray-300"
+            }`}
         >
           {/* Radio indicator */}
           <div
-            className={`size-5 shrink-0 rounded-full border-2 flex items-center justify-center ${
-              selectedMethod === "cod"
-                ? "border-blue-600"
-                : "border-gray-300"
-            }`}
+            className={`size-5 shrink-0 rounded-full border-2 flex items-center justify-center ${selectedMethod === "cod"
+              ? "border-blue-600"
+              : "border-gray-300"
+              }`}
           >
             {selectedMethod === "cod" && (
               <div className="size-2.5 rounded-full bg-blue-600" />
