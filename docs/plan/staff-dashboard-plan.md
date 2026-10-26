@@ -307,7 +307,7 @@ server, không tải toàn bộ Orders/PII vào browser để tự cộng.
 
 ### P7 — Tích hợp màn hình Doanh số
 
-- **Trạng thái:** TODO.
+- **Trạng thái:** DONE.
 - **Mục tiêu:** Filter và số liệu Sales đến từ backend thực.
 - **Công việc:** Nối controls/metric/series/top SKU/month-to-date; dùng tiền VND
   chuẩn và nhãn theo D2; placeholder ảnh khi thiếu, không giả catalog; xử lý so sánh
@@ -400,7 +400,7 @@ lại trong lượt lập plan**, không khẳng định chúng còn tồn tại
 - [x] P4 — Overview API và MongoDB integration.
 - [x] P5 — Client/controls/states/chart.
 - [x] P6 — Tổng quan.
-- [ ] P7 — Doanh số.
+- [x] P7 — Doanh số.
 - [ ] P8 — Hiệu suất cá nhân.
 - [ ] P9 — Tổng kiểm chứng và bàn giao.
 
@@ -440,3 +440,8 @@ Các lỗi này có trước triển khai Staff; không tự sửa ngoài phạm
 ### Bằng chứng P6
 
 Overview route/view, shared states, sidebar bỏ ca giả/aria-current và browser runner hoàn tất. Focused lint, 6 client tests đạt; tsc không thêm lỗi so baseline. Browser Chrome đạt data/loading/empty/error/retry, guest redirect, 320/768/1024/1440 và keyboard; đã xem screenshot 320/1440. Turbopack dev compile timeout, build CSS worker lỗi cả Node 24.22.1. Browser dùng bản sao riêng dưới .next, Webpack dev + chính Tailwind loader project qua rule chỉ trong bản sao; có assert compiled grid. Không sửa production config, không gọi đây là production build pass và không dừng dev server người dùng.
+
+
+### Bằng chứng P7
+
+Sales page/view dùng API, bỏ export/demo, filter day/week/month + URL/reload/Back/Forward, empty/error/retry đạt browser; 6 client tests và focused lint đạt. Đã xem ảnh desktop/mobile, sửa ô date co nhỏ ở 320 và thêm kiểm width; browser chạy lại đạt bốn viewport. Giới hạn Webpack dev/Tailwind test copy như P6, production build chưa đạt do baseline.

@@ -46,7 +46,7 @@ export function BarChart({ title, subtitle, data, unit }: { title: string; subti
       {data.map((item) => <div key={item.label} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2">
         <button type="button" className="group relative flex w-full max-w-10 items-end justify-center rounded-t focus-visible:outline-2 focus-visible:outline-brand" style={{ height: `${item.value / max * 82}%`, minHeight: item.value === 0 ? 2 : undefined }} aria-label={`${item.label}: ${item.value} ${unit}`}>
           <span className="absolute -top-6 whitespace-nowrap text-xs font-semibold text-ink">{new Intl.NumberFormat("vi-VN", { notation: "compact", maximumFractionDigits: 1 }).format(item.value)}</span><span className="h-full w-full rounded-t bg-brand transition-colors group-hover:bg-brand-hover" style={{ opacity: item.value === 0 ? 0 : 1 }} />
-        </button><span className="-mb-7 text-xs text-muted">{item.label}</span>
+        </button><span className="-mb-7 whitespace-nowrap text-xs text-muted" title={item.label}>{/^\d{4}-\d{2}-\d{2}$/.test(item.label) ? `${item.label.slice(8)}/${item.label.slice(5, 7)}` : item.label}</span>
       </div>)}
     </div>
     </div>

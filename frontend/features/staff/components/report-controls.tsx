@@ -16,7 +16,9 @@ export function ReportControls({ performance = false, period, query = "", onChan
   const [previous, setPrevious] = useState(source);
   const [draft, setDraft] = useState<Period>(initial);
   const [error, setError] = useState<string | null>(null);
-  if (previous !== source) { setPrevious(source); setDraft(initial); setError(null); }
+  if (previous !== source && (period || params.has("dateFrom") || params.has("dateTo"))) {
+    setPrevious(source); setDraft(initial); setError(null);
+  }
   function submit(event: FormEvent) {
     event.preventDefault();
     const issue = periodError(draft); setError(issue);
@@ -24,11 +26,11 @@ export function ReportControls({ performance = false, period, query = "", onChan
   }
   return <form onSubmit={submit} className="space-y-3" aria-label="Bộ lọc báo cáo">
     <div className="flex flex-wrap items-end gap-4">
-      <label className="grid min-w-0 flex-1 gap-2 font-medium sm:flex-none">Từ ngày
+      <label className="grid w-full min-w-0 gap-2 font-medium sm:w-auto">Từ ngày
         <input type="date" required min="2000-01-01" max="2099-12-31" className={`${control} w-full`} value={draft.dateFrom}
           aria-invalid={Boolean(error)} aria-describedby={error ? "report-filter-error" : undefined}
           onChange={(e) => setDraft({ ...draft, dateFrom: e.target.value })} /></label>
-      <label className="grid min-w-0 flex-1 gap-2 font-medium sm:flex-none">Đến ngày
+      <label className="grid w-full min-w-0 gap-2 font-medium sm:w-auto">Đến ngày
         <input type="date" required min="2000-01-01" max="2099-12-31" className={`${control} w-full`} value={draft.dateTo}
           onChange={(e) => setDraft({ ...draft, dateTo: e.target.value })} /></label>
       {!performance && <label className="grid gap-2 font-medium">Nhóm theo
