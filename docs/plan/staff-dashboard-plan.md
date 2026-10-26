@@ -269,7 +269,7 @@ server, không tải toàn bộ Orders/PII vào browser để tự cộng.
 
 ### P5 — Frontend API, bộ lọc và trạng thái dùng chung
 
-- **Trạng thái:** TODO.
+- **Trạng thái:** DONE.
 - **Mục tiêu:** Có typed API/URL state và UI states dùng lại cho ba màn hình.
 - **Công việc:** DTO/parsers, API services thuần TS theo conventions hiện hữu;
   hook quản lý date/groupBy, abort/race/retry; URL Back/Forward; refactor
@@ -398,7 +398,7 @@ lại trong lượt lập plan**, không khẳng định chúng còn tồn tại
 - [x] P2 — Sales API.
 - [x] P3 — Performance API.
 - [x] P4 — Overview API và MongoDB integration.
-- [ ] P5 — Client/controls/states/chart.
+- [x] P5 — Client/controls/states/chart.
 - [ ] P6 — Tổng quan.
 - [ ] P7 — Doanh số.
 - [ ] P8 — Hiệu suất cá nhân.
@@ -430,3 +430,8 @@ Các lỗi này có trước triển khai Staff; không tự sửa ngoài phạm
 ### Bằng chứng P4
 
 24/24 HTTP/validator tests đạt. MongoDB 8.2 tạm với DB UUID riêng đạt: tiền snapshot, legacy/unpaid/refund/pending, biên UTC+07, day/week/month, nhiều Payment, actor A/B/customer, distinct nhiều ngày, overview bounds, Product bị xóa và snapshot hỏng. Explain chạy trên fixture nhỏ; chưa đủ tải đại diện để thêm index. Đã drop đúng DB test/disconnect, không đọc .env ứng dụng.
+
+
+### Bằng chứng P5
+
+6/6 analytics client/query/chart tests + 30/30 Admin regression tests đạt; focused lint exit 0. Full tsc vẫn đúng 7 lỗi baseline Admin/Cart, không lỗi mới. Typed parsers, abort/timeout, identity-bound results, URL controls và chart zero/empty đã có. Browser race/Back/Forward kiểm ở các bước UI/P9.

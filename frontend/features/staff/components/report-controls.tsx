@@ -1,45 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { control, secondaryButton } from "./staff-ui";
+import type { Period, GroupBy } from "../analytics/types";
+import { periodError, reportQuery } from "../analytics/query";
 
-const periods = ["06/10 – 12/10/2026", "Tháng 10/2026"];
-const groupings = ["Theo ngày", "Theo tuần", "Theo tháng"];
-
-export function ReportControls({ performance = false }: { performance?: boolean }) {
-  const [period, setPeriod] = useState(periods[0]);
-  const [grouping, setGrouping] = useState(groupings[0]);
-  const [notice, setNotice] = useState("");
-
-  function selectPeriod(value: string) {
-    setPeriod(value);
-    setNotice(`Đã chọn ${value}. Số liệu hiển thị vẫn là dữ liệu mẫu.`);
+// Optional props keep existing pages buildable until their integration commits.
+export function ReportControls({ performance = false, period, query = "", onChange }: {
+  performance?: boolean; period?: Period; query?: string; onChange?: (query: string) => void;
+}) {
+  const params = new URLSearchParams(query);
+  const initial = { dateFrom: params.get("dateFrom") ?? period?.dateFrom ?? "", dateTo: params.get("dateTo") ?? period?.dateTo ?? "",
+    groupBy: (params.get("groupBy") ?? period?.groupBy ?? "day") as GroupBy };
+  const source = JSON.stringify(initial);
+  const [previous, setPrevious] = useState(source);
+  const [draft, setDraft] = useState<Period>(initial);
+  const [error, setError] = useState<string | null>(null);
+  if (previous !== source) { setPrevious(source); setDraft(initial); setError(null); }
+  function submit(event: FormEvent) {
+    event.preventDefault();
+    const issue = periodError(draft); setError(issue);
+    if (!issue) onChange?.(reportQuery(draft, performance));
   }
-
-  return <>
+  return <form onSubmit={submit} className="space-y-3" aria-label="Bộ lọc báo cáo">
     <div className="flex flex-wrap items-end gap-4">
-      <label className="grid min-w-64 gap-2 font-medium">
-        Kỳ {performance ? "đánh giá" : "báo cáo"}
-        <select className={control} value={period} onChange={(event) => selectPeriod(event.target.value)}>
-          {periods.map((item) => <option key={item}>{item}</option>)}
-        </select>
-      </label>
-      <label className="grid min-w-64 gap-2 font-medium">
-        {performance ? "Phạm vi công việc" : "Phạm vi"}
-        <select className={control} onChange={() => setNotice("Phạm vi hiện dùng một bộ dữ liệu mẫu duy nhất.")}>
-          <option>{performance ? "Tất cả bước xử lý" : "Toàn cửa hàng"}</option>
-        </select>
-      </label>
-      {performance
-        ? <span className="ml-auto rounded-full bg-brand-subtle px-4 py-3 text-xs font-semibold text-brand">Chỉ hiển thị dữ liệu của bạn</span>
-        : <div className="flex flex-wrap gap-2" aria-label="Nhóm kỳ báo cáo">
-          {groupings.map((item) => <button key={item} type="button" aria-pressed={grouping === item}
-            className={grouping === item ? "rounded-lg bg-brand-subtle px-4 py-3 font-semibold text-brand" : secondaryButton}
-            onClick={() => { setGrouping(item); setNotice(`Đã chọn ${item.toLowerCase()}. Biểu đồ vẫn dùng dữ liệu mẫu 7 ngày.`); }}>
-            {item}
-          </button>)}
-        </div>}
+      <label className="grid min-w-0 flex-1 gap-2 font-medium sm:flex-none">Từ ngày
+        <input type="date" required min="2000-01-01" max="2099-12-31" className={`${control} w-full`} value={draft.dateFrom}
+          aria-invalid={Boolean(error)} aria-describedby={error ? "report-filter-error" : undefined}
+          onChange={(e) => setDraft({ ...draft, dateFrom: e.target.value })} /></label>
+      <label className="grid min-w-0 flex-1 gap-2 font-medium sm:flex-none">Đến ngày
+        <input type="date" required min="2000-01-01" max="2099-12-31" className={`${control} w-full`} value={draft.dateTo}
+          onChange={(e) => setDraft({ ...draft, dateTo: e.target.value })} /></label>
+      {!performance && <label className="grid gap-2 font-medium">Nhóm theo
+        <select className={control} value={draft.groupBy} onChange={(e) => setDraft({ ...draft, groupBy: e.target.value as GroupBy })}>
+          <option value="day">Ngày</option><option value="week">Tuần</option><option value="month">Tháng</option>
+        </select></label>}
+      <button type="submit" disabled={!onChange} className={secondaryButton}>Áp dụng</button>
+      <button type="button" disabled={!onChange} className={secondaryButton} onClick={() => onChange?.("")}>7 ngày gần nhất</button>
+      <span className="text-xs text-muted">{performance ? "Chỉ dữ liệu của bạn" : "Toàn cửa hàng"} · UTC+07</span>
     </div>
-    {notice && <p role="status" className="rounded-lg bg-brand-subtle p-4 text-brand">{notice}</p>}
-  </>;
+    {error && <p id="report-filter-error" role="alert" className="text-danger">{error}</p>}
+  </form>;
 }
