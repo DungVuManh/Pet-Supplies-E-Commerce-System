@@ -177,7 +177,11 @@ describe("Customer order creation HTTP", () => {
       .expect(201);
 
     expect(createOrder).toHaveBeenCalledWith(
-      expect.objectContaining({ guestInfo }),
+      expect.objectContaining({
+        guestInfo,
+        subtotal: 420000,
+        total: 420000,
+      }),
     );
     expect(response.body.data.order.orderCode).toBe(createdOrder.orderCode);
   });

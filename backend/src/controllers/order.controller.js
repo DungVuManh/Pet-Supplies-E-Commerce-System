@@ -73,9 +73,7 @@ export async function createOrder(request, response, next) {
       subtotal += unitPrice * qty;
     }
 
-    // const shippingFee = 30000;
-    // const discount = 0;
-    // const total = subtotal + shippingFee - discount;
+    const total = subtotal;
 
     // Chỉ lấy customerId từ hồ sơ đã xác thực; không tin ID do client gửi.
     const customerId = request.user?._id;
