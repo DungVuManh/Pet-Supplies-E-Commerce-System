@@ -13,7 +13,7 @@ export const control = "h-12 min-w-0 rounded-lg border border-line bg-surface px
 export const card = "rounded-lg border border-line bg-surface";
 
 export function MetricCard({ label, value, detail }: { label: string; value: string; detail: string }) {
-  return <article className={`${card} min-w-0 p-6`}><p className="text-muted">{label}</p><p className="mt-2 text-[32px] font-semibold tracking-[-1px]">{value}</p><p className="mt-2 text-xs leading-relaxed text-muted">{detail}</p></article>;
+  return <article className={`${card} min-w-0 p-6`}><p className="text-muted">{label}</p><p className="mt-2 break-words text-[32px] font-semibold tracking-[-1px]">{value}</p><p className="mt-2 text-xs leading-relaxed text-muted">{detail}</p></article>;
 }
 
 export type BadgeTone = "success" | "warning" | "info" | "danger" | "neutral";
@@ -36,16 +36,19 @@ function ChartDataTable({ data, unit }: { data: { label: string; value: number }
 }
 
 export function BarChart({ title, subtitle, data, unit }: { title: string; subtitle: string; data: { label: string; value: number }[]; unit: string }) {
-  const max = Math.max(...data.map((item) => item.value));
+  const max = Math.max(1, ...data.map((item) => item.value));
   const headingId = chartId(title);
   return <section className={`${card} p-6`} aria-labelledby={headingId}>
     <h2 id={headingId} className="text-xl font-semibold">{title}</h2><p className="mt-3 text-xs text-muted">{subtitle}</p>
-    <div className="mt-8 flex h-56 items-end justify-around gap-3 border-b border-line px-2" role="group" aria-label={`${title}. ${data.map((d) => `${d.label}: ${d.value} ${unit}`).join(", ")}`}>
+    {data.length === 0 && <p role="status" className="mt-6 text-muted">Chưa có dữ liệu trong kỳ này.</p>}
+    <div className="max-w-full overflow-x-auto pb-8">
+    <div className="mt-8 flex h-56 items-end justify-around gap-3 border-b border-line px-2" style={{ minWidth: data.length * 48 }} role="group" aria-label={`${title}. ${data.map((d) => `${d.label}: ${d.value} ${unit}`).join(", ")}`}>
       {data.map((item) => <div key={item.label} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2">
-        <button type="button" className="group relative flex w-full max-w-10 items-end justify-center rounded-t focus:outline-none" style={{ height: `${Math.max(12, item.value / max * 82)}%` }} aria-label={`${item.label}: ${item.value} ${unit}`}>
-          <span className="absolute -top-6 text-xs font-semibold text-ink">{String(item.value).replace(".", ",")}</span><span className="h-full w-full rounded-t bg-brand transition-colors group-hover:bg-brand-hover" />
-        </button><span className="-mb-7 text-xs text-muted">{item.label}</span>
+        <button type="button" className="group relative flex w-full max-w-10 items-end justify-center rounded-t focus-visible:outline-2 focus-visible:outline-brand" style={{ height: `${item.value / max * 82}%`, minHeight: item.value === 0 ? 2 : undefined }} aria-label={`${item.label}: ${item.value} ${unit}`}>
+          <span className="absolute -top-6 whitespace-nowrap text-xs font-semibold text-ink">{new Intl.NumberFormat("vi-VN", { notation: "compact", maximumFractionDigits: 1 }).format(item.value)}</span><span className="h-full w-full rounded-t bg-brand transition-colors group-hover:bg-brand-hover" style={{ opacity: item.value === 0 ? 0 : 1 }} />
+        </button><span className="-mb-7 whitespace-nowrap text-xs text-muted" title={item.label}>{/^\d{4}-\d{2}-\d{2}$/.test(item.label) ? `${item.label.slice(8)}/${item.label.slice(5, 7)}` : item.label}</span>
       </div>)}
+    </div>
     </div>
     <ChartDataTable data={data} unit={unit} />
   </section>;

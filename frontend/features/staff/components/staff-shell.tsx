@@ -117,6 +117,7 @@ export function StaffShell({ children }: { children: ReactNode }) {
       <Link
        key={item.href}
        href={item.href}
+       aria-current={active(pathname, cancelled, item.href) ? "page" : undefined}
        className={`flex min-h-12 items-center gap-3 rounded-lg px-2 font-medium ${active(pathname, cancelled, item.href) ? "bg-brand-subtle text-brand" : "hover:bg-canvas"}`}
       >
        <StaffNavIcon name={item.icon} />
@@ -125,11 +126,8 @@ export function StaffShell({ children }: { children: ReactNode }) {
      ))}
     </nav>
     <div className="mt-6 border-t border-line pt-6">
-     <p className="font-semibold">Ca làm hôm nay</p>
-     <p className="mt-2 text-xs text-muted">08:00 – 17:00 · Kho TP.HCM</p>
-     <span className="mt-3 inline-flex rounded-full bg-success-subtle px-3 py-2 text-xs font-semibold text-success">
-      Đang trong ca
-     </span>
+     <p className="font-semibold">Thông tin ca làm</p>
+     <p className="mt-2 text-xs text-muted">Chưa có dữ liệu ca làm trong hệ thống.</p>
     </div>
     <div className="mt-auto pt-6 text-xs text-muted">
      <p>Hướng dẫn vận hành</p>
@@ -159,6 +157,7 @@ export function StaffShell({ children }: { children: ReactNode }) {
         <Link
          key={item.href}
          href={item.href}
+         aria-current={active(pathname, cancelled, item.href) ? "page" : undefined}
          className={`rounded-lg px-3 py-3 ${active(pathname, cancelled, item.href) ? "bg-brand-subtle text-brand" : "bg-canvas"}`}
         >
          {item.label}

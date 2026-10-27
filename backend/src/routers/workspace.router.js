@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { readCookies, requireAuth, requireRole } from "../common/middlewares/auth.middleware.js";
 import { dashboard } from "../controllers/dashboard.controller.js";
+import { getStaffSales, getStaffPerformance, getStaffOverview } from "../controllers/staff-analytics.controller.js";
 import { listStaffOrders, getStaffOrderDetail } from "../controllers/order.controller.js";
 import { updateStaffOrderStatus } from "../controllers/order-status.controller.js";
 import { getStaffProducts, getProductBySku } from "../controllers/product.controller.js";
@@ -9,6 +10,9 @@ import { protectMutation } from "../controllers/auth.controller.js";
 import { createStaffSale, getSaleCreation, listSaleCustomers, listSaleProducts } from "../controllers/staff-sale.controller.js";
 
 const router = Router();
+router.get("/staff/analytics/sales", readCookies, requireAuth, requireRole("staff"), getStaffSales);
+router.get("/staff/analytics/performance", readCookies, requireAuth, requireRole("staff"), getStaffPerformance);
+router.get("/staff/analytics/overview", readCookies, requireAuth, requireRole("staff"), getStaffOverview);
 router.get("/staff/dashboard", readCookies, requireAuth, requireRole("staff"), dashboard);
 router.get("/staff/orders", readCookies, requireAuth, requireRole("staff"), listStaffOrders);
 router.post("/staff/orders", readCookies, requireAuth, requireRole("staff"), protectMutation, createStaffSale);
