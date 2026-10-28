@@ -70,6 +70,14 @@ export default function ProfilePage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => {
+      setToastMessage("");
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
+
   async function handleSaveProfile(values: ProfileFormValues) {
     setIsSaving(true);
     setErrorMessage("");
