@@ -31,7 +31,7 @@ export function PaymentResultView() {
   const searchParams = useSearchParams();
 
   // Đọc các trường trả về từ URL
-  const orderCode = searchParams.get("orderCode") || "—";
+  const orderCode = searchParams.get("orderCode") || "ORD-PENDING";
   const total = Number(searchParams.get("total") || 0);
   const paymentMethod = searchParams.get("paymentMethod") || "COD";
   const createdAt = searchParams.get("createdAt");
@@ -40,8 +40,8 @@ export function PaymentResultView() {
     paymentMethod === "COD"
       ? "COD · Thanh toán khi nhận hàng"
       : paymentMethod === "ONLINE"
-      ? "VNPay · Thanh toán trực tuyến"
-      : paymentMethod;
+        ? "VNPay · Thanh toán trực tuyến"
+        : paymentMethod;
 
   return (
     <div className="w-full max-w-2xl mx-auto">

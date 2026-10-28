@@ -3,10 +3,12 @@
 // Controller xử lý đơn hàng cho cả Staff Workspace và Khách hàng (Mua ngay & Cart)
 // =============================================================
 
+import mongoose from "mongoose";
 import { AppError } from "../common/errors/app-error.js";
 import { Order } from "../models/order.model.js";
 import { Product } from "../models/product.model.js";
 import { User } from "../models/user.model.js";
+import { Cart } from "../models/cart.model.js";
 import {
   buildOrderSearchFilter,
   computeDateRange,
@@ -23,11 +25,6 @@ const SORT_MAP = {
   total_asc: { total: 1 },
 };
 
-function staffOrderStatus(status) {
-  if (status === "delivered") return "completed";
-  return status;
-}
-
 function generateOrderCode() {
   return `ORD${Date.now()}${Math.floor(100 + Math.random() * 900)}`;
 }
@@ -41,7 +38,7 @@ function generateOrderCode() {
  */
 export async function createOrder(request, response, next) {
   try {
-    const { items, shippingAddress, guestInfo, paymentMethod = "COD" } = request.body;
+    const { items, shippingAddress, guestInfo, paymentMethod = "COD", email } = request.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return response.status(400).json({ success: false, message: "Đơn hàng phải có ít nhất 1 sản phẩm." });
@@ -71,9 +68,9 @@ export async function createOrder(request, response, next) {
       subtotal += unitPrice * qty;
     }
 
-    const shippingFee = 30000;
-    const discount = 0;
-    const total = subtotal + shippingFee - discount;
+    const shippingFee = Number(request.body.shippingFee) || 0;
+    const discount = Number(request.body.discount) || 0;
+    const total = subtotal - discount + shippingFee;
 
     // Chỉ lấy customerId từ hồ sơ đã xác thực; không tin ID do client gửi.
     const customerId = request.user?._id;
@@ -92,6 +89,7 @@ export async function createOrder(request, response, next) {
     const newOrder = await Order.create({
       orderCode: generateOrderCode(),
       customerId,
+      email: email || guestInfo?.email || undefined,
       guestInfo: customerId ? undefined : guestInfo,
       items: orderItems,
       shippingAddress: finalAddress,
@@ -110,6 +108,31 @@ export async function createOrder(request, response, next) {
         },
       ],
     });
+
+    // Xóa các sản phẩm vừa mua khỏi giỏ hàng
+    try {
+      const guestToken =
+        request.headers["x-guest-token"] ||
+        request.authCookies?.["petly-guest-token"] ||
+        request.query?.guestToken ||
+        request.body?.guestToken;
+
+      const filters = [];
+      if (customerId) filters.push({ userId: customerId });
+      if (guestToken) filters.push({ guestToken });
+
+      if (filters.length > 0 && (mongoose.connection?.readyState === 1 || Boolean(Cart.updateMany?.mock))) {
+        const purchasedSkus = orderItems.map((item) => item.variantSku);
+        if (purchasedSkus.length > 0) {
+          await Cart.updateMany(
+            { $or: filters },
+            { $pull: { items: { variantSku: { $in: purchasedSkus } } } }
+          );
+        }
+      }
+    } catch (cartError) {
+      console.error("Lỗi khi xóa sản phẩm đã mua khỏi giỏ hàng:", cartError);
+    }
 
     response.status(201).json({
       success: true,
@@ -208,7 +231,6 @@ export async function getMyOrders(request, response, next) {
         pending: { status: "pending", statusLabel: "Chờ xử lý" },
         processing: { status: "pending", statusLabel: "Đang xử lý" },
         shipping: { status: "shipping", statusLabel: "Đang giao" },
-        delivered: { status: "completed", statusLabel: "Hoàn thành" },
         completed: { status: "completed", statusLabel: "Hoàn thành" },
         cancelled: { status: "cancelled", statusLabel: "Đã hủy" },
       };
@@ -246,7 +268,7 @@ export async function getOrderDetail(request, response, next) {
     // Tìm đơn hàng theo ID trong MongoDB
     const order = await Order.findById(id).lean();
 
-    if (!order) {
+    if (!order || String(order.customerId) !== String(request.user?._id)) {
       return response.status(404).json({ success: false, message: "Không tìm thấy đơn hàng." });
     }
 
@@ -260,7 +282,6 @@ export async function getOrderDetail(request, response, next) {
       pending: { status: "pending", statusLabel: "Chờ xử lý" },
       processing: { status: "pending", statusLabel: "Đang xử lý" },
       shipping: { status: "shipping", statusLabel: "Đang giao" },
-      delivered: { status: "completed", statusLabel: "Hoàn thành" },
       completed: { status: "completed", statusLabel: "Hoàn thành" },
       cancelled: { status: "cancelled", statusLabel: "Đã hủy" },
     };
@@ -270,15 +291,15 @@ export async function getOrderDetail(request, response, next) {
     // Tạo timeline tự động theo trạng thái hiện tại
     const timelineSteps = status === "cancelled"
       ? [
-          { id: "step-1", title: "Đã đặt hàng", description: `${orderDate} · ${orderTime}`, status: "completed" },
-          { id: "step-cancelled", title: "Đã hủy đơn", description: "Đơn hàng đã được hủy", status: "completed" },
-        ]
+        { id: "step-1", title: "Đã đặt hàng", description: `${orderDate} · ${orderTime}`, status: "completed" },
+        { id: "step-cancelled", title: "Đã hủy đơn", description: "Đơn hàng đã được hủy", status: "completed" },
+      ]
       : [
-          { id: "step-1", title: "Đã đặt hàng", description: `${orderDate} · ${orderTime}`, status: "completed" },
-          { id: "step-2", title: "Đang chuẩn bị", description: "Xác nhận đơn", status: status === "pending" ? "active" : "completed" },
-          { id: "step-3", title: "Đang giao", description: "Trên đường giao", status: status === "shipping" ? "active" : status === "completed" ? "completed" : "pending" },
-          { id: "step-4", title: "Hoàn thành", description: "Nhận hàng thành công", status: status === "completed" ? "completed" : "pending" },
-        ];
+        { id: "step-1", title: "Đã đặt hàng", description: `${orderDate} · ${orderTime}`, status: "completed" },
+        { id: "step-2", title: "Đang chuẩn bị", description: "Xác nhận đơn", status: status === "pending" ? "active" : "completed" },
+        { id: "step-3", title: "Đang giao", description: "Trên đường giao", status: status === "shipping" ? "active" : status === "completed" ? "completed" : "pending" },
+        { id: "step-4", title: "Hoàn thành", description: "Nhận hàng thành công", status: status === "completed" ? "completed" : "pending" },
+      ];
 
     // Map danh sách sản phẩm trong đơn
     const items = order.items.map((item, index) => ({
@@ -314,7 +335,7 @@ export async function getOrderDetail(request, response, next) {
       timeline: timelineSteps,
       items,
       subtotal: order.subtotal,
-      shippingFee: order.shippingFee,
+      shippingFee: order.shippingFee || 0,
       discount: order.discount || 0,
       totalAmount: order.total,
       paymentMethod: order.paymentMethod === "COD" ? "COD" : order.paymentMethod,
@@ -371,7 +392,7 @@ export async function listStaffOrders(request, response, next) {
         status === "all"
           ? baseFilter
           : {
-            $and: [...baseConditions, { orderStatus: status === "completed" ? { $in: ["completed", "delivered"] } : status }],
+            $and: [...baseConditions, { orderStatus: status }],
           };
 
       const sortObj = SORT_MAP[sort] || SORT_MAP.createdAt_desc;
@@ -394,9 +415,9 @@ export async function listStaffOrders(request, response, next) {
       ]);
 
       for (const group of groupResults) {
-        const status = staffOrderStatus(group._id);
-        if (status in statusCounts) {
-          statusCounts[status] += group.count;
+        const groupStatus = group._id;
+        if (groupStatus in statusCounts) {
+          statusCounts[groupStatus] += group.count;
         }
         summaryAll += group.count;
       }
@@ -419,7 +440,7 @@ export async function listStaffOrders(request, response, next) {
           },
           itemCount,
           total: order.total,
-          orderStatus: staffOrderStatus(order.orderStatus),
+          orderStatus: order.orderStatus,
           paymentMethod: order.paymentMethod,
           paymentStatus: order.paymentStatus,
           channel: order.channel,
@@ -546,8 +567,8 @@ export async function getStaffOrderDetail(request, response, next) {
 
     const statusHistory = (order.statusHistory || [])
       .map((h) => ({
-        from: staffOrderStatus(h.from) || null,
-        to: staffOrderStatus(h.to),
+        from: h.from || null,
+        to: h.to,
         at: h.at ? new Date(h.at).toISOString() : new Date().toISOString(),
         actorName: h.by ? userMap.get(h.by.toString()) || null : null,
       }))
@@ -584,7 +605,7 @@ export async function getStaffOrderDetail(request, response, next) {
       shippingFee: order.shippingFee || 0,
       total: order.total,
       promotionCode: order.promotionCode || null,
-      orderStatus: staffOrderStatus(order.orderStatus),
+      orderStatus: order.orderStatus,
       paymentMethod: order.paymentMethod,
       paymentStatus: order.paymentStatus,
       channel: order.channel,

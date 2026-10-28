@@ -31,6 +31,15 @@ Implement customer account features under the public storefront shell (`app/(cus
   - Form fields: Recipient name, Phone number, Province/City, District, Ward, Street address, and "Đặt làm địa chỉ mặc định" checkbox.
   - Enforce at most one default address per customer (BR / CR-05).
 
+### 2.1 Checkout Address
+- When checkout loads, determine whether the customer is signed in using the existing auth state.
+- For a signed-in customer, load their saved addresses through `GET /api/v1/account/addresses` and prefill the default address. If no address is marked default, use the first saved address.
+- The signed-in customer can choose to change the checkout address by opening a form and entering a different delivery address. Save the new address to that customer's address book through `POST /api/v1/account/addresses`, then use the saved address for the current order. Do not replace or overwrite another saved address.
+- If the signed-in customer has no saved addresses, show the address-entry form.
+- If the visitor is a guest, show the address-entry form without requesting protected account endpoints. Preserve guest checkout; guest-entered addresses are used for the order but are not saved to an account address book.
+- Show loading and API error states explicitly; do not silently replace failed requests with a placeholder address.
+- Submit the selected or entered recipient, phone, street, ward, district, and province as the order's shipping address; do not use placeholder address fields.
+
 ### 3. Pet Profile Management (Customer/Pet)
 - Display a list of registered pets using dedicated Pet Cards as specified in `design.md` §5 (`Card: Product, Category, Pet, Address...`).
 - Pet Card details:
@@ -83,11 +92,12 @@ Implement customer account features under the public storefront shell (`app/(cus
 
 1. Authenticated customers can view and update their full name and phone number, with validation and toast/inline feedback.
 2. Saved addresses can be created, edited, deleted, and toggled as default (with at most 1 default).
-3. Pet profiles can be created, edited, and deleted with species and breed options.
-4. Non-authenticated users are redirected to `/login`.
-5. Visual hierarchy matches `design.md` with no raw hex colors scattered in JSX.
-6. Frontend build, lint, and unit tests pass.
-7. Backend tests for account endpoints pass with 100% assertions met.
+3. Checkout prefills a signed-in customer's default saved address, saves a newly entered replacement address to their address book and uses it for the current order, and displays an entry form for guests or customers without saved addresses. Guest-entered addresses are not persisted.
+4. Pet profiles can be created, edited, and deleted with species and breed options.
+5. Non-authenticated users are redirected to `/login` for account routes; guest checkout remains available.
+6. Visual hierarchy matches `design.md` with no raw hex colors scattered in JSX.
+7. Frontend build, lint, and unit tests pass.
+8. Backend tests for account endpoints pass with 100% assertions met.
 
 ## Non-goals
 

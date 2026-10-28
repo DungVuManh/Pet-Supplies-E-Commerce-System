@@ -1,7 +1,7 @@
 # Petjoy frontend
 
 Next.js App Router, React, TypeScript, and Tailwind CSS. Implemented screens:
-`Customer/Product/Home`, shared sign-in/registration, a mock-data Staff operations workspace, and the Admin dashboard shell.
+`Customer/Product/Home`, shared sign-in/registration, the Staff operations workspace, and the Admin dashboard shell.
 
 Read [design.md](design.md) before changing UI. It defines the Figma-backed
 design tokens, role-specific layouts, reusable component rules, responsive
@@ -20,7 +20,7 @@ npm run dev:frontend
 - `/login`: shared customer/staff/admin sign-in UI.
 - `/register`: customer registration UI.
 - `/forgot-password`: email password recovery.
-- `/staff/dashboard`: Staff-only operations overview with mock metrics, revenue and pending orders.
+- `/staff/dashboard`: Staff-only overview with API sales, personal activity, pending orders and stock alerts.
 - `/staff/orders` and `/staff/orders/[id]`: mock order search, filtering and detail/status flow.
 - Staff order detail now reads MongoDB and supports protected status updates through
   confirmation, preparation and manual shipping, with cancellation before preparation.
@@ -44,7 +44,7 @@ the stylesheet gate because Tailwind is configured only for Turbopack.
   It uses fixture APIs on ports 3024/3134, verifies validation/save/re-edit/conflicts/
   lost responses/error retry, then requires compiled Tailwind for responsive checks.
 - `/staff/inventory`: redirects to `/staff/products`; inventory is managed from the product screen.
-- `/staff/sales`, `/staff/performance`: mock reporting screens.
+- `/staff/sales`, `/staff/performance`: API-backed sales and personal performance reports.
 - `/admin/dashboard`: Admin only; public profile and workspace empty state.
 - `/forbidden`: wrong-role access explanation and home link.
 
@@ -61,6 +61,33 @@ the Express backend and MongoDB. Follow [authentication setup](../docs/authentic
 to configure both environment files and enable Email/Password in Firebase.
 
 ## Structure
+
+### Staff analytics
+
+The three reporting pages reuse the Staff layout, authentication guard, chart and
+UI components. `features/staff/analytics/` contains typed API parsers, the
+identity-bound request hook and views. Requests use the existing relative API
+rewrite and HttpOnly session; no mock fallback is used. Sales cover the store;
+performance is scoped by the backend to the signed-in Staff member. Date filters
+use Vietnam time and persist in the URL. Unsupported SLA/target metrics show
+that no data is available. See the [contract](../docs/specs/staff-dashboard.md)
+and [implementation/verification plan](../docs/plan/staff-dashboard-plan.md).
+
+Run `node --test frontend/tests/staff-analytics.test.mjs` from the root for the
+client/query/chart checks. After a successful production build, run
+`node frontend/tests/staff-dashboard-browser.mjs` with `PLAYWRIGHT_MODULE_PATH`
+pointing to an installed Playwright module, and set
+`STAFF_DASHBOARD_TEST_SALES=1`, `STAFF_DASHBOARD_TEST_PERFORMANCE=1` for all pages.
+Ports 3025/3135 must be free. The browser runner uses isolated API fixtures;
+it does not verify live Firebase or the application's database.
+
+For development-only QA, `STAFF_DASHBOARD_TEST_DEV=1` copies source without env
+files into `.next/staff-dashboard-tests/`. `STAFF_DASHBOARD_TEST_WEBPACK=1`
+adds the existing Tailwind loader to that copy only. This workaround verifies
+rendered styles/interactions but is not a successful production build. The
+current Turbopack CSS worker build failure and existing unrelated test/type/lint
+failures are recorded in the plan. Screenshots are under
+`.next/staff-dashboard-browser/`; a subsequent build may remove them.
 
 ### Staff in-store sales
 

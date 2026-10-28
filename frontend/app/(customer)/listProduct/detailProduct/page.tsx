@@ -7,24 +7,11 @@ import { getProductDetailApi } from "@/features/catalog/components/listProduct/s
 
 export const metadata: Metadata = { title: "Chi tiết sản phẩm | Petjoy" };
 
-type DetailSearchParams = Promise<{ id?: string }>;
-
-// searchParams is runtime data, so it is read inside Suspense (Next 16 Cache Components).
-export default function DetailProducts({ searchParams }: { searchParams: DetailSearchParams }) {
-  return (
-    <main
-      id="main-content"
-      tabIndex={-1}
-      className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col gap-6 px-6 py-6 outline-none xl:px-16"
-    >
-      <Suspense fallback={<p role="status" className="py-20 text-center text-muted">Đang tải sản phẩm…</p>}>
-        <ProductDetailContent searchParams={searchParams} />
-      </Suspense>
-    </main>
-  );
-}
-
-async function ProductDetailContent({ searchParams }: { searchParams: DetailSearchParams }) {
+async function DetailProductsContent({
+  searchParams,
+}: {
+  searchParams: Promise<{ id?: string }>;
+}) {
   const { id } = await searchParams;
 
   let product: Product | null = null;
@@ -66,7 +53,11 @@ async function ProductDetailContent({ searchParams }: { searchParams: DetailSear
   }
 
   return (
-    <>
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col gap-6 px-6 py-6 outline-none xl:px-16"
+    >
       {product ? (
         <div className="flex flex-col gap-4">
           <DetailProduct product={product} />
@@ -82,6 +73,24 @@ async function ProductDetailContent({ searchParams }: { searchParams: DetailSear
           </Link>
         </div>
       )}
-    </>
+    </main>
+  );
+}
+
+export default function DetailProducts({
+  searchParams,
+}: {
+  searchParams: Promise<{ id?: string }>;
+}) {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto w-full max-w-[1440px] px-6 py-12">
+          <div className="h-96 animate-pulse rounded-2xl bg-canvas" />
+        </div>
+      }
+    >
+      <DetailProductsContent searchParams={searchParams} />
+    </Suspense>
   );
 }

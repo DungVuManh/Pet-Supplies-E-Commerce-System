@@ -5,9 +5,13 @@
 
 import { Router } from "express";
 import { createOrder, cancelOrder, deleteOrder, getMyOrders, getOrderDetail } from "../controllers/order.controller.js";
+import { confirmCustomerOrderReceipt } from "../controllers/order-status.controller.js";
+import { protectMutation } from "../controllers/auth.controller.js";
 import {
   optionalAuth,
   readCookies,
+  requireAuth,
+  requireRole,
 } from "../common/middlewares/auth.middleware.js";
 
 const router = Router();
@@ -16,10 +20,23 @@ const router = Router();
 router.use(readCookies);
 
 // 1. GET /api/v1/orders/my-orders - Lấy danh sách đơn hàng của user đang đăng nhập
-router.get("/my-orders", optionalAuth, getMyOrders);
+router.get("/my-orders", requireAuth, requireRole("customer"), getMyOrders);
+
+// A customer can complete only their own online order after it is shipping.
+router.patch(
+  "/:id/receipt-confirmation",
+  (_request, response, next) => {
+    response.set("Cache-Control", "no-store");
+    next();
+  },
+  requireAuth,
+  requireRole("customer"),
+  protectMutation,
+  confirmCustomerOrderReceipt,
+);
 
 // 2. GET /api/v1/orders/:id - Lấy chi tiết 1 đơn hàng (customer xem đơn của mình)
-router.get("/:id", optionalAuth, getOrderDetail);
+router.get("/:id", requireAuth, requireRole("customer"), getOrderDetail);
 
 // 3. POST /api/v1/orders - Tạo đơn hàng (Mua ngay & Cart)
 router.post("/", optionalAuth, createOrder);

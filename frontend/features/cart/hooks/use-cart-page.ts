@@ -160,22 +160,22 @@ export function useCartPage() {
     }
   }
 
-  // 6. Áp dụng mã giảm giá (mẫu phía client; đổi appliedPromo sẽ tải lại giỏ để tính giảm giá)
+  // 6. Áp dụng mã giảm giá
   function applyPromoCode() {
     const code = promoCodeInput.trim().toUpperCase();
     if (!code) {
-      setPromoMessage("Vui lòng nhập mã giảm giá.");
       setPromoError(true);
+      setPromoMessage("Vui lòng nhập mã giảm giá.");
       return;
     }
 
     if (code === "PETLY10") {
       setAppliedPromo("PETLY10");
-      setPromoMessage("Áp dụng mã PETLY10 thành công! Giảm 10%.");
       setPromoError(false);
+      setPromoMessage("Đã áp dụng mã giảm giá 10% thành công!");
     } else {
-      setPromoMessage("Mã giảm giá không hợp lệ hoặc đã hết hạn.");
       setPromoError(true);
+      setPromoMessage("Mã giảm giá không hợp lệ hoặc đã hết hạn.");
     }
   }
 

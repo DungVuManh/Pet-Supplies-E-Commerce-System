@@ -19,7 +19,7 @@ type OrderDetailViewProps = {
 
 export function OrderDetailView({ orderId }: OrderDetailViewProps) {
   // Gọi API lấy chi tiết đơn hàng theo ID
-  const { order, isLoading, error } = useOrderDetail(orderId);
+  const { order, isLoading, error, reload } = useOrderDetail(orderId);
 
   return (
     <div className="container">
@@ -101,7 +101,7 @@ export function OrderDetailView({ orderId }: OrderDetailViewProps) {
 
                 {/* Cột phải (5 cột): Tóm tắt tiền, phương thức & nút hủy đơn */}
                 <div className="lg:col-span-5">
-                  <OrderSummarySidebar order={order} />
+                  <OrderSummarySidebar order={order} onReceiptConfirmed={reload} />
                 </div>
               </div>
             </>

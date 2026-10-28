@@ -4,9 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type FormEvent, type ReactNode } from "react";
 import {
-  Bell, ChartNoAxesCombined, Database, LayoutGrid, ListTree, Package, PawPrint, RotateCcw, Search, Settings, ShoppingBag, Users, Warehouse,
+  Bell, ChartNoAxesCombined, Database, LayoutGrid, ListTree, Package, RotateCcw, Search, Settings, ShoppingBag, Users, Warehouse,
   type LucideIcon,
 } from "lucide-react";
+import { Logo as PetjoyLogo } from "@/components/ui/logo";
 import { AccountMenu } from "@/features/auth/components/account-menu";
 
 const nav: { href: string; label: string; icon: LucideIcon }[] = [
@@ -28,9 +29,9 @@ function isActive(pathname: string, href: string) {
 }
 
 function Logo() {
-  return <Link href="/admin/dashboard" className="inline-flex items-center gap-2 text-[26px] font-bold tracking-[-0.5px] text-brand">
-    <PawPrint className="h-6 w-6" strokeWidth={1.8} aria-hidden="true" />petly
-  </Link>;
+  return <div className="flex items-center gap-2">
+    <PetjoyLogo href="/admin/dashboard" size="md" />
+  </div>;
 }
 
 function GlobalSearch() {
@@ -68,7 +69,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
     <div className="min-w-0">
       <header className="sticky top-0 z-30 border-b border-line bg-surface">
         <div className="flex min-h-20 items-center gap-6 px-4 sm:px-8">
-          <Link href="/admin/dashboard" className="shrink-0 text-xl font-bold tracking-[-0.5px] text-brand">petly / admin</Link>
+          <div className="flex shrink-0 items-center gap-2">
+            <PetjoyLogo href="/admin/dashboard" size="sm" />
+            <span className="text-sm font-semibold text-brand">/ admin</span>
+          </div>
           <GlobalSearch />
           <div className="ml-auto flex shrink-0 items-center gap-4 sm:gap-8">
             <Link href="/admin/notifications" className="hidden text-brand hover:underline sm:inline">Thông báo</Link>

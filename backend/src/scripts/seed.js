@@ -164,13 +164,12 @@ export async function seedSampleData() {
     });
   }
 
-  const stages = ["pending", "confirmed", "processing", "shipping", "delivered", "completed"];
+  const stages = ["pending", "confirmed", "processing", "shipping", "completed"];
   const examples = [
     { key: "pending", status: "pending", method: "COD", paid: "unpaid" },
     { key: "confirmed", status: "confirmed", method: "COD", paid: "unpaid" },
     { key: "processing", status: "processing", method: "ONLINE", paid: "paid" },
     { key: "shipping", status: "shipping", method: "ONLINE", paid: "paid" },
-    { key: "delivered", status: "delivered", method: "COD", paid: "paid" },
     { key: "completed", status: "completed", method: "ONLINE", paid: "paid" },
     { key: "cancelled", status: "cancelled", method: "ONLINE", paid: "failed" },
     { key: "guest", status: "pending", method: "ONLINE", paid: "pending", guest: true },
@@ -201,7 +200,7 @@ export async function seedSampleData() {
       paymentMethod: example.method, paymentStatus: example.paid, orderStatus: example.status,
       channel: example.offline ? "offline" : "online",
       ...(example.offline ? { createdByStaffId: users.staff._id } : {}),
-      ...(["shipping", "delivered", "completed"].includes(example.status) && !example.offline
+      ...(["shipping", "completed"].includes(example.status) && !example.offline
         ? { shipping: { carrier: "Đơn vị giao hàng mẫu", trackingNumber: `TEST-${example.key.toUpperCase()}` } } : {}),
       statusHistory, createdAt: statusHistory[0].at, updatedAt: statusHistory.at(-1).at,
     });

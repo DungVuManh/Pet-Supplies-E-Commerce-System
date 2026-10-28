@@ -133,7 +133,7 @@ describe("sample data seed", () => {
       }
     }
     for (const product of products.values()) expect(categoryIds.has(String(product.categoryId))).toBe(true);
-    expect(new Set([...orders.values()].map((order) => order.orderStatus)).size).toBe(7);
+    expect(new Set([...orders.values()].map((order) => order.orderStatus)).size).toBe(6);
     expect([...orders.values()].some((order) => order.guestInfo && !order.customerId)).toBe(true);
     expect([...orders.values()].find((order) => order.channel === "offline").createdByStaffId).toEqual(users.staff._id);
     for (const payment of documents(models.Payment)) {

@@ -7,7 +7,7 @@ export type OrderStatus =
   | "cancelled";
 
 export type PaymentMethod = "COD" | "ONLINE" | "CASH";
-export type StaffEditableOrderStatus = "confirmed" | "processing" | "shipping" | "completed" | "cancelled";
+export type StaffEditableOrderStatus = "confirmed" | "processing" | "shipping" | "cancelled";
 export type StaffOrderStatusUpdate = {
   expectedStatus: OrderStatus;
   orderStatus: StaffEditableOrderStatus;

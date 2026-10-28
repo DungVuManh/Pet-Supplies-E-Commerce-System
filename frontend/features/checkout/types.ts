@@ -1,15 +1,17 @@
 
-export type ShippingAddress = {
-  fullName: string;
-  phone: string;
-  address: string;
-};
+
 
 export type ShippingMethod = {
   id: string;
   name: string;
   price: number;
   estimatedDelivery: string;
+};
+
+export type ShippingAddress = {
+  fullName: string;
+  phone: string;
+  address: string;
 };
 
 export type PaymentMethodType = "vnpay" | "cod";
@@ -28,7 +30,7 @@ export type CheckoutOrderItem = {
 export type CheckoutSummary = {
   totalQuantity: number;
   subtotal: number;
-  shippingFee: number;
-  discount: number;
+  // shippingFee: number;
+  // discount: number;
   total: number;
 };
