@@ -100,6 +100,14 @@ export default function PetsPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => {
+      setToastMessage("");
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
+
   function handleOpenCreate() {
     setPetToEdit(null);
     setIsFormView(true);
