@@ -31,10 +31,10 @@ export function AccountShell({ activeTab, children }: AccountShellProps) {
   const userCreatedAt = (user as unknown as { createdAt?: string })?.createdAt;
   const memberSince = userCreatedAt
     ? new Date(userCreatedAt).toLocaleDateString("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      })
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
     : "12/02/2026";
 
   const tabLabels = {
@@ -113,7 +113,7 @@ export function AccountShell({ activeTab, children }: AccountShellProps) {
     {
       id: "orders",
       label: "Đơn hàng của tôi",
-      href: "/account/orders",
+      href: "/orders",
       icon: (
         <svg
           className="h-5 w-5 shrink-0"
@@ -189,11 +189,10 @@ export function AccountShell({ activeTab, children }: AccountShellProps) {
                     <Link
                       key={item.id}
                       href={item.href}
-                      className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all ${
-                        isActive
-                          ? "bg-brand-subtle text-brand"
-                          : "text-muted hover:bg-canvas hover:text-ink"
-                      }`}
+                      className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all ${isActive
+                        ? "bg-brand-subtle text-brand"
+                        : "text-muted hover:bg-canvas hover:text-ink"
+                        }`}
                     >
                       <span className={isActive ? "text-brand" : "text-muted"}>
                         {item.icon}
