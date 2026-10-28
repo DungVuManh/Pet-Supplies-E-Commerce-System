@@ -106,6 +106,14 @@ export default function AddressesPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => {
+      setToastMessage("");
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
+
   function handleOpenCreate() {
     setAddressToEdit(null);
     setIsFormView(true);
