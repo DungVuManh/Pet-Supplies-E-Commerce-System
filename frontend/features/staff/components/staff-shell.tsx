@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
+import { Logo } from "@/components/ui/logo";
 import { AccountMenu } from "@/features/auth/components/account-menu";
 
 type StaffIcon =
@@ -105,12 +106,7 @@ export function StaffShell({ children }: { children: ReactNode }) {
     className="hidden min-h-dvh border-r border-line bg-surface px-6 py-7 lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col"
     aria-label="Điều hướng nhân viên"
    >
-    <Link
-     href="/staff/dashboard"
-     className="text-[32px] font-bold tracking-[-1px] text-brand"
-    >
-     petjoy
-    </Link>
+    <Logo href="/staff/dashboard" size="md" priority />
     <p className="mt-8 text-xs uppercase text-muted">Quản lý cửa hàng</p>
     <nav className="mt-3 space-y-2">
      {nav.map((item) => (

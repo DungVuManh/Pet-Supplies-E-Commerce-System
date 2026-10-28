@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { Logo } from "@/components/ui/logo";
 import { CartPreview } from "@/features/cart/components/cart-preview";
 import { StorefrontSearch, StorefrontSearchForm } from "./storefront-search";
 import { AccountMenu } from "@/features/auth/components/account-menu";
@@ -21,13 +22,7 @@ export function StorefrontHeader() {
    </a>
    <div className=" md:h-[88px]">
     <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-x-2 gap-y-4 px-6 py-5 md:h-full md:flex-nowrap md:gap-8 md:py-0 xl:px-16">
-     <Link
-      href="/"
-      aria-label="Petjoy — Trang chủ"
-      className="text-[32px] font-bold tracking-[-1px] text-brand"
-     >
-      petjoy
-     </Link>
+     <Logo href="/" size="md" priority />
      <Suspense fallback={<StorefrontSearchForm />}>
       <StorefrontSearch />
      </Suspense>
