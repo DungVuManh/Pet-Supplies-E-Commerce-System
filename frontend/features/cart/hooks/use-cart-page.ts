@@ -164,23 +164,23 @@ export function useCartPage() {
 
 
   // 6. Áp dụng mã giảm giá
-  // function applyPromoCode() {
-  //   const code = promoCodeInput.trim().toUpperCase();
-  //   if (!code) {
-  //     setPromoError(true);
-  //     setPromoMessage("Vui lòng nhập mã giảm giá.");
-  //     return;
-  //   }
+  function applyPromoCode() {
+    const code = promoCodeInput.trim().toUpperCase();
+    if (!code) {
+      setPromoError(true);
+      setPromoMessage("Vui lòng nhập mã giảm giá.");
+      return;
+    }
 
-  //   if (code === "PETLY10") {
-  //     setAppliedPromo("PETLY10");
-  //     setPromoError(false);
-  //     setPromoMessage("Đã áp dụng mã giảm giá 10% thành công!");
-  //   } else {
-  //     setPromoError(true);
-  //     setPromoMessage("Mã giảm giá không hợp lệ hoặc đã hết hạn.");
-  //   }
-  // }
+    if (code === "PETLY10") {
+      setAppliedPromo("PETLY10");
+      setPromoError(false);
+      setPromoMessage("Đã áp dụng mã giảm giá 10% thành công!");
+    } else {
+      setPromoError(true);
+      setPromoMessage("Mã giảm giá không hợp lệ hoặc đã hết hạn.");
+    }
+  }
 
   return {
     items,
@@ -195,7 +195,7 @@ export function useCartPage() {
     increaseQuantity,
     decreaseQuantity,
     removeItem,
-    
+    applyPromoCode,
     refreshCart: fetchCart,
   };
 }

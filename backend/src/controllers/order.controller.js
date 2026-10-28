@@ -68,7 +68,9 @@ export async function createOrder(request, response, next) {
       subtotal += unitPrice * qty;
     }
 
-    const total = subtotal;
+    const shippingFee = Number(request.body.shippingFee) || 0;
+    const discount = Number(request.body.discount) || 0;
+    const total = subtotal - discount + shippingFee;
 
     // Chỉ lấy customerId từ hồ sơ đã xác thực; không tin ID do client gửi.
     const customerId = request.user?._id;
@@ -92,8 +94,8 @@ export async function createOrder(request, response, next) {
       items: orderItems,
       shippingAddress: finalAddress,
       subtotal,
-      // discount,
-      // shippingFee,
+      discount,
+      shippingFee,
       total,
       paymentMethod,
       paymentStatus: "unpaid",
@@ -333,8 +335,8 @@ export async function getOrderDetail(request, response, next) {
       timeline: timelineSteps,
       items,
       subtotal: order.subtotal,
-      // shippingFee: order.shippingFee,
-      // discount: order.discount || 0,
+      shippingFee: order.shippingFee || 0,
+      discount: order.discount || 0,
       totalAmount: order.total,
       paymentMethod: order.paymentMethod === "COD" ? "COD" : order.paymentMethod,
       paymentStatus: order.paymentStatus === "unpaid" ? "Chưa thanh toán" : "Đã thanh toán",
@@ -602,11 +604,11 @@ export async function getStaffOrderDetail(request, response, next) {
         email,
       },
       subtotal: order.subtotal,
-      // discount: order.discount || 0,
-      // shippingFee: order.shippingFee || 0,
+      discount: order.discount || 0,
+      shippingFee: order.shippingFee || 0,
       total: order.total,
-      // promotionCode: order.promotionCode || null,
-      orderStatus: staffOrderStatus(order.orderStatus),
+      promotionCode: order.promotionCode || null,
+      orderStatus: order.orderStatus,
       paymentMethod: order.paymentMethod,
       paymentStatus: order.paymentStatus,
       channel: order.channel,

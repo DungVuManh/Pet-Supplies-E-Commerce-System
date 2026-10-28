@@ -1,12 +1,13 @@
 import DetailProduct from "@/features/catalog/components/cardDetailProduct/detailProduct";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import type { Product } from "@/features/catalog/products";
 import { getProductDetailApi } from "@/features/catalog/components/listProduct/services/catalog.service";
 
 export const metadata: Metadata = { title: "Chi tiết sản phẩm | Petjoy" };
 
-export default async function DetailProducts({
+async function DetailProductsContent({
   searchParams,
 }: {
   searchParams: Promise<{ id?: string }>;
@@ -73,5 +74,23 @@ export default async function DetailProducts({
         </div>
       )}
     </main>
+  );
+}
+
+export default function DetailProducts({
+  searchParams,
+}: {
+  searchParams: Promise<{ id?: string }>;
+}) {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto w-full max-w-[1440px] px-6 py-12">
+          <div className="h-96 animate-pulse rounded-2xl bg-canvas" />
+        </div>
+      }
+    >
+      <DetailProductsContent searchParams={searchParams} />
+    </Suspense>
   );
 }

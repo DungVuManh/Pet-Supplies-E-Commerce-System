@@ -49,8 +49,8 @@ const orderSchema = new mongoose.Schema(
             required() { return this.channel === "online"; },
         },
         subtotal: { ...nonNegativeInteger, required: true },
-        //   discount: { ...nonNegativeInteger, default: 0 },
-        //   shippingFee: { ...nonNegativeInteger, default: 0 },
+        discount: { ...nonNegativeInteger, default: 0 },
+        shippingFee: { ...nonNegativeInteger, default: 0 },
         total: { ...nonNegativeInteger, required: true },
         promotionCode: { type: String, trim: true, uppercase: true },
         paymentMethod: { type: String, enum: paymentMethods, required: true },
@@ -83,10 +83,10 @@ orderSchema.pre("validate", function () {
     }
     const subtotal = this.items?.reduce((sum, item) => sum + item?.unitPrice * item?.qty, 0);
     if (this.subtotal !== subtotal) this.invalidate("subtotal", "Subtotal must match item snapshots");
-    // if (this.discount > this.subtotal) this.invalidate("discount", "Discount exceeds subtotal");
-    // if (this.total !== this.subtotal - this.discount + this.shippingFee) {
-    //     this.invalidate("total", "Total must match subtotal, discount and shipping fee");
-    // }
+    if (this.discount > this.subtotal) this.invalidate("discount", "Discount exceeds subtotal");
+    if (this.total !== this.subtotal - this.discount + this.shippingFee) {
+        this.invalidate("total", "Total must match subtotal, discount and shipping fee");
+    }
 });
 orderSchema.index({ customerId: 1, createdAt: -1 });
 orderSchema.index({ orderStatus: 1, createdAt: -1 });

@@ -4,34 +4,26 @@ import Link from "next/link";
 import Image from "next/image";
 import { LayoutDashboard, LogOut, MapPin, PawPrint, ShoppingCart, UserRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../auth-provider";
 import { authApi } from "../api";
 import { authErrorMessage } from "../errors";
 
 const menuItemClassName = "flex min-h-11 w-full items-center gap-3 rounded-lg px-2 text-left text-sm font-medium text-ink transition-colors hover:bg-brand-subtle hover:text-brand";
 
-export function AccountMenu() {
+export function AccountMenu({ roleLabel }: { roleLabel?: string } = {}) {
  const { user, status, acceptUser, refresh } = useAuth();
  const [pending, setPending] = useState(false);
  const [failure, setFailure] = useState("");
  const locked = useRef(false);
  const detailsRef = useRef<HTMLDetailsElement>(null);
  const router = useRouter();
- const pathname = usePathname();
 
  function closeMenu() {
   if (detailsRef.current?.open) {
    detailsRef.current.open = false;
   }
  }
-
- // Tự động đóng dropdown khi chuyển trang (pathname thay đổi)
- useEffect(() => {
-  if (detailsRef.current?.open) {
-   detailsRef.current.open = false;
-  }
- }, [pathname]);
 
  // Đóng dropdown khi click ra ngoài hoặc bấm Escape
  useEffect(() => {
