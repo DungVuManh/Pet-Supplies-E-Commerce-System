@@ -13,7 +13,10 @@ export async function listInventory(request, response, next) {
     );
 
     const setting = await Setting.findById("global").lean();
-    const threshold = setting?.lowStockThreshold ?? 20;
+    // Fall back to the schema default when the global document is missing.
+    const threshold =
+      setting?.lowStockThreshold ??
+      Setting.schema.path("lowStockThreshold").defaultValue;
 
     const pipeline = [
       { $unwind: "$variants" },
@@ -49,13 +52,9 @@ export async function listInventory(request, response, next) {
     ];
 
     if (query) {
+      const pattern = { $regex: escapeRegex(query), $options: "i" };
       pipeline.push({
-        $match: {
-          name: {
-            $regex: escapeRegex(query),
-            $options: "i",
-          },
-        },
+        $match: { $or: [{ name: pattern }, { "variants.sku": pattern }] },
       });
     }
 
@@ -76,7 +75,9 @@ export async function listInventory(request, response, next) {
               _id: 0,
               sku: "$variants.sku",
               name: 1,
+              brand: 1,
               available: 1,
+              threshold: { $literal: threshold },
               status: "$stockStatus",
             },
           },

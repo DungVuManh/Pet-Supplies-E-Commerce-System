@@ -106,17 +106,12 @@ export function InventoryView() {
       if (json.data?.pagination) {
         setPagination(json.data.pagination);
       }
-    } catch (err: any) {
-      setError(err.message || "Đã xảy ra lỗi kết nối");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Đã xảy ra lỗi kết nối");
     } finally {
       setLoading(false);
     }
   }, [search, statusFilter, activeTab, page, pageSize, router]);
-
-  // Reset về trang 1 khi đổi bộ lọc
-  useEffect(() => {
-    setPage(1);
-  }, [search, statusFilter, activeTab]);
 
   // Debounce gọi API khi nhập từ khóa tìm kiếm
   useEffect(() => {
@@ -127,9 +122,16 @@ export function InventoryView() {
     return () => clearTimeout(timer);
   }, [fetchInventoryData]);
 
+  // Đổi bộ lọc luôn quay về trang 1
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
+
   // Chọn Tab
   const handleTabSelect = (tab: InventoryTab) => {
     setActiveTab(tab);
+    setPage(1);
     if (tab === "low") {
       setStatusFilter("Sắp hết");
     } else if (statusFilter === "Sắp hết" && tab === "all") {
@@ -140,6 +142,7 @@ export function InventoryView() {
   // Chọn Dropdown trạng thái
   const handleStatusChange = (val: string) => {
     setStatusFilter(val);
+    setPage(1);
     if (val === "Sắp hết" && activeTab !== "history") {
       setActiveTab("low");
     } else if (val === "Tất cả" && activeTab === "low") {
@@ -246,7 +249,7 @@ export function InventoryView() {
               id="inventory-search"
               type="search"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="Nhập từ khóa tìm kiếm (SKU, Tên sản phẩm...)"
               disabled={isCurrentLoading}
               className={control}

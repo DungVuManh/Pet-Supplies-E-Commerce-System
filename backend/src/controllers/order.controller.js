@@ -340,7 +340,8 @@ export async function listStaffOrders(request, response, next) {
   try {
     const { query, status, dateFrom, dateTo, sort, page, pageSize } = parseOrderQuery(request.query);
 
-    const baseConditions = [];
+    // A staff sale stays "pending" while its stock writes are in flight; hide it until complete.
+    const baseConditions = [{ creationState: { $nin: ["pending"] } }];
     const searchFilter = buildOrderSearchFilter(query);
     if (Object.keys(searchFilter).length > 0) {
       baseConditions.push(searchFilter);
@@ -352,11 +353,7 @@ export async function listStaffOrders(request, response, next) {
     }
 
     const baseFilter =
-      baseConditions.length === 0
-        ? {}
-        : baseConditions.length === 1
-          ? baseConditions[0]
-          : { $and: baseConditions };
+      baseConditions.length === 1 ? baseConditions[0] : { $and: baseConditions };
 
     let summaryAll = 0;
     const statusCounts = Object.fromEntries(staffOrderStatuses.map((s) => [s, 0]));

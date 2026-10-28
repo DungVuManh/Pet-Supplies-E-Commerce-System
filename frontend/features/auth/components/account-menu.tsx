@@ -11,7 +11,8 @@ import { authErrorMessage } from "../errors";
 
 const menuItemClassName = "flex min-h-11 w-full items-center gap-3 rounded-lg px-2 text-left text-sm font-medium text-ink transition-colors hover:bg-brand-subtle hover:text-brand";
 
-export function AccountMenu() {
+/** `roleLabel` appends the workspace role in the trigger, e.g. "Name · Admin". */
+export function AccountMenu({ roleLabel }: { roleLabel?: string } = {}) {
  const { user, status, acceptUser, refresh } = useAuth();
  const [pending, setPending] = useState(false);
  const [failure, setFailure] = useState("");
@@ -139,7 +140,10 @@ export function AccountMenu() {
       className="h-full w-full object-cover"
      />
     </span>
-    <span className="truncate">{user.fullName}</span>
+    <span className="truncate">
+     {user.fullName}
+     {roleLabel && <span className="font-normal text-muted"> · {roleLabel}</span>}
+    </span>
    </summary>
    <div className="absolute right-0 top-full z-20 mt-3 w-64 max-w-[calc(100vw-3rem)] whitespace-normal rounded-lg border border-line bg-surface p-4 shadow-sm">
     <div className="flex items-center gap-3 border-b border-line/60 pb-3">

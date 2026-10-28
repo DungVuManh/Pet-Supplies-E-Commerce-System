@@ -25,7 +25,10 @@ export function StorefrontHeader() {
           <div className="ml-auto flex items-center gap-4 whitespace-nowrap md:ml-0 md:gap-8">
             <a href="tel:1900636789" className="hidden text-brand hover:underline sm:inline">Trợ giúp</a>
             <CartPreview />
-            <AccountMenu />
+            {/* AccountMenu reads usePathname(), which is URL data on dynamic routes. */}
+            <Suspense fallback={<span role="status" className="text-xs text-muted">Tài khoản…</span>}>
+              <AccountMenu />
+            </Suspense>
           </div>
         </div>
       </div>

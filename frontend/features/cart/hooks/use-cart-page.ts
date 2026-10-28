@@ -53,12 +53,11 @@ export function useCartPage() {
   const [promoError, setPromoError] = useState<boolean>(false);
 
   // 1. Hàm tải giỏ hàng từ API backend
+  // isLoading bắt đầu là true; các lần tải lại chạy nền nên chỉ cập nhật state sau khi có phản hồi.
   const fetchCart = async () => {
     try {
-      setIsLoading(true);
-      setErrorMessage(null);
-
       const res = await getCartApi();
+      setErrorMessage(null);
       const backendCart = res.data?.cart;
 
       if (backendCart) {
@@ -84,11 +83,10 @@ export function useCartPage() {
 
   // 2. useEffect gọi API khi component mount và lắng nghe event giỏ hàng thay đổi
   useEffect(() => {
-    fetchCart();
-
     const handleCartUpdated = () => {
       fetchCart();
     };
+    handleCartUpdated();
 
     window.addEventListener("cart-updated", handleCartUpdated);
     return () => {
@@ -162,6 +160,24 @@ export function useCartPage() {
     }
   }
 
+  // 6. Áp dụng mã giảm giá (mẫu phía client; đổi appliedPromo sẽ tải lại giỏ để tính giảm giá)
+  function applyPromoCode() {
+    const code = promoCodeInput.trim().toUpperCase();
+    if (!code) {
+      setPromoMessage("Vui lòng nhập mã giảm giá.");
+      setPromoError(true);
+      return;
+    }
+
+    if (code === "PETLY10") {
+      setAppliedPromo("PETLY10");
+      setPromoMessage("Áp dụng mã PETLY10 thành công! Giảm 10%.");
+      setPromoError(false);
+    } else {
+      setPromoMessage("Mã giảm giá không hợp lệ hoặc đã hết hạn.");
+      setPromoError(true);
+    }
+  }
 
   return {
     items,
@@ -176,7 +192,7 @@ export function useCartPage() {
     increaseQuantity,
     decreaseQuantity,
     removeItem,
-    
+    applyPromoCode,
     refreshCart: fetchCart,
   };
 }
