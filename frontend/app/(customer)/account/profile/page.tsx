@@ -33,22 +33,16 @@ export default function ProfilePage() {
 
   useEffect(() => {
     let active = true;
-    async function load() {
-      setIsLoading(true);
-      setErrorMessage("");
-      try {
-        const data = await accountApi.getProfile();
+    accountApi
+      .getProfile()
+      .then((data) => {
         if (active) {
           setProfile(data.user);
           if (data.stats) setStats(data.stats);
-          if (user && data.user.avatarUrl && user.avatarUrl !== data.user.avatarUrl) {
-            acceptUser({
-              ...user,
-              avatarUrl: data.user.avatarUrl,
-            });
-          }
+          setIsLoading(false);
         }
-      } catch (err: unknown) {
+      })
+      .catch((err: unknown) => {
         if (active) {
           if (user) {
             // Fallback to auth user
@@ -67,19 +61,14 @@ export default function ProfilePage() {
                 : "Không thể tải thông tin hồ sơ tài khoản.",
             );
           }
+          setIsLoading(false);
         }
-      } finally {
-        if (active) setIsLoading(false);
-      }
-    }
+      });
 
-    if (status === "ready") {
-      void load();
-    }
     return () => {
       active = false;
     };
-  }, [status, user, acceptUser]);
+  }, []);
 
   async function handleSaveProfile(values: ProfileFormValues) {
     setIsSaving(true);
