@@ -15,52 +15,32 @@ export type HeroSlide = {
 
 const DEFAULT_SLIDES: readonly HeroSlide[] = [
   {
-    id: "ciao-churu",
-    title: "Khuyến mãi súp thưởng Ciao Churu - Hộp 100 thanh tặng thêm 20 thanh",
-    imageUrl:
-      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/render/image/public/banners/hero/1792128054158-banner_web__1920_x_600_px___1_.jpg?width=1536&resize=contain&quality=70",
-    link: "/listProduct/allProducts?brands=Ciao%20Churu",
-    tag: "Khuyến mãi Hot",
-  },
-  {
-    id: "purina-one",
-    title: "Chương trình khuyến mãi Purina One - Dinh dưỡng chuyên sâu cho thú cưng",
-    imageUrl:
-      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/render/image/public/banners/hero/1793004851925-banner_web__1920_x_600_px_.jpg?width=1536&resize=contain&quality=70",
+    id: "senmoi-deal",
+    title: "Ra mắt Website mới - Sen mới nhận deal hời giảm 50K",
+    imageUrl: "/images/hero/hero-senmoi-deal.png",
     link: "/listProduct/allProducts",
-    tag: "Chính hãng",
+    tag: "Ưu đãi Hot",
   },
   {
     id: "smartheart-gold",
-    title: "SmartHeart Gold Holistic - Thức ăn cao cấp bảo vệ sức khoẻ Cún cưng",
-    imageUrl:
-      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/render/image/public/banners/hero/1783412855404-banner_web__1920_x_600_px_.jpg.jpg?width=1536&resize=contain&quality=70",
+    title: "SmartHeart Gold Holistic - Tạm biệt ố mắt, dinh dưỡng chuyên sâu cho Cún",
+    imageUrl: "/images/hero/hero-smartheart-gold.png",
     link: "/listProduct/allProducts?petType=dog",
     tag: "Dành cho Cún",
   },
   {
-    id: "catidea",
-    title: "Catidea - Cát vệ sinh và phụ kiện cao cấp cho Mèo",
-    imageUrl:
-      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/render/image/public/banners/hero/1781066232477-banner_web__1920_x_600_px_.jpg.jpg?width=1536&resize=contain&quality=70",
-    link: "/listProduct/allProducts?petType=cat",
-    tag: "Dành cho Mèo",
+    id: "ciao-churu",
+    title: "Khuyến mãi súp thưởng Ciao Churu - Hộp 100 thanh tặng thêm 20 thanh",
+    imageUrl: "/images/hero/hero-ciao-churu.png",
+    link: "/listProduct/allProducts?brands=Ciao%20Churu",
+    tag: "Khuyến mãi Hot",
   },
   {
     id: "silver-spoon",
-    title: "Silver Spoon - Thức ăn hạt cao cấp thơm ngon cho Mèo",
-    imageUrl:
-      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/render/image/public/banners/hero/1782471878066-banner_web__1920_x_600_px_.jpg.jpg?width=1536&resize=contain&quality=70",
+    title: "Silver Spoon - Tặng voucher Urbox 100K cho hóa đơn từ 399K",
+    imageUrl: "/images/hero/hero-silver-spoon.png",
     link: "/listProduct/allProducts?petType=cat",
-    tag: "Bán chạy",
-  },
-  {
-    id: "senmoi",
-    title: "SENMOI - Chăm sóc và phụ kiện thú cưng chính hãng",
-    imageUrl:
-      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/render/image/public/banners/hero/1777953740201-Banner_1_1920x600.png.png?width=1536&resize=contain&quality=70",
-    link: "/listProduct/allProducts",
-    tag: "Ưu đãi",
+    tag: "Quà tặng",
   },
 ];
 
