@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { BookOpen, Sparkles, ArrowRight } from "lucide-react";
+import type { PetCareArticle } from "../types";
 
-const ARTICLES = [
+const ARTICLES: readonly PetCareArticle[] = [
   {
     id: "dinh-duong-cho-meo",
     title: "Chế độ dinh dưỡng khoa học cho chó mèo theo từng độ tuổi",

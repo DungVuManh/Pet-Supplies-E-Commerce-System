@@ -49,9 +49,9 @@ export async function getProductsApi(
   }
 
   const data: GetProductsResponse = await response.json();
-  console.log(
-    `[CatalogService] Nhận được ${data.data.pagination.totalProducts} sản phẩm | Trang ${data.data.pagination.currentPage}/${data.data.pagination.totalPages}`
-  );
+  // console.log(
+  //   `[CatalogService] Nhận được ${data.data.pagination.totalProducts} sản phẩm | Trang ${data.data.pagination.currentPage}/${data.data.pagination.totalPages}`
+  // );
   return data;
 }
 
@@ -77,7 +77,7 @@ export async function getCategoriesApi(): Promise<GetCategoriesResponse> {
   }
 
   const data: GetCategoriesResponse = await response.json();
-  console.log("[CatalogService] Danh mục nhận được:", data.data.categories);
+  // console.log("[CatalogService] Danh mục nhận được:", data.data.categories);
   return data;
 }
 
@@ -103,7 +103,7 @@ export async function getBrandsApi(): Promise<GetBrandsResponse> {
   }
 
   const data: GetBrandsResponse = await response.json();
-  console.log("[CatalogService] Thương hiệu nhận được:", data.data.brands);
+  // console.log("[CatalogService] Thương hiệu nhận được:", data.data.brands);
   return data;
 }
 
@@ -132,6 +132,6 @@ export async function getProductDetailApi(
   }
 
   const data: GetProductDetailResponse = await response.json();
-  console.log("[CatalogService] Chi tiết sản phẩm nhận được:", data.data.product);
+  // console.log("[CatalogService] Chi tiết sản phẩm nhận được:", data.data.product);
   return data;
 }
