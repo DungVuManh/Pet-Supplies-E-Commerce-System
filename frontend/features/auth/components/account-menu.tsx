@@ -131,7 +131,10 @@ export function AccountMenu({ roleLabel }: { roleLabel?: string } = {}) {
       className="h-full w-full object-cover"
      />
     </span>
-    <span className="truncate">{user.fullName}</span>
+    <span className="truncate">
+     {user.fullName}
+     {roleLabel && <span className="font-normal text-muted"> · {roleLabel}</span>}
+    </span>
    </summary>
    <div className="absolute right-0 top-full z-20 mt-3 w-64 max-w-[calc(100vw-3rem)] whitespace-normal rounded-lg border border-line bg-surface p-4 shadow-sm">
     <div className="flex items-center gap-3 border-b border-line/60 pb-3">

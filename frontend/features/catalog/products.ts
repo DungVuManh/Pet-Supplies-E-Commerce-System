@@ -1,3 +1,8 @@
+// =============================================================
+// features/catalog/products.ts
+// Định nghĩa kiểu dữ liệu và danh mục chuẩn cho hệ thống
+// =============================================================
+
 export type CategoryId = "dog" | "cat" | "food" | "accessories";
 
 export type ProductVariantItem = {
@@ -30,128 +35,4 @@ export const categories = [
   { id: "accessories", name: "Đồ chơi & phụ kiện", description: "Thêm niềm vui cho bé", icon: "/icons/bone.svg" },
 ] as const;
 
-// Sample catalog from the supplied design; replace with API data when available.
-export const products: readonly Product[] = [
-  {
-    id: "1",
-    brand: "Royal Canin",
-    name: "Royal Canin Mini Adult",
-    description: "Thức ăn cho chó trưởng thành · 2 kg",
-    price: 420000,
-    image: "/images/products/royal-canin-mini-adult.png",
-    categories: ["dog", "food"],
-  },
-  {
-    id: "2",
-    brand: "Royal Canin",
-    name: "Royal Canin Indoor 27",
-    description: "Thức ăn cho mèo trong nhà · 2 kg",
-    price: 480000,
-    image: "/images/products/royal-canin-indoor.png",
-    categories: ["cat", "food"],
-  },
-  {
-    id: "3",
-    brand: "KONG",
-    name: "Bóng cao su KONG",
-    description: "Đồ chơi cho chó · Cỡ nhỏ",
-    price: 85000,
-    image: "/images/products/kong-ball.png",
-    categories: ["dog", "accessories"],
-  },
-  {
-    id: "4",
-    brand: "Cat’s Best",
-    name: "Cát mèo Cat’s Best Original",
-    description: "Cát hữu cơ vón cục · 5 L",
-    price: 195000,
-    image: "/images/products/cats-best-original.png",
-    categories: ["cat", "accessories"],
-  },
-   {
-    id: "5",
-    brand: "Royal Canin",
-    name: "Royal Canin Mini Adult",
-    description: "Thức ăn cho chó trưởng thành · 2 kg",
-    price: 420000,
-    image: "/images/products/royal-canin-mini-adult.png",
-    categories: ["dog", "food"],
-  },
-  {
-    id: "6", 
-    brand: "Royal Canin",
-    name: "Royal Canin Indoor 27",
-    description: "Thức ăn cho mèo trong nhà · 2 kg",
-    price: 480000,
-    image: "/images/products/royal-canin-indoor.png",
-    categories: ["cat", "food"],
-  },
-  {
-    id: "7",
-    brand: "KONG",
-    name: "Bóng cao su KONG",
-    description: "Đồ chơi cho chó · Cỡ nhỏ",
-    price: 85000,
-    image: "/images/products/kong-ball.png",
-    categories: ["dog", "accessories"],
-  },
-  {
-    id: "8",
-    brand: "Cat’s Best",
-    name: "Cát mèo Cat’s Best Original",
-    description: "Cát hữu cơ vón cục · 5 L",
-    price: 195000,
-    image: "/images/products/cats-best-original.png",
-    categories: ["cat", "accessories"],
-  },
-   {
-    id: "9",
-    brand: "Royal Canin",
-    name: "Royal Canin Mini Adult",
-    description: "Thức ăn cho chó trưởng thành · 2 kg",
-    price: 420000,
-    image: "/images/products/royal-canin-mini-adult.png",
-    categories: ["dog", "food"],
-  },
-  {
-    id: "10",
-    brand: "Royal Canin",
-    name: "Royal Canin Indoor 27",
-    description: "Thức ăn cho mèo trong nhà · 2 kg",
-    price: 480000,
-    image: "/images/products/royal-canin-indoor.png",
-    categories: ["cat", "food"],
-  },
-  {
-    id: "11",
-    brand: "KONG",
-    name: "Bóng cao su KONG",
-    description: "Đồ chơi cho chó · Cỡ nhỏ",
-    price: 85000,
-    image: "/images/products/kong-ball.png",
-    categories: ["dog", "accessories"],
-  },
-  {
-    id: "12",
-    brand: "Cat’s Best",
-    name: "Cát mèo Cat’s Best Original",
-    description: "Cát hữu cơ vón cục · 5 L",
-    price: 195000,
-    image: "/images/products/cats-best-original.png",
-    categories: ["cat", "accessories"],
-  },
-];
-
-function normalizeSearch(value: string) {
-  return value.toLocaleLowerCase("vi").normalize("NFD").replace(/\p{M}/gu, "").replace(/đ/g, "d");
-}
-
-export function filterProducts(query = "", category = ""): readonly Product[] {
-  const selected = categories.find((item) => item.id === category);
-  const words = normalizeSearch(query).trim().split(/\s+/).filter(Boolean);
-  return products.filter((product) => {
-    if (selected && !product.categories.includes(selected.id)) return false;
-    const text = normalizeSearch(`${product.brand} ${product.name} ${product.description}`);
-    return words.every((word) => text.includes(word));
-  });
-}
+export type Category = (typeof categories)[number];

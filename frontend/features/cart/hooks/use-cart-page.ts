@@ -53,12 +53,11 @@ export function useCartPage() {
   const [promoError, setPromoError] = useState<boolean>(false);
 
   // 1. Hàm tải giỏ hàng từ API backend
+  // isLoading bắt đầu là true; các lần tải lại chạy nền nên chỉ cập nhật state sau khi có phản hồi.
   const fetchCart = async () => {
     try {
-      setIsLoading(true);
-      setErrorMessage(null);
-
       const res = await getCartApi();
+      setErrorMessage(null);
       const backendCart = res.data?.cart;
 
       if (backendCart) {
@@ -84,11 +83,10 @@ export function useCartPage() {
 
   // 2. useEffect gọi API khi component mount và lắng nghe event giỏ hàng thay đổi
   useEffect(() => {
-    fetchCart();
-
     const handleCartUpdated = () => {
       fetchCart();
     };
+    handleCartUpdated();
 
     window.addEventListener("cart-updated", handleCartUpdated);
     return () => {
@@ -161,7 +159,6 @@ export function useCartPage() {
       alert(err instanceof Error ? err.message : "Không thể xóa sản phẩm");
     }
   }
-
 
   // 6. Áp dụng mã giảm giá
   function applyPromoCode() {

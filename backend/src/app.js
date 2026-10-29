@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
 import { AppError } from "./common/errors/app-error.js";
 import { errorMiddleware } from "./common/middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./common/middlewares/not-found.middleware.js";
@@ -35,23 +36,26 @@ export function createApp(config) {
    },
   }),
  );
- //  app.use(
- //   "/api/v1",
- //   rateLimit({
- //    windowMs: 15 * 60 * 1000,
- //    limit: 100,
- //    standardHeaders: "draft-8",
- //    legacyHeaders: false,
- //    handler: (_request, _response, next) => {
- //     next(
- //      new AppError("Too many requests; try again later", 429, "RATE_LIMITED"),
- //     );
- //    },
- //   }),
- //  );
- 
- app.use(express.json({ limit: "10mb" }));
- app.use(express.urlencoded({ extended: false, limit: "10mb" }));
+ app.use(
+  "/api/v1",
+  rateLimit({
+   windowMs: 15 * 60 * 1000,
+   // Local development reloads and polls far more often than real clients.
+   limit: config.NODE_ENV === "development" ? 1000 : 100,
+   standardHeaders: "draft-8",
+   legacyHeaders: false,
+   handler: (_request, _response, next) => {
+    next(
+     new AppError("Too many requests; try again later", 429, "RATE_LIMITED"),
+    );
+   },
+  }),
+ );
+ // Account updates carry base64 avatar images; every other route keeps the
+ // small default. A body parsed here is skipped by the parsers below.
+ app.use("/api/v1/account", express.json({ limit: "10mb" }));
+ app.use(express.json({ limit: "100kb" }));
+ app.use(express.urlencoded({ extended: false, limit: "100kb" }));
  app.use("/api/v1/auth", authRouter);
  app.use("/api/v1/account", accountRouter);
  app.use("/api/v1/products", productRouter);

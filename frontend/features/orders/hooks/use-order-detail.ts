@@ -9,16 +9,13 @@ import type { OrderDetail } from "../types";
 
 export function useOrderDetail(orderId: string | undefined) {
   const [order, setOrder] = useState<OrderDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(Boolean(orderId));
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     // Không gọi API nếu chưa có ID
-    if (!orderId) {
-      setIsLoading(false);
-      return;
-    }
+    if (!orderId) return;
 
     async function loadOrderDetail() {
       try {

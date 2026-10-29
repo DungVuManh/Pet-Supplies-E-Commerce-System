@@ -43,7 +43,7 @@ export function validateRegister(data: FormData): AuthErrors {
  if (!password) errors.password = "Vui lòng tạo mật khẩu.";
  else if ([...password.replace(/\s/g, "")].length <= 5) {
   errors.password =
-   "Mật khẩu cần từ  6 ký tự trở lên, không tính khoảng trắng.";
+   "Mật khẩu cần từ 6 ký tự trở lên, không tính khoảng trắng.";
  }
  if (!confirmation) errors.confirmPassword = "Vui lòng nhập lại mật khẩu.";
  else if (confirmation !== password)

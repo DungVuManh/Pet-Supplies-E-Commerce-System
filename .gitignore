@@ -153,3 +153,6 @@ vite.config.ts.timestamp-*
 secrets/
 
 firebase-admin.json
+
+# Session handoff notes (contain local test credentials)
+/handoff.md

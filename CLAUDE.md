@@ -75,7 +75,7 @@ The backend is layered by responsibility:
 - `common/` contains reusable errors and middleware.
 - `config/` owns environment, Firebase, and database setup.
 
-Use explicit `.js` extensions in backend ESM imports. Mount feature routers under `/api/v1` before the 404 and error middleware. The current pipeline applies no-store headers to auth/workspace routes, then Helmet, explicit CORS, API rate limiting, 100 KB parsers, routers, 404, and the centralized error handler. Intentional API failures use `AppError` and the `{ success: false, message, error: { code } }` envelope.
+Use explicit `.js` extensions in backend ESM imports. Mount feature routers under `/api/v1` before the 404 and error middleware. The current pipeline applies no-store headers to auth/workspace routes, then Helmet, explicit CORS, API rate limiting (relaxed when `NODE_ENV=development`), 100 KB parsers (10 MB JSON on `/api/v1/account` for base64 avatars), routers, 404, and the centralized error handler. Intentional API failures use `AppError` and the `{ success: false, message, error: { code } }` envelope.
 
 `backend/src/models/index.js` registers all 14 Mongoose models. Startup calls `createModelIndexes()` because `autoIndex` is disabled. Domain references to users store MongoDB `User._id`, not Firebase UID. The schemas define persistence and document validation, but product/cart/order controllers, stock reservation, payment verification, review eligibility, and seed data are not implemented. Read `backend/src/models/README.md` and `docs/SRS.md` before implementing those domains.
 
@@ -85,7 +85,7 @@ Firebase owns email/password identity; MongoDB stores the application profile an
 
 Auth mutations require JSON, an allowed `Origin`, and matching CSRF cookie/header. The backend derives UID/email from verified Firebase claims, requires a recent password sign-in, and never accepts a client-selected role. Registration uses an insert-only profile upsert so retries cannot overwrite an existing profile. Preserve the incomplete-profile recovery path when changing registration.
 
-Protected APIs use `readCookies`, `requireAuth`, and exact-role `requireRole` from `backend/src/common/middlewares/auth.middleware.js`. Every protected request verifies revocation and reloads the current MongoDB role. Staff and Admin do not inherit each other's access. Responses expose only the public profile `{ id, email, fullName, phone, role }`.
+Protected APIs use `readCookies`, `requireAuth`, and exact-role `requireRole` from `backend/src/common/middlewares/auth.middleware.js`. Every protected request verifies revocation and reloads the current MongoDB role. Staff and Admin do not inherit each other's access. Responses expose only the public profile `{ id, email, fullName, phone, role, dob, gender, avatarUrl, createdAt }` from `publicUser()` in `backend/src/models/user.model.js`.
 
 ## Frontend architecture
 

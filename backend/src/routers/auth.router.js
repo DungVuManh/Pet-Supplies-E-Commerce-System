@@ -1,13 +1,16 @@
 import { Router } from "express";
 import {
- csrf,
- protectMutation,
- register,
- login,
- me,
- logout,
+  csrf,
+  protectMutation,
+  register,
+  login,
+  me,
+  logout,
 } from "../controllers/auth.controller.js";
-import { readCookies, requireAuth } from "../common/middlewares/auth.middleware.js";
+import {
+  readCookies,
+  requireAuth,
+} from "../common/middlewares/auth.middleware.js";
 
 const router = Router();
 router.use(readCookies);
