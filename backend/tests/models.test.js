@@ -78,6 +78,29 @@ describe("products and shopping models", () => {
   await expect(new Product(data).validate()).rejects.toThrow("distinct SKUs");
  });
 
+ it("supports multiple categoryIds and syncs primary categoryId", async () => {
+  const cat1 = new mongoose.Types.ObjectId();
+  const cat2 = new mongoose.Types.ObjectId();
+  const product = new Product({
+   name: "Multi-cat food",
+   petType: "cat",
+   categoryIds: [cat1, cat2, cat1],
+   variants: [{ sku: "MULTI-1", label: "1 kg", price: 50000, stock: 5 }],
+  });
+  await expect(product.validate()).resolves.toBeUndefined();
+  expect(product.categoryIds).toHaveLength(2);
+  expect(product.categoryIds[0].toString()).toBe(cat1.toString());
+  expect(product.categoryIds[1].toString()).toBe(cat2.toString());
+  expect(product.categoryId.toString()).toBe(cat1.toString());
+
+  await expect(new Product({
+   name: "No-cat food",
+   petType: "cat",
+   categoryIds: [],
+   variants: [{ sku: "NO-CAT-1", label: "1 kg", price: 50000, stock: 5 }],
+  }).validate()).rejects.toThrow("at least one category");
+ });
+
  it("requires exactly one cart owner and positive whole quantities", async () => {
   const item = { productId: new mongoose.Types.ObjectId(), variantSku: "CAT-1", quantity: 1 };
   for (const owner of [{ userId }, { guestToken: "guest-token" }]) {
