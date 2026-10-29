@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { Tag, Copy, Check } from "lucide-react";
+import type { VoucherItem } from "../types";
+import { useVoucherBar } from "../hooks/use-voucher-bar";
 
-const VOUCHERS = [
+const VOUCHERS: readonly VoucherItem[] = [
   {
     code: "PETJOY10",
     discount: "Giảm 10%",
@@ -25,19 +26,7 @@ const VOUCHERS = [
 ] as const;
 
 export function VoucherBar() {
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
-
-  const handleCopy = async (code: string) => {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopiedCode(code);
-      setTimeout(() => setCopiedCode(null), 2000);
-    } catch {
-      // Fallback
-      setCopiedCode(code);
-      setTimeout(() => setCopiedCode(null), 2000);
-    }
-  };
+  const { copiedCode, handleCopy } = useVoucherBar();
 
   return (
     <section aria-label="Mã giảm giá độc quyền" className="w-full">
