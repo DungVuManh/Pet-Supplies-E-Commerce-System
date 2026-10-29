@@ -14,9 +14,9 @@ import {
   TabNav,
   card,
   control,
-} from "@/features/workspace/components/workspace-ui";
-import { DemoNotice } from "@/features/workspace/components/demo-notice";
-import { useListState } from "@/features/workspace/components/use-list-state";
+} from "@/components/workspace/workspace-ui";
+import { DemoNotice } from "@/components/workspace/demo-notice";
+import { useListState } from "@/components/workspace/use-list-state";
 
 type InventoryTab = "all" | "low" | "history";
 

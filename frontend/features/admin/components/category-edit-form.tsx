@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { Star } from "lucide-react";
 import { TextField } from "@/components/ui/text-field";
-import { Badge, DetailList, InfoCallout, card, control, dangerButton, primaryLink, secondaryButton } from "@/features/workspace/components/workspace-ui";
+import { Badge, DetailList, InfoCallout, card, control, dangerButton, primaryLink, secondaryButton } from "@/components/workspace/workspace-ui";
 import { categories, childCategories, getCategory, type Category, type CategoryStatus } from "../mock/categories";
 import { validateCategory, type CategoryFormValues } from "../validation";
 import { AdminPageHeader } from "./admin-ui";

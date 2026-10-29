@@ -10,6 +10,7 @@ import catalogRouter from "./routers/catalog.router.js";
 import accountRouter from "./routers/account.router.js";
 import productRouter from "./routers/product.router.js";
 import workspaceRouter from "./routers/workspace.router.js";
+import adminRouter from "./routers/admin.router.js";
 import cartRouter from "./routers/cart.router.js";
 import orderRouter from "./routers/order.router.js";
 
@@ -62,6 +63,7 @@ export function createApp(config) {
  app.use("/api/v1/catalog", catalogRouter);
  app.use("/api/v1/cart", cartRouter);
  app.use("/api/v1/orders", orderRouter);
+ app.use("/api/v1/admin", adminRouter);
  app.use("/api/v1", workspaceRouter);
  app.use(notFoundMiddleware);
  app.use(errorMiddleware);

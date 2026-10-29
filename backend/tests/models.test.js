@@ -13,6 +13,7 @@ import { Review } from "../src/models/review.model.js";
 import { Notification } from "../src/models/notification.model.js";
 import { AuditLog } from "../src/models/audit-log.model.js";
 import { Setting } from "../src/models/setting.model.js";
+import { AdminNotification } from "../src/models/admin-notification.model.js";
 import * as models from "../src/models/index.js";
 
 const userId = new mongoose.Types.ObjectId();
@@ -212,6 +213,27 @@ describe("supporting models", () => {
   await expect(new AuditLog({ action: "order.confirm" }).validate()).rejects.toThrow();
  });
 
+ it("records audit results, IPs and summaries, newest first", async () => {
+  const data = { actorId: userId, action: "admin.access", target: { collectionName: "routes", id: "GET /api/v1/admin/users" } };
+  const audit = new AuditLog({ ...data, ip: "127.0.0.1", summary: "Từ chối truy cập" });
+  await expect(audit.validate()).resolves.toBeUndefined();
+  expect(audit.result).toBe("success");
+  await expect(new AuditLog({ ...data, result: "denied" }).validate()).resolves.toBeUndefined();
+  await expect(new AuditLog({ ...data, result: "failed" }).validate()).rejects.toThrow("result");
+  expect(AuditLog.schema.indexes()).toContainEqual([{ at: -1 }, expect.anything()]);
+ });
+
+ it("stores shared Admin notifications with per-Admin read and saved state", async () => {
+  const notification = new AdminNotification({ type: "stock", title: "Sắp hết hàng", targetHref: "/admin/inventory", reference: "SKU-1" });
+  await expect(notification.validate()).resolves.toBeUndefined();
+  expect(notification.readBy).toHaveLength(0);
+  expect(notification.savedBy).toHaveLength(0);
+  expect(AdminNotification.collection.name).toBe("adminNotifications");
+  for (const patch of [{ type: "promo" }, { title: " " }, { targetHref: "https://example.test" }]) {
+   await expect(new AdminNotification({ type: "order", title: "Đơn mới", ...patch }).validate()).rejects.toThrow();
+  }
+ });
+
  it("provides singleton settings with the SRS defaults and validates counts/fees", async () => {
   const settings = new Setting();
   await expect(settings.validate()).resolves.toBeUndefined();
@@ -225,7 +247,7 @@ describe("supporting models", () => {
 
  it("exports all SRS models without changing Firebase users", () => {
   expect(Object.keys(models).sort()).toEqual([
-   "Address", "AuditLog", "Cart", "Category", "Notification", "Order", "Payment",
+   "Address", "AdminNotification", "AuditLog", "Cart", "Category", "Notification", "Order", "Payment",
    "PetProfile", "Product", "Promotion", "Review", "Setting", "User", "Wishlist",
   ]);
   expect(models.User.schema.path("firebaseUid").options.unique).toBe(true);

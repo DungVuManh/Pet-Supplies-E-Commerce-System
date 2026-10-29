@@ -14,8 +14,8 @@ import {
   staffSales,
   timeSales,
 } from "../mock/reports";
-import { ActionLink, BarChart, Pagination, TabNav } from "@/features/workspace/components/workspace-ui";
-import { DemoNotice } from "@/features/workspace/components/demo-notice";
+import { ActionLink, BarChart, Pagination, TabNav } from "@/components/workspace/workspace-ui";
+import { DemoNotice } from "@/components/workspace/demo-notice";
 
 type SalesTab = "product" | "category" | "staff" | "time";
 

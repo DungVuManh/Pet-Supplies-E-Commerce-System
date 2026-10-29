@@ -1,6 +1,6 @@
 "use client";
 
-import { ActionLink, BarChart, Badge, MetricCard, PageHeader, card } from "@/features/workspace/components/workspace-ui";
+import { ActionLink, BarChart, Badge, MetricCard, PageHeader, card } from "@/components/workspace/workspace-ui";
 import { ReportControls } from "../../components/report-controls";
 import { useStaffAnalytics } from "../hooks/use-staff-analytics";
 import { ReportError, ReportLoading, ReportRefresh } from "./report-state";

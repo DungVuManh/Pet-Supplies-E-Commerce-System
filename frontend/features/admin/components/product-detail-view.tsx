@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { DetailList, TabNav, card, primaryLink, secondaryButton } from "@/features/workspace/components/workspace-ui";
+import { DetailList, TabNav, card, primaryLink, secondaryButton } from "@/components/workspace/workspace-ui";
 import { categoryPath } from "../mock/categories";
 import { stockHistory } from "../mock/inventory";
 import { formatVnd, productStatus, type Product, type ProductVisibility } from "../mock/products";

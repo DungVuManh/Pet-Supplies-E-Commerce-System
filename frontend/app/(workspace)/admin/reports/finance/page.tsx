@@ -3,8 +3,8 @@ import { AdminPageHeader, DataTable, KpiCard, PeriodChip, StatusBadge, Stack, Td
 import { ReportsNav } from "@/features/admin/components/reports-nav";
 import { cumulativeRevenue } from "@/features/admin/mock/overview";
 import { financeKpis, paymentChannels, reportPeriod } from "@/features/admin/mock/reports";
-import { ActionLink, LineChart, Pagination } from "@/features/workspace/components/workspace-ui";
-import { DemoNotice } from "@/features/workspace/components/demo-notice";
+import { ActionLink, LineChart, Pagination } from "@/components/workspace/workspace-ui";
+import { DemoNotice } from "@/components/workspace/demo-notice";
 
 export const metadata = {
   title: "Báo cáo tài chính",

@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { CircleX, Package } from "lucide-react";
-import { ActionLink, Field, ListState, Pagination, TabNav, control, primaryLink, secondaryButton } from "@/features/workspace/components/workspace-ui";
-import { useListState } from "@/features/workspace/components/use-list-state";
+import { ActionLink, Field, ListState, Pagination, TabNav, control, primaryLink, secondaryButton } from "@/components/workspace/workspace-ui";
+import { useListState } from "@/components/workspace/use-list-state";
 import { countUsers, filterUsers, roleLabels, type UserFilter, type UserRole, type UserStatus } from "../mock/users";
 import { DataTable, StatusBadge, Stack, Td, Th } from "./admin-ui";
 

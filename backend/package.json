@@ -12,6 +12,8 @@
   "dev": "nodemon src/server.js",
   "start": "node src/server.js",
   "seed": "node src/scripts/seed.js",
+  "seed:admin": "node src/scripts/seed-admin.js",
+  "migrate:admin": "node src/scripts/migrate-admin.js",
   "test": "vitest run",
   "test:watch": "vitest"
  },

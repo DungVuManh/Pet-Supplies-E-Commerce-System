@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { Check, Star } from "lucide-react";
-import { InfoCallout, card, primaryLink } from "@/features/workspace/components/workspace-ui";
+import { InfoCallout, card, primaryLink } from "@/components/workspace/workspace-ui";
 import { defaultPermissions, togglePermission, type PermissionRole } from "../mock/permissions";
 import { AdminPageHeader } from "./admin-ui";
 

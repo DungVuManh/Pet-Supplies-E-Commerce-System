@@ -13,8 +13,8 @@ import {
   type NotificationItem,
   type NotificationType,
 } from "../mock/notifications";
-import { Badge, ListState, listStatePill, TabNav, card, control, secondaryButton } from "@/features/workspace/components/workspace-ui";
-import { useListState } from "@/features/workspace/components/use-list-state";
+import { Badge, ListState, listStatePill, TabNav, card, control, secondaryButton } from "@/components/workspace/workspace-ui";
+import { useListState } from "@/components/workspace/use-list-state";
 
 type TabKey = "unread" | "all" | "saved";
 

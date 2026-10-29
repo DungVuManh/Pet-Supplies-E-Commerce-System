@@ -3,8 +3,8 @@ import { Suspense } from "react";
 import { Plus, Star } from "lucide-react";
 import { AdminPageHeader } from "@/features/admin/components/admin-ui";
 import { UsersList } from "@/features/admin/components/users-list";
-import { DemoNotice } from "@/features/workspace/components/demo-notice";
-import { InfoCallout, secondaryButton } from "@/features/workspace/components/workspace-ui";
+import { DemoNotice } from "@/components/workspace/demo-notice";
+import { InfoCallout, secondaryButton } from "@/components/workspace/workspace-ui";
 
 export const metadata = { title: "Người dùng" };
 

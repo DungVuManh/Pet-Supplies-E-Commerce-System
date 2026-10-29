@@ -3,7 +3,7 @@ import { AdminGreeting } from "@/features/admin/components/admin-greeting";
 import { AdminPageHeader, DataTable, KpiCard, PeriodChip, StatusBadge, Stack, Td, Th } from "@/features/admin/components/admin-ui";
 import { lowStockLevels, lowStockTotal } from "@/features/admin/mock/inventory";
 import { cumulativeRevenue, overview, recentActivity, reportPeriod } from "@/features/admin/mock/overview";
-import { ActionLink, LineChart, Pagination, card } from "@/features/workspace/components/workspace-ui";
+import { ActionLink, LineChart, Pagination, card } from "@/components/workspace/workspace-ui";
 
 export const metadata = { title: "Tổng quan kinh doanh" };
 

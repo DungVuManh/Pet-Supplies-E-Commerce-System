@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Star } from "lucide-react";
-import { ActionLink, DetailList, InfoCallout, Pagination, card, dangerButton, primaryLink, secondaryButton } from "@/features/workspace/components/workspace-ui";
+import { ActionLink, DetailList, InfoCallout, Pagination, card, dangerButton, primaryLink, secondaryButton } from "@/components/workspace/workspace-ui";
 import { roleLabels, type UserDetail, type UserStatus } from "../mock/users";
 import { AdminPageHeader, DataTable, KpiCard, StatusBadge, Stack, Td, Th } from "./admin-ui";
 

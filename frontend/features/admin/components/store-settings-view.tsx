@@ -5,8 +5,8 @@ import { CheckCircle2 } from "lucide-react";
 import { AdminPageHeader } from "./admin-ui";
 import { SystemNav } from "./system-nav";
 import { defaultStoreSettings, type StoreSettings } from "../mock/system";
-import { Switch } from "@/features/workspace/components/switch";
-import { card, control, primaryLink } from "@/features/workspace/components/workspace-ui";
+import { Switch } from "@/components/workspace/switch";
+import { card, control, primaryLink } from "@/components/workspace/workspace-ui";
 
 export function StoreSettingsView() {
   const [form, setForm] = useState<StoreSettings>(defaultStoreSettings);

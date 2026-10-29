@@ -11,8 +11,8 @@ import {
   inventoryReportRows,
   reportPeriod,
 } from "../mock/reports";
-import { card, control, secondaryButton } from "@/features/workspace/components/workspace-ui";
-import { DemoNotice } from "@/features/workspace/components/demo-notice";
+import { card, control, secondaryButton } from "@/components/workspace/workspace-ui";
+import { DemoNotice } from "@/components/workspace/demo-notice";
 
 const CATEGORIES = [
   "Tất cả danh mục",

@@ -1,4 +1,4 @@
-import type { BadgeTone } from "../workspace/components/workspace-ui";
+import type { BadgeTone } from "@/components/workspace/workspace-ui";
 
 /** Every status label shown in the Admin workspace and its badge tone; screens never pick tones themselves. */
 export const adminStatusTones = {

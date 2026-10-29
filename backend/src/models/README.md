@@ -28,8 +28,9 @@ import { Product, Order, Setting } from "./models/index.js";
 | Review | reviews | Product/user references, whole rating from 1 to 5, published comment |
 | Wishlist | wishlists | One list per user with product references |
 | Notification | notifications | User/order reference, type/channel, delivery status/error/time |
-| AuditLog | auditLogs | Actor, action, target, before/after snapshots, event time |
+| AuditLog | auditLogs | Actor, action, target, before/after snapshots, IP, result, summary, event time |
 | Setting | settings | Global low-stock threshold and flat shipping fee |
+| AdminNotification | adminNotifications | Order/stock/system notice shared by all Admins, with per-Admin read/saved state |
 
 All models use timestamps and disable buffered commands. References to users
 store `User._id` (MongoDB ObjectId), not `firebaseUid`. References do not enforce
@@ -76,6 +77,16 @@ default. Defaults apply when constructing a document; startup does not seed a
 settings document. Audit targets use `{ collectionName, id }`; `id` is a string
 so it can represent both ObjectIds and the settings ID `global`. Callers must
 remove secrets from audit snapshots, payment results, and notification errors.
+Admin actions write audit entries through `recordAudit()` in `src/common/audit.js`,
+which strips secret-looking fields and records the request IP. `result` is
+`success` (default) or `denied`; a Customer or Staff session refused on an
+`/api/v1/admin` route is logged as `admin.access` with result `denied`.
+
+`AdminNotification` entries are created through `notifyAdmins()` in
+`src/common/admin-notify.js` and shared by every Admin. `readBy` and `savedBy`
+hold the `User._id` of each Admin who read or saved the entry. `targetHref` must
+be an `/admin` path. A failed notification never fails the triggering request.
+Its sample data comes from `npm run seed:admin`, not `npm run seed`.
 
 `createModelIndexes()` in `src/config/database.js` explicitly creates declared
 indexes before startup listens, since the connection disables `autoIndex`. It
@@ -100,7 +111,11 @@ It reads existing User IDs/roles without creating or modifying users and require
 at least one Customer plus one Staff or Admin. It selects the lowest `_id` per
 role. If prerequisites are missing, it stops before index creation or data writes.
 
-The seed covers every non-User collection: 10 categories, 52 products, 2 addresses,
+`npm run seed:admin` (development/test only) adds Admin sample data on top of
+this seed, and `npm run migrate:admin` idempotently upgrades existing documents
+for the Admin backend in any environment. Neither creates users.
+
+The seed covers every non-User, non-Admin collection: 10 categories, 52 products, 2 addresses,
 2 pets, customer/guest carts, a wishlist, 4 promotions, 8 online orders (all seven
 order statuses plus a guest order), corresponding payments, 2 reviews of completed
 purchases, 3 notification delivery statuses, an audit log and global settings.

@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 import { AdminPageHeader } from "@/features/admin/components/admin-ui";
 import { ProductsList } from "@/features/admin/components/products-list";
 import { countProducts } from "@/features/admin/mock/products";
-import { DemoNotice } from "@/features/workspace/components/demo-notice";
+import { DemoNotice } from "@/components/workspace/demo-notice";
 
 export const metadata = { title: "Sản phẩm" };
 

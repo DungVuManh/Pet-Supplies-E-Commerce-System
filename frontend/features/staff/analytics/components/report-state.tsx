@@ -1,4 +1,4 @@
-import { ListState, secondaryButton } from "@/features/workspace/components/workspace-ui";
+import { ListState, secondaryButton } from "@/components/workspace/workspace-ui";
 
 export function ReportLoading() {
   return <div aria-busy="true"><ListState kind="loading" title="Đang tải báo cáo…" columns={4} rows={3} /></div>;

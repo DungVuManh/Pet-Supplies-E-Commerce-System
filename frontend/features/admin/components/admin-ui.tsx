@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Badge, Breadcrumbs, card } from "@/features/workspace/components/workspace-ui";
+import { Badge, Breadcrumbs, card } from "@/components/workspace/workspace-ui";
 import { adminStatusTone, type AdminStatus } from "../status";
 
 export function AdminPageHeader({ breadcrumbs, title, subtitle, actions }: { breadcrumbs: string[]; title: string; subtitle?: ReactNode; actions?: ReactNode }) {

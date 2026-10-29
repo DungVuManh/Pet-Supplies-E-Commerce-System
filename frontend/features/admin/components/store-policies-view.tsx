@@ -5,8 +5,8 @@ import { CheckCircle2 } from "lucide-react";
 import { AdminPageHeader, StatusBadge } from "./admin-ui";
 import { SystemNav } from "./system-nav";
 import { defaultPolicies, type StorePolicy } from "../mock/system";
-import { card, control, primaryLink } from "@/features/workspace/components/workspace-ui";
-import { DemoNotice } from "@/features/workspace/components/demo-notice";
+import { card, control, primaryLink } from "@/components/workspace/workspace-ui";
+import { DemoNotice } from "@/components/workspace/demo-notice";
 
 export function StorePoliciesView() {
   const [policies, setPolicies] = useState<StorePolicy[]>(defaultPolicies);

@@ -12,3 +12,4 @@ export { Wishlist } from "./wishlist.model.js";
 export { Notification } from "./notification.model.js";
 export { AuditLog } from "./audit-log.model.js";
 export { Setting } from "./setting.model.js";
+export { AdminNotification } from "./admin-notification.model.js";
