@@ -4,6 +4,7 @@
 // =============================================================
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
  getBrandsApi,
  getCategoriesApi,
@@ -27,6 +28,9 @@ const DEFAULT_FILTER: CatalogFilter = {
 };
 
 export function useProductList() {
+ const searchParams = useSearchParams();
+ const categoryParam = searchParams?.get("category") || "all";
+
  // 1. State lưu dữ liệu trả về từ API
  const [products, setProducts] = useState<CatalogProduct[]>([]);
  const [categories, setCategories] = useState<CatalogCategory[]>([]);
@@ -39,8 +43,17 @@ export function useProductList() {
  const [error, setError] = useState<string | null>(null);
 
  // 3. State quản lý bộ lọc và ô tìm kiếm
- const [filter, setFilter] = useState<CatalogFilter>(DEFAULT_FILTER);
+ const [filter, setFilter] = useState<CatalogFilter>(() => ({
+  ...DEFAULT_FILTER,
+  category: categoryParam,
+ }));
  const [searchInput, setSearchInput] = useState("");
+
+ useEffect(() => {
+  if (categoryParam && categoryParam !== filter.category) {
+   setFilter((prev) => ({ ...prev, category: categoryParam, page: 1 }));
+  }
+ }, [categoryParam]);
 
  useEffect(() => {
   async function fetchFilterOptions() {

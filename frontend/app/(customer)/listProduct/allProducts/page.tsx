@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { AllProduct } from "@/features/catalog/components/listProduct";
 
 export const metadata: Metadata = { title: "Sản phẩm đồ dùng và dinh dưỡng cho thú cưng" };
@@ -12,7 +13,9 @@ export default function ProductHomePage() {
         <p className="mt-2 text-sm text-muted">Khám phá 128 sản phẩm chính hãng cho những người bạn nhỏ.</p>
       </div>
       <div className="flex flex-col gap-4">
-         <AllProduct />
+        <Suspense fallback={<div className="w-full py-16 text-center text-muted">Đang tải sản phẩm...</div>}>
+          <AllProduct />
+        </Suspense>
       </div>
     </main>
   );

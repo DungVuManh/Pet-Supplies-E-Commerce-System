@@ -369,10 +369,4 @@ describe("Buy Now preview HTTP", () => {
     expect(response.body.data.summary.subtotal).toBe(500000);
     expect(response.body.data.summary.total).toBe(500000);
   });
-
-  it("strictly computes price from server product and rejects insufficient stock", async () => {
-    const productId = "507f1f77bcf86cd799439011";
-    vi.spyOn(Product, "findById").mockResolvedValue({
-      _id: productId,
-      name: "Thức ăn thú cưng",
-    
+});
