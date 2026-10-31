@@ -70,6 +70,7 @@ function formatProduct(product) {
     variants: product.variants || [],
     ratingAvg: product.ratingAvg || 0,
     ratingCount: product.ratingCount || 0,
+    soldCount: product.soldCount || 0,
     isActive: product.isActive,
   };
 }
@@ -261,6 +262,7 @@ export async function getProductDetail(request, response, next) {
       variants,
       ratingAvg: product.ratingAvg,
       ratingCount: product.ratingCount,
+      soldCount: product.soldCount || 0,
       inStock: totalAvailableStock > 0,
       totalStock: totalAvailableStock,
       createdAt: product.createdAt,

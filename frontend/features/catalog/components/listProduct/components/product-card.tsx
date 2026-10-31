@@ -47,14 +47,18 @@ export function ProductCard({ product }: { product: Product }) {
         </span>
       </div>
 
-      {/* 2. Thông tin thương hiệu & Rating */}
-      <div className="flex items-center justify-between gap-2 pt-1">
-        <p className="text-[11px] font-semibold uppercase tracking-[1px] text-muted truncate">
+      {/* 2. Thông tin thương hiệu & Rating & Đã bán */}
+      <div className="flex items-center justify-between gap-2 pt-1 text-[11px]">
+        <p className="font-semibold uppercase tracking-[1px] text-muted truncate">
           {product.brand || "Petjoy"}
         </p>
-        <div className="flex items-center gap-1 text-[11px] font-medium text-amber-500">
-          <Star className="size-3 fill-amber-400 text-amber-400" />
-          <span>{rating.toFixed(1)}</span>
+        <div className="flex items-center gap-1.5 shrink-0 text-slate-500 font-medium">
+          <div className="flex items-center gap-0.5 text-amber-500">
+            <Star className="size-3 fill-amber-400 text-amber-400" />
+            <span>{rating.toFixed(1)}</span>
+          </div>
+          <span className="text-gray-300">·</span>
+          <span className="text-muted font-normal">Đã bán {product.soldCount ?? 0}</span>
         </div>
       </div>
 

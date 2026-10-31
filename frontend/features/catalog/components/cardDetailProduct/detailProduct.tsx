@@ -104,6 +104,7 @@ export function DetailProduct({ product }: { product: Product }) {
             description={product.description}
             ratingAvg={ratingAvg}
             ratingCount={ratingCount}
+            soldCount={product.soldCount}
           />
 
           {/* Chọn biến thể khối lượng & trạng thái tồn kho */}

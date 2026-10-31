@@ -26,6 +26,7 @@ export type Product = {
   ratingAvg?: number;
   ratingCount?: number;
   inStock?: boolean;
+  soldCount?: number;
 };
 
 export const categories = [

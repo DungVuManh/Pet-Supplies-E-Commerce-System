@@ -67,6 +67,8 @@ export function ProductGrid({
        price: product.price,
        image: product.image,
        categories: [],
+       soldCount: product.soldCount,
+       ratingAvg: product.ratingAvg,
       }}
      />
     </Link>

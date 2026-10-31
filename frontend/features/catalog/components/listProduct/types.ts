@@ -27,6 +27,7 @@ export type CatalogProduct = {
   ratingAvg: number;
   ratingCount: number;
   isActive: boolean;
+  soldCount?: number;
 };
 
 // Thông tin phân trang từ API

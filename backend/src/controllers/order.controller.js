@@ -218,6 +218,22 @@ export async function createOrder(request, response, next) {
       ],
     });
 
+    // Cập nhật tăng số lượt bán (soldCount) cho các sản phẩm trong đơn hàng
+    if (mongoose.connection?.readyState === 1 || Boolean(Product.updateOne?.mock)) {
+      try {
+        for (const item of orderItems) {
+          if (item.productId && typeof Product?.updateOne === "function") {
+            await Product.updateOne(
+              { _id: item.productId },
+              { $inc: { soldCount: item.qty } }
+            );
+          }
+        }
+      } catch {
+        // bỏ qua lỗi nếu không cập nhật được soldCount
+      }
+    }
+
     // Xóa các sản phẩm vừa mua khỏi giỏ hàng (chỉ khi đặt từ Giỏ hàng, KHÔNG áp dụng cho Mua ngay)
     if (!isBuyNow) {
       try {
@@ -290,6 +306,20 @@ export async function cancelOrder(request, response, next) {
       },
       { new: true }
     );
+
+    // Giảm soldCount tương ứng khi đơn hàng bị hủy
+    try {
+      for (const item of order.items || []) {
+        if (item.productId && typeof Product?.updateOne === "function") {
+          await Product.updateOne(
+            { _id: item.productId, soldCount: { $gte: item.qty } },
+            { $inc: { soldCount: -item.qty } }
+          );
+        }
+      }
+    } catch (cancelErr) {
+      console.error("Lỗi cập nhật soldCount khi hủy đơn hàng:", cancelErr);
+    }
 
     response.status(200).json({
       success: true,

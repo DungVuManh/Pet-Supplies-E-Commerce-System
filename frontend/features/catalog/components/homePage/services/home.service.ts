@@ -76,6 +76,7 @@ export async function fetchHomeProductsApi(
       categories: [],
       ratingAvg: p.ratingAvg,
       ratingCount: p.ratingCount,
+      soldCount: p.soldCount || 0,
       variants: p.variants?.map((v) => ({
         sku: v.sku,
         label: v.label,
