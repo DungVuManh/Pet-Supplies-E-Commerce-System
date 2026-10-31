@@ -1,4 +1,3 @@
-
 import type {
   CatalogFilter,
   GetBrandsResponse,
@@ -7,9 +6,18 @@ import type {
   GetProductsResponse,
 } from "../types";
 
-// Luôn dùng relative URL để đi qua Next.js rewrite proxy → tránh CORS & đảm bảo filter category hoạt động đúng
-const API_BASE = "/api/v1/catalog";
-
+// Trình duyệt (Client) dùng relative URL để qua Next.js rewrite proxy
+// Máy chủ (Server Component / SSR) dùng absolute URL (BACKEND_ORIGIN) vì Node fetch không hỗ trợ relative URL
+function getApiBase(): string {
+  if (typeof window !== "undefined") {
+    return "/api/v1/catalog";
+  }
+  const origin =
+    process.env.BACKEND_ORIGIN ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://127.0.0.1:3001";
+  return `${origin.replace(/\/+$/, "")}/api/v1/catalog`;
+}
 
 export async function getProductsApi(
   filter: CatalogFilter
@@ -38,7 +46,7 @@ export async function getProductsApi(
   params.set("page", String(filter.page));
   params.set("limit", String(filter.limit || 20));
 
-  const url = `${API_BASE}/products?${params.toString()}`;
+  const url = `${getApiBase()}/products?${params.toString()}`;
   console.log("[CatalogService] GET Products URL:", url);
 
   const response = await fetch(url, {
@@ -56,9 +64,6 @@ export async function getProductsApi(
   }
 
   const data: GetProductsResponse = await response.json();
-  // console.log(
-  //   `[CatalogService] Nhận được ${data.data.pagination.totalProducts} sản phẩm | Trang ${data.data.pagination.currentPage}/${data.data.pagination.totalPages}`
-  // );
   return data;
 }
 
@@ -66,7 +71,7 @@ export async function getProductsApi(
  * 2. Gọi API lấy danh sách danh mục cho bộ lọc sidebar
  */
 export async function getCategoriesApi(): Promise<GetCategoriesResponse> {
-  const url = `${API_BASE}/categories`;
+  const url = `${getApiBase()}/categories`;
   console.log("[CatalogService] GET Categories URL:", url);
 
   const response = await fetch(url, {
@@ -84,7 +89,6 @@ export async function getCategoriesApi(): Promise<GetCategoriesResponse> {
   }
 
   const data: GetCategoriesResponse = await response.json();
-  // console.log("[CatalogService] Danh mục nhận được:", data.data.categories);
   return data;
 }
 
@@ -92,7 +96,7 @@ export async function getCategoriesApi(): Promise<GetCategoriesResponse> {
  * 3. Gọi API lấy danh sách thương hiệu cho bộ lọc sidebar
  */
 export async function getBrandsApi(): Promise<GetBrandsResponse> {
-  const url = `${API_BASE}/brands`;
+  const url = `${getApiBase()}/brands`;
   console.log("[CatalogService] GET Brands URL:", url);
 
   const response = await fetch(url, {
@@ -110,7 +114,6 @@ export async function getBrandsApi(): Promise<GetBrandsResponse> {
   }
 
   const data: GetBrandsResponse = await response.json();
-  // console.log("[CatalogService] Thương hiệu nhận được:", data.data.brands);
   return data;
 }
 
@@ -120,7 +123,7 @@ export async function getBrandsApi(): Promise<GetBrandsResponse> {
 export async function getProductDetailApi(
   id: string
 ): Promise<GetProductDetailResponse> {
-  const url = `${API_BASE}/products/${encodeURIComponent(id)}`;
+  const url = `${getApiBase()}/products/${encodeURIComponent(id)}`;
   console.log("[CatalogService] GET Product Detail URL:", url);
 
   const response = await fetch(url, {
@@ -139,6 +142,5 @@ export async function getProductDetailApi(
   }
 
   const data: GetProductDetailResponse = await response.json();
-  // console.log("[CatalogService] Chi tiết sản phẩm nhận được:", data.data.product);
   return data;
 }

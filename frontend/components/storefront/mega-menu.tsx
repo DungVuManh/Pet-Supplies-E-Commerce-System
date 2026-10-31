@@ -137,6 +137,7 @@ const PARENT_GROUPS: ParentCategoryGroup[] = [
 
 type MegaMenuProps = {
   isOpen: boolean;
+  petType?: "dog" | "cat";
   onClose: () => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
@@ -144,6 +145,7 @@ type MegaMenuProps = {
 
 export function MegaMenu({
   isOpen,
+  petType = "dog",
   onClose,
   onMouseEnter,
   onMouseLeave,
