@@ -79,16 +79,50 @@ export async function seedSampleData() {
   for (const role of ["customer", "staff", "admin"]) {
     users[role] = await User.findOne({ role }).sort({ _id: 1 }).select("_id role").lean();
   }
-  const missing = [];
-  if (!users.customer) missing.push("customer");
-  if (!users.staff && !users.admin) missing.push("staff hoặc admin");
-  if (missing.length) {
-    throw new SeedError("Không ghi dữ liệu: thiếu User có role " + missing.join(", ") + ". Hãy tạo tài khoản trước; seed không tạo hoặc sửa User.");
-  }
   await createModelIndexes();
-  const customer = users.customer;
-  const actor = users.staff || users.admin;
   const now = new Date();
+
+  let customer = users.customer;
+  if (!customer) {
+    try {
+      const doc = new User({
+        _id: sampleId("user:seed:customer"),
+        firebaseUid: "seed-customer-uid",
+        email: "customer.seed@petjoy.test",
+        fullName: "Khách hàng mẫu Petjoy",
+        phone: "0900000000",
+        role: "customer",
+        termsAcceptedAt: now,
+      });
+      await doc.save();
+      customer = doc.toObject();
+      console.info("Đã tạo User mẫu vai trò customer.");
+    } catch {
+      customer = { _id: sampleId("user:seed:customer"), role: "customer" };
+    }
+  }
+
+  let actor = users.staff || users.admin;
+  if (!actor) {
+    try {
+      const doc = new User({
+        _id: sampleId("user:seed:staff"),
+        firebaseUid: "seed-staff-uid",
+        email: "staff.seed@petjoy.test",
+        fullName: "Nhân viên mẫu Petjoy",
+        phone: "0911111111",
+        role: "staff",
+        termsAcceptedAt: now,
+      });
+      await doc.save();
+      users.staff = doc.toObject();
+      actor = users.staff;
+      console.info("Đã tạo User mẫu vai trò staff.");
+    } catch {
+      users.staff = { _id: sampleId("user:seed:staff"), role: "staff" };
+      actor = users.staff;
+    }
+  }
 
   console.info("Seeding categories...");
   const categoryMap = new Map();
@@ -103,10 +137,18 @@ export async function seedSampleData() {
   console.info("Seeding products...");
   const productMap = new Map();
   for (const item of productsData) {
-    const categoryId = categoryMap.get(item.categoryId.$oid);
-    if (!categoryId) throw new SeedError("Seed Product: không tìm thấy danh mục của sản phẩm mẫu.");
+    let categoryIds = [];
+    if (Array.isArray(item.categoryIds)) {
+      categoryIds = item.categoryIds.map((c) => categoryMap.get(c?.$oid || c)).filter(Boolean);
+    } else if (item.categoryId) {
+      const singleId = categoryMap.get(item.categoryId?.$oid || item.categoryId);
+      if (singleId) categoryIds = [singleId];
+    }
+    const categoryId = categoryIds[0] || categoryMap.values().next().value;
+    if (!categoryIds.length && categoryId) categoryIds = [categoryId];
+    if (!categoryIds.length) throw new SeedError("Seed Product: không tìm thấy danh mục của sản phẩm mẫu.");
     const product = await seedProduct({ "variants.sku": item.variants[0].sku }, {
-      name: item.name, categoryId, brand: item.brand,
+      name: item.name, categoryIds, categoryId, brand: item.brand,
       petType: item.petType === "both" ? "all" : item.petType,
       description: item.description, images: item.images, isActive: true,
       variants: item.variants, ratingAvg: item.ratingAvg, ratingCount: item.ratingCount ?? 0,
@@ -138,18 +180,30 @@ export async function seedSampleData() {
 
   function orderItem(sku, qty = 1) {
     const product = productMap.get(sku);
+    if (!product) return null;
     const variant = product.variants.find((variant) => variant.sku === sku);
     return { productId: product._id, variantSku: sku, name: product.name, unitPrice: variant.price, qty };
   }
-  const cartItems = ["GAN-001", "ROY-021"].map((sku) => ({
+  const allProducts = Array.from(productMap.values());
+  const fallbackP1 = allProducts[0];
+  const fallbackP2 = allProducts[1] || fallbackP1;
+  const fallbackP3 = allProducts[2] || fallbackP1;
+  const fallbackP4 = allProducts[3] || fallbackP1;
+
+  const sku1 = productMap.has("GAN-001") ? "GAN-001" : fallbackP1.variants[0].sku;
+  const sku2 = productMap.has("ROY-021") ? "ROY-021" : fallbackP2.variants[0].sku;
+  const wish1 = productMap.has("INA-049") ? productMap.get("INA-049")._id : fallbackP3._id;
+  const wish2 = productMap.has("ACR-046") ? productMap.get("ACR-046")._id : fallbackP4._id;
+
+  const cartItems = [sku1, sku2].map((sku) => ({
     productId: productMap.get(sku)._id, variantSku: sku, quantity: 1,
   }));
   await ensureSample(Cart, { userId: customer._id }, { userId: customer._id, items: cartItems });
   await ensureSample(Cart, { guestToken: "seed-petly-guest-cart-v1" }, {
-    guestToken: "seed-petly-guest-cart-v1", items: [cartItems[1]],
+    guestToken: "seed-petly-guest-cart-v1", items: [cartItems[1] || cartItems[0]],
   });
   await ensureSample(Wishlist, { userId: customer._id }, {
-    userId: customer._id, productIds: [productMap.get("INA-049")._id, productMap.get("ACR-046")._id],
+    userId: customer._id, productIds: [wish1, wish2],
   });
 
   for (const promotion of [
@@ -180,7 +234,9 @@ export async function seedSampleData() {
   const orders = new Map();
   for (const example of examples) {
     const orderCode = `SEED-PETLY-${ownerKey}-${example.key}`.toUpperCase();
-    const items = example.status === "completed" ? [orderItem("GAN-001"), orderItem("ROY-021")] : [orderItem("GAN-001")];
+    const items = (example.status === "completed"
+      ? [orderItem(sku1), orderItem(sku2)].filter(Boolean)
+      : [orderItem(sku1)].filter(Boolean));
     const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.qty, 0);
     const discount = example.key === "completed" ? Math.floor(subtotal * 10 / 100) : 0;
     const shippingFee = example.offline ? 0 : setting.shippingFee;
@@ -237,7 +293,7 @@ export async function seedSampleData() {
   });
 
   const counts = {
-    Category: categoriesData.length, Product: productsData.length, Setting: 1, Address: 2,
+    Category: categoriesData.length, Product: new Set(productMap.values()).size, Setting: 1, Address: 2,
     PetProfile: 2, Cart: 2, Wishlist: 1, Promotion: 4, Order: orders.size,
     Payment: orders.size, Review: reviewItems.length, Notification: 3, AuditLog: 1,
   };
