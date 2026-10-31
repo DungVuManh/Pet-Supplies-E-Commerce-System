@@ -7,8 +7,8 @@ import type {
   GetProductsResponse,
 } from "../types";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+// Luôn dùng relative URL để đi qua Next.js rewrite proxy → tránh CORS & đảm bảo filter category hoạt động đúng
+const API_BASE = "/api/v1/catalog";
 
 
 export async function getProductsApi(
@@ -38,7 +38,7 @@ export async function getProductsApi(
   params.set("page", String(filter.page));
   params.set("limit", String(filter.limit || 20));
 
-  const url = `${BASE_URL}/api/v1/catalog/products?${params.toString()}`;
+  const url = `${API_BASE}/products?${params.toString()}`;
   console.log("[CatalogService] GET Products URL:", url);
 
   const response = await fetch(url, {
@@ -66,7 +66,7 @@ export async function getProductsApi(
  * 2. Gọi API lấy danh sách danh mục cho bộ lọc sidebar
  */
 export async function getCategoriesApi(): Promise<GetCategoriesResponse> {
-  const url = `${BASE_URL}/api/v1/catalog/categories`;
+  const url = `${API_BASE}/categories`;
   console.log("[CatalogService] GET Categories URL:", url);
 
   const response = await fetch(url, {
@@ -92,7 +92,7 @@ export async function getCategoriesApi(): Promise<GetCategoriesResponse> {
  * 3. Gọi API lấy danh sách thương hiệu cho bộ lọc sidebar
  */
 export async function getBrandsApi(): Promise<GetBrandsResponse> {
-  const url = `${BASE_URL}/api/v1/catalog/brands`;
+  const url = `${API_BASE}/brands`;
   console.log("[CatalogService] GET Brands URL:", url);
 
   const response = await fetch(url, {
@@ -120,7 +120,7 @@ export async function getBrandsApi(): Promise<GetBrandsResponse> {
 export async function getProductDetailApi(
   id: string
 ): Promise<GetProductDetailResponse> {
-  const url = `${BASE_URL}/api/v1/catalog/products/${encodeURIComponent(id)}`;
+  const url = `${API_BASE}/products/${encodeURIComponent(id)}`;
   console.log("[CatalogService] GET Product Detail URL:", url);
 
   const response = await fetch(url, {
