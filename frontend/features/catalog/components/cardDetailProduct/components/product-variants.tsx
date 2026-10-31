@@ -25,6 +25,16 @@ export function ProductVariants({
 }: ProductVariantsProps) {
   if (!variants || variants.length === 0) return null;
 
+  // Nếu chỉ có 1 biến thể và là "mặc định" (default) thì không cần hiển thị khối lựa chọn
+  const isSingleDefault =
+    variants.length <= 1 &&
+    (!variants[0]?.label ||
+      /^(mặc\s*định|mac\s*dinh|default|tiêu\s*chuẩn|tieu\s*chuan)$/i.test(
+        variants[0].label.trim()
+      ));
+
+  if (isSingleDefault) return null;
+
   const selectedVariant = variants[selectedIndex] || variants[0];
 
   return (
