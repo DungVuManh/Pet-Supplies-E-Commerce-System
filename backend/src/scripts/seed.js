@@ -272,11 +272,34 @@ export async function seedSampleData() {
   }
 
   // Reuse persisted purchases even when they still refer to the old catalog.
-  const reviewItems = orders.get("completed").items.slice(0, 2);
+  const reviewItems = orders.get("completed").items;
+  const sampleFeedbacks = [
+    {
+      rating: 5,
+      comment: "Màu sắc:oke Chất lượng:oke Mua cho thú cưng dùng thử",
+      images: ["https://cdn.shopify.com/s/files/1/0624/1746/9697/files/pate-cho-meo-on25.jpg?v=1773913796"],
+    },
+    {
+      rating: 5,
+      comment: "Mua trộn chung thức ăn cho bọn nó ăn ok lắm nè, giao hàng đầy đủuu",
+      images: ["https://cdn.shopify.com/s/files/1/0624/1746/9697/files/pate-cho-meo-on25_2_481ede2a-91eb-4650-8ce0-f6a53890609f.jpg?v=1773914638"],
+    },
+    {
+      rating: 4,
+      comment: "Sản phẩm chất lượng, đóng gói rất cẩn thận và giao hàng nhanh chóng.",
+      images: [],
+    },
+  ];
+
   for (const [index, item] of reviewItems.entries()) {
+    const fb = sampleFeedbacks[index % sampleFeedbacks.length];
     await ensureSample(Review, { _id: sampleId(`review:${ownerKey}:${item.variantSku}`) }, {
-      userId: customer._id, productId: item.productId, rating: index === 0 ? 5 : 4,
-      comment: "Dữ liệu mẫu: bé ăn ngon, đóng gói cẩn thận.", status: "published",
+      userId: customer._id,
+      productId: item.productId,
+      rating: fb.rating,
+      comment: fb.comment,
+      images: fb.images,
+      status: "published",
     });
   }
   for (const [status, orderKey] of [["sent", "completed"], ["pending", "pending"], ["failed", "cancelled"]]) {
