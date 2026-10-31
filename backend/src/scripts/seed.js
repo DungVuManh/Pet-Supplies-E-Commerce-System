@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+﻿import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -128,7 +128,7 @@ export async function seedSampleData() {
   const categoryMap = new Map();
   for (const category of categoriesData) {
     const doc = await ensureSample(Category, { slug: category.slug }, {
-      _id: new mongoose.Types.ObjectId(category._id.$oid), name: category.name, slug: category.slug, isActive: true,
+      _id: new mongoose.Types.ObjectId(category._id.$oid), name: category.name, slug: category.slug, petType: category.petType || "both", isActive: true,
     });
     categoryMap.set(category._id.$oid, doc._id);
   }

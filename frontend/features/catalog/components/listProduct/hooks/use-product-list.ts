@@ -1,4 +1,4 @@
-// =============================================================
+﻿// =============================================================
 // features/catalog/components/listProduct/hooks/use-product-list.ts
 // Hook quản lý toàn bộ state, logic lọc và dùng useEffect để fetch API
 // =============================================================
@@ -20,17 +20,19 @@ import type {
 const DEFAULT_FILTER: CatalogFilter = {
  search: "",
  category: "all",
+ petType: "all",
  brands: [],
  priceRanges: [],
  sort: "default",
  page: 1,
-  limit: 20,
+ limit: 20,
 };
 
-export function useProductList(defaultCategory?: string) {
+export function useProductList(defaultCategory?: string, defaultPetType?: string) {
  const searchParams = useSearchParams();
  // Ưu tiên: defaultCategory (từ server) → URL param → "all"
  const categoryParam = defaultCategory || searchParams?.get("category") || "all";
+ const petTypeParam = (defaultPetType || searchParams?.get("petType") || "all") as "dog" | "cat" | "all";
 
  // 1. State lưu dữ liệu trả về từ API
  const [products, setProducts] = useState<CatalogProduct[]>([]);
@@ -47,31 +49,54 @@ export function useProductList(defaultCategory?: string) {
  const [filter, setFilter] = useState<CatalogFilter>(() => ({
   ...DEFAULT_FILTER,
   category: categoryParam,
+  petType: petTypeParam,
  }));
  const [searchInput, setSearchInput] = useState("");
 
   useEffect(() => {
-    // Khi URL thay doi (navigate tu mega menu), sync filter theo categoryParam moi
+    // Khi URL thay đổi (navigate từ menu / filter), sync filter theo categoryParam và petTypeParam mới
     setFilter((prev) => {
-      if (prev.category === categoryParam) return prev;
-      return { ...prev, category: categoryParam, page: 1 };
+      if (prev.category === categoryParam && prev.petType === petTypeParam) return prev;
+      return { ...prev, category: categoryParam, petType: petTypeParam, page: 1 };
     });
-  }, [categoryParam]);
+  }, [categoryParam, petTypeParam]);
 
  useEffect(() => {
   async function fetchFilterOptions() {
    try {
     console.log(
-     "[useProductList - useEffect] Đang tải danh mục & thương hiệu...",
+     `[useProductList - useEffect] Đang tải danh mục (${petTypeParam}) & thương hiệu...`,
     );
     setLoadingFilters(true);
 
     const [categoriesRes, brandsRes] = await Promise.all([
-     getCategoriesApi(),
+     getCategoriesApi(petTypeParam !== "all" ? petTypeParam : undefined),
      getBrandsApi(),
     ]);
 
-    setCategories(categoriesRes.data.categories);
+    let fetchedCategories = categoriesRes.data.categories;
+    if (petTypeParam === "dog") {
+      fetchedCategories = fetchedCategories.filter((c) => {
+        const s = c.slug.toLowerCase();
+        const n = c.name.toLowerCase();
+        if (c.petType === "cat") return false;
+        if (s.includes("-meo") || n.includes("cho mèo") || n.includes("cho meo")) {
+          if (!s.includes("sua-cho-cho-meo")) return false;
+        }
+        return true;
+      });
+    } else if (petTypeParam === "cat") {
+      fetchedCategories = fetchedCategories.filter((c) => {
+        const s = c.slug.toLowerCase();
+        const n = c.name.toLowerCase();
+        if (c.petType === "dog") return false;
+        if (s.includes("-cho") || n.includes("cho chó") || n.includes("cho cho")) {
+          if (!s.includes("sua-cho-cho-meo")) return false;
+        }
+        return true;
+      });
+    }
+    setCategories(fetchedCategories);
     setBrands(brandsRes.data.brands);
     console.log(
      "[useProductList - useEffect] Tải danh mục & thương hiệu thành công!",
@@ -84,7 +109,7 @@ export function useProductList(defaultCategory?: string) {
   }
 
   fetchFilterOptions();
- }, []);
+ }, [petTypeParam]);
 
  useEffect(() => {
   async function fetchProductList() {
@@ -171,7 +196,10 @@ export function useProductList(defaultCategory?: string) {
  function handleDeleteFilter() {
   console.log("[useProductList] Xóa bộ lọc về mặc định");
   setSearchInput("");
-  setFilter(DEFAULT_FILTER);
+  setFilter({
+   ...DEFAULT_FILTER,
+   petType: petTypeParam,
+  });
  }
 
  function handlePageChange(page: number) {

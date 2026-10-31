@@ -7,7 +7,12 @@ import { ProductPagination } from "./components/product-pagination";
 import { ProductToolbar } from "./components/product-toolbar";
 import { useProductList } from "./hooks/use-product-list";
 
-export function AllProduct() {
+type AllProductProps = {
+  defaultCategory?: string;
+  defaultPetType?: string;
+};
+
+export function AllProduct({ defaultCategory, defaultPetType }: AllProductProps = {}) {
  const {
   products,
   categories,
@@ -26,7 +31,7 @@ export function AllProduct() {
   handleSortChange,
   handleDeleteFilter,
   handlePageChange,
- } = useProductList();
+ } = useProductList(defaultCategory, defaultPetType);
 
  return (
   <main>

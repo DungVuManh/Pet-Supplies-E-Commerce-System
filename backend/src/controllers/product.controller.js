@@ -1,4 +1,4 @@
-import { AppError } from "../common/errors/app-error.js";
+﻿import { AppError } from "../common/errors/app-error.js";
 import { Category } from "../models/category.model.js";
 import { Product } from "../models/product.model.js";
 import { parseProductSku } from "../validators/product.validator.js";
@@ -58,7 +58,7 @@ export async function getStaffProducts(request, response, next) {
     let totalHidden = 0;
 
     for (const prod of products) {
-      const categoryName = prod.categoryIds?.[0]?.name || "Chưa phân loại";
+      const categoryName = prod.categoryIds?.[0]?.name || prod.categoryId?.name || "Chưa phân loại";
       const isItemActive = Boolean(prod.isActive);
 
       if (isItemActive) {

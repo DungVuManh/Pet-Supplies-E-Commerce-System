@@ -1,4 +1,4 @@
-//   1. getAllProducts  - Lấy danh sách sản phẩm 
+﻿//   1. getAllProducts  - Lấy danh sách sản phẩm 
 //   2. getCategories  - Lấy danh sách danh mục
 //   3. getBrands      - Lấy danh sách thương hiệu
 

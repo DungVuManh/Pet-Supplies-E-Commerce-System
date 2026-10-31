@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 // =============================================================
 // features/catalog/components/listProduct/components/filter-sidebar.tsx
@@ -75,6 +75,19 @@ export function FilterSidebar({
 
   return () => clearTimeout(timer);
  }, [localMin, localMax, minPrice, maxPrice, onPriceChange]);
+
+ const deduplicatedCategories = useMemo(() => {
+  const seen = new Set<string>();
+  const unique: CatalogCategory[] = [];
+  for (const cat of categories) {
+   const norm = cat.name.trim().toLowerCase();
+   if (!seen.has(norm)) {
+    seen.add(norm);
+    unique.push(cat);
+   }
+  }
+  return unique;
+ }, [categories]);
 
  const filteredBrands = useMemo(() => {
   if (!brandSearch.trim()) return brands;
@@ -153,20 +166,23 @@ export function FilterSidebar({
          Đang tải danh mục...
         </div>
        ) : (
-        categories.map((cat) => {
+        deduplicatedCategories.map((cat) => {
          const isSelected = selectedCategory === cat.slug;
          return (
           <button
            key={cat._id}
            type="button"
            onClick={() => onCategoryChange(cat.slug)}
-           className={`w-full text-left px-3.5 py-2 rounded-xl text-sm transition-colors cursor-pointer ${
+           className={`w-full text-left px-3.5 py-2 rounded-xl text-sm transition-all duration-150 cursor-pointer flex items-center justify-between ${
             isSelected
-             ? "bg-blue-50 text-blue-700 font-semibold border border-blue-100/60"
+             ? "bg-blue-50 text-[#0B4DFF] font-bold border border-blue-200/80 shadow-xs"
              : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-medium"
            }`}
           >
-           {cat.name}
+           <span>{cat.name}</span>
+           {isSelected && (
+            <span className="size-1.5 rounded-full bg-[#0B4DFF] shrink-0" />
+           )}
           </button>
          );
         })

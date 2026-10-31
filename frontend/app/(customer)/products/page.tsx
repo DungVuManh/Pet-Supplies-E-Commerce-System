@@ -7,7 +7,27 @@ export const metadata: Metadata = {
   description: "Khám phá các sản phẩm chất lượng, chính hãng dành cho chó và mèo tại Petjoy.",
 };
 
-export default function ProductsPage() {
+type ProductsPageProps = {
+  searchParams: Promise<{ category?: string; petType?: string }>;
+};
+
+export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+  const { category, petType } = await searchParams;
+
+  const pageTitle =
+    petType === "dog"
+      ? "Sản phẩm dành cho chó"
+      : petType === "cat"
+      ? "Sản phẩm dành cho mèo"
+      : "Sản phẩm cho thú cưng";
+
+  const pageDesc =
+    petType === "dog"
+      ? "Khám phá các sản phẩm thức ăn, đồ chơi, phụ kiện chính hãng dành riêng cho cún cưng."
+      : petType === "cat"
+      ? "Khám phá các sản phẩm thức ăn, đồ chơi, phụ kiện chính hãng dành riêng cho mèo cưng."
+      : "Khám phá các sản phẩm chính hãng cho những người bạn nhỏ.";
+
   return (
     <main
       id="main-content"
@@ -16,10 +36,10 @@ export default function ProductsPage() {
     >
       <div>
         <h1 className="mt-2 text-[28px] font-semibold tracking-[-0.8px] sm:text-[32px]">
-          Sản phẩm cho thú cưng
+          {pageTitle}
         </h1>
         <p className="mt-2 text-sm text-muted">
-          Khám phá các sản phẩm chính hãng cho những người bạn nhỏ.
+          {pageDesc}
         </p>
       </div>
       <div className="flex flex-col gap-4">
@@ -30,10 +50,9 @@ export default function ProductsPage() {
             </div>
           }
         >
-          <AllProduct />
+          <AllProduct defaultCategory={category} defaultPetType={petType} />
         </Suspense>
       </div>
     </main>
   );
 }
-

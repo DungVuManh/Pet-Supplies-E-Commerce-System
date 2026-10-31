@@ -39,7 +39,7 @@ export function ProductDiscoveryContent({
   return (
     <div className="flex flex-col gap-6">
       {/* 1. Mua sắm theo danh mục */}
-      <section aria-label="Mua sắm theo danh mục" className="flex flex-col gap-3">
+      {/* <section aria-label="Mua sắm theo danh mục" className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-ink sm:text-2xl">
             Mua sắm theo danh mục
@@ -69,7 +69,7 @@ export function ProductDiscoveryContent({
             );
           })}
         </nav>
-      </section>
+      </section> */}
 
       {/* 2. Sản phẩm nổi bật */}
       <section
@@ -110,11 +110,10 @@ export function ProductDiscoveryContent({
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
-                    isActive
+                  className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${isActive
                       ? "bg-brand text-white shadow-xs"
                       : "bg-surface border border-line text-ink hover:bg-canvas"
-                  }`}
+                    }`}
                 >
                   {tab.label}
                 </button>

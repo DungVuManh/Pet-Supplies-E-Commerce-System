@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   CatalogFilter,
   GetBrandsResponse,
   GetCategoriesResponse,
@@ -27,6 +27,9 @@ export async function getProductsApi(
   if (filter.search) params.set("search", filter.search);
   if (filter.category && filter.category !== "all") {
     params.set("category", filter.category);
+  }
+  if (filter.petType && filter.petType !== "all") {
+    params.set("petType", filter.petType);
   }
   if (filter.brands.length > 0) {
     params.set("brands", filter.brands.join(","));
@@ -70,8 +73,9 @@ export async function getProductsApi(
 /**
  * 2. Gọi API lấy danh sách danh mục cho bộ lọc sidebar
  */
-export async function getCategoriesApi(): Promise<GetCategoriesResponse> {
-  const url = `${getApiBase()}/categories`;
+export async function getCategoriesApi(petType?: string): Promise<GetCategoriesResponse> {
+  const query = petType && petType !== "all" ? `?petType=${encodeURIComponent(petType)}` : "";
+  const url = `${getApiBase()}/categories${query}`;
   console.log("[CatalogService] GET Categories URL:", url);
 
   const response = await fetch(url, {

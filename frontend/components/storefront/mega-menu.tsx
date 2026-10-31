@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect, useId, useState } from "react";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import React, { useEffect, useId, useMemo, useState } from "react";
+import { ArrowRight, Check, ChevronDown } from "lucide-react";
 
 export type CategoryItem = {
   _id?: string;
   name: string;
   slug: string;
+  petType?: "dog" | "cat" | "both";
 };
 
 type ParentCategoryGroup = {
@@ -19,9 +21,10 @@ type ParentCategoryGroup = {
   matches: (cat: CategoryItem) => boolean;
 };
 
-const PARENT_GROUPS: ParentCategoryGroup[] = [
+// ==================== CẤU HÌNH 4 CỘT DÀNH CHO CHÓ ====================
+const DOG_PARENT_GROUPS: ParentCategoryGroup[] = [
   {
-    id: "thuc-an",
+    id: "thuc-an-cho",
     title: "THỨC ĂN",
     viewAllTitle: "Xem tất cả Thức ăn",
     defaultSlug: "thuc-an-cho-cho",
@@ -38,22 +41,25 @@ const PARENT_GROUPS: ParentCategoryGroup[] = [
     matches: (c) => {
       const s = c.slug.toLowerCase();
       const n = c.name.toLowerCase();
+      // Loại trừ sữa tắm hoặc các mục của mèo
+      if (s.includes("sua-tam") || n.includes("sữa tắm")) return false;
       return (
         s.includes("thuc-an") ||
         s.includes("hat-cho") ||
-        s.includes("pate") ||
+        s.includes("pate-cho") ||
         s.includes("banh-thuong") ||
-        s.includes("sua-cho") ||
+        s.includes("banh-quy") ||
+        s.includes("sua-cho-cho") ||
         n.includes("thức ăn") ||
         n.includes("hạt cho chó") ||
-        n.includes("pate") ||
+        n.includes("pate cho chó") ||
         n.includes("bánh thưởng") ||
-        n.includes("sữa")
+        n.includes("sữa cho chó")
       );
     },
   },
   {
-    id: "do-choi",
+    id: "do-choi-cho",
     title: "ĐỒ CHƠI",
     viewAllTitle: "Xem tất cả Đồ chơi",
     defaultSlug: "do-choi-cho-cho-thu-nhoi-bong",
@@ -61,6 +67,7 @@ const PARENT_GROUPS: ParentCategoryGroup[] = [
       "do-choi-cho-cho-thu-nhoi-bong",
       "do-choi-xuong-gam-cho-cho",
       "banh-quy-cho-cho",
+      "do-choi-cho-cho",
     ],
     matches: (c) => {
       const s = c.slug.toLowerCase();
@@ -69,24 +76,24 @@ const PARENT_GROUPS: ParentCategoryGroup[] = [
         s.includes("do-choi") ||
         s.includes("thu-nhoi-bong") ||
         s.includes("xuong-gam") ||
-        s.includes("banh-quy") ||
         n.includes("đồ chơi") ||
         n.includes("nhồi bông") ||
-        n.includes("xương gặm") ||
-        n.includes("bánh quy")
+        n.includes("xương gặm")
       );
     },
   },
   {
-    id: "phu-kien",
+    id: "phu-kien-cho",
     title: "PHỤ KIỆN & NHÀ",
     viewAllTitle: "Xem tất cả Phụ kiện & nhà",
     defaultSlug: "phu-kien-thu-cung",
     priority: [
       "phu-kien-thu-cung",
       "nem-va-chuong-cho-cho",
+      "nem-chuong-cho",
       "dung-cu-an-uong-cho-meo",
       "ta-khay-ve-sinh-cho-cho",
+      "ta-bim-cho",
     ],
     matches: (c) => {
       const s = c.slug.toLowerCase();
@@ -94,18 +101,21 @@ const PARENT_GROUPS: ParentCategoryGroup[] = [
       return (
         s.includes("phu-kien") ||
         s.includes("nem-va-chuong") ||
+        s.includes("nem-chuong") ||
         s.includes("dung-cu-an-uong") ||
         s.includes("ta-khay-ve-sinh") ||
+        s.includes("ta-bim") ||
         n.includes("vòng cổ") ||
         n.includes("dây dắt") ||
         n.includes("nệm & chuồng") ||
         n.includes("dụng cụ ăn uống") ||
-        n.includes("tã & khay vệ sinh")
+        n.includes("tã & khay vệ sinh") ||
+        n.includes("tã & bỉm")
       );
     },
   },
   {
-    id: "ve-sinh",
+    id: "ve-sinh-cho",
     title: "VỆ SINH & SỨC KHỎE",
     viewAllTitle: "Xem tất cả Vệ sinh & sức khỏe",
     defaultSlug: "cham-soc-ve-sinh-cho-cho",
@@ -115,6 +125,8 @@ const PARENT_GROUPS: ParentCategoryGroup[] = [
       "ve-sinh-rang-mieng-cho-cho",
       "cham-soc-ve-sinh-cho-cho",
       "thuc-pham-chuc-nang-cho-cho",
+      "ve-sinh-cho",
+      "suc-khoe-cho",
     ],
     matches: (c) => {
       const s = c.slug.toLowerCase();
@@ -125,11 +137,122 @@ const PARENT_GROUPS: ParentCategoryGroup[] = [
         s.includes("ve-sinh-rang-mieng") ||
         s.includes("cham-soc-ve-sinh") ||
         s.includes("thuc-pham-chuc-nang") ||
+        s.includes("ve-sinh-cho") ||
+        s.includes("suc-khoe-cho") ||
         n.includes("sữa tắm") ||
         n.includes("ve rận") ||
         n.includes("răng miệng") ||
         n.includes("tai mắt") ||
-        n.includes("vitamin")
+        n.includes("vitamin") ||
+        n.includes("sức khỏe")
+      );
+    },
+  },
+];
+
+// ==================== CẤU HÌNH 4 CỘT DÀNH CHO MÈO ====================
+const CAT_PARENT_GROUPS: ParentCategoryGroup[] = [
+  {
+    id: "thuc-an-meo",
+    title: "THỨC ĂN",
+    viewAllTitle: "Xem tất cả Thức ăn",
+    defaultSlug: "thuc-an-cho-meo",
+    priority: [
+      "thuc-an-cho-meo",
+      "hat-cho-meo",
+      "pate-meo",
+      "banh-thuong-cho-meo",
+      "sup-thuong-cho-meo",
+      "thuc-an-cho-meo-con-kitten",
+      "thuc-an-thu-y-cho-meo",
+    ],
+    matches: (c) => {
+      const s = c.slug.toLowerCase();
+      const n = c.name.toLowerCase();
+      if (s.includes("sua-tam") || n.includes("sữa tắm")) return false;
+      return (
+        s.includes("thuc-an") ||
+        s.includes("hat") ||
+        s.includes("pate") ||
+        s.includes("banh-thuong") ||
+        s.includes("sup-thuong") ||
+        n.includes("thức ăn") ||
+        n.includes("hạt") ||
+        n.includes("pate") ||
+        n.includes("bánh thưởng") ||
+        n.includes("súp thưởng")
+      );
+    },
+  },
+  {
+    id: "do-choi-meo",
+    title: "ĐỒ CHƠI & CÀO MÓNG",
+    viewAllTitle: "Xem tất cả Đồ chơi",
+    defaultSlug: "do-choi-cho-meo",
+    priority: ["do-choi-cho-meo", "ban-cao-mong-cho-meo"],
+    matches: (c) => {
+      const s = c.slug.toLowerCase();
+      const n = c.name.toLowerCase();
+      return (
+        s.includes("do-choi") ||
+        s.includes("ban-cao-mong") ||
+        n.includes("đồ chơi") ||
+        n.includes("bàn cào móng") ||
+        n.includes("cào móng")
+      );
+    },
+  },
+  {
+    id: "phu-kien-meo",
+    title: "PHỤ KIỆN & VẬN CHUYỂN",
+    viewAllTitle: "Xem tất cả Phụ kiện & nhà",
+    defaultSlug: "balo-meo",
+    priority: ["balo-meo", "nem-chuong-meo", "dung-cu-an-uong-cho-meo"],
+    matches: (c) => {
+      const s = c.slug.toLowerCase();
+      const n = c.name.toLowerCase();
+      return (
+        s.includes("balo") ||
+        s.includes("tui-van-chuyen") ||
+        s.includes("nem") ||
+        s.includes("chuong") ||
+        s.includes("dung-cu-an-uong") ||
+        n.includes("balo") ||
+        n.includes("vận chuyển") ||
+        n.includes("nệm") ||
+        n.includes("chuồng") ||
+        n.includes("dụng cụ ăn uống")
+      );
+    },
+  },
+  {
+    id: "ve-sinh-meo",
+    title: "VỆ SINH & CÁT MÈO",
+    viewAllTitle: "Xem tất cả Vệ sinh & sức khỏe",
+    defaultSlug: "cat-meo",
+    priority: [
+      "cat-meo",
+      "sua-tam-cho-meo",
+      "cham-soc-ve-sinh-tai-mat-cho-meo",
+      "cham-soc-ve-sinh-cho-meo",
+      "thuc-pham-chuc-nang-cho-meo",
+      "cham-soc-suc-khoe-cho-meo",
+    ],
+    matches: (c) => {
+      const s = c.slug.toLowerCase();
+      const n = c.name.toLowerCase();
+      return (
+        s.includes("cat-meo") ||
+        s.includes("sua-tam") ||
+        s.includes("ve-sinh") ||
+        s.includes("suc-khoe") ||
+        s.includes("thuc-pham-chuc-nang") ||
+        n.includes("cát") ||
+        n.includes("sữa tắm") ||
+        n.includes("tai mắt") ||
+        n.includes("vệ sinh") ||
+        n.includes("vitamin") ||
+        n.includes("sức khỏe")
       );
     },
   },
@@ -137,7 +260,7 @@ const PARENT_GROUPS: ParentCategoryGroup[] = [
 
 type MegaMenuProps = {
   isOpen: boolean;
-  petType?: "dog" | "cat";
+  petType: "dog" | "cat";
   onClose: () => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
@@ -153,22 +276,31 @@ export function MegaMenu({
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({
-    "thuc-an": true,
-    "do-choi": true,
-    "phu-kien": true,
-    "ve-sinh": true,
+    "thuc-an-cho": true,
+    "do-choi-cho": true,
+    "phu-kien-cho": true,
+    "ve-sinh-cho": true,
+    "thuc-an-meo": true,
+    "do-choi-meo": true,
+    "phu-kien-meo": true,
+    "ve-sinh-meo": true,
   });
 
   const menuId = useId();
+  const searchParams = useSearchParams();
 
-  // 1. Lấy danh mục đang active từ API thực tế
+  // Đọc params hiện tại trên URL để highlight mục active
+  const currentCategory = searchParams?.get("category") || "";
+  const currentPetType = searchParams?.get("petType") || "";
+
+  // 1. Lấy danh mục từ API theo petType (chỉ lấy danh mục của loại thú cưng tương ứng)
   useEffect(() => {
     let isActive = true;
 
     async function fetchCategories() {
       try {
         setLoading(true);
-        const res = await fetch("/api/v1/catalog/categories");
+        const res = await fetch(`/api/v1/catalog/categories?petType=${petType}`);
         const json = await res.json();
         if (isActive && json?.data?.categories) {
           setCategories(json.data.categories);
@@ -185,7 +317,7 @@ export function MegaMenu({
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [petType]);
 
   // 2. Lắng nghe phím ESC để đóng menu
   useEffect(() => {
@@ -201,26 +333,75 @@ export function MegaMenu({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Phân loại danh mục theo 4 nhóm cha
-  const groupedCategories = PARENT_GROUPS.map((group) => {
-    // Lọc danh mục thuộc nhóm này từ dữ liệu thật
-    const matched = categories.filter((c) => group.matches(c));
+  // 3. Chọn nhóm cha tương ứng theo petType (Chó hoặc Mèo)
+  const currentGroups = petType === "cat" ? CAT_PARENT_GROUPS : DOG_PARENT_GROUPS;
 
-    // Sắp xếp theo thứ tự ưu tiên hiển thị giống mẫu
-    const sorted = [...matched].sort((a, b) => {
-      const idxA = group.priority.indexOf(a.slug);
-      const idxB = group.priority.indexOf(b.slug);
-      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-      if (idxA !== -1) return -1;
-      if (idxB !== -1) return 1;
-      return a.name.localeCompare(b.name, "vi");
+  // 4. Lọc danh mục thuộc riêng loài thú cưng đang chọn & deduplicate
+  const filteredCategories = useMemo(() => {
+    return categories.filter((c) => {
+      const s = c.slug.toLowerCase();
+      const n = c.name.toLowerCase();
+
+      if (petType === "dog") {
+        // Loại bỏ danh mục của mèo
+        if (c.petType === "cat") return false;
+        if (s.includes("-meo") || n.includes("cho mèo") || n.includes("cho meo")) {
+          // Ngoại trừ mục dùng chung như "Sữa cho chó mèo"
+          if (!s.includes("sua-cho-cho-meo")) return false;
+        }
+        return true;
+      } else {
+        // petType === 'cat': Loại bỏ danh mục của chó
+        if (c.petType === "dog") return false;
+        if (s.includes("-cho") || n.includes("cho chó") || n.includes("cho cho")) {
+          if (!s.includes("sua-cho-cho-meo")) return false;
+        }
+        return true;
+      }
     });
+  }, [categories, petType]);
 
-    return {
-      ...group,
-      items: sorted,
-    };
-  });
+  // 5. Phân bổ vào 4 cột & loại bỏ trùng lặp tên hiển thị
+  const groupedCategories = useMemo(() => {
+    // Tập hợp slug đã hiển thị ở các nhóm trước để không bị lặp lại ở nhóm sau
+    const assignedSlugs = new Set<string>();
+
+    return currentGroups.map((group) => {
+      const matched = filteredCategories.filter((c) => {
+        if (assignedSlugs.has(c.slug)) return false;
+        return group.matches(c);
+      });
+
+      // Đánh dấu các slug đã gán
+      matched.forEach((c) => assignedSlugs.add(c.slug));
+
+      // Sắp xếp theo độ ưu tiên hiển thị
+      const sorted = [...matched].sort((a, b) => {
+        const idxA = group.priority.indexOf(a.slug);
+        const idxB = group.priority.indexOf(b.slug);
+        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+        if (idxA !== -1) return -1;
+        if (idxB !== -1) return 1;
+        return a.name.localeCompare(b.name, "vi");
+      });
+
+      // Deduplicate: nếu có 2 mục tên giống nhau (ví dụ "Đồ chơi" và "Đồ Chơi"), chỉ giữ lại 1 mục
+      const seenNames = new Set<string>();
+      const deduplicated: CategoryItem[] = [];
+      for (const item of sorted) {
+        const normalizedName = item.name.trim().toLowerCase();
+        if (!seenNames.has(normalizedName)) {
+          seenNames.add(normalizedName);
+          deduplicated.push(item);
+        }
+      }
+
+      return {
+        ...group,
+        items: deduplicated,
+      };
+    });
+  }, [currentGroups, filteredCategories]);
 
   const toggleAccordion = (id: string) => {
     setOpenAccordions((prev) => ({
@@ -235,10 +416,10 @@ export function MegaMenu({
     <div
       id={menuId}
       role="region"
-      aria-label="Menu danh mục sản phẩm cho chó"
+      aria-label={`Menu danh mục sản phẩm dành cho ${petType === "dog" ? "chó" : "mèo"}`}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className="absolute left-0 top-full z-50 w-full border-t border-gray-100 bg-white shadow-md transition-all duration-150 animate-in fade-in slide-in-from-top-1"
+      className="absolute left-0 top-full z-50 w-full border-t border-gray-100 bg-white shadow-xl transition-all duration-150 animate-in fade-in slide-in-from-top-1"
     >
       <div className="mx-auto max-w-[1280px] px-6 py-8 sm:px-8 lg:px-12">
         {loading && categories.length === 0 ? (
@@ -258,25 +439,39 @@ export function MegaMenu({
 
                   {/* Danh sách danh mục con */}
                   <ul className="m-0 flex flex-col gap-3.5 p-0 list-none">
-                    {group.items.map((item) => (
-                      <li key={item.slug}>
-                        <Link
-                          href={`/products?category=${item.slug}`}
-                          onClick={onClose}
-                          className="inline-block text-[15px] text-[#5B6178] no-underline transition-colors duration-150 hover:text-[#0B4DFF] focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B4DFF]"
-                        >
-                          {item.name}
-                        </Link>
-                      </li>
-                    ))}
+                    {group.items.map((item) => {
+                      const isItemActive =
+                        currentCategory === item.slug && currentPetType === petType;
+
+                      return (
+                        <li key={item.slug}>
+                          <Link
+                            href={`/products?category=${item.slug}&petType=${petType}`}
+                            onClick={onClose}
+                            className={`group inline-flex items-center gap-2 text-[15px] no-underline transition-all duration-150 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B4DFF] ${
+                              isItemActive
+                                ? "font-bold text-[#0B4DFF]"
+                                : "text-[#5B6178] hover:text-[#0B4DFF]"
+                            }`}
+                          >
+                            {isItemActive && (
+                              <span className="inline-block size-1.5 rounded-full bg-[#0B4DFF]" />
+                            )}
+                            <span className={isItemActive ? "font-bold" : "font-normal"}>
+                              {item.name}
+                            </span>
+                          </Link>
+                        </li>
+                      );
+                    })}
                   </ul>
 
                   {/* Link "Xem tất cả" */}
                   <div className="mt-auto pt-6">
                     <Link
-                      href={`/products?category=${group.defaultSlug}`}
+                      href={`/products?category=${group.defaultSlug}&petType=${petType}`}
                       onClick={onClose}
-                      className="group flex items-center justify-between gap-2 text-[15px] font-bold text-[#0B4DFF] no-underline transition-colors hover:text-[#0B4DFF] focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B4DFF]"
+                      className="group flex items-center justify-between gap-2 text-[15px] font-bold text-[#0B4DFF] no-underline transition-colors hover:text-[#083ecf] focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B4DFF]"
                     >
                       <span className="min-w-0 flex-1 leading-snug">
                         {group.viewAllTitle}
@@ -315,22 +510,34 @@ export function MegaMenu({
                     {isExpanded && (
                       <div className="mt-3.5 pl-2 animate-in fade-in slide-in-from-top-1">
                         <ul className="flex flex-col gap-3 list-none p-0 m-0">
-                          {group.items.map((item) => (
-                            <li key={item.slug}>
-                              <Link
-                                href={`/products?category=${item.slug}`}
-                                onClick={onClose}
-                                className="block text-[14px] text-[#5B6178] no-underline transition-colors hover:text-[#0B4DFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B4DFF]"
-                              >
-                                {item.name}
-                              </Link>
-                            </li>
-                          ))}
+                          {group.items.map((item) => {
+                            const isItemActive =
+                              currentCategory === item.slug && currentPetType === petType;
+
+                            return (
+                              <li key={item.slug}>
+                                <Link
+                                  href={`/products?category=${item.slug}&petType=${petType}`}
+                                  onClick={onClose}
+                                  className={`flex items-center gap-2 text-[14px] no-underline transition-colors hover:text-[#0B4DFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B4DFF] ${
+                                    isItemActive
+                                      ? "font-bold text-[#0B4DFF]"
+                                      : "text-[#5B6178]"
+                                  }`}
+                                >
+                                  {isItemActive && (
+                                    <span className="size-1.5 rounded-full bg-[#0B4DFF]" />
+                                  )}
+                                  <span>{item.name}</span>
+                                </Link>
+                              </li>
+                            );
+                          })}
                         </ul>
 
                         <div className="mt-4 pt-2">
                           <Link
-                            href={`/products?category=${group.defaultSlug}`}
+                            href={`/products?category=${group.defaultSlug}&petType=${petType}`}
                             onClick={onClose}
                             className="group flex items-center justify-between text-[14px] font-bold text-[#0B4DFF] no-underline"
                           >
@@ -353,4 +560,3 @@ export function MegaMenu({
     </div>
   );
 }
-
