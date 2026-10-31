@@ -30,7 +30,7 @@ export async function getStaffProducts(request, response, next) {
         $or: [{ name: category }, { slug: category.toLowerCase() }],
       }).lean();
       if (foundCategory) {
-        mongoFilter.categoryId = foundCategory._id;
+        mongoFilter.categoryIds = foundCategory._id;
       }
     }
 
@@ -45,7 +45,7 @@ export async function getStaffProducts(request, response, next) {
     }
 
     const products = await Product.find(mongoFilter)
-      .populate("categoryId", "name slug")
+      .populate("categoryIds", "name slug")
       .sort({ updatedAt: -1 })
       .lean();
 
@@ -58,7 +58,7 @@ export async function getStaffProducts(request, response, next) {
     let totalHidden = 0;
 
     for (const prod of products) {
-      const categoryName = prod.categoryId?.name || "Chưa phân loại";
+      const categoryName = prod.categoryIds?.[0]?.name || "Chưa phân loại";
       const isItemActive = Boolean(prod.isActive);
 
       if (isItemActive) {
@@ -128,7 +128,7 @@ export async function getProductBySku(request, response, next) {
     const sku = parseProductSku(request.params);
 
     const product = await Product.findOne({ "variants.sku": sku })
-      .populate("categoryId", "name slug")
+      .populate("categoryIds", "name slug")
       .lean();
 
     if (!product) {
@@ -143,7 +143,9 @@ export async function getProductBySku(request, response, next) {
       productId: product._id,
       sku: variant?.sku || sku,
       name: product.name,
-      category: product.categoryId?.name || "Chưa phân loại",
+      category: product.categoryIds?.[0]?.name || "Chưa phân loại",
+      categories: (product.categoryIds || []).map((c) => ({ _id: c._id, name: c.name, slug: c.slug })),
+      categoryIds: (product.categoryIds || []).map((c) => c._id || c),
       brand: product.brand || "",
       weight: variant?.label || "",
       price: variant?.price || 0,
@@ -179,7 +181,7 @@ export async function getPublicProducts(request, response, next) {
       const foundCategory = await Category.findOne({
         $or: [{ name: category }, { slug: category.toLowerCase() }],
       }).lean();
-      if (foundCategory) filter.categoryId = foundCategory._id;
+      if (foundCategory) filter.categoryIds = foundCategory._id;
     }
 
     if (petType && petType !== "all") {
@@ -192,7 +194,7 @@ export async function getPublicProducts(request, response, next) {
     }
 
     const products = await Product.find(filter)
-      .populate("categoryId", "name slug")
+      .populate("categoryIds", "name slug")
       .sort({ updatedAt: -1 })
       .lean();
 

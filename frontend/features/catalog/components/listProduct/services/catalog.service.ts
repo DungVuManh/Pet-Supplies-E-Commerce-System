@@ -29,7 +29,14 @@ export async function getProductsApi(
   if (filter.sort && filter.sort !== "default") {
     params.set("sort", filter.sort);
   }
+  if (filter.minPrice !== undefined && filter.minPrice !== null && filter.minPrice > 0) {
+    params.set("minPrice", String(filter.minPrice));
+  }
+  if (filter.maxPrice !== undefined && filter.maxPrice !== null && filter.maxPrice < 10000000) {
+    params.set("maxPrice", String(filter.maxPrice));
+  }
   params.set("page", String(filter.page));
+  params.set("limit", String(filter.limit || 20));
 
   const url = `${BASE_URL}/api/v1/catalog/products?${params.toString()}`;
   console.log("[CatalogService] GET Products URL:", url);

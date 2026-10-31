@@ -13,7 +13,7 @@ let app, product, role, update, auth;
 const chain = (value) => ({ populate() { return this; }, lean: async () => value });
 beforeEach(() => {
   app = createApp(parseEnvironment({ NODE_ENV: "test" })); role = "staff";
-  product = { _id: id, name: "Sản phẩm thật", categoryId: { name: "Thức ăn" }, isActive: true, description: baseline.description,
+  product = { _id: id, name: "Sản phẩm thật", categoryIds: [{ name: "Thức ăn" }], isActive: true, description: baseline.description,
     variants: [{ sku, label: "1 kg", price: 100000, stock: 10, reservedStock: 3 },
       { sku: "OTHER-SKU", label: "2 kg", price: 180000, stock: 7, reservedStock: 1 }] };
   auth = { verifySessionCookie: vi.fn().mockResolvedValue({ uid: "staff" }) };
