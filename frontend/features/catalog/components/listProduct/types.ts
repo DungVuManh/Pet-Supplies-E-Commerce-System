@@ -79,6 +79,9 @@ export type CatalogFilter = {
   priceRanges: string[];
   sort: string;
   page: number;
+  limit?: number;
+  minPrice?: number;
+  maxPrice?: number;
 };
 
 // Kết quả API lấy chi tiết một sản phẩm

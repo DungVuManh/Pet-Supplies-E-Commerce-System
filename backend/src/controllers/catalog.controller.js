@@ -77,7 +77,7 @@ function formatProduct(product) {
 // 1. GET /api/catalog/products
 export async function getAllProducts(request, response, next) {
   try {
-    const { search, category, petType, brands, priceRanges, sort, page, limit } =
+    const { search, category, petType, brands, priceRanges, sort, page, limit, minPrice, maxPrice } =
       parseCatalogQuery(request.query);
 
     const mongoFilter = { isActive: true };
