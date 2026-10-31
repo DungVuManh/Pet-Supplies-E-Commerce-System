@@ -27,9 +27,10 @@ const DEFAULT_FILTER: CatalogFilter = {
   limit: 20,
 };
 
-export function useProductList() {
+export function useProductList(defaultCategory?: string) {
  const searchParams = useSearchParams();
- const categoryParam = searchParams?.get("category") || "all";
+ // Ưu tiên: defaultCategory (từ server) → URL param → "all"
+ const categoryParam = defaultCategory || searchParams?.get("category") || "all";
 
  // 1. State lưu dữ liệu trả về từ API
  const [products, setProducts] = useState<CatalogProduct[]>([]);
@@ -49,11 +50,13 @@ export function useProductList() {
  }));
  const [searchInput, setSearchInput] = useState("");
 
- useEffect(() => {
-  if (categoryParam && categoryParam !== filter.category) {
-   setFilter((prev) => ({ ...prev, category: categoryParam, page: 1 }));
-  }
- }, [categoryParam]);
+  useEffect(() => {
+    // Khi URL thay doi (navigate tu mega menu), sync filter theo categoryParam moi
+    setFilter((prev) => {
+      if (prev.category === categoryParam) return prev;
+      return { ...prev, category: categoryParam, page: 1 };
+    });
+  }, [categoryParam]);
 
  useEffect(() => {
   async function fetchFilterOptions() {

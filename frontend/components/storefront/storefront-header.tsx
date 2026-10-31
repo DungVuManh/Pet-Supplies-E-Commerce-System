@@ -9,46 +9,60 @@ import { StorefrontSearch, StorefrontSearchForm } from "./storefront-search";
 import { AccountMenu } from "@/features/auth/components/account-menu";
 import { MegaMenu } from "./mega-menu";
 
-const categories = [
+type NavigationCategory = {
+    name: string;
+    href: string;
+    petType?: "dog" | "cat";
+};
+
+const categories: NavigationCategory[] = [
     { name: "Sản phẩm", href: "/listProduct/allProducts" },
-    { name: "Dành cho chó", href: "/products?petType=dog", hasDropdown: true },
-    { name: "Dành cho mèo", href: "/?category=cat#featured-products" },
+    { name: "Dành cho chó", href: "/products?petType=dog", petType: "dog" },
+    { name: "Dành cho mèo", href: "/products?petType=cat", petType: "cat" },
 ];
+
 const pageHome = [
     { name: "Trang chủ", href: "/" }
 ];
 
 export function StorefrontHeader() {
-    const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
+    const [activeMenu, setActiveMenu] = useState<"dog" | "cat" | null>(null);
     const headerRef = useRef<HTMLElement>(null);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Xử lý mở/đóng có độ trễ nhỏ (~100ms) khi hover để tránh nhấp nháy
-    const handleMouseEnter = () => {
+    // Mở menu có độ trễ nhỏ (~100ms) khi hover để trải nghiệm mượt mà, tránh nhấp nháy
+    const handleMouseEnter = (type: "dog" | "cat") => {
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => {
-            setIsMegaMenuOpen(true);
+            setActiveMenu(type);
         }, 100);
     };
 
+    // Khi con chuột di chuyển vào trong panel dropdown -> hủy hẹn giờ đóng
+    const handleMenuMouseEnter = () => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+    };
+
+    // Đóng menu có độ trễ (~100ms) khi chuột rời khỏi vùng kích hoạt
     const handleMouseLeave = () => {
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => {
-            setIsMegaMenuOpen(false);
+            setActiveMenu(null);
         }, 100);
     };
 
-    const handleToggleClick = (e: React.MouseEvent) => {
+    // Click vào nút để đóng/mở trực tiếp
+    const handleToggleClick = (e: React.MouseEvent, type: "dog" | "cat") => {
         e.preventDefault();
         if (timerRef.current) clearTimeout(timerRef.current);
-        setIsMegaMenuOpen((prev) => !prev);
+        setActiveMenu((prev) => (prev === type ? null : type));
     };
 
     // Đóng dropdown khi click ra ngoài header
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
             if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
-                setIsMegaMenuOpen(false);
+                setActiveMenu(null);
             }
         }
 
@@ -97,28 +111,31 @@ export function StorefrontHeader() {
                                 </li>
                             ))}
                             {categories.map((category) => {
-                                if (category.hasDropdown) {
+                                if (category.petType) {
+                                    const isOpen = activeMenu === category.petType;
+                                    const petType = category.petType;
+
                                     return (
                                         <li
                                             key={category.name}
                                             className="flex items-center gap-1.5"
-                                            onMouseEnter={handleMouseEnter}
+                                            onMouseEnter={() => handleMouseEnter(petType)}
                                             onMouseLeave={handleMouseLeave}
                                         >
                                             <button
                                                 type="button"
-                                                onClick={handleToggleClick}
-                                                aria-expanded={isMegaMenuOpen}
+                                                onClick={(e) => handleToggleClick(e, petType)}
+                                                aria-expanded={isOpen}
                                                 aria-haspopup="true"
-                                                aria-label="Danh mục sản phẩm dành cho chó"
+                                                aria-label={`Danh mục sản phẩm ${category.name.toLowerCase()}`}
                                                 className={`flex items-center gap-1 font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B4DFF] focus-visible:rounded ${
-                                                    isMegaMenuOpen ? "text-[#0B4DFF]" : "hover:text-brand"
+                                                    isOpen ? "text-[#0B4DFF]" : "hover:text-brand"
                                                 }`}
                                             >
                                                 <span>{category.name}</span>
                                                 <ChevronDown
                                                     className={`size-3.5 transition-transform duration-150 ${
-                                                        isMegaMenuOpen ? "rotate-180 text-[#0B4DFF]" : "text-muted"
+                                                        isOpen ? "rotate-180 text-[#0B4DFF]" : "text-muted"
                                                     }`}
                                                     aria-hidden="true"
                                                 />
@@ -146,11 +163,12 @@ export function StorefrontHeader() {
                 </div>
             </div>
 
-            {/* Panel dropdown mega menu danh mục cho chó */}
+            {/* Panel dropdown mega menu danh mục cho Chó & Mèo */}
             <MegaMenu
-                isOpen={isMegaMenuOpen}
-                onClose={() => setIsMegaMenuOpen(false)}
-                onMouseEnter={handleMouseEnter}
+                isOpen={Boolean(activeMenu)}
+                petType={activeMenu || "dog"}
+                onClose={() => setActiveMenu(null)}
+                onMouseEnter={handleMenuMouseEnter}
                 onMouseLeave={handleMouseLeave}
             />
         </header>
