@@ -51,6 +51,8 @@ function buildSortOption(sort) {
 function formatProduct(product) {
   const prices = (product.variants || []).map((v) => v.price).filter((p) => p != null);
   const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+  const categories = Array.isArray(product.categoryIds) ? product.categoryIds : [];
+  const primaryCategory = categories[0] || {};
 
   return {
     _id: product._id,
@@ -58,8 +60,10 @@ function formatProduct(product) {
     brand: product.brand || "",
     description: product.description || "",
     petType: product.petType,
-    category: product.categoryId?.name || "Chưa phân loại",
-    categorySlug: product.categoryId?.slug || "",
+    category: primaryCategory.name || "Chưa phân loại",
+    categorySlug: primaryCategory.slug || "",
+    categories: categories.map((c) => ({ _id: c._id, name: c.name, slug: c.slug })),
+    categoryIds: categories.map((c) => c._id || c),
     image: product.images?.[0] || "/images/products/default.png",
     images: product.images || [],
     price: minPrice,
@@ -83,7 +87,7 @@ export async function getAllProducts(request, response, next) {
         $or: [{ name: category }, { slug: category.toLowerCase() }],
       }).lean();
       if (foundCategory) {
-        mongoFilter.categoryId = foundCategory._id;
+        mongoFilter.categoryIds = foundCategory._id;
       }
     }
 
@@ -129,7 +133,7 @@ export async function getAllProducts(request, response, next) {
 
     const [products, totalCount] = await Promise.all([
       Product.find(mongoFilter)
-        .populate("categoryId", "name slug")
+        .populate("categoryIds", "name slug")
         .sort(sortOption)
         .skip(skip)
         .limit(limit)
@@ -213,7 +217,7 @@ export async function getProductDetail(request, response, next) {
     }
 
     const product = await Product.findOne(mongoFilter)
-      .populate("categoryId", "name slug")
+      .populate("categoryIds", "name slug")
       .lean();
 
     if (!product) {
@@ -244,8 +248,10 @@ export async function getProductDetail(request, response, next) {
       brand: product.brand || "",
       description: product.description || "",
       petType: product.petType,
-      category: product.categoryId?.name || "Chưa phân loại",
-      categorySlug: product.categoryId?.slug || "",
+      category: (product.categoryIds?.[0]?.name) || "Chưa phân loại",
+      categorySlug: (product.categoryIds?.[0]?.slug) || "",
+      categories: (product.categoryIds || []).map((c) => ({ _id: c._id, name: c.name, slug: c.slug })),
+      categoryIds: (product.categoryIds || []).map((c) => c._id || c),
       image: product.images?.[0] || "/images/products/royal-canin-mini-adult.png",
       images:
         product.images && product.images.length > 0

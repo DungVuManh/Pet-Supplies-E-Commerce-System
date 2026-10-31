@@ -79,7 +79,7 @@ describe("sample data seed", () => {
       expect(product).toMatchObject({ name: source.name, brand: source.brand, description: source.description,
         images: source.images, ratingAvg: source.ratingAvg });
       const expectedCatId = source.categoryIds?.[0]?.$oid || source.categoryId?.$oid;
-      if (expectedCatId) expect(String(product.categoryId)).toBe(expectedCatId);
+      if (expectedCatId) expect(product.categoryIds.map(String)).toContain(expectedCatId);
       expect(Object.hasOwn(product, "soldCount")).toBe(false);
     }
   });
@@ -124,7 +124,7 @@ describe("sample data seed", () => {
         }
       }
     }
-    for (const product of products.values()) expect(categoryIds.has(String(product.categoryId))).toBe(true);
+    for (const product of products.values()) expect(product.categoryIds.every((id) => categoryIds.has(String(id)))).toBe(true);
     expect(new Set([...orders.values()].map((order) => order.orderStatus)).size).toBe(6);
     expect([...orders.values()].some((order) => order.guestInfo && !order.customerId)).toBe(true);
     expect([...orders.values()].find((order) => order.channel === "offline").createdByStaffId).toEqual(users.staff._id);
@@ -159,14 +159,14 @@ describe("sample data seed", () => {
     const targetSku = source.variants[0].sku;
     const product = new models.Product({
       name: "Sản phẩm đã chỉnh sửa", description: "Mô tả cũ", petType: "dog", isActive: false,
-      categoryId: new mongoose.Types.ObjectId(),
+      categoryIds: [new mongoose.Types.ObjectId()],
       variants: [
         { sku: targetSku, label: "2 kg", price: 123456, stock: source.variants[0].stock + 10, reservedStock: source.variants[0].stock },
         { sku: "CUSTOM-SKU", label: "Biến thể riêng", price: 90000, stock: 70, reservedStock: 5 },
       ],
     }).toObject();
     product.soldCount = 1234;
-    const originalCategoryId = String(product.categoryId);
+    const originalCategoryIds = product.categoryIds.map(String);
     const originalCustomVariant = structuredClone(product.variants[1]);
     const cart = new models.Cart({ userId: users.customer._id, items: [] }).toObject();
     const wishlist = new models.Wishlist({ userId: users.customer._id, productIds: [] }).toObject();
@@ -183,7 +183,7 @@ describe("sample data seed", () => {
     expect(product.variants[1]).toEqual(originalCustomVariant);
     expect(product.name).toBe("Sản phẩm đã chỉnh sửa");
     expect(product.isActive).toBe(false);
-    expect(String(product.categoryId)).toBe(originalCategoryId);
+    expect(product.categoryIds.map(String)).toEqual(originalCategoryIds);
     expect(Object.hasOwn(product, "soldCount")).toBe(false);
     expect(documents(models.Cart)).toContain(cart);
     expect(documents(models.Wishlist)).toContain(wishlist);
@@ -197,7 +197,7 @@ describe("sample data seed", () => {
 
   it("leaves products outside the seed SKUs unchanged", async () => {
     const product = new models.Product({ name: "Sản phẩm riêng", description: "Mô tả riêng", petType: "dog",
-      categoryId: new mongoose.Types.ObjectId(), variants: [{ sku: "NOT-IN-SEED", label: "1 kg", price: 100000, stock: 90 }],
+      categoryIds: [new mongoose.Types.ObjectId()], variants: [{ sku: "NOT-IN-SEED", label: "1 kg", price: 100000, stock: 90 }],
     }).toObject();
     product.soldCount = 99;
     stored.set(key(models.Product, { _id: product._id }), product);
@@ -210,7 +210,7 @@ describe("sample data seed", () => {
     const source = sourceProducts[0];
     const targetSku = source.variants[0].sku;
     const product = new models.Product({ name: source.name, description: "Mô tả đang sử dụng", petType: "dog",
-      categoryId: new mongoose.Types.ObjectId(), variants: [{ ...source.variants[0], stock: source.variants[0].stock + 10, reservedStock: source.variants[0].stock + 1 }],
+      categoryIds: [new mongoose.Types.ObjectId()], variants: [{ ...source.variants[0], stock: source.variants[0].stock + 10, reservedStock: source.variants[0].stock + 1 }],
     }).toObject();
     stored.set(key(models.Product, { _id: product._id }), product);
     const before = JSON.stringify(product);
@@ -222,7 +222,7 @@ describe("sample data seed", () => {
   it("rejects a stale product snapshot without overwriting a concurrent edit", async () => {
     const source = sourceProducts[0];
     const product = new models.Product({ name: source.name, description: "Mô tả cũ", petType: "dog",
-      categoryId: new mongoose.Types.ObjectId(), variants: source.variants,
+      categoryIds: [new mongoose.Types.ObjectId()], variants: source.variants,
     }).toObject();
     stored.set(key(models.Product, { _id: product._id }), product);
     const before = JSON.stringify(product);

@@ -148,7 +148,7 @@ export async function seedSampleData() {
     if (!categoryIds.length && categoryId) categoryIds = [categoryId];
     if (!categoryIds.length) throw new SeedError("Seed Product: không tìm thấy danh mục của sản phẩm mẫu.");
     const product = await seedProduct({ "variants.sku": item.variants[0].sku }, {
-      name: item.name, categoryIds, categoryId, brand: item.brand,
+      name: item.name, categoryIds, brand: item.brand,
       petType: item.petType === "both" ? "all" : item.petType,
       description: item.description, images: item.images, isActive: true,
       variants: item.variants, ratingAvg: item.ratingAvg, ratingCount: item.ratingCount ?? 0,
