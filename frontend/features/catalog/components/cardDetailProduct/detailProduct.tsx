@@ -118,6 +118,7 @@ export function DetailProduct({ product }: { product: Product }) {
           {/* Thao tác chọn số lượng, thêm giỏ hàng, mua ngay & lưu yêu thích */}
           <ProductActions
             quantity={quantity}
+            currentStock={currentStock}
             isLove={isLove}
             isOutOfStock={isOutOfStock}
             isAddingToCart={isAddingToCart}

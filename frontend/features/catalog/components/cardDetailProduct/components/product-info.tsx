@@ -66,13 +66,13 @@ export function ProductInfo({
 
    {/* 2. Hàng đánh giá & số lượng đã bán ngay bên dưới: ⭐⭐⭐⭐⭐ 5.0 (4k đánh giá) | Đã bán 166k+ */}
    <div className="mt-2.5 flex items-center flex-wrap gap-2 text-sm text-slate-600">
-    {/* 5 ngôi sao vàng */}
+    {/* 5 ngôi sao */}
     <div className="flex items-center gap-0.5">
      {Array.from({ length: 5 }).map((_, i) => (
       <Star
        key={i}
        className={`size-4 ${
-        i < Math.round(effectiveRating)
+        ratingCount > 0 && i < Math.round(effectiveRating)
          ? "fill-amber-400 text-amber-400"
          : "fill-gray-200 text-gray-200"
        }`}
@@ -81,10 +81,16 @@ export function ProductInfo({
     </div>
 
     {/* Điểm đánh giá & số lượt đánh giá */}
-    <span className="font-bold text-gray-900 ml-0.5">
-     {effectiveRating.toFixed(1)}
-    </span>
-    <span className="text-gray-500">({formatRatingCount(ratingCount)})</span>
+    {ratingCount > 0 ? (
+      <>
+        <span className="font-bold text-gray-900 ml-0.5">
+         {effectiveRating.toFixed(1)}
+        </span>
+        <span className="text-gray-500">({formatRatingCount(ratingCount)})</span>
+      </>
+    ) : (
+      <span className="text-slate-400 text-xs sm:text-sm">Chưa có đánh giá</span>
+    )}
 
     {/* Dấu gạch đứng ngăn cách */}
     <span className="text-gray-300 mx-1">|</span>

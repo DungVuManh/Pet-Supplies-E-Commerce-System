@@ -1,6 +1,7 @@
 // =============================================================
 // features/catalog/components/cardDetailProduct/hooks/use-product-detail.ts
 // Hook quản lý toàn bộ logic và state của màn hình chi tiết sản phẩm
+// Hỗ trợ chọn biến thể, tự động cập nhật giá và số lượng tồn kho tương ứng
 // =============================================================
 
 import { useState } from "react";
@@ -39,7 +40,20 @@ export function useProductDetail(product: Product) {
   const ratingAvg = product.ratingAvg ?? 0;
   const ratingCount = product.ratingCount ?? 0;
 
-  const increaseQuantity = () => setQuantity((q) => q + 1);
+  // Khi người dùng chọn biến thể mới, nếu số lượng đang chọn lớn hơn tồn kho của biến thể đó thì giảm về tồn kho
+  const handleSelectVariant = (index: number) => {
+    setSelectedVariantIndex(index);
+    const newVariant = variants[index];
+    const newStock = newVariant?.availableStock ?? newVariant?.stock ?? 0;
+    if (newStock > 0 && quantity > newStock) {
+      setQuantity(newStock);
+    } else if (newStock <= 0) {
+      setQuantity(1);
+    }
+  };
+
+  const increaseQuantity = () =>
+    setQuantity((q) => (currentStock > 0 ? Math.min(q + 1, currentStock) : 1));
   const decreaseQuantity = () => setQuantity((q) => Math.max(1, q - 1));
   const toggleLove = () => setIsLove((prev) => !prev);
 
@@ -100,7 +114,7 @@ export function useProductDetail(product: Product) {
     setActiveImage,
     variants,
     selectedVariantIndex,
-    setSelectedVariantIndex,
+    setSelectedVariantIndex: handleSelectVariant,
     currentVariant,
     currentPrice,
     currentStock,

@@ -431,112 +431,112 @@
   "variants": [
    {
     "sku": "PATE-MEO-NEKKO-JEL-001",
-    "label": "Mặc định",
+    "label": "Cá ngừ thạch (Tuna Jelly) (Lô #1)",
     "price": 17000,
     "stock": 31,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-JEL-002",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Cá hồi (Tuna & Salmon) (Lô #1)",
     "price": 17000,
     "stock": 154,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-JEL-003",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Thịt gà (Tuna & Chicken) (Lô #1)",
     "price": 17000,
     "stock": 127,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-JEL-004",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Thanh cua (Tuna & Kanikama) (Lô #1)",
     "price": 17000,
     "stock": 12,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-JEL-005",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Rong biển (Tuna & Seaweed) (Lô #1)",
     "price": 17000,
     "stock": 133,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-JEL-006",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Phô mai (Tuna & Cheese) (Lô #1)",
     "price": 17000,
     "stock": 25,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-JEL-007",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Trứng cá (Tuna & Shirasu) (Lô #1)",
     "price": 17000,
     "stock": 92,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-JEL-008",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Cá bào Katsuobushi (Lô #1)",
     "price": 17000,
     "stock": 147,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-JEL-009",
-    "label": "Mặc định",
+    "label": "Cá ngừ thạch (Tuna Jelly) (Lô #2)",
     "price": 17000,
     "stock": 131,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-JEL-010",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Cá hồi (Tuna & Salmon) (Lô #2)",
     "price": 17000,
     "stock": 50,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-JEL-011",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Thịt gà (Tuna & Chicken) (Lô #2)",
     "price": 17000,
     "stock": 65,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-JEL-012",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Thanh cua (Tuna & Kanikama) (Lô #2)",
     "price": 17000,
     "stock": 7,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-JEL-013",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Rong biển (Tuna & Seaweed) (Lô #2)",
     "price": 17000,
     "stock": 95,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-JEL-014",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Phô mai (Tuna & Cheese) (Lô #2)",
     "price": 17000,
     "stock": 136,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-JEL-015",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Trứng cá (Tuna & Shirasu) (Lô #2)",
     "price": 17000,
     "stock": 27,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-JEL-016",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Cá bào Katsuobushi (Lô #2)",
     "price": 17000,
     "stock": 43,
     "reservedStock": 0
@@ -583,189 +583,189 @@
   "variants": [
    {
     "sku": "PATE-CHO-MEO-SNAPP-014",
-    "label": "Mặc định",
+    "label": "Cá mòi với gà (Sardines with chicken) (Lô #1)",
     "price": 29000,
     "stock": 187,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-015",
-    "label": "Mặc định",
+    "label": "Cá mòi băm (Sardine mince) (Lô #1)",
     "price": 29000,
     "stock": 7,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-016",
-    "label": "Mặc định",
+    "label": "Cá mòi xông khói cá hồi (Sardines in smoked salmon) (Lô #1)",
     "price": 29000,
     "stock": 72,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-017",
-    "label": "Mặc định",
+    "label": "Cá trích nguyên con (Whole fish) (Lô #1)",
     "price": 29000,
     "stock": 21,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-018",
-    "label": "Mặc định",
+    "label": "Cá ngừ & cá trích (Tuna with sardines) (Lô #1)",
     "price": 29000,
     "stock": 36,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-019",
-    "label": "Mặc định",
+    "label": "Cá ngừ & thịt gà (Tuna with chicken) (Lô #1)",
     "price": 29000,
     "stock": 126,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-020",
-    "label": "Mặc định",
+    "label": "Thịt gà nguyên chất (Chicken) (Lô #1)",
     "price": 29000,
     "stock": 112,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-021",
-    "label": "Mặc định",
+    "label": "Thịt cừu dinh dưỡng (Lamb) (Lô #1)",
     "price": 29000,
     "stock": 171,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-022",
-    "label": "Mặc định",
+    "label": "Gan bò & thịt gà (Beef liver & chicken) (Lô #1)",
     "price": 29000,
     "stock": 131,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-023",
-    "label": "Mặc định",
+    "label": "Cá hồi đại dương (Salmon) (Lô #1)",
     "price": 29000,
     "stock": 120,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-024",
-    "label": "Mặc định",
+    "label": "Cá trích sốt gravy (Fish in gravy) (Lô #1)",
     "price": 29000,
     "stock": 132,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-025",
-    "label": "Mặc định",
+    "label": "Gà sốt gravy (Chicken in gravy) (Lô #1)",
     "price": 29000,
     "stock": 188,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-026",
-    "label": "Mặc định",
+    "label": "Cá ngừ đại dương (Tuna) (Lô #1)",
     "price": 29000,
     "stock": 54,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-027",
-    "label": "Mặc định",
+    "label": "Cá mòi với gà (Sardines with chicken) (Lô #2)",
     "price": 29000,
     "stock": 58,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-028",
-    "label": "Mặc định",
+    "label": "Cá mòi băm (Sardine mince) (Lô #2)",
     "price": 29000,
     "stock": 165,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-029",
-    "label": "Mặc định",
+    "label": "Cá mòi xông khói cá hồi (Sardines in smoked salmon) (Lô #2)",
     "price": 29000,
     "stock": 99,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-030",
-    "label": "Mặc định",
+    "label": "Cá trích nguyên con (Whole fish) (Lô #2)",
     "price": 29000,
     "stock": 90,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-031",
-    "label": "Mặc định",
+    "label": "Cá ngừ & cá trích (Tuna with sardines) (Lô #2)",
     "price": 29000,
     "stock": 164,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-032",
-    "label": "Mặc định",
+    "label": "Cá ngừ & thịt gà (Tuna with chicken) (Lô #2)",
     "price": 29000,
     "stock": 86,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-033",
-    "label": "Mặc định",
+    "label": "Thịt gà nguyên chất (Chicken) (Lô #2)",
     "price": 29000,
     "stock": 182,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-034",
-    "label": "Mặc định",
+    "label": "Thịt cừu dinh dưỡng (Lamb) (Lô #2)",
     "price": 29000,
     "stock": 189,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-035",
-    "label": "Mặc định",
+    "label": "Gan bò & thịt gà (Beef liver & chicken) (Lô #2)",
     "price": 29000,
     "stock": 59,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-036",
-    "label": "Mặc định",
+    "label": "Cá hồi đại dương (Salmon) (Lô #2)",
     "price": 29000,
     "stock": 27,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-037",
-    "label": "Mặc định",
+    "label": "Cá trích sốt gravy (Fish in gravy) (Lô #2)",
     "price": 29000,
     "stock": 74,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-038",
-    "label": "Mặc định",
+    "label": "Gà sốt gravy (Chicken in gravy) (Lô #2)",
     "price": 29000,
     "stock": 22,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-039",
-    "label": "Mặc định",
+    "label": "Cá ngừ đại dương (Tuna) (Lô #2)",
     "price": 29000,
     "stock": 98,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-040",
-    "label": "Mặc định",
+    "label": "Cá mòi với gà (Sardines with chicken) (Lô #3)",
     "price": 29000,
     "stock": 14,
     "reservedStock": 0
@@ -803,112 +803,112 @@
   "variants": [
    {
     "sku": "PATE-MEO-NEKKO-GRA-001",
-    "label": "Mặc định",
+    "label": "Cá ngừ sốt gravy (Tuna Gravy) (Lô #1)",
     "price": 17000,
     "stock": 199,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-GRA-002",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Cá hồi sốt gravy (Lô #1)",
     "price": 17000,
     "stock": 78,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-GRA-003",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Thịt gà sốt gravy (Lô #1)",
     "price": 17000,
     "stock": 94,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-GRA-004",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Tôm sốt gravy (Lô #1)",
     "price": 17000,
     "stock": 194,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-GRA-005",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Cua sốt gravy (Lô #1)",
     "price": 17000,
     "stock": 199,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-GRA-006",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Cá bào sốt gravy (Lô #1)",
     "price": 17000,
     "stock": 78,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-GRA-007",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Tráp đỏ sốt gravy (Lô #1)",
     "price": 17000,
     "stock": 165,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-GRA-008",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Trứng sốt gravy (Lô #1)",
     "price": 17000,
     "stock": 35,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-GRA-009",
-    "label": "Mặc định",
+    "label": "Cá ngừ sốt gravy (Tuna Gravy) (Lô #2)",
     "price": 17000,
     "stock": 56,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-GRA-010",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Cá hồi sốt gravy (Lô #2)",
     "price": 17000,
     "stock": 113,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-GRA-011",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Thịt gà sốt gravy (Lô #2)",
     "price": 17000,
     "stock": 131,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-GRA-012",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Tôm sốt gravy (Lô #2)",
     "price": 17000,
     "stock": 25,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-GRA-013",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Cua sốt gravy (Lô #2)",
     "price": 17000,
     "stock": 80,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-GRA-014",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Cá bào sốt gravy (Lô #2)",
     "price": 17000,
     "stock": 103,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-GRA-015",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Tráp đỏ sốt gravy (Lô #2)",
     "price": 17000,
     "stock": 84,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-NEKKO-GRA-016",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Trứng sốt gravy (Lô #2)",
     "price": 17000,
     "stock": 111,
     "reservedStock": 0
@@ -945,98 +945,98 @@
   "variants": [
    {
     "sku": "PATE-MEO-TRUONG-TH-001",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Cá hồi / Lon 400g (Lô #1)",
     "price": 20000,
     "stock": 154,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-TRUONG-TH-002",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Gà / Lon 400g (Lô #1)",
     "price": 20000,
     "stock": 145,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-TRUONG-TH-003",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Tôm / Lon 400g (Lô #1)",
     "price": 20000,
     "stock": 77,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-TRUONG-TH-004",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Cua / Lon 400g (Lô #1)",
     "price": 20000,
     "stock": 137,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-TRUONG-TH-005",
-    "label": "Mặc định",
+    "label": "Cá trích biển / Lon 400g (Lô #1)",
     "price": 20000,
     "stock": 37,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-TRUONG-TH-006",
-    "label": "Mặc định",
+    "label": "Hải sản hỗn hợp / Lon 400g (Lô #1)",
     "price": 20000,
     "stock": 11,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-TRUONG-TH-007",
-    "label": "Mặc định",
+    "label": "Cá thu đại dương / Lon 400g (Lô #1)",
     "price": 20000,
     "stock": 119,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-TRUONG-TH-008",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Cá hồi / Lon 400g (Lô #2)",
     "price": 20000,
     "stock": 55,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-TRUONG-TH-009",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Gà / Lon 400g (Lô #2)",
     "price": 20000,
     "stock": 181,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-TRUONG-TH-010",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Tôm / Lon 400g (Lô #2)",
     "price": 20000,
     "stock": 181,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-TRUONG-TH-011",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Cua / Lon 400g (Lô #2)",
     "price": 20000,
     "stock": 154,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-TRUONG-TH-012",
-    "label": "Mặc định",
+    "label": "Cá trích biển / Lon 400g (Lô #2)",
     "price": 20000,
     "stock": 189,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-TRUONG-TH-013",
-    "label": "Mặc định",
+    "label": "Hải sản hỗn hợp / Lon 400g (Lô #2)",
     "price": 20000,
     "stock": 10,
     "reservedStock": 0
    },
    {
     "sku": "PATE-MEO-TRUONG-TH-014",
-    "label": "Mặc định",
+    "label": "Cá thu đại dương / Lon 400g (Lô #2)",
     "price": 20000,
     "stock": 187,
     "reservedStock": 0
@@ -1448,126 +1448,126 @@
   "variants": [
    {
     "sku": "PATE-CHO-MEO-SNAPP-041",
-    "label": "Mặc định",
+    "label": "Cá ngừ / Gói 85g (Lô #1)",
     "price": 13000,
     "stock": 51,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-042",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Gà / Gói 85g (Lô #1)",
     "price": 13000,
     "stock": 6,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-043",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Cá hồi / Gói 85g (Lô #1)",
     "price": 13000,
     "stock": 47,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-044",
-    "label": "Mặc định",
+    "label": "Cá mòi & Cá hồi / Gói 85g (Lô #1)",
     "price": 13000,
     "stock": 28,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-045",
-    "label": "Mặc định",
+    "label": "Thịt bò & Rau củ / Gói 85g (Lô #1)",
     "price": 13000,
     "stock": 55,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-046",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Tôm / Gói 85g (Lô #1)",
     "price": 13000,
     "stock": 186,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-047",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Cua / Gói 85g (Lô #1)",
     "price": 13000,
     "stock": 184,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-048",
-    "label": "Mặc định",
+    "label": "Thịt gà / Gói 85g (Lô #1)",
     "price": 13000,
     "stock": 126,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-049",
-    "label": "Mặc định",
+    "label": "Cá biển hỗn hợp / Gói 85g (Lô #1)",
     "price": 13000,
     "stock": 30,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-050",
-    "label": "Mặc định",
+    "label": "Cá ngừ / Gói 85g (Lô #2)",
     "price": 13000,
     "stock": 112,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-051",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Gà / Gói 85g (Lô #2)",
     "price": 13000,
     "stock": 69,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-052",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Cá hồi / Gói 85g (Lô #2)",
     "price": 13000,
     "stock": 73,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-053",
-    "label": "Mặc định",
+    "label": "Cá mòi & Cá hồi / Gói 85g (Lô #2)",
     "price": 13000,
     "stock": 159,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-054",
-    "label": "Mặc định",
+    "label": "Thịt bò & Rau củ / Gói 85g (Lô #2)",
     "price": 13000,
     "stock": 82,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-055",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Tôm / Gói 85g (Lô #2)",
     "price": 13000,
     "stock": 135,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-056",
-    "label": "Mặc định",
+    "label": "Cá ngừ & Cua / Gói 85g (Lô #2)",
     "price": 13000,
     "stock": 116,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-057",
-    "label": "Mặc định",
+    "label": "Thịt gà / Gói 85g (Lô #2)",
     "price": 13000,
     "stock": 151,
     "reservedStock": 0
    },
    {
     "sku": "PATE-CHO-MEO-SNAPP-058",
-    "label": "Mặc định",
+    "label": "Cá biển hỗn hợp / Gói 85g (Lô #2)",
     "price": 13000,
     "stock": 49,
     "reservedStock": 0
