@@ -3,6 +3,7 @@
 // =============================================================
 // features/catalog/components/cardDetailProduct/detailProduct.tsx
 // Component chính: Màn hình chi tiết sản phẩm kết hợp các sub-components
+// Bố cục grid cân đối giữa cột ảnh (đã căn gần giữa và phóng to vừa phải) và thông tin mua hàng
 // =============================================================
 
 import { useRouter } from "next/navigation";
@@ -81,18 +82,20 @@ export function DetailProduct({ product }: { product: Product }) {
   };
 
   return (
-    <div>
-      <article className="grid grid-cols-1 gap-10 md:grid-cols-[1.1fr_1fr]">
+    <div className="w-full max-w-6xl mx-auto">
+      <article className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-12 items-start">
         {/* Cột trái: Thư viện ảnh sản phẩm */}
-        <ProductGallery
-          productName={product.name}
-          images={images}
-          activeImage={activeImage}
-          onSelectImage={setActiveImage}
-        />
+        <div className="w-full min-w-0 flex justify-center md:justify-end">
+          <ProductGallery
+            productName={product.name}
+            images={images}
+            activeImage={activeImage}
+            onSelectImage={setActiveImage}
+          />
+        </div>
 
         {/* Cột phải: Thông tin, biến thể & hành động mua hàng */}
-        <div>
+        <div className="w-full min-w-0">
           {/* Thông tin sản phẩm, thương hiệu, đánh giá, giá, mô tả */}
           <ProductInfo
             brand={product.brand}

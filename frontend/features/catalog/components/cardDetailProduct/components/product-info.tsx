@@ -43,7 +43,7 @@ export function ProductInfo({
       </div>
 
       {/* Tên sản phẩm */}
-      <h1 className="mt-3 text-[28px] font-semibold text-ink leading-tight">
+      <h1 className="mt-3 text-[28px] font-semibold text-ink leading-tight break-words">
         {name}
       </h1>
 
@@ -54,7 +54,7 @@ export function ProductInfo({
 
       {/* Mô tả sản phẩm */}
       {description && (
-        <p className="mt-6 text-slate-600 leading-relaxed">{description}</p>
+        <p className="mt-6 text-slate-600 leading-relaxed break-words">{description}</p>
       )}
     </div>
   );
