@@ -20,6 +20,7 @@ export function CheckoutView() {
     handleAddressChange,
     addressErrors,
     isGuest,
+    isBuyNow,
     handleSubmitOrder,
     isLoading,
     isSubmitting,
@@ -58,12 +59,18 @@ export function CheckoutView() {
     );
   }
 
-  // Giao diện khi giỏ hàng trống
+  // Giao diện khi giỏ hàng trống hoặc chưa có sản phẩm Mua ngay
   if (items.length === 0) {
     return (
       <div className="w-full py-16 text-center">
-        <h2 className="text-2xl font-bold text-ink">Giỏ hàng của bạn đang trống</h2>
-        <p className="mt-2 text-sm text-muted">Vui lòng chọn sản phẩm vào giỏ trước khi tiến hành thanh toán.</p>
+        <h2 className="text-2xl font-bold text-ink">
+          {isBuyNow ? "Chưa có sản phẩm Mua ngay" : "Giỏ hàng của bạn đang trống"}
+        </h2>
+        <p className="mt-2 text-sm text-muted">
+          {isBuyNow
+            ? "Vui lòng chọn sản phẩm bạn muốn mua ngay để tiến hành thanh toán."
+            : "Vui lòng chọn sản phẩm vào giỏ trước khi tiến hành thanh toán."}
+        </p>
         <Link
           href="/listProduct/allProducts"
           className="mt-6 inline-block rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors shadow-sm"
@@ -86,28 +93,38 @@ export function CheckoutView() {
               </Link>
             </li>
             <li aria-hidden="true">/</li>
-            <li>
-              <Link href="/cart" className="hover:text-brand transition-colors">
-                Giỏ hàng
-              </Link>
-            </li>
+            {isBuyNow ? (
+              <li>
+                <Link href="/listProduct/allProducts" className="hover:text-brand transition-colors">
+                  Sản phẩm
+                </Link>
+              </li>
+            ) : (
+              <li>
+                <Link href="/cart" className="hover:text-brand transition-colors">
+                  Giỏ hàng
+                </Link>
+              </li>
+            )}
             <li aria-hidden="true">/</li>
             <li className="font-medium text-ink">Thanh toán</li>
           </ol>
         </nav>
 
         <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600 border border-blue-100/80">
-          Bước 2 / 3 · Đặt hàng
+          {isBuyNow ? "Mua ngay · Đặt hàng" : "Bước 2 / 3 · Đặt hàng"}
         </span>
       </div>
 
       {/* 2. Tiêu đề trang */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-ink tracking-tight">
-          Thanh toán
+          {isBuyNow ? "Mua ngay" : "Thanh toán"}
         </h1>
         <p className="mt-1.5 text-sm text-muted">
-          Kiểm tra thông tin giao hàng và hoàn tất đơn mua của bạn.
+          {isBuyNow
+            ? "Kiểm tra thông tin giao hàng và đặt mua nhanh sản phẩm."
+            : "Kiểm tra thông tin giao hàng và hoàn tất đơn mua của bạn."}
         </p>
       </div>
 

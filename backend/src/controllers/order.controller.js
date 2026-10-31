@@ -34,11 +34,88 @@ function generateOrderCode() {
 // -------------------------------------------------------------
 
 /**
+ * POST /api/v1/orders/buy-now-preview - Kiểm tra tính hợp lệ & tồn kho cho Mua ngay
+ */
+export async function previewBuyNow(request, response, next) {
+  try {
+    const { productId, variantSku, quantity = 1 } = request.body;
+
+    if (!productId) {
+      throw new AppError("Thiếu mã sản phẩm.", 400, "INVALID_PRODUCT");
+    }
+
+    const qty = Number(quantity);
+    if (!Number.isInteger(qty) || qty <= 0) {
+      throw new AppError("Số lượng sản phẩm không hợp lệ.", 400, "INVALID_QUANTITY");
+    }
+
+    const product = await Product.findById(productId);
+    if (!product || product.isActive === false) {
+      throw new AppError("Sản phẩm không tồn tại hoặc đã ngừng kinh doanh.", 404, "PRODUCT_NOT_FOUND");
+    }
+
+    let variant = null;
+    if (product.variants && product.variants.length > 0) {
+      variant = product.variants.find((v) => v.sku === variantSku);
+      if (!variant && variantSku && variantSku !== "default") {
+        throw new AppError("Không tìm thấy biến thể sản phẩm đã chọn.", 404, "VARIANT_NOT_FOUND");
+      }
+      if (!variant) {
+        variant = product.variants[0];
+      }
+    }
+
+    const physical = variant ? variant.stock : product.stock;
+    if (physical !== undefined && physical !== null) {
+      const reserved = variant ? (variant.reservedStock ?? 0) : 0;
+      const availableStock = Math.max(0, physical - reserved);
+      if (qty > availableStock) {
+        throw new AppError(
+          `Sản phẩm "${product.name}"${variant?.label ? ` (${variant.label})` : ""} trong kho không đủ. Hiện chỉ còn ${availableStock} sản phẩm khả dụng.`,
+          400,
+          "OUT_OF_STOCK"
+        );
+      }
+    }
+
+    const unitPrice = variant?.price ?? product.price ?? 0;
+    const subtotal = unitPrice * qty;
+
+    response.status(200).json({
+      success: true,
+      data: {
+        item: {
+          id: `${product._id}_${variant ? variant.sku : "default"}`,
+          productId: String(product._id),
+          name: product.name,
+          brand: product.brand || "",
+          description: variant?.label ? `Phân loại: ${variant.label}` : (product.description || ""),
+          sku: variant ? variant.sku : (variantSku || "default"),
+          label: variant?.label || "",
+          price: unitPrice,
+          quantity: qty,
+          itemTotal: subtotal,
+          image: product.images?.[0] || "/images/products/royal-canin-mini-adult.png",
+          availableStock: physical !== undefined && physical !== null ? Math.max(0, physical - (variant?.reservedStock ?? 0)) : 999,
+        },
+        summary: {
+          totalQuantity: qty,
+          subtotal,
+          total: subtotal,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
  * POST /api/v1/orders - Tạo đơn hàng vào MongoDB
  */
 export async function createOrder(request, response, next) {
   try {
-    const { items, shippingAddress, guestInfo, paymentMethod = "COD", email } = request.body;
+    const { items, shippingAddress, guestInfo, paymentMethod = "COD", email, isBuyNow } = request.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return response.status(400).json({ success: false, message: "Đơn hàng phải có ít nhất 1 sản phẩm." });
@@ -48,18 +125,50 @@ export async function createOrder(request, response, next) {
     let subtotal = 0;
 
     for (const item of items) {
-      const product = await Product.findById(item.productId);
-      if (!product) {
-        throw new AppError("Không tìm thấy sản phẩm trong đơn hàng.", 404, "PRODUCT_NOT_FOUND");
+      if (!item.productId) {
+        throw new AppError("Thiếu mã sản phẩm trong đơn hàng.", 400, "INVALID_PRODUCT");
+      }
+      const qty = Number(item.qty || item.quantity);
+      if (!Number.isInteger(qty) || qty <= 0) {
+        throw new AppError("Số lượng sản phẩm không hợp lệ.", 400, "INVALID_QUANTITY");
       }
 
-      const variant = product.variants?.find((v) => v.sku === item.variantSku);
-      const unitPrice = variant?.price ?? product.price ?? item.unitPrice ?? 0;
-      const qty = item.qty || item.quantity || 1;
+      const product = await Product.findById(item.productId);
+      if (!product || product.isActive === false) {
+        throw new AppError("Không tìm thấy sản phẩm trong đơn hàng hoặc sản phẩm đã ngừng kinh doanh.", 404, "PRODUCT_NOT_FOUND");
+      }
+
+      let variant = null;
+      if (product.variants && product.variants.length > 0) {
+        variant = product.variants.find((v) => v.sku === item.variantSku);
+        if (!variant && item.variantSku && item.variantSku !== "default") {
+          throw new AppError(`Không tìm thấy biến thể sản phẩm với mã SKU ${item.variantSku}.`, 404, "VARIANT_NOT_FOUND");
+        }
+        if (!variant) {
+          variant = product.variants[0];
+        }
+      }
+
+      // Kiểm tra tồn kho khả dụng nếu có dữ liệu stock
+      const physical = variant ? variant.stock : product.stock;
+      if (physical !== undefined && physical !== null) {
+        const reserved = variant ? (variant.reservedStock ?? 0) : 0;
+        const availableStock = Math.max(0, physical - reserved);
+        if (qty > availableStock) {
+          throw new AppError(
+            `Sản phẩm "${product.name}"${variant?.label ? ` (${variant.label})` : ""} trong kho không đủ. Hiện chỉ còn ${availableStock} sản phẩm khả dụng.`,
+            400,
+            "OUT_OF_STOCK"
+          );
+        }
+      }
+
+      // Giá lấy từ server database, tuyệt đối không tin giá client gửi lên
+      const unitPrice = variant?.price ?? product.price ?? 0;
 
       orderItems.push({
         productId: product._id,
-        variantSku: item.variantSku || "default",
+        variantSku: variant ? variant.sku : (item.variantSku || "default"),
         name: product.name,
         unitPrice,
         qty,
@@ -109,29 +218,31 @@ export async function createOrder(request, response, next) {
       ],
     });
 
-    // Xóa các sản phẩm vừa mua khỏi giỏ hàng
-    try {
-      const guestToken =
-        request.headers["x-guest-token"] ||
-        request.authCookies?.["petly-guest-token"] ||
-        request.query?.guestToken ||
-        request.body?.guestToken;
+    // Xóa các sản phẩm vừa mua khỏi giỏ hàng (chỉ khi đặt từ Giỏ hàng, KHÔNG áp dụng cho Mua ngay)
+    if (!isBuyNow) {
+      try {
+        const guestToken =
+          request.headers["x-guest-token"] ||
+          request.authCookies?.["petly-guest-token"] ||
+          request.query?.guestToken ||
+          request.body?.guestToken;
 
-      const filters = [];
-      if (customerId) filters.push({ userId: customerId });
-      if (guestToken) filters.push({ guestToken });
+        const filters = [];
+        if (customerId) filters.push({ userId: customerId });
+        if (guestToken) filters.push({ guestToken });
 
-      if (filters.length > 0 && (mongoose.connection?.readyState === 1 || Boolean(Cart.updateMany?.mock))) {
-        const purchasedSkus = orderItems.map((item) => item.variantSku);
-        if (purchasedSkus.length > 0) {
-          await Cart.updateMany(
-            { $or: filters },
-            { $pull: { items: { variantSku: { $in: purchasedSkus } } } }
-          );
+        if (filters.length > 0 && (mongoose.connection?.readyState === 1 || Boolean(Cart.updateMany?.mock))) {
+          const purchasedSkus = orderItems.map((item) => item.variantSku);
+          if (purchasedSkus.length > 0) {
+            await Cart.updateMany(
+              { $or: filters },
+              { $pull: { items: { variantSku: { $in: purchasedSkus } } } }
+            );
+          }
         }
+      } catch (cartError) {
+        console.error("Lỗi khi xóa sản phẩm đã mua khỏi giỏ hàng:", cartError);
       }
-    } catch (cartError) {
-      console.error("Lỗi khi xóa sản phẩm đã mua khỏi giỏ hàng:", cartError);
     }
 
     response.status(201).json({

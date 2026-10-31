@@ -1,9 +1,39 @@
 // =============================================================
 // features/orders/services/order.service.ts
-// Service gọi API đặt hàng, hủy đơn hàng, và lấy danh sách đơn của tôi
+// Service gọi API đặt hàng, hủy đơn hàng, lấy danh sách đơn của tôi & Mua ngay
 // =============================================================
 
 import { getOrCreateGuestToken } from "@/features/cart/services/cart.service";
+
+export const BUY_NOW_SESSION_KEY = "petly_buy_now_session";
+
+export type BuyNowPreviewPayload = {
+  productId: string;
+  variantSku?: string;
+  quantity?: number;
+};
+
+export type BuyNowSessionData = {
+  item: {
+    id: string;
+    productId: string;
+    name: string;
+    brand?: string;
+    description?: string;
+    sku: string;
+    label?: string;
+    price: number;
+    quantity: number;
+    itemTotal: number;
+    image: string;
+    availableStock?: number;
+  };
+  summary: {
+    totalQuantity: number;
+    subtotal: number;
+    total: number;
+  };
+};
 
 export type CreateOrderItemPayload = {
   productId: string;
@@ -28,7 +58,64 @@ export type CreateOrderPayload = {
   };
   paymentMethod?: "COD" | "ONLINE";
   guestToken?: string;
+  isBuyNow?: boolean;
 };
+
+// 0. POST /api/v1/orders/buy-now-preview - Kiểm tra tính hợp lệ & tồn kho cho Mua ngay
+export async function previewBuyNowApi(payload: BuyNowPreviewPayload): Promise<{
+  success: boolean;
+  data: BuyNowSessionData;
+  message?: string;
+}> {
+  const response = await fetch("/api/v1/orders/buy-now-preview", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Không thể chuẩn bị đơn hàng Mua ngay.");
+  }
+
+  return data;
+}
+
+// Lưu session Mua ngay vào sessionStorage (ghi đè session cũ, không cộng dồn)
+export function saveBuyNowSession(data: BuyNowSessionData): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(BUY_NOW_SESSION_KEY, JSON.stringify(data));
+  } catch (err) {
+    console.error("Lỗi khi lưu Buy Now session:", err);
+  }
+}
+
+// Đọc session Mua ngay từ sessionStorage
+export function getBuyNowSession(): BuyNowSessionData | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(BUY_NOW_SESSION_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (err) {
+    console.error("Lỗi khi đọc Buy Now session:", err);
+    return null;
+  }
+}
+
+// Xóa session Mua ngay sau khi đặt hàng thành công
+export function clearBuyNowSession(): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(BUY_NOW_SESSION_KEY);
+  } catch (err) {
+    console.error("Lỗi khi xóa Buy Now session:", err);
+  }
+}
 
 // 1. POST /api/v1/orders - Tạo đơn hàng trực tiếp vào MongoDB
 export async function createOrderApi(payload: CreateOrderPayload) {
