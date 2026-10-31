@@ -98,7 +98,7 @@ export function FilterSidebar({
  );
 
  return (
-  <aside className="w-1/4 shrink-0 rounded-2xl p-5 bg-white border border-gray-200/80 shadow-xs mr-5 select-none sticky top-4 self-start">
+  <aside className="w-1/5 shrink-0 rounded-2xl p-2 bg-white   select-none sticky top-4 self-start">
    {/* Header bộ lọc và nút xóa */}
    {hasActiveFilters && (
     <div className="flex items-center justify-between pb-3 mb-3 border-b border-gray-100">
