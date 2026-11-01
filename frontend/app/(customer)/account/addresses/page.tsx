@@ -10,32 +10,6 @@ import { ConfirmDialog } from "@/features/account/components/confirm-dialog";
 import { accountApi } from "@/features/account/api";
 import type { ShippingAddress, AddressFormValues } from "@/features/account/types";
 
-// Default dummy addresses if database is empty for demo
-const INITIAL_DEMO_ADDRESSES: ShippingAddress[] = [
-  {
-    _id: "demo-addr-1",
-    recipientName: "Nguyễn Minh Anh",
-    phone: "0974 175 587",
-    street: "26 Nguyễn Thị Minh Khai",
-    ward: "Phường Đa Kao",
-    district: "Quận 1",
-    province: "TP. Hồ Chí Minh",
-    addressType: "home",
-    isDefault: true,
-  },
-  {
-    _id: "demo-addr-2",
-    recipientName: "Nguyễn Minh Anh",
-    phone: "0974 175 587",
-    street: "Tầng 8, Tòa nhà Bitexco, 2 Hải Triều",
-    ward: "Phường Bến Nghé",
-    district: "Quận 1",
-    province: "TP. Hồ Chí Minh",
-    addressType: "office",
-    isDefault: false,
-  },
-];
-
 export default function AddressesPage() {
   const router = useRouter();
   const { user, status } = useAuth();
@@ -68,14 +42,14 @@ export default function AddressesPage() {
     setErrorMessage("");
     try {
       const data = await accountApi.getAddresses();
-      if (data && data.length > 0) {
-        setAddresses(data);
-      } else {
-        // Fallback demo data to guarantee Figma parity
-        setAddresses(INITIAL_DEMO_ADDRESSES);
-      }
-    } catch {
-      setAddresses(INITIAL_DEMO_ADDRESSES);
+      setAddresses(data || []);
+    } catch (err: unknown) {
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : "Không thể tải danh sách địa chỉ.",
+      );
+      setAddresses([]);
     } finally {
       setIsLoading(false);
     }
@@ -87,17 +61,18 @@ export default function AddressesPage() {
       .getAddresses()
       .then((data) => {
         if (active) {
-          if (data && data.length > 0) {
-            setAddresses(data);
-          } else {
-            setAddresses(INITIAL_DEMO_ADDRESSES);
-          }
+          setAddresses(data || []);
           setIsLoading(false);
         }
       })
-      .catch(() => {
+      .catch((err: unknown) => {
         if (active) {
-          setAddresses(INITIAL_DEMO_ADDRESSES);
+          setErrorMessage(
+            err instanceof Error
+              ? err.message
+              : "Không thể tải danh sách địa chỉ.",
+          );
+          setAddresses([]);
           setIsLoading(false);
         }
       });
@@ -126,42 +101,23 @@ export default function AddressesPage() {
 
   async function handleSave(values: AddressFormValues) {
     setIsSaving(true);
+    setErrorMessage("");
     try {
-      if (addressToEdit && !addressToEdit._id.startsWith("demo-")) {
+      if (addressToEdit) {
         await accountApi.updateAddress(addressToEdit._id, values);
         setToastMessage("Đã cập nhật địa chỉ giao hàng.");
-      } else if (addressToEdit) {
-        // Update local demo address
-        setAddresses((prev) =>
-          prev.map((a) =>
-            a._id === addressToEdit._id
-              ? {
-                  ...a,
-                  ...values,
-                }
-              : values.isDefault
-              ? { ...a, isDefault: false }
-              : a,
-          ),
-        );
-        setToastMessage("Đã cập nhật địa chỉ giao hàng.");
       } else {
-        try {
-          await accountApi.createAddress(values);
-        } catch {
-          // If demo mode, append locally
-          setAddresses((prev) => [
-            ...prev.map((a) => (values.isDefault ? { ...a, isDefault: false } : a)),
-            {
-              _id: `addr-${Date.now()}`,
-              ...values,
-            },
-          ]);
-        }
+        await accountApi.createAddress(values);
         setToastMessage("Đã thêm địa chỉ giao hàng mới.");
       }
       setIsFormView(false);
       await loadAddresses();
+    } catch (err: unknown) {
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : "Không thể lưu địa chỉ. Vui lòng thử lại sau.",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -170,12 +126,9 @@ export default function AddressesPage() {
   async function handleDeleteConfirm() {
     if (!deleteTargetId) return;
     setIsDeleting(true);
+    setErrorMessage("");
     try {
-      if (!deleteTargetId.startsWith("demo-")) {
-        await accountApi.deleteAddress(deleteTargetId);
-      } else {
-        setAddresses((prev) => prev.filter((a) => a._id !== deleteTargetId));
-      }
+      await accountApi.deleteAddress(deleteTargetId);
       setToastMessage("Đã xóa địa chỉ giao hàng.");
       setDeleteTargetId(null);
       await loadAddresses();
@@ -190,17 +143,9 @@ export default function AddressesPage() {
 
   async function handleSetDefault(id: string) {
     setSettingDefaultId(id);
+    setErrorMessage("");
     try {
-      if (!id.startsWith("demo-")) {
-        await accountApi.setDefaultAddress(id);
-      } else {
-        setAddresses((prev) =>
-          prev.map((a) => ({
-            ...a,
-            isDefault: a._id === id,
-          })),
-        );
-      }
+      await accountApi.setDefaultAddress(id);
       setToastMessage("Đã đặt làm địa chỉ mặc định.");
       await loadAddresses();
     } catch (err: unknown) {
@@ -308,6 +253,25 @@ export default function AddressesPage() {
                 <div className="py-12 text-center text-sm text-muted">
                   <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-brand border-r-transparent" />
                   <p className="mt-3">Đang tải danh sách địa chỉ…</p>
+                </div>
+              ) : addresses.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-line p-10 text-center">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-subtle text-2xl text-brand">
+                    📍
+                  </div>
+                  <h3 className="mt-4 text-base font-bold text-ink">
+                    Chưa có địa chỉ nhận hàng nào
+                  </h3>
+                  <p className="mt-1 text-sm text-muted max-w-sm mx-auto">
+                    Thêm địa chỉ giao hàng để đặt hàng nhanh chóng và thuận tiện hơn.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleOpenCreate}
+                    className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-brand px-6 text-sm font-semibold text-white hover:bg-brand-hover shadow-xs transition-colors"
+                  >
+                    Thêm địa chỉ đầu tiên
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-4">
