@@ -10,30 +10,6 @@ import { ConfirmDialog } from "@/features/account/components/confirm-dialog";
 import { accountApi } from "@/features/account/api";
 import type { PetProfile, PetFormValues } from "@/features/account/types";
 
-// Default demo pets matching the exact Figma designs
-const INITIAL_DEMO_PETS: PetProfile[] = [
-  {
-    _id: "demo-pet-milo",
-    name: "Milo",
-    species: "dog",
-    breed: "Golden Retriever",
-    age: "2 tuổi",
-    weight: 28,
-    notes: "Thích gặm xương, dị ứng với thức ăn có hạt nhân...",
-    avatarUrl: "/images/pets/milo.jpg",
-  },
-  {
-    _id: "demo-pet-luna",
-    name: "Luna",
-    species: "cat",
-    breed: "Mèo Anh lông ngắn",
-    age: "1 tuổi",
-    weight: 4.2,
-    notes: "Rất thích ăn pate cá hồi, đã tiêm phòng dại đầy đủ",
-    avatarUrl: "/images/pets/luna.jpg",
-  },
-];
-
 export default function PetsPage() {
   const router = useRouter();
   const { user, status } = useAuth();
@@ -63,13 +39,14 @@ export default function PetsPage() {
     setErrorMessage("");
     try {
       const data = await accountApi.getPets();
-      if (data && data.length > 0) {
-        setPets(data);
-      } else {
-        setPets(INITIAL_DEMO_PETS);
-      }
-    } catch {
-      setPets(INITIAL_DEMO_PETS);
+      setPets(data || []);
+    } catch (err: unknown) {
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : "Không thể tải danh sách thú cưng.",
+      );
+      setPets([]);
     } finally {
       setIsLoading(false);
     }
@@ -81,17 +58,18 @@ export default function PetsPage() {
       .getPets()
       .then((data) => {
         if (active) {
-          if (data && data.length > 0) {
-            setPets(data);
-          } else {
-            setPets(INITIAL_DEMO_PETS);
-          }
+          setPets(data || []);
           setIsLoading(false);
         }
       })
-      .catch(() => {
+      .catch((err: unknown) => {
         if (active) {
-          setPets(INITIAL_DEMO_PETS);
+          setErrorMessage(
+            err instanceof Error
+              ? err.message
+              : "Không thể tải danh sách thú cưng.",
+          );
+          setPets([]);
           setIsLoading(false);
         }
       });
@@ -120,46 +98,23 @@ export default function PetsPage() {
 
   async function handleSave(values: PetFormValues) {
     setIsSaving(true);
+    setErrorMessage("");
     try {
-      if (petToEdit && !petToEdit._id.startsWith("demo-")) {
+      if (petToEdit) {
         await accountApi.updatePet(petToEdit._id, values);
         setToastMessage("Đã cập nhật thông tin thú cưng.");
-      } else if (petToEdit) {
-        // Update local demo pet
-        setPets((prev) =>
-          prev.map((p) =>
-            p._id === petToEdit._id
-              ? {
-                  ...p,
-                  ...values,
-                }
-              : p,
-          ),
-        );
-        setToastMessage("Đã cập nhật thông tin thú cưng.");
       } else {
-        try {
-          await accountApi.createPet(values);
-        } catch {
-          // If in demo mode, append locally
-          setPets((prev) => [
-            ...prev,
-            {
-              _id: `pet-${Date.now()}`,
-              name: values.name,
-              species: values.species,
-              breed: values.breed,
-              age: values.age,
-              weight: values.weight,
-              notes: values.notes,
-              avatarUrl: values.avatarUrl,
-            },
-          ]);
-        }
+        await accountApi.createPet(values);
         setToastMessage("Đã thêm hồ sơ thú cưng thành công.");
       }
       setIsFormView(false);
       await loadPets();
+    } catch (err: unknown) {
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : "Không thể lưu thông tin thú cưng. Vui lòng thử lại sau.",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -168,12 +123,9 @@ export default function PetsPage() {
   async function handleDeleteConfirm() {
     if (!deleteTargetId) return;
     setIsDeleting(true);
+    setErrorMessage("");
     try {
-      if (!deleteTargetId.startsWith("demo-")) {
-        await accountApi.deletePet(deleteTargetId);
-      } else {
-        setPets((prev) => prev.filter((p) => p._id !== deleteTargetId));
-      }
+      await accountApi.deletePet(deleteTargetId);
       setToastMessage("Đã xóa hồ sơ thú cưng.");
       setDeleteTargetId(null);
       await loadPets();
