@@ -21,7 +21,7 @@ export async function fetchHomeProductsApi(
   signal?: AbortSignal
 ): Promise<Product[]> {
   const searchParams = new URLSearchParams();
-  searchParams.set("limit", String(params.limit ?? 8));
+  searchParams.set("limit", String(params.limit ?? 12));
   searchParams.set("page", "1");
 
   if (params.query?.trim()) {
