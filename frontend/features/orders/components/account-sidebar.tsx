@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 // =============================================================
 // features/orders/components/account-sidebar.tsx
@@ -6,69 +6,51 @@
 // =============================================================
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import React from "react";
 
+const NAV_ITEMS = [
+  { label: "Thông tin cá nhân", href: "/account" },
+  { label: "Đơn hàng của tôi", href: "/orders" },
+  { label: "Danh sách yêu thích", href: "/wishlist" },
+  { label: "Đánh giá của tôi", href: "/reviews" },
+  { label: "Sổ địa chỉ", href: "#" },
+  { label: "Thú cưng của tôi", href: "#" },
+  { label: "Thông báo", href: "#" },
+];
+
 export function AccountSidebar() {
+  const pathname = usePathname();
 
   return (
     <aside className="w-full md:w-64 shrink-0 flex flex-col justify-between">
       <div>
-        {/* Thông tin người dùng */}
-        <div className="mb-6">
-          {/* <h2 className="text-lg font-bold text-ink">{profile.fullName}</h2>
-          <p className="text-xs text-muted mt-1">{profile.joinedDate}</p> */}
-        </div>
-
         {/* Danh sách menu tài khoản */}
         <nav aria-label="Menu tài khoản" className="space-y-4 text-sm font-medium">
-          <div>
-            <Link
-              href="#"
-              className="text-muted hover:text-ink transition-colors block"
-            >
-              Thông tin cá nhân
-            </Link>
-          </div>
-          <div>
-            <Link
-              href="#"
-              className="text-muted hover:text-ink transition-colors block"
-            >
-              Sổ địa chỉ
-            </Link>
-          </div>
-          <div>
-            {/* Mục đang hoạt động: Đơn hàng của tôi */}
-            <Link
-              href="/orders"
-              className="text-blue-600 font-semibold flex items-center gap-1.5 transition-colors"
-            >
-              <span>→</span>
-              <span>Đơn hàng của tôi</span>
-            </Link>
-          </div>
+          {NAV_ITEMS.map((item) => {
+            const isActive = item.href !== "#" && (pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href)));
 
-          <div>
-            <Link
-              href="#"
-              className="text-muted hover:text-ink transition-colors block"
-            >
-              Thú cưng của tôi
-            </Link>
-          </div>
-          <div>
-            <Link
-              href="#"
-              className="text-muted hover:text-ink transition-colors block"
-            >
-              Thông báo
-            </Link>
-          </div>
+            return (
+              <div key={item.label}>
+                <Link
+                  href={item.href}
+                  className={
+                    isActive
+                      ? "text-blue-600 font-semibold flex items-center gap-1.5 transition-colors"
+                      : "text-muted hover:text-ink transition-colors block"
+                  }
+                >
+                  {isActive && <span>→</span>}
+                  <span>{item.label}</span>
+                </Link>
+              </div>
+            );
+          })}
         </nav>
       </div>
 
       {/* Đường dẫn hỗ trợ ở dưới */}
-      <div className="mt-12 pt-6">
+      <div className="mt-12 pt-6 border-t border-line/40">
         <a
           href="tel:1900636789"
           className="text-xs text-blue-600 hover:underline font-medium"

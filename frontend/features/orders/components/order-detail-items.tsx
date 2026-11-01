@@ -60,7 +60,7 @@ export function OrderDetailItems({
                         }
                       />
                     ) : (
-                      <span className="text-2xl">📦</span>
+                      <span className="text-2xl">Lỗi hình ảnh </span>
                     )}
                   </div>
 

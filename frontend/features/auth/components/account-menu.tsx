@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Heart, LayoutDashboard, LogOut, MapPin, PawPrint, ShoppingCart, UserRound } from "lucide-react";
+import { Heart, LayoutDashboard, LogOut, MapPin, PawPrint, ShoppingCart, Star, UserRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../auth-provider";
@@ -207,6 +207,15 @@ export function AccountMenu({ roleLabel }: { roleLabel?: string } = {}) {
                                 <Heart aria-hidden="true" className="h-4 w-4 shrink-0 text-rose-500" />
                                 Danh sách yêu thích
                             </Link>
+                            <Link
+                                href="/reviews"
+                                onClick={closeMenu}
+                                className={menuItemClassName}
+                            >
+                                <Star aria-hidden="true" className="h-4 w-4 shrink-0 text-amber-500 fill-amber-500" />
+                                Đánh giá của tôi
+                            </Link>
+                            
 
                         </>
                     )}
