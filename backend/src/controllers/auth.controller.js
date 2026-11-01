@@ -25,16 +25,17 @@ async function verifyIdToken(request, idToken) {
   throw firebaseError(error, "verify-id-token");
  }
  const age = Date.now() / 1000 - claims.auth_time;
- if (!Number.isFinite(age) || age < 0 || age >= 300) {
+ const CLOCK_SKEW_TOLERANCE_SECONDS = 10;
+ if (!Number.isFinite(age) || age < -CLOCK_SKEW_TOLERANCE_SECONDS || age >= 300) {
   console.warn("[auth] Recent sign-in check rejected", {
    reason: !Number.isFinite(age)
     ? "missing-auth-time"
-    : age < 0
+    : age < -CLOCK_SKEW_TOLERANCE_SECONDS
       ? "server-clock-behind"
       : "sign-in-too-old",
    ageSeconds: Number.isFinite(age) ? Math.round(age) : null,
   });
-  if (age < 0) {
+  if (age < -CLOCK_SKEW_TOLERANCE_SECONDS) {
    throw new AppError(
     "Thời gian máy chủ chưa đồng bộ.",
     503,
