@@ -450,7 +450,7 @@ export async function getOrderDetail(request, response, next) {
       sku: item.variantSku,
       price: item.unitPrice,
       quantity: item.qty,
-      image: "/images/placeholder-product.png", // Ảnh lấy từ product nếu cần
+      image: item.image
     }));
 
     // Chuẩn hóa địa chỉ giao hàng
