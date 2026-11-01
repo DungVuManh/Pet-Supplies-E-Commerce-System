@@ -32,21 +32,19 @@ export function AddressFormView({
   onCancel,
 }: AddressFormViewProps) {
   const [recipientName, setRecipientName] = useState(
-    addressToEdit?.recipientName ?? "Nguyễn Minh Anh",
+    addressToEdit?.recipientName ?? "",
   );
-  const [phone, setPhone] = useState(addressToEdit?.phone ?? "0974 175 587");
+  const [phone, setPhone] = useState(addressToEdit?.phone ?? "");
   const [province, setProvince] = useState(
     addressToEdit?.province ?? "TP. Hồ Chí Minh",
   );
-  const [district, setDistrict] = useState(addressToEdit?.district ?? "Quận 1");
-  const [ward, setWard] = useState(addressToEdit?.ward ?? "Phường Đa Kao");
-  const [street, setStreet] = useState(
-    addressToEdit?.street ?? "26 Nguyễn Thị Minh Khai",
-  );
+  const [district, setDistrict] = useState(addressToEdit?.district ?? "");
+  const [ward, setWard] = useState(addressToEdit?.ward ?? "");
+  const [street, setStreet] = useState(addressToEdit?.street ?? "");
   const [addressType, setAddressType] = useState<"home" | "office">(
     (addressToEdit?.addressType as "home" | "office") ?? "home",
   );
-  const [isDefault, setIsDefault] = useState(addressToEdit?.isDefault ?? true);
+  const [isDefault, setIsDefault] = useState(addressToEdit?.isDefault ?? false);
 
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
   const [apiError, setApiError] = useState("");
@@ -164,7 +162,7 @@ export function AddressFormView({
                           setErrors((prev) => ({ ...prev, recipientName: undefined }));
                         }
                       }}
-                      placeholder="Nguyễn Minh Anh"
+                      placeholder="Nhập họ và tên người nhận"
                       className="mt-1.5 block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
                     />
                     {errors.recipientName && (
@@ -193,7 +191,7 @@ export function AddressFormView({
                           setErrors((prev) => ({ ...prev, phone: undefined }));
                         }
                       }}
-                      placeholder="0974 175 587"
+                      placeholder="Nhập số điện thoại nhận hàng"
                       className="mt-1.5 block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
                     />
                     {errors.phone && (
@@ -258,7 +256,7 @@ export function AddressFormView({
                           setErrors((prev) => ({ ...prev, district: undefined }));
                         }
                       }}
-                      placeholder="Quận 1"
+                      placeholder="Nhập quận / huyện"
                       className="mt-1.5 block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
                     />
                     {errors.district && (
@@ -287,7 +285,7 @@ export function AddressFormView({
                           setErrors((prev) => ({ ...prev, ward: undefined }));
                         }
                       }}
-                      placeholder="Phường Đa Kao"
+                      placeholder="Nhập phường / xã"
                       className="mt-1.5 block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
                     />
                     {errors.ward && (
@@ -318,7 +316,7 @@ export function AddressFormView({
                         setErrors((prev) => ({ ...prev, street: undefined }));
                       }
                     }}
-                    placeholder="26 Nguyễn Thị Minh Khai"
+                    placeholder="Số nhà, tên đường, tòa nhà..."
                     className="mt-1.5 block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
                   />
                   <p className="mt-1 text-xs text-muted">
