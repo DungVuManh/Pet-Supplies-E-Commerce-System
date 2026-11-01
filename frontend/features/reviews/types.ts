@@ -26,6 +26,8 @@ export interface UserReview {
   comment: string;
   images: string[];
   status: "published";
+  canEdit?: boolean;
+  editDaysRemaining?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -51,4 +53,3 @@ export interface UpdateReviewPayload {
   comment?: string;
   images?: string[];
 }
-

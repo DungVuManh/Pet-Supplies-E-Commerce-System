@@ -99,9 +99,12 @@ export function OrderDetailView({ orderId }: OrderDetailViewProps) {
                   />
                 </div>
 
-                {/* Cột phải (5 cột): Tóm tắt tiền, phương thức & nút hủy đơn */}
+                {/* Cột phải (5 cột): Tóm tắt tiền, phương thức & nút xác nhận nhận hàng / hủy đơn */}
                 <div className="lg:col-span-5">
-                  <OrderSummarySidebar order={order} onReceiptConfirmed={reload} />
+                  <OrderSummarySidebar
+                    order={order}
+                    onReceiptConfirmed={reload}
+                  />
                 </div>
               </div>
             </>
@@ -121,5 +124,3 @@ export function OrderDetailView({ orderId }: OrderDetailViewProps) {
     </div>
   );
 }
-
-export default OrderDetailView;

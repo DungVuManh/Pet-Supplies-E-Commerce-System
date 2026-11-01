@@ -1,16 +1,21 @@
 // =============================================================
 // backend/src/controllers/review.controller.js
 // Controller xử lý Đánh giá của tôi (My Reviews) theo userId
+// Tích hợp Cloudinary upload (1-2 ảnh), hạn đánh giá 30 ngày, hạn sửa 30 ngày
 // =============================================================
 
 import mongoose from "mongoose";
 import { AppError } from "../common/errors/app-error.js";
+import cloudinary, { configureCloudinary } from "../config/cloudinary.js";
 import { Order } from "../models/order.model.js";
 import { Product } from "../models/product.model.js";
 import { Review } from "../models/review.model.js";
 
-// Hạn đánh giá trong 30 ngày kể từ khi đơn hàng hoàn tất (completed)
+// Hạn đánh giá: 30 ngày kể từ khi đơn hàng hoàn tất (completed)
 export const REVIEW_WINDOW_DAYS = 30;
+
+// Hạn sửa đánh giá: 30 ngày kể từ khi gửi đánh giá (createdAt)
+export const EDIT_WINDOW_DAYS = 30;
 
 /**
  * Tính ngày hoàn tất của một đơn hàng
@@ -44,7 +49,7 @@ async function updateProductRatingStats(productId) {
  * 1. GET /api/v1/reviews/my-reviews
  * Lấy danh sách đánh giá của chính người dùng đang đăng nhập:
  * - Tab "Chưa đánh giá": các sản phẩm đã mua từ đơn hàng 'completed' trong vòng 30 ngày chưa có review.
- * - Tab "Đã đánh giá": các review có status: 'published' do người dùng viết.
+ * - Tab "Đã đánh giá": các review có status: 'published' do người dùng viết kèm thông tin có được sửa không.
  */
 export async function getMyReviews(request, response, next) {
   try {
@@ -54,7 +59,8 @@ export async function getMyReviews(request, response, next) {
     }
 
     const now = Date.now();
-    const windowMs = REVIEW_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+    const reviewWindowMs = REVIEW_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+    const editWindowMs = EDIT_WINDOW_DAYS * 24 * 60 * 60 * 1000;
 
     // 1. Lấy tất cả review đã published của user
     const publishedReviews = await Review.find({
@@ -71,6 +77,11 @@ export async function getMyReviews(request, response, next) {
 
     const formattedReviewed = publishedReviews.map((r) => {
       const prod = r.productId || {};
+      const sentAt = new Date(r.createdAt).getTime();
+      const editDiffMs = now - sentAt;
+      const canEdit = editDiffMs <= editWindowMs;
+      const editDaysRemaining = Math.max(0, Math.ceil((editWindowMs - editDiffMs) / (24 * 60 * 60 * 1000)));
+
       return {
         _id: r._id.toString(),
         productId: prod._id?.toString() || r.productId?.toString(),
@@ -81,6 +92,8 @@ export async function getMyReviews(request, response, next) {
         comment: r.comment || "",
         images: Array.isArray(r.images) ? r.images : [],
         status: r.status,
+        canEdit,
+        editDaysRemaining,
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
       };
@@ -102,11 +115,11 @@ export async function getMyReviews(request, response, next) {
       const diffMs = now - completedAt.getTime();
 
       // Nếu đã quá hạn 30 ngày: bỏ qua, không cho hiển thị ở tab "Chưa đánh giá"
-      if (diffMs > windowMs) {
+      if (diffMs > reviewWindowMs) {
         continue;
       }
 
-      const daysRemaining = Math.max(0, Math.ceil((windowMs - diffMs) / (24 * 60 * 60 * 1000)));
+      const daysRemaining = Math.max(0, Math.ceil((reviewWindowMs - diffMs) / (24 * 60 * 60 * 1000)));
 
       for (const item of order.items || []) {
         const prodId = item.productId?.toString();
@@ -177,6 +190,7 @@ export async function getMyReviews(request, response, next) {
 /**
  * 2. POST /api/v1/reviews
  * Tạo đánh giá mới cho sản phẩm đã mua
+ * Kiểm tra nghiêm ngặt hạn 30 ngày từ lúc hoàn thành đơn
  */
 export async function createReview(request, response, next) {
   try {
@@ -195,6 +209,11 @@ export async function createReview(request, response, next) {
     if (!Number.isInteger(numRating) || numRating < 1 || numRating > 5) {
       throw new AppError("Số sao đánh giá phải từ 1 đến 5.", 400, "INVALID_RATING");
     }
+
+    // Giới hạn tối đa 2 ảnh cho mỗi review
+    const cleanImages = Array.isArray(images)
+      ? images.filter((img) => typeof img === "string" && img.trim()).slice(0, 2)
+      : [];
 
     // 1. Kiểm tra đơn hàng hoàn tất của user chứa sản phẩm này
     const order = await Order.findOne({
@@ -230,7 +249,7 @@ export async function createReview(request, response, next) {
     const existingReview = await Review.findOne({ userId, productId });
     if (existingReview) {
       throw new AppError(
-        "Bạn đã đánh giá sản phẩm này rồi. Bạn có thể chỉnh sửa đánh giá hiện có.",
+        "Bạn đã đánh giá sản phẩm này rồi. Bạn có thể chỉnh sửa đánh giá hiện có trong thời hạn cho phép.",
         400,
         "ALREADY_REVIEWED"
       );
@@ -242,7 +261,7 @@ export async function createReview(request, response, next) {
       userId,
       rating: numRating,
       comment: (comment || "").trim(),
-      images: Array.isArray(images) ? images.filter((img) => typeof img === "string" && img.trim()) : [],
+      images: cleanImages,
       status: "published",
     });
 
@@ -253,7 +272,7 @@ export async function createReview(request, response, next) {
 
     response.status(201).json({
       success: true,
-      message: "Gửi đánh giá sản phẩm thành công!",
+      message: "Cảm ơn bạn đã đánh giá sản phẩm!",
       data: { review: newReview },
     });
   } catch (error) {
@@ -264,6 +283,7 @@ export async function createReview(request, response, next) {
 /**
  * 3. PUT /api/v1/reviews/:id
  * Chỉnh sửa đánh giá của chính người dùng
+ * Kiểm tra nghiêm ngặt hạn 30 ngày kể từ khi gửi đánh giá (createdAt)
  */
 export async function updateReview(request, response, next) {
   try {
@@ -289,6 +309,19 @@ export async function updateReview(request, response, next) {
       throw new AppError("Bạn không có quyền chỉnh sửa đánh giá này.", 403, "FORBIDDEN");
     }
 
+    // Kiểm tra hạn 30 ngày từ lúc gửi đánh giá (createdAt)
+    const sentAt = new Date(review.createdAt).getTime();
+    const diffMs = Date.now() - sentAt;
+    const editWindowMs = EDIT_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+
+    if (diffMs > editWindowMs) {
+      throw new AppError(
+        `Đã quá thời hạn ${EDIT_WINDOW_DAYS} ngày kể từ lúc gửi đánh giá, không thể chỉnh sửa nữa.`,
+        400,
+        "EDIT_WINDOW_EXPIRED"
+      );
+    }
+
     if (rating !== undefined) {
       const numRating = Number(rating);
       if (!Number.isInteger(numRating) || numRating < 1 || numRating > 5) {
@@ -302,7 +335,9 @@ export async function updateReview(request, response, next) {
     }
 
     if (images !== undefined && Array.isArray(images)) {
-      review.images = images.filter((img) => typeof img === "string" && img.trim());
+      review.images = images
+        .filter((img) => typeof img === "string" && img.trim())
+        .slice(0, 2);
     }
 
     review.status = "published";
@@ -362,3 +397,85 @@ export async function deleteReview(request, response, next) {
   }
 }
 
+/**
+ * 5. POST /api/v1/reviews/upload
+ * Tải lên 1 hoặc 2 ảnh lên Cloudinary an toàn qua backend
+ * Không để lộ API_SECRET ra frontend
+ */
+export async function uploadReviewImages(request, response, next) {
+  try {
+    const userId = request.user?._id;
+    if (!userId) {
+      throw new AppError("Vui lòng đăng nhập để tải ảnh.", 401, "UNAUTHENTICATED");
+    }
+
+    const files = request.files;
+    if (!files || !Array.isArray(files) || files.length === 0) {
+      throw new AppError("Vui lòng chọn ít nhất 1 ảnh để tải lên.", 400, "NO_FILES");
+    }
+
+    if (files.length > 2) {
+      throw new AppError("Mỗi đánh giá chỉ được tải lên tối đa 2 ảnh.", 400, "TOO_MANY_FILES");
+    }
+
+    const config = configureCloudinary();
+    if (!config.cloud_name || !config.api_key || !config.api_secret) {
+      console.error("[Cloudinary] Thiếu cấu hình trong backend/.env:", config);
+      throw new AppError(
+        "Chưa cấu hình tài khoản Cloudinary (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET) trong backend/.env.",
+        500,
+        "CLOUDINARY_CONFIG_MISSING"
+      );
+    }
+
+    // Tải từng ảnh lên Cloudinary qua upload_stream từ Buffer bộ nhớ
+    const uploadPromises = files.map((file) => {
+      return new Promise((resolve, reject) => {
+        try {
+          const stream = cloudinary.uploader.upload_stream(
+            {
+              folder: "petjoy/reviews",
+              resource_type: "image",
+            },
+            (error, result) => {
+              if (error) {
+                console.error("[Cloudinary] Upload error:", error);
+                const errorMsg =
+                  error.message ||
+                  (typeof error === "string" ? error : "Lỗi khi tải ảnh lên Cloudinary.");
+                return reject(
+                  new AppError(
+                    `Lỗi Cloudinary: ${errorMsg}`,
+                    400,
+                    "CLOUDINARY_UPLOAD_ERROR"
+                  )
+                );
+              }
+              resolve(result.secure_url);
+            }
+          );
+          stream.end(file.buffer);
+        } catch (syncErr) {
+          console.error("[Cloudinary] Sync error:", syncErr);
+          reject(
+            new AppError(
+              syncErr.message || "Không thể khởi tạo kết nối Cloudinary.",
+              500,
+              "UPLOAD_INIT_FAILED"
+            )
+          );
+        }
+      });
+    });
+
+    const urls = await Promise.all(uploadPromises);
+
+    response.json({
+      success: true,
+      message: "Tải ảnh lên Cloudinary thành công!",
+      data: { urls },
+    });
+  } catch (error) {
+    next(error);
+  }
+}

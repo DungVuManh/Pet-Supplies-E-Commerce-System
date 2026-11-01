@@ -2,13 +2,15 @@
 
 // =============================================================
 // features/orders/components/order-summary-sidebar.tsx
-// Cột phải chi tiết đơn: Tóm tắt tiền, phương thức thanh toán & nút Hủy đơn
+// Cột phải chi tiết đơn: Tóm tắt tiền, phương thức thanh toán & nút Xác nhận nhận hàng / Hủy đơn
+// Tích hợp ReceiptConfirmedModal trực tiếp tại đây sau khi khách xác nhận đã nhận hàng
 // =============================================================
 
 import Link from "next/link";
 import React, { useState } from "react";
 import type { OrderDetail } from "../types";
 import { confirmOrderReceiptApi, OrderReceiptApiError } from "../services/receipt-confirmation.service";
+import { ReceiptConfirmedModal } from "./receipt-confirmed-modal";
 
 type OrderSummarySidebarProps = {
   order: OrderDetail;
@@ -30,6 +32,7 @@ export function OrderSummarySidebar({
   const [confirmingReceipt, setConfirmingReceipt] = useState(false);
   const [confirmingReceiptBusy, setConfirmingReceiptBusy] = useState(false);
   const [receiptError, setReceiptError] = useState("");
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
 
   async function confirmReceipt() {
     if (confirmingReceiptBusy) return;
@@ -42,6 +45,8 @@ export function OrderSummarySidebar({
     setReceiptError("");
     try {
       await confirmOrderReceiptApi(order.id);
+      setConfirmingReceipt(false);
+      setShowReceiptModal(true);
       onReceiptConfirmed?.();
     } catch (error) {
       setReceiptError(
@@ -109,27 +114,38 @@ export function OrderSummarySidebar({
         </p>
       </div>
 
-      {/* Khối 3: Thao tác Hủy đơn & Hỗ trợ */}
+      {/* Khối 3: Thao tác Xác nhận nhận hàng & Hủy đơn & Hỗ trợ */}
       <div className="space-y-3">
         {canConfirmReceipt && (
           <>
-            {receiptError && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{receiptError}</p>}
-            {confirmingReceipt && <p role="status" className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">Xác nhận bạn đã nhận được toàn bộ hàng trong đơn?</p>}
+            {receiptError && (
+              <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {receiptError}
+              </p>
+            )}
+            {confirmingReceipt && (
+              <p role="status" className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                Xác nhận bạn đã nhận được toàn bộ hàng trong đơn?
+              </p>
+            )}
             <div className="flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={() => void confirmReceipt()}
                 disabled={confirmingReceiptBusy}
-                className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
               >
                 {confirmingReceiptBusy ? "Đang xác nhận…" : confirmingReceipt ? "Xác nhận đã nhận hàng" : "Đã nhận được hàng"}
               </button>
               {confirmingReceipt && (
                 <button
                   type="button"
-                  onClick={() => { setConfirmingReceipt(false); setReceiptError(""); }}
+                  onClick={() => {
+                    setConfirmingReceipt(false);
+                    setReceiptError("");
+                  }}
                   disabled={confirmingReceiptBusy}
-                  className="rounded-xl border border-line bg-surface px-4 py-3 text-sm font-semibold text-ink transition-colors hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-xl border border-line bg-surface px-4 py-3 text-sm font-semibold text-ink transition-colors hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
                 >
                   Quay lại
                 </button>
@@ -137,12 +153,13 @@ export function OrderSummarySidebar({
             </div>
           </>
         )}
+
         {canCancel && (
           onRequestCancel ? (
             <button
               type="button"
               onClick={onRequestCancel}
-              className="w-full rounded-xl bg-rose-50 border border-rose-200 py-3 text-sm font-semibold text-rose-600 hover:bg-rose-100 hover:text-rose-700 transition-colors shadow-sm"
+              className="w-full rounded-xl bg-rose-50 border border-rose-200 py-3 text-sm font-semibold text-rose-600 hover:bg-rose-100 hover:text-rose-700 transition-colors shadow-sm cursor-pointer"
             >
               Hủy đơn hàng
             </button>
@@ -165,6 +182,15 @@ export function OrderSummarySidebar({
           </a>
         </div>
       </div>
+
+      {/* Modal hiển thị khi nhận đơn hàng thành công */}
+      <ReceiptConfirmedModal
+        isOpen={showReceiptModal}
+        onClose={() => {
+          setShowReceiptModal(false);
+          onReceiptConfirmed?.();
+        }}
+      />
     </div>
   );
 }

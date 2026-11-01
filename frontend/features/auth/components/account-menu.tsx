@@ -96,12 +96,7 @@ export function AccountMenu({ roleLabel }: { roleLabel?: string } = {}) {
                     >
                         Thử lại
                     </button>
-                    <Link
-                        href="/login"
-                        className="ml-4 inline-flex min-h-11 items-center font-semibold text-brand hover:underline"
-                    >
-                        Đăng nhập
-                    </Link>
+
                 </div>
             </details>
         );
@@ -215,7 +210,7 @@ export function AccountMenu({ roleLabel }: { roleLabel?: string } = {}) {
                                 <Star aria-hidden="true" className="h-4 w-4 shrink-0 text-amber-500 fill-amber-500" />
                                 Đánh giá của tôi
                             </Link>
-                            
+
 
                         </>
                     )}

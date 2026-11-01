@@ -1,9 +1,10 @@
 // =============================================================
 // features/orders/hooks/use-order-detail.ts
 // Hook lấy chi tiết 1 đơn hàng từ API theo ID
+// Tránh unmount UI khi gọi reload() bằng hasLoadedRef
 // =============================================================
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getOrderDetailApi } from "../services/order.service";
 import type { OrderDetail } from "../types";
 
@@ -12,27 +13,41 @@ export function useOrderDetail(orderId: string | undefined) {
   const [isLoading, setIsLoading] = useState(Boolean(orderId));
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const hasLoadedRef = useRef(false);
 
   useEffect(() => {
     if (!orderId) return;
 
+    let isMounted = true;
     async function loadOrderDetail() {
       try {
-        setIsLoading(true);
+        // Chỉ hiện skeleton loading ở lần tải đầu, không unmount khi refetch
+        if (!hasLoadedRef.current) {
+          setIsLoading(true);
+        }
         setError(null);
 
         const res = await getOrderDetailApi(orderId!);
-        // res.data.order là object chi tiết đơn hàng từ backend
-        setOrder(res.data?.order || null);
+        if (isMounted) {
+          setOrder(res.data?.order || null);
+          hasLoadedRef.current = true;
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Không thể tải đơn hàng.");
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : "Không thể tải đơn hàng.");
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
 
     loadOrderDetail();
-  }, [orderId, reloadKey]); // Chạy lại khi orderId thay đổi
+    return () => {
+      isMounted = false;
+    };
+  }, [orderId, reloadKey]);
 
   const reload = useCallback(() => setReloadKey((value) => value + 1), []);
 
