@@ -40,6 +40,17 @@ export default function ProfilePage() {
           setProfile(data.user);
           if (data.stats) setStats(data.stats);
           setIsLoading(false);
+          if (data.user) {
+            acceptUser({
+              id: data.user.id,
+              email: data.user.email,
+              role: data.user.role,
+              fullName: data.user.fullName,
+              phone: data.user.phone,
+              avatarUrl: data.user.avatarUrl,
+              createdAt: data.user.createdAt,
+            });
+          }
         }
       })
       .catch((err: unknown) => {
@@ -68,7 +79,7 @@ export default function ProfilePage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [acceptUser]);
 
   useEffect(() => {
     if (!toastMessage) return;
@@ -92,14 +103,17 @@ export default function ProfilePage() {
       setToastMessage("Thông tin của bạn đã được cập nhật.");
       setIsEditing(false);
 
-      if (user) {
-        acceptUser({
-          ...user,
-          fullName: updated.fullName,
-          phone: updated.phone,
-          avatarUrl: nextAvatar,
-        });
-      }
+      acceptUser({
+        ...(user || {
+          id: updated.id,
+          email: updated.email,
+          role: updated.role,
+        }),
+        fullName: updated.fullName,
+        phone: updated.phone,
+        avatarUrl: nextAvatar,
+        createdAt: user?.createdAt || updated.createdAt,
+      });
     } catch (err: unknown) {
       setErrorMessage(
         err instanceof Error
