@@ -286,9 +286,8 @@ export function ProductsList() {
 
    <TableFrame>
     <TableHead>
-     <Th>Sản phẩm</Th>
+     <Th className="min-w-[320px]">Sản phẩm</Th>
      <Th>SKU</Th>
-     <Th>Danh mục</Th>
      <Th right>Tồn kho</Th>
      <Th right>Giá bán</Th>
      <Th>Trạng thái tồn kho</Th>
@@ -298,30 +297,29 @@ export function ProductsList() {
     <tbody>
      {loading ? (
       <tr>
-       <td colSpan={8} className="p-8 text-center text-muted">
+       <td colSpan={7} className="p-8 text-center text-muted">
         Đang tải dữ liệu sản phẩm từ máy chủ...
        </td>
       </tr>
      ) : (
       pageRows.map((p) => (
        <tr key={p.sku}>
-        <Td>
-         <div className="flex items-center gap-3">
+        <Td className="min-w-[320px]">
+         <div className="flex items-center gap-3.5">
           <Image
            src={p.image || "/images/products/royal-canin-mini-adult.png"}
            alt=""
            width={40}
            height={40}
-           className="h-10 w-10 shrink-0 rounded-lg bg-canvas object-contain"
+           className="h-10 w-10 shrink-0 rounded-lg bg-canvas object-contain border border-line p-0.5"
           />
-          <span>{p.name}</span>
+          <span className="font-medium text-ink leading-normal text-sm" title={p.name}>
+           {p.name}
+          </span>
          </div>
         </Td>
         <Td>
          <strong className="whitespace-nowrap">{p.sku}</strong>
-        </Td>
-        <Td>
-         <p className="whitespace-nowrap">{p.category}</p>
         </Td>
         <Td right>
          <strong>{p.physical}</strong>

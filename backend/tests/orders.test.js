@@ -258,4 +258,115 @@ describe("Customer order creation HTTP", () => {
     expect(response.body.error.code).toBe("PRODUCT_NOT_FOUND");
     expect(createOrder).not.toHaveBeenCalled();
   });
+
+  it("strictly computes price from server product and rejects insufficient stock", async () => {
+    const productId = "507f1f77bcf86cd799439011";
+    vi.spyOn(Product, "findById").mockResolvedValue({
+      _id: productId,
+      name: "Thức ăn thú cưng",
+      price: 500000,
+      variants: [{ sku: "PET-001", price: 500000, stock: 2, reservedStock: 0 }],
+    });
+
+    // Client attempts to spoof unitPrice to 1000 and order 5 (while stock is 2)
+    const response = await request(createApp(config))
+      .post("/api/v1/orders")
+      .send({
+        items: [{
+          productId,
+          variantSku: "PET-001",
+          qty: 5,
+          unitPrice: 1000,
+        }],
+        guestInfo: { name: "Khách mua hàng", phone: "0901234567" },
+      })
+      .expect(400);
+
+    expect(response.body.error.code).toBe("OUT_OF_STOCK");
+  });
+
+  it("does not pull items from Cart when isBuyNow is true", async () => {
+    const productId = "507f1f77bcf86cd799439011";
+    const createdOrder = {
+      _id: "607f1f77bcf86cd799439099",
+      orderCode: "ORD789",
+      total: 300000,
+      paymentMethod: "COD",
+      createdAt: new Date().toISOString(),
+    };
+
+    vi.spyOn(Product, "findById").mockResolvedValue({
+      _id: productId,
+      name: "Thức ăn",
+      price: 300000,
+      variants: [{ sku: "PET-002", price: 300000, stock: 10, reservedStock: 0 }],
+    });
+    vi.spyOn(Order, "create").mockResolvedValue(createdOrder);
+
+    const { Cart } = await import("../src/models/cart.model.js");
+    const updateManySpy = vi.spyOn(Cart, "updateMany").mockResolvedValue({ modifiedCount: 0 });
+
+    await request(createApp(config))
+      .post("/api/v1/orders")
+      .send({
+        items: [{ productId, variantSku: "PET-002", qty: 1 }],
+        guestInfo: { name: "Khách", phone: "0901234567" },
+        isBuyNow: true,
+      })
+      .expect(201);
+
+    expect(updateManySpy).not.toHaveBeenCalled();
+  });
+});
+
+describe("Buy Now preview HTTP", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("rejects buy-now-preview when quantity is invalid or exceeds available stock", async () => {
+    const productId = "507f1f77bcf86cd799439011";
+    vi.spyOn(Product, "findById").mockResolvedValue({
+      _id: productId,
+      name: "Hạt cho mèo",
+      price: 250000,
+      variants: [{ sku: "CAT-01", price: 250000, stock: 3, reservedStock: 1 }], // available 2
+    });
+
+    // Invalid quantity
+    const resInvalid = await request(createApp(config))
+      .post("/api/v1/orders/buy-now-preview")
+      .send({ productId, variantSku: "CAT-01", quantity: -1 })
+      .expect(400);
+    expect(resInvalid.body.error.code).toBe("INVALID_QUANTITY");
+
+    // Quantity exceeds available stock
+    const resOutOfStock = await request(createApp(config))
+      .post("/api/v1/orders/buy-now-preview")
+      .send({ productId, variantSku: "CAT-01", quantity: 3 })
+      .expect(400);
+    expect(resOutOfStock.body.error.code).toBe("OUT_OF_STOCK");
+  });
+
+  it("returns verified server price and item details for valid buy-now request", async () => {
+    const productId = "507f1f77bcf86cd799439011";
+    vi.spyOn(Product, "findById").mockResolvedValue({
+      _id: productId,
+      name: "Hạt cho mèo",
+      price: 250000,
+      variants: [{ sku: "CAT-01", label: "Gói 1kg", price: 250000, stock: 10, reservedStock: 0 }],
+    });
+
+    const response = await request(createApp(config))
+      .post("/api/v1/orders/buy-now-preview")
+      .send({ productId, variantSku: "CAT-01", quantity: 2 })
+      .expect(200);
+
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.item.price).toBe(250000);
+    expect(response.body.data.item.quantity).toBe(2);
+    expect(response.body.data.item.itemTotal).toBe(500000);
+    expect(response.body.data.summary.subtotal).toBe(500000);
+    expect(response.body.data.summary.total).toBe(500000);
+  });
 });

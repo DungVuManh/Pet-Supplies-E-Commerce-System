@@ -21,7 +21,7 @@ const address = {
  district: "District 1", ward: "Ward 1", street: "1 Test Street",
 };
 const productData = () => ({
- name: "Cat food", petType: "cat", categoryId: new mongoose.Types.ObjectId(),
+ name: "Cat food", petType: "cat", categoryIds: [new mongoose.Types.ObjectId()],
  variants: [{ sku: "CAT-1", label: "1 kg", price: 100000, stock: 10 }],
 });
 const orderData = () => ({
@@ -78,7 +78,7 @@ describe("products and shopping models", () => {
   await expect(new Product(data).validate()).rejects.toThrow("distinct SKUs");
  });
 
- it("supports multiple categoryIds and syncs primary categoryId", async () => {
+ it("supports multiple categoryIds and deduplicates them", async () => {
   const cat1 = new mongoose.Types.ObjectId();
   const cat2 = new mongoose.Types.ObjectId();
   const product = new Product({
@@ -91,7 +91,6 @@ describe("products and shopping models", () => {
   expect(product.categoryIds).toHaveLength(2);
   expect(product.categoryIds[0].toString()).toBe(cat1.toString());
   expect(product.categoryIds[1].toString()).toBe(cat2.toString());
-  expect(product.categoryId.toString()).toBe(cat1.toString());
 
   await expect(new Product({
    name: "No-cat food",

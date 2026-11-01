@@ -23,7 +23,7 @@ describe("Catalog Product Detail API", () => {
       brand: "Royal Canin",
       description: "Thức ăn cho chó trưởng thành",
       petType: "dog",
-      categoryId: { name: "Thức ăn cho chó", slug: "thuc-an-cho-cho" },
+      categoryIds: [{ name: "Thức ăn cho chó", slug: "thuc-an-cho-cho" }],
       images: ["/images/products/royal-canin-mini-adult.png"],
       isActive: true,
       variants: [

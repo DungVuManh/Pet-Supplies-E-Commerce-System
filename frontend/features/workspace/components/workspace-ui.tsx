@@ -21,9 +21,9 @@ const tones: Record<BadgeTone, string> = { success: "bg-success-subtle text-succ
 export function Badge({ children, tone = "neutral" }: { children: ReactNode; tone?: BadgeTone }) { return <span className={`inline-flex min-h-8 items-center whitespace-nowrap rounded-full px-3 text-xs font-semibold ${tones[tone]}`}>{children}</span>; }
 
 export function TableFrame({ children }: { children: ReactNode }) { return <div className={`${card} min-w-0 max-w-full overflow-x-auto`}><table className="w-full min-w-[760px] border-collapse text-left">{children}</table></div>; }
-export function TableHead({ children }: { children: ReactNode }) { return <thead className="bg-canvas text-xs uppercase text-muted"><tr>{children}</tr></thead>; }
-export function Th({ children, right = false }: { children: ReactNode; right?: boolean }) { return <th className={`px-6 py-4 font-semibold ${right ? "text-right" : ""}`}>{children}</th>; }
-export function Td({ children, right = false }: { children: ReactNode; right?: boolean }) { return <td className={`border-t border-line px-6 py-4 align-middle ${right ? "text-right tabular-nums" : ""}`}>{children}</td>; }
+export function TableHead({ children, className = "" }: { children: ReactNode; className?: string }) { return <thead className={`bg-canvas text-xs uppercase text-muted ${className}`}><tr>{children}</tr></thead>; }
+export function Th({ children, right = false, className = "" }: { children: ReactNode; right?: boolean; className?: string }) { return <th className={`px-6 py-4 font-semibold ${right ? "text-right" : ""} ${className}`}>{children}</th>; }
+export function Td({ children, right = false, className = "" }: { children: ReactNode; right?: boolean; className?: string }) { return <td className={`border-t border-line px-6 py-4 align-middle ${right ? "text-right tabular-nums" : ""} ${className}`}>{children}</td>; }
 
 export function ActionLink({ href, children }: { href: string; children: ReactNode }) { return <Link href={href} className="inline-flex min-h-10 items-center font-semibold text-brand hover:underline">{children} →</Link>; }
 
