@@ -1,9 +1,10 @@
-﻿// =============================================================
+// =============================================================
 // features/catalog/components/listProduct/hooks/use-product-list.ts
 // Hook quản lý toàn bộ state, logic lọc và dùng useEffect để fetch API
+// Đã tối ưu triệt để: chống re-render vô tận, AbortController, useCallback
 // =============================================================
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
  getBrandsApi,
@@ -53,26 +54,30 @@ export function useProductList(defaultCategory?: string, defaultPetType?: string
  }));
  const [searchInput, setSearchInput] = useState("");
 
-  useEffect(() => {
-    // Khi URL thay đổi (navigate từ menu / filter), sync filter theo categoryParam và petTypeParam mới
-    setFilter((prev) => {
-      if (prev.category === categoryParam && prev.petType === petTypeParam) return prev;
-      return { ...prev, category: categoryParam, petType: petTypeParam, page: 1 };
-    });
-  }, [categoryParam, petTypeParam]);
+ // Ref lưu trữ AbortController của request fetch sản phẩm
+ const abortControllerRef = useRef<AbortController | null>(null);
 
  useEffect(() => {
+  // Khi URL thay đổi (navigate từ menu / filter), sync filter theo categoryParam và petTypeParam mới
+  setFilter((prev) => {
+   if (prev.category === categoryParam && prev.petType === petTypeParam) return prev;
+   return { ...prev, category: categoryParam, petType: petTypeParam, page: 1 };
+  });
+ }, [categoryParam, petTypeParam]);
+
+ useEffect(() => {
+  let active = true;
+
   async function fetchFilterOptions() {
    try {
-    console.log(
-     `[useProductList - useEffect] Đang tải danh mục (${petTypeParam}) & thương hiệu...`,
-    );
     setLoadingFilters(true);
 
     const [categoriesRes, brandsRes] = await Promise.all([
      getCategoriesApi(petTypeParam !== "all" ? petTypeParam : undefined),
      getBrandsApi(),
     ]);
+
+    if (!active) return;
 
     let fetchedCategories = categoriesRes.data.categories;
     if (petTypeParam === "dog") {
@@ -103,115 +108,121 @@ export function useProductList(defaultCategory?: string, defaultPetType?: string
     }
     setCategories(fetchedCategories);
     setBrands(brandsRes.data.brands);
-    console.log(
-     "[useProductList - useEffect] Tải danh mục & thương hiệu thành công!",
-    );
    } catch (err) {
     console.error("[useProductList - useEffect] Lỗi tải filter options:", err);
    } finally {
-    setLoadingFilters(false);
+    if (active) {
+     setLoadingFilters(false);
+    }
    }
   }
 
   fetchFilterOptions();
+
+  return () => {
+   active = false;
+  };
  }, [petTypeParam]);
 
  useEffect(() => {
+  // Hủy request trước đó nếu còn đang pending
+  if (abortControllerRef.current) {
+   abortControllerRef.current.abort();
+  }
+  const controller = new AbortController();
+  abortControllerRef.current = controller;
+
   async function fetchProductList() {
    try {
-    console.log(
-     "[useProductList - useEffect] Đang tải sản phẩm với filter:",
-     filter,
-    );
     setLoadingProducts(true);
     setError(null);
 
-    const res = await getProductsApi(filter);
+    const res = await getProductsApi(filter, controller.signal);
 
-    setProducts(res.data.products);
-    setPagination(res.data.pagination);
-    console.log(
-     `[useProductList - useEffect] Nhận được ${res.data.products.length} sản phẩm thành công!`,
-    );
-   } catch (err) {
-    const msg =
-     err instanceof Error ? err.message : "Có lỗi xảy ra khi tải sản phẩm";
-    console.error("[useProductList - useEffect] Lỗi khi tải sản phẩm:", err);
-    setError(msg);
+    if (!controller.signal.aborted) {
+     setProducts(res.data.products);
+     setPagination(res.data.pagination);
+    }
+   } catch (err: unknown) {
+    if ((err as Error)?.name !== "AbortError") {
+     const msg =
+      err instanceof Error ? err.message : "Có lỗi xảy ra khi tải sản phẩm";
+     console.error("[useProductList - useEffect] Lỗi khi tải sản phẩm:", err);
+     setError(msg);
+    }
    } finally {
-    setLoadingProducts(false);
+    if (!controller.signal.aborted) {
+     setLoadingProducts(false);
+    }
    }
   }
 
   fetchProductList();
+
+  return () => {
+   controller.abort();
+  };
  }, [filter]);
+
  useEffect(() => {
   const timer = setTimeout(() => {
-   console.log(
-    "[useProductList - useEffect] Cập nhật từ khóa tìm kiếm:",
-    searchInput,
-   );
-   setFilter((prev) => ({ ...prev, search: searchInput, page: 1 }));
-  }, 500);
+   setFilter((prev) => {
+    // Chỉ cập nhật filter nếu từ khóa tìm kiếm thực sự thay đổi
+    if (prev.search === searchInput) return prev;
+    return { ...prev, search: searchInput, page: 1 };
+   });
+  }, 400);
 
   return () => clearTimeout(timer);
  }, [searchInput]);
 
- function handleCategoryChange(slug: string) {
-  console.log("[useProductList] Chọn danh mục:", slug);
-  setFilter((prev) => ({ ...prev, category: slug, page: 1 }));
- }
+ const handleCategoryChange = useCallback((slug: string) => {
+  setFilter((prev) => (prev.category === slug ? prev : { ...prev, category: slug, page: 1 }));
+ }, []);
 
- function handlePriceRangeChange(range: string) {
+ const handlePriceRangeChange = useCallback((range: string) => {
   setFilter((prev) => {
    const exists = prev.priceRanges.includes(range);
    const nextRanges = exists
     ? prev.priceRanges.filter((r) => r !== range)
     : [...prev.priceRanges, range];
-   console.log("[useProductList] Khoảng giá mới:", nextRanges);
    return { ...prev, priceRanges: nextRanges, page: 1 };
   });
- }
+ }, []);
 
- function handlePriceChange(min: number, max: number) {
+ const handlePriceChange = useCallback((min: number, max: number) => {
+  setFilter((prev) => {
+   if (prev.minPrice === min && prev.maxPrice === max) return prev;
+   return { ...prev, minPrice: min, maxPrice: max, page: 1 };
+  });
+ }, []);
 
-  console.log("[useProductList] Khoảng giá mới:", min, max);
-
-  setFilter((prev) => ({ ...prev, minPrice: min, maxPrice: max, page: 1 }));
-
- }
-
-
- function handleBrandChange(brand: string) {
+ const handleBrandChange = useCallback((brand: string) => {
   setFilter((prev) => {
    const exists = prev.brands.includes(brand);
    const nextBrands = exists
     ? prev.brands.filter((b) => b !== brand)
     : [...prev.brands, brand];
-   console.log("[useProductList] Thương hiệu mới:", nextBrands);
    return { ...prev, brands: nextBrands, page: 1 };
   });
- }
+ }, []);
 
- function handleSortChange(sort: string) {
-  console.log("[useProductList] Sắp xếp theo:", sort);
-  setFilter((prev) => ({ ...prev, sort, page: 1 }));
- }
+ const handleSortChange = useCallback((sort: string) => {
+  setFilter((prev) => (prev.sort === sort ? prev : { ...prev, sort, page: 1 }));
+ }, []);
 
- function handleDeleteFilter() {
-  console.log("[useProductList] Xóa bộ lọc về mặc định");
+ const handleDeleteFilter = useCallback(() => {
   setSearchInput("");
   setFilter({
    ...DEFAULT_FILTER,
    petType: petTypeParam,
   });
- }
+ }, [petTypeParam]);
 
- function handlePageChange(page: number) {
-  console.log("[useProductList] Đổi trang:", page);
-  setFilter((prev) => ({ ...prev, page }));
+ const handlePageChange = useCallback((page: number) => {
+  setFilter((prev) => (prev.page === page ? prev : { ...prev, page }));
   window.scrollTo({ top: 0, behavior: "smooth" });
- }
+ }, []);
 
  return {
   // Data

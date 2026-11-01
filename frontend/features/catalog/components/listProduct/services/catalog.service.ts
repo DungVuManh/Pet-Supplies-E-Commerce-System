@@ -1,4 +1,4 @@
-﻿import type {
+import type {
   CatalogFilter,
   GetBrandsResponse,
   GetCategoriesResponse,
@@ -20,7 +20,8 @@ function getApiBase(): string {
 }
 
 export async function getProductsApi(
-  filter: CatalogFilter
+  filter: CatalogFilter,
+  signal?: AbortSignal
 ): Promise<GetProductsResponse> {
   const params = new URLSearchParams();
 
@@ -55,6 +56,7 @@ export async function getProductsApi(
   const response = await fetch(url, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
+    signal,
   });
 
   if (!response.ok) {

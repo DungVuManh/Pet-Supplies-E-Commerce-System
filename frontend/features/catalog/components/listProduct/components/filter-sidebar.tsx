@@ -6,7 +6,7 @@
 // Thiết kế đồng bộ với theme Blue/Brand, thanh trượt giá tương tác hai đầu
 // =============================================================
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, ChevronUp, RotateCcw, Search } from "lucide-react";
 import type { CatalogCategory } from "../types";
 
@@ -65,16 +65,21 @@ export function FilterSidebar({
   setLocalMax(maxPrice);
  }, [maxPrice]);
 
+ const onPriceChangeRef = useRef(onPriceChange);
+ useEffect(() => {
+  onPriceChangeRef.current = onPriceChange;
+ }, [onPriceChange]);
+
  // Debounce gọi onPriceChange để không spam API khi người dùng đang kéo thanh trượt
  useEffect(() => {
   const timer = setTimeout(() => {
    if (localMin !== minPrice || localMax !== maxPrice) {
-    onPriceChange?.(localMin, localMax);
+    onPriceChangeRef.current?.(localMin, localMax);
    }
   }, 350);
 
   return () => clearTimeout(timer);
- }, [localMin, localMax, minPrice, maxPrice, onPriceChange]);
+ }, [localMin, localMax, minPrice, maxPrice]);
 
  const deduplicatedCategories = useMemo(() => {
   const seen = new Set<string>();
