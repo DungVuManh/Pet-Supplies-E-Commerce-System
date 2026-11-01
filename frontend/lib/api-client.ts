@@ -61,7 +61,8 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       ...init,
       credentials: "same-origin",
       cache: "no-store",
-      signal: init.signal ?? AbortSignal.timeout(15000),
+      // The timeout applies even when the caller passes its own signal.
+      signal: AbortSignal.any([AbortSignal.timeout(15000), ...(init.signal ? [init.signal] : [])]),
     });
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") throw error;

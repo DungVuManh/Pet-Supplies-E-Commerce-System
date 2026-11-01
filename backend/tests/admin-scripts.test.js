@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as database from "../src/config/database.js";
 import * as environment from "../src/config/env.js";
+import { User } from "../src/models/user.model.js";
 import { migrateAdmin, migrateAdminData } from "../src/scripts/migrate-admin.js";
 import { seedAdmin, seedAdminData } from "../src/scripts/seed-admin.js";
 
@@ -11,6 +12,7 @@ beforeEach(() => {
  vi.spyOn(environment, "loadEnvironment").mockImplementation(() => ({ NODE_ENV: nodeEnv, MONGODB_URI: "mongodb://localhost/admin-test" }));
  vi.spyOn(database, "connectDatabase").mockResolvedValue();
  vi.spyOn(database, "disconnectDatabase").mockResolvedValue();
+ vi.spyOn(User, "updateMany").mockResolvedValue({ modifiedCount: 0 });
 });
 afterEach(() => vi.restoreAllMocks());
 
@@ -24,7 +26,7 @@ describe("Admin migration and seed scripts", () => {
  });
 
  it("connect, run, and always disconnect", async () => {
-  await expect(migrateAdmin()).resolves.toEqual({});
+  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 0 });
   await expect(seedAdmin()).resolves.toEqual({});
   expect(database.connectDatabase).toHaveBeenCalledWith("mongodb://localhost/admin-test");
   expect(database.disconnectDatabase).toHaveBeenCalledTimes(2);
@@ -41,6 +43,13 @@ describe("Admin migration and seed scripts", () => {
   nodeEnv = "production";
   await expect(seedAdmin()).rejects.toThrow("không chạy trong production");
   expect(database.connectDatabase).not.toHaveBeenCalled();
-  await expect(migrateAdmin()).resolves.toEqual({});
+  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 0 });
+ });
+
+ it("backfills a missing user status once, without touching updatedAt", async () => {
+  User.updateMany.mockResolvedValueOnce({ modifiedCount: 4 });
+  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 4 });
+  expect(User.updateMany).toHaveBeenCalledWith({ status: { $exists: false } }, { $set: { status: "active" } }, { timestamps: false });
+  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 0 });
  });
 });

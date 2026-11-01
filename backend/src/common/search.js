@@ -34,14 +34,23 @@ export function accentInsensitiveRegex(token) {
  return new RegExp([...token].map(characterPattern).join(separator), "i");
 }
 
-/** MongoDB filter requiring every query word in one of `fields`; `{}` for an empty query. */
-export function searchFilter(query, fields) {
+/**
+ * MongoDB filter requiring every query word in one of `fields` or `computed`
+ * (aggregation expressions for values that are derived, not stored); `{}` for
+ * an empty query.
+ */
+export function searchFilter(query, fields, computed = []) {
  const tokens = searchTokens(query);
  if (tokens.length === 0) return {};
  return {
   $and: tokens.map((token) => {
    const regex = accentInsensitiveRegex(token);
-   return { $or: fields.map((field) => ({ [field]: regex })) };
+   return {
+    $or: [
+     ...fields.map((field) => ({ [field]: regex })),
+     ...computed.map((input) => ({ $expr: { $regexMatch: { input, regex } } })),
+    ],
+   };
   }),
  };
 }

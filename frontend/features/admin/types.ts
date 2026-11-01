@@ -11,3 +11,21 @@ export type Page<T, C extends ListCounts = ListCounts> = {
   pagination: Pagination;
   counts?: C;
 };
+
+export type UserRole = "customer" | "staff";
+export type UserStatus = "active" | "locked";
+
+/** One row of `GET /api/v1/admin/users`. `code` is the display code; `id` addresses the user in URLs. */
+export type AdminUserRow = {
+  id: string;
+  code: string;
+  role: UserRole;
+  fullName: string;
+  email: string;
+  phone: string;
+  joinedAt: string;
+  status: UserStatus;
+};
+
+export type UserCounts = { all: number; customer: number; staff: number };
+export type UserFilter = { tab: UserRole | "all"; q: string; role: UserRole | "all"; status: UserStatus | "all" };

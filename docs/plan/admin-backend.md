@@ -78,19 +78,32 @@ UI it serves: `docs/specs/admin-workspace-ui.md` (complete on mock data in `fron
   - Note: tested in `tests/format.test.mjs`. The mock copies are replaced screen by screen.
 - [x] `npm --prefix frontend test`, lint, and build are green, and the Staff and Admin screens are unchanged in the browser
   - Note: 98 tests pass and the build passes. Lint reports one error, in `features/catalog/components/product-discovery.tsx` (`setIsLoading` inside an effect). That file arrived with the `dev` merge and phase 0 does not touch it. Every file changed in this phase lints clean. In the browser check, all 18 Admin routes and the `?state=` previews render at 1440 and 320 px with no horizontal scroll, `/staff/*` still redirects Admin to `/forbidden`, and the only console errors are the expected 401 before login and 403 probes. The Staff screens were not opened (no Staff test account), so they are covered by the build and tests only.
-- [ ] **🛑 Commit checkpoint: Admin API foundation**
+- [x] **🛑 Commit checkpoint: Admin API foundation** (`00d2b45`)
 
 ## 1. Users
 
 ### 1a. User list: `/admin/users`
-- [ ] `User`: add `status` (`active`|`locked`, default `active`), `lockedAt`, `lockedBy`, `lockReason`, and `adminNote` (≤ 1000 characters). Index `{ role: 1, status: 1, createdAt: -1 }`. Queries treat a missing `status` as active (`{ status: { $ne: "locked" } }`).
-- [ ] Migration: set `status: "active"` where it is missing
-- [ ] `validators/admin/user.validator.js`: list query (`tab`, `role`, `status`, `q`)
-- [ ] `controllers/admin/user.controller.js` `listUsers`: Customer and Staff only, search by name, email, phone, or derived code. Returns rows `{ id, code, role, fullName, email, phone, joinedAt, status }` and `counts { all, customer, staff }`.
-- [ ] Tests: Admin accounts are excluded, tab counts, filters, accent-insensitive search, paging, and the derived code format
-- [ ] Frontend: `services/users.ts` `listUsers`, a `useUsersList` hook, and `users-list.tsx` on the hook. Real loading, error ("Thử lại"), and empty states, with `?state=` still working.
-- [ ] Browser check
-- [ ] **🛑 Commit checkpoint: User list**
+- [x] `User`: add `status` (`active`|`locked`, default `active`), `lockedAt`, `lockedBy`, `lockReason`, and `adminNote` (≤ 1000 characters). Index `{ role: 1, status: 1, createdAt: -1 }`. Queries treat a missing `status` as active (`{ status: { $ne: "locked" } }`).
+  - Note: `lockReason` is also capped at 200 characters, matching the lock rule in 1b.
+- [x] Migration: set `status: "active"` where it is missing
+  - Note: the `users.status` step passes `timestamps: false`, so `updatedAt` stays usable for the conflict check in 1c. It has not been run on the shared database. The list works without it.
+- [x] `validators/admin/user.validator.js`: list query (`tab`, `role`, `status`, `q`)
+  - Note: `tab` and `role` accept `all`, `customer`, and `staff`, so `role=admin` is a 400.
+- [x] `controllers/admin/user.controller.js` `listUsers`: Customer and Staff only, search by name, email, phone, or derived code. Returns rows `{ id, code, role, fullName, email, phone, joinedAt, status }` and `counts { all, customer, staff }`.
+  - Note: `counts` ignores the filters, as the tabs did on mock data. The code is not stored, so `searchFilter(q, fields, computed)` gained a `computed` argument that matches aggregation expressions through `$expr`.
+- [x] Tests: Admin accounts are excluded, tab counts, filters, accent-insensitive search, paging, and the derived code format
+  - Note: `tests/admin-users.test.js` runs the filter on an in-memory stand-in, like the rest of the suite. The same queries and the migration (second run changes nothing, `updatedAt` kept) also passed once on a throwaway `mongod` 8.0, from a script that is not in the repo.
+- [x] Frontend: `services/users.ts` `listUsers`, a `useUsersList` hook, and `users-list.tsx` on the hook. Real loading, error ("Thử lại"), and empty states, with `?state=` still working.
+  - Note: changes beyond the item:
+    - `useAdminList.reload` also drops a forced `?state=`.
+    - `useAdminList` shows the loading state, not a blank table, when a load follows an empty result.
+    - `apiGet` keeps its 15 s timeout when the caller passes a signal. It used to drop it, so a hung backend would have loaded forever.
+    - `lib/format.ts` gained `formatPhone`, to match the designed `0912 345 678`.
+  - **Until 1b, "Chi tiết" on a real row returns 404**, because rows link to the Mongo `_id` while `/admin/users/[id]` still reads the mock.
+- [x] Browser check
+  - Note: logged in as Admin at 1440 and 320 px: no page-level horizontal scroll, and the only console errors are the expected 401 before login and the 500 the check forces on purpose. The shared database has one non-Admin account, so paging, locked rows, and Staff rows were checked on a stubbed 13-row response. Real data covered the list, search (including the derived code), filters, and states.
+  - Note: sign-in can fail here with 503 `AUTH_CLOCK_SKEW`. This machine's clock is about 2 s behind Google's, and the check in `auth.controller.js` allows no skew. The browser script holds `POST /auth/session` for 4 s to get past it. The auth code is unchanged.
+- [x] **🛑 Commit checkpoint: User list**
 
 ### 1b. User detail and lock: `/admin/users/[id]`
 - [ ] `requireAuth`: a `locked` user gets 403 `ACCOUNT_LOCKED` with "Tài khoản đang bị khóa." (MSG07). The session exchange (`POST /auth/session`) refuses locked users before setting the cookie.

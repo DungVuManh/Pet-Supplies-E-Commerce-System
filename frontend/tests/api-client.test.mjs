@@ -76,6 +76,24 @@ test("network failures, non-JSON bodies, and unexpected shapes are mapped", asyn
   assert.equal(parseEnvelope(200, { success: true, data: null }), null);
 });
 
+test("a request with a caller's signal still times out, as a network error", async (t) => {
+  t.mock.method(AbortSignal, "timeout", () => AbortSignal.abort(new DOMException("Timed out", "TimeoutError")));
+  t.mock.method(globalThis, "fetch", async (_path, init) => { throw init.signal.reason; });
+  await assert.rejects(apiGet("/api/v1/admin/users", {}, { signal: new AbortController().signal }),
+    (error) => error instanceof ApiError && error.code === "NETWORK_ERROR");
+});
+
+test("aborting the caller's signal aborts the request", async (t) => {
+  const controller = new AbortController();
+  t.mock.method(globalThis, "fetch", async (_path, init) => {
+    assert.equal(init.signal.aborted, false);
+    controller.abort();
+    assert.equal(init.signal.aborted, true);
+    throw init.signal.reason;
+  });
+  await assert.rejects(apiGet("/api/v1/admin/users", {}, { signal: controller.signal }), (error) => error.name === "AbortError");
+});
+
 test("a caller's abort is passed through instead of becoming a network error", async (t) => {
   t.mock.method(globalThis, "fetch", async () => { throw new DOMException("Aborted", "AbortError"); });
   await assert.rejects(apiGet("/api/v1/admin/users", {}, { signal: new AbortController().signal }), (error) => error.name === "AbortError");

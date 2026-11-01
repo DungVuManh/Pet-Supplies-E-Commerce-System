@@ -23,7 +23,7 @@ afterEach(() => vi.restoreAllMocks());
 describe("Admin route access", () => {
  it("registers the Admin routes", () => {
   expect(routes.map(label)).toEqual(expect.arrayContaining([
-   "GET /api/v1/admin/dashboard", "GET /api/v1/admin/inventory",
+   "GET /api/v1/admin/dashboard", "GET /api/v1/admin/inventory", "GET /api/v1/admin/users",
   ]));
  });
 

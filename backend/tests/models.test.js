@@ -223,6 +223,18 @@ describe("supporting models", () => {
   expect(AuditLog.schema.indexes()).toContainEqual([{ at: -1 }, expect.anything()]);
  });
 
+ it("defaults accounts to active and limits the Admin-managed fields", async () => {
+  const data = { firebaseUid: "uid-1", email: "a@example.test", fullName: "Test User", phone: "0912345678", termsAcceptedAt: new Date() };
+  const user = new models.User(data);
+  await expect(user.validate()).resolves.toBeUndefined();
+  expect(user.status).toBe("active");
+  await expect(new models.User({ ...data, status: "locked", lockReason: "x".repeat(200), adminNote: "x".repeat(1000) }).validate()).resolves.toBeUndefined();
+  for (const patch of [{ status: "banned" }, { lockReason: "x".repeat(201) }, { adminNote: "x".repeat(1001) }]) {
+   await expect(new models.User({ ...data, ...patch }).validate()).rejects.toThrow();
+  }
+  expect(models.User.schema.indexes()).toContainEqual([{ role: 1, status: 1, createdAt: -1 }, expect.anything()]);
+ });
+
  it("stores shared Admin notifications with per-Admin read and saved state", async () => {
   const notification = new AdminNotification({ type: "stock", title: "Sắp hết hàng", targetHref: "/admin/inventory", reference: "SKU-1" });
   await expect(notification.validate()).resolves.toBeUndefined();

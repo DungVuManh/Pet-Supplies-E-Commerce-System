@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { useListState } from "@/components/workspace/use-list-state";
 import type { ListStateKind } from "@/components/workspace/workspace-ui";
@@ -24,6 +25,8 @@ export function useAdminList<F extends ListFilter, T, C extends ListCounts = Lis
   { pageSize = 6 }: { pageSize?: number } = {},
 ) {
   const reviewState = useListState();
+  const router = useRouter();
+  const pathname = usePathname();
   const [filter, setFilter] = useState(initial);
   const [draft, setDraft] = useState(initial);
   const [page, setPage] = useState(1);
@@ -52,7 +55,7 @@ export function useAdminList<F extends ListFilter, T, C extends ListCounts = Lis
   const pagination = data?.pagination ?? { page, pageSize, total: 0, totalPages: 0 };
   const error = current?.error ?? null;
   const state: ListStateKind | null = reviewState
-    ?? (error ? "error" : loading && !data ? "loading" : !loading && items.length === 0 ? "empty" : null);
+    ?? (error ? "error" : items.length > 0 ? null : loading ? "loading" : "empty");
 
   function apply(next: F) {
     setFilter(next);
@@ -69,7 +72,11 @@ export function useAdminList<F extends ListFilter, T, C extends ListCounts = Lis
     },
     reset: () => apply(initial),
     page, setPage,
-    reload: () => setAttempt((value) => value + 1),
+    /** Fetches again; a forced `?state=` review is dropped so the retry shows real data. */
+    reload() {
+      if (reviewState) router.replace(pathname);
+      setAttempt((value) => value + 1);
+    },
     items, counts: data?.counts, pagination,
     /** First and last row numbers on this page, for `Pagination`. */
     from: items.length ? (pagination.page - 1) * pagination.pageSize + 1 : 0,

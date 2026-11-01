@@ -1,4 +1,5 @@
 import type { BadgeTone } from "@/components/workspace/workspace-ui";
+import type { UserStatus } from "./types";
 
 /** Every status label shown in the Admin workspace and its badge tone; screens never pick tones themselves. */
 export const adminStatusTones = {
@@ -30,6 +31,9 @@ export const adminStatusTones = {
 } as const satisfies Record<string, BadgeTone>;
 
 export type AdminStatus = keyof typeof adminStatusTones;
+
+/** Badge label for each `User.status` value. */
+export const userStatusLabels: Record<UserStatus, AdminStatus> = { active: "Hoạt động", locked: "Đã khóa" };
 
 export function adminStatusTone(status: AdminStatus): BadgeTone {
   return adminStatusTones[status];

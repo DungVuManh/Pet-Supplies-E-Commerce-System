@@ -49,6 +49,14 @@ describe("accent-insensitive search", () => {
   expect(filter.$and[0].$or[1].phone.test("Đức")).toBe(true);
   expect(filter.$and[1].$or[1].phone.test("0 9")).toBe(true);
  });
+
+ it("also matches computed expressions when given", () => {
+  const code = { $toString: "$_id" };
+  const { $and: [{ $or: clauses }] } = searchFilter("KH1", ["fullName"], [code]);
+  expect(clauses).toHaveLength(2);
+  expect(clauses[1].$expr.$regexMatch.input).toBe(code);
+  expect(clauses[1].$expr.$regexMatch.regex.test("kh1a2b3c")).toBe(true);
+ });
 });
 
 describe("Admin list query", () => {

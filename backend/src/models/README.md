@@ -3,7 +3,7 @@
 Models implement the proposed structure in `docs/SRS.md` sections 5.2 and 5.3.
 The user requested all models, including the backlog PetProfile and Wishlist.
 Firebase manages credentials; there are no local password hashes, reset-token
-fields, account-status changes, or separate Role collection. `User.role` accepts
+fields, or separate Role collection. `User.role` accepts
 `customer`, `staff`, and `admin`, defaults to `customer`, and remains immutable
 through Mongoose. See [manual role assignment](../../../docs/authentication.md)
 for direct MongoDB updates and the backend authorization rules.
@@ -16,7 +16,7 @@ import { Product, Order, Setting } from "./models/index.js";
 
 | Export | Collection | Main contents |
 | --- | --- | --- |
-| User | users | Firebase UID, public profile, and customer/staff/admin role |
+| User | users | Firebase UID, public profile, customer/staff/admin role, and Admin-managed status |
 | Address | addresses | User reference, recipient/address details, default flag |
 | PetProfile | petProfiles | User reference, name, species, breed, date of birth |
 | Category | categories | Unique name/slug, active flag |
@@ -87,6 +87,11 @@ which strips secret-looking fields and records the request IP. `result` is
 hold the `User._id` of each Admin who read or saved the entry. `targetHref` must
 be an `/admin` path. A failed notification never fails the triggering request.
 Its sample data comes from `npm run seed:admin`, not `npm run seed`.
+
+`User.status` is `active` or `locked`. A missing value means active, so queries
+use `{ status: { $ne: "locked" } }`, and `npm run migrate:admin` backfills it.
+`status`, `lockedAt`, `lockedBy`, `lockReason`, and `adminNote` are managed by
+Admin and never appear in `publicUser()`.
 
 `createModelIndexes()` in `src/config/database.js` explicitly creates declared
 indexes before startup listens, since the connection disables `autoIndex`. It

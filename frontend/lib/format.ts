@@ -17,6 +17,11 @@ export function formatVnd(value: number) {
   return `${value.toLocaleString("vi-VN")} ₫`;
 }
 
+/** "0912 345 678" for a 10-digit number; anything else is shown as stored. */
+export function formatPhone(value: string) {
+  return /^\d{10}$/.test(value) ? `${value.slice(0, 4)} ${value.slice(4, 7)} ${value.slice(7)}` : value;
+}
+
 /** "12/10/2026" in Vietnam time; "—" for an invalid date. */
 export function formatDate(value: Date | string | number) {
   const p = dateParts(value);

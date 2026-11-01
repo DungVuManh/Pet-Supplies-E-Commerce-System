@@ -2,13 +2,23 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { connectDatabase, disconnectDatabase } from "../config/database.js";
 import { loadEnvironment } from "../config/env.js";
+import { User } from "../models/user.model.js";
 
 /**
  * Idempotent migrations of existing documents for the Admin backend, run in
  * order. Each `run()` resolves to the number of documents it changed, so a
  * second run reports zero everywhere. Later phases append their steps here.
  */
-export const migrations = [];
+export const migrations = [
+ {
+  name: "users.status",
+  // `timestamps: false` leaves `updatedAt` alone, because Admin edits compare it to detect conflicts.
+  async run() {
+   const result = await User.updateMany({ status: { $exists: false } }, { $set: { status: "active" } }, { timestamps: false });
+   return result.modifiedCount;
+  },
+ },
+];
 
 export async function migrateAdminData(steps = migrations) {
  const changes = {};
