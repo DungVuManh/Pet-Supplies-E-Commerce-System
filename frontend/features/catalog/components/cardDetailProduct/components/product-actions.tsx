@@ -119,15 +119,20 @@ export function ProductActions({
         <button
           type="button"
           aria-label={isLove ? "Bỏ lưu sản phẩm" : "Lưu sản phẩm"}
-          className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 font-medium hover:bg-slate-50 transition-colors"
+          className={`flex items-center gap-2 rounded-lg border px-4 font-medium transition-colors cursor-pointer ${
+            isLove
+              ? "border-rose-200 bg-rose-50/60 text-rose-600 hover:bg-rose-100/60"
+              : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+          }`}
           onClick={onToggleLove}
         >
           <Heart
             size={18}
             fill={isLove ? "#ef4444" : "none"}
             color={isLove ? "#ef4444" : "currentColor"}
+            className={isLove ? "scale-110 transition-transform" : "transition-transform"}
           />
-          <span className="text-sm">Lưu</span>
+          <span className="text-sm">{isLove ? "Đã lưu" : "Lưu"}</span>
         </button>
       </div>
 
