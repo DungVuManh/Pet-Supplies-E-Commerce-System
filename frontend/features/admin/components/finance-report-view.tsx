@@ -6,7 +6,7 @@ import { AlertCircle, Calendar, Download, RefreshCw } from "lucide-react";
 import { AdminPageHeader, DataTable, KpiCard, StatusBadge, Stack, Td, Th } from "./admin-ui";
 import { ReportsNav } from "./reports-nav";
 import { ActionLink, LineChart, Pagination, control } from "@/components/workspace/workspace-ui";
-import { DemoNotice } from "@/components/workspace/demo-notice";
+import { downloadExcelCsv } from "../utils/export-excel";
 import type { AdminStatus } from "../status";
 
 const vnd = (value: number) => `${value.toLocaleString("vi-VN")} ₫`;
@@ -46,8 +46,8 @@ export function FinanceReportView() {
   const [dateTo, setDateTo] = useState("2026-10-12");
   const [appliedPeriod, setAppliedPeriod] = useState({
     from: "2026-10-01",
-    to: "2026-10-12",
-    label: "01/10/2026 – 12/10/2026",
+    to: "2026-10-31",
+    label: "01/10/2026 – 31/10/2026",
   });
 
   // Dữ liệu nghiệp vụ thuần túy từ MongoDB (không dùng bất kỳ mock data nào làm khởi tạo)
@@ -58,6 +58,7 @@ export function FinanceReportView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCustomRangeOpen, setIsCustomRangeOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Gọi trực tiếp API Backend kết nối MongoDB thực tế
   const fetchFinanceData = useCallback(async (from: string, to: string) => {
@@ -139,6 +140,53 @@ export function FinanceReportView() {
     }
   };
 
+  const handleExportExcel = () => {
+    try {
+      setIsExporting(true);
+      downloadExcelCsv({
+        filename: `Bao_cao_tai_chinh_${appliedPeriod.from}_${appliedPeriod.to}`,
+        title: "BÁO CÁO TÀI CHÍNH",
+        period: appliedPeriod.label,
+        sections: [
+          {
+            title: "1. Tổng quan tài chính (KPI)",
+            headers: ["Chỉ số", "Giá trị", "Đơn vị"],
+            rows: [
+              ["Doanh thu gộp (Gross)", (kpis?.grossRevenue ?? 0).toLocaleString("vi-VN"), "VNĐ"],
+              ["Số đơn hàng trong kỳ", (kpis?.grossOrders ?? 0).toLocaleString("vi-VN"), "Đơn"],
+              ["Hoàn tiền & Hủy", (kpis?.refunds ?? 0).toLocaleString("vi-VN"), "VNĐ"],
+              ["Số giao dịch hoàn", (kpis?.refundTransactions ?? 0).toLocaleString("vi-VN"), "Giao dịch"],
+              ["Doanh thu thuần (Net)", (kpis?.netRevenue ?? 0).toLocaleString("vi-VN"), "VNĐ"],
+              ["Chờ đối soát", (kpis?.pendingReconciliation ?? 0).toLocaleString("vi-VN"), "VNĐ"],
+              ["Giao dịch chờ đối soát", (kpis?.pendingTransactions ?? 0).toLocaleString("vi-VN"), "Giao dịch"],
+            ],
+          },
+          {
+            title: "2. Đối soát kênh thanh toán",
+            headers: ["Mã kênh", "Tên kênh", "Chi tiết", "Thu (VNĐ)", "Hoàn (VNĐ)", "Thuần (VNĐ)", "Số GD", "Trạng thái"],
+            rows: (paymentChannels ?? []).map((ch) => [
+              ch.channel,
+              ch.channelName,
+              ch.detailTitle,
+              ch.income.toLocaleString("vi-VN"),
+              ch.refund.toLocaleString("vi-VN"),
+              ch.net.toLocaleString("vi-VN"),
+              ch.transactions,
+              ch.status,
+            ]),
+          },
+          {
+            title: "3. Doanh thu thuần lũy kế theo ngày",
+            headers: ["Ngày", "Doanh thu lũy kế (triệu đồng)"],
+            rows: (chart ?? []).map((row) => [row.label, row.value]),
+          },
+        ],
+      });
+    } finally {
+      setTimeout(() => setIsExporting(false), 300);
+    }
+  };
+
   const actions = (
     <div className="flex flex-wrap items-center gap-2">
       {/* Bộ lọc khoảng thời gian */}
@@ -204,11 +252,20 @@ export function FinanceReportView() {
         )}
       </div>
 
-      <DemoNotice
-        label="Xuất Excel"
-        icon={<Download className="h-4 w-4" aria-hidden="true" />}
-        message="Chức năng xuất báo cáo tài chính chưa kết nối backend."
-      />
+      <button
+        type="button"
+        onClick={handleExportExcel}
+        disabled={loading || isExporting}
+        className="inline-flex min-h-12 items-center gap-2 rounded-lg border border-line bg-surface px-4 font-semibold hover:bg-canvas/60 transition-colors disabled:opacity-50"
+        aria-label="Xuất file Excel báo cáo tài chính"
+      >
+        {isExporting ? (
+          <RefreshCw className="h-4 w-4 animate-spin text-muted" aria-hidden="true" />
+        ) : (
+          <Download className="h-4 w-4 text-muted" aria-hidden="true" />
+        )}
+        <span>{isExporting ? "Đang xuất..." : "Xuất Excel"}</span>
+      </button>
     </div>
   );
 

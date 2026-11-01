@@ -7,7 +7,7 @@ import { AlertCircle, Calendar, Download, RefreshCw } from "lucide-react";
 import { AdminPageHeader, DataTable, KpiCard, Stack, Td, Th } from "./admin-ui";
 import { ReportsNav } from "./reports-nav";
 import { ActionLink, BarChart, Pagination, TabNav, control } from "@/components/workspace/workspace-ui";
-import { DemoNotice } from "@/components/workspace/demo-notice";
+import { downloadExcelCsv } from "../utils/export-excel";
 
 type SalesTab = "product" | "category" | "staff" | "time";
 
@@ -72,6 +72,7 @@ export function SalesReportView() {
     label: "01/10/2026 – 31/10/2026",
   });
   const [isCustomRangeOpen, setIsCustomRangeOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Dữ liệu từ API Backend MongoDB thực tế
   const [kpis, setKpis] = useState<SalesKpis | null>(null);
@@ -159,6 +160,81 @@ export function SalesReportView() {
     { label: "Theo thời gian", active: activeTab === "time", onSelect: () => setActiveTab("time") },
   ];
 
+  const handleExportExcel = () => {
+    try {
+      setIsExporting(true);
+      downloadExcelCsv({
+        filename: `Bao_cao_ban_hang_${appliedPeriod.from}_${appliedPeriod.to}`,
+        title: "BÁO CÁO BÁN HÀNG",
+        period: appliedPeriod.label,
+        sections: [
+          {
+            title: "1. Hiệu quả bán hàng (KPI)",
+            headers: ["Chỉ số", "Giá trị", "Ghi chú"],
+            rows: [
+              ["Số lượng sản phẩm bán ra", (kpis?.itemsSold ?? 0).toLocaleString("vi-VN"), kpis?.itemsSoldDetail ?? ""],
+              ["Giá trị trung bình đơn (AOV)", (kpis?.averageOrderValue ?? 0).toLocaleString("vi-VN") + " ₫", kpis?.averageOrderDetail ?? ""],
+              ["Danh mục bán chạy nhất", kpis?.topCategory ?? "", kpis?.topCategoryShare ?? ""],
+            ],
+          },
+          {
+            title: "2. Doanh số theo sản phẩm",
+            headers: ["Mã SKU", "Tên sản phẩm", "Nhân viên phụ trách", "Số đơn", "Số lượng bán", "Đơn vị", "Doanh thu (VNĐ)", "Tỷ trọng"],
+            rows: (productSales ?? []).map((prod) => [
+              prod.sku,
+              prod.name,
+              prod.staff,
+              prod.orders,
+              prod.quantity,
+              prod.unit,
+              prod.revenue.toLocaleString("vi-VN"),
+              prod.share,
+            ]),
+          },
+          {
+            title: "3. Doanh số theo danh mục",
+            headers: ["Danh mục", "Doanh thu (VNĐ)", "Số đơn", "Số lượng bán", "Tỷ trọng"],
+            rows: (categorySales ?? []).map((cat) => [
+              cat.category,
+              cat.revenue.toLocaleString("vi-VN"),
+              cat.orders,
+              cat.quantity,
+              cat.share,
+            ]),
+          },
+          {
+            title: "4. Doanh số theo nhân viên",
+            headers: ["Nhân viên / Kênh", "Vai trò", "Doanh thu (VNĐ)", "Số đơn", "Sản phẩm chủ lực"],
+            rows: (staffSales ?? []).map((staff) => [
+              staff.staff,
+              staff.role,
+              staff.revenue.toLocaleString("vi-VN"),
+              staff.orders,
+              staff.topProduct,
+            ]),
+          },
+          {
+            title: "5. Doanh số theo thời gian",
+            headers: ["Thời gian", "Doanh thu (VNĐ)", "Số đơn", "Số lượng bán"],
+            rows: (timeSales ?? []).map((time) => [
+              time.period,
+              time.revenue.toLocaleString("vi-VN"),
+              time.orders,
+              time.quantity,
+            ]),
+          },
+          {
+            title: "6. Số lượng bán theo ngày",
+            headers: ["Ngày", "Số lượng sản phẩm bán"],
+            rows: (dailySalesVolume ?? []).map((d) => [d.label, d.value]),
+          },
+        ],
+      });
+    } finally {
+      setTimeout(() => setIsExporting(false), 300);
+    }
+  };
+
   const actions = (
     <div className="flex flex-wrap items-center gap-3">
       <div className="relative">
@@ -223,11 +299,20 @@ export function SalesReportView() {
         )}
       </div>
 
-      <DemoNotice
-        label="Xuất Excel"
-        icon={<Download className="h-4 w-4" aria-hidden="true" />}
-        message="Chức năng xuất báo cáo bán hàng chưa kết nối backend."
-      />
+      <button
+        type="button"
+        onClick={handleExportExcel}
+        disabled={loading || isExporting}
+        className="inline-flex min-h-12 items-center gap-2 rounded-lg border border-line bg-surface px-4 font-semibold hover:bg-canvas/60 transition-colors disabled:opacity-50"
+        aria-label="Xuất file Excel báo cáo bán hàng"
+      >
+        {isExporting ? (
+          <RefreshCw className="h-4 w-4 animate-spin text-muted" aria-hidden="true" />
+        ) : (
+          <Download className="h-4 w-4 text-muted" aria-hidden="true" />
+        )}
+        <span>{isExporting ? "Đang xuất..." : "Xuất Excel"}</span>
+      </button>
     </div>
   );
 
