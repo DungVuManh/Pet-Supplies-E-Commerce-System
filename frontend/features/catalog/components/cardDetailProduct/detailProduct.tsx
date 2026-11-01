@@ -16,6 +16,7 @@ import { ProductTabs } from "./components/product-tabs";
 import { ProductVariants } from "./components/product-variants";
 import { useProductDetail } from "./hooks/use-product-detail";
 import { previewBuyNowApi, saveBuyNowSession } from "@/features/orders/services/order.service";
+import { WishlistToast } from "@/features/wishlist";
 
 export function DetailProduct({ product }: { product: Product }) {
   const router = useRouter();
@@ -36,6 +37,8 @@ export function DetailProduct({ product }: { product: Product }) {
     decreaseQuantity,
     isLove,
     toggleLove,
+    toasts,
+    removeToast,
     isAddingToCart,
     cartFeedback,
     handleAddToCart,
@@ -135,6 +138,9 @@ export function DetailProduct({ product }: { product: Product }) {
 
       {/* Tabs mô tả chi tiết, thành phần & đánh giá */}
       <ProductTabs product={product} />
+
+      {/* Thông báo Toast khi bấm Lưu yêu thích */}
+      <WishlistToast toasts={toasts} onDismiss={removeToast} />
     </div>
   );
 }
