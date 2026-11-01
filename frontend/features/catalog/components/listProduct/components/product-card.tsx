@@ -46,30 +46,29 @@ export function ProductCard({ product }: { product: Product }) {
 
    {/* 2. Thông tin thương hiệu & Rating & Đã bán */}
    <div className="flex items-center justify-between gap-2 pt-1 text-[11px]">
-    <p className="font-semibold uppercase tracking-[1px] text-muted truncate">
+    <p className=" uppercase tracking-[1px] text-blue-600 font-bold truncate">
      {product.brand || "Petjoy"}
     </p>
-    <div className="flex items-center gap-1.5 shrink-0 text-slate-500 font-medium">
-     <div className="flex items-center gap-0.5 text-amber-500">
-      <Star className="size-3 fill-amber-400 text-amber-400" />
-      <span>{rating.toFixed(1)}</span>
-     </div>
-     <span className="text-gray-300">·</span>
-     <span className="text-muted font-normal">
-      Đã bán {product.soldCount ?? 0}
-     </span>
-    </div>
    </div>
 
    {/* 3. Tên sản phẩm */}
    <h3 className="text-sm font-semibold leading-snug text-ink line-clamp-2 min-h-10 group-hover:text-brand transition-colors">
     {product.name}
    </h3>
-
+   <div className="flex items-center gap-1.5 shrink-0 text-slate-500 font-medium">
+    <div className="flex items-center gap-0.5 text-black font-normal">
+     <Star className="size-3 fill-amber-400 text-amber-400 " />
+     <span>{rating.toFixed(1)}</span>
+    </div>
+    <span className="text-gray-300">·</span>
+    <span className="text-muted font-normal">
+     Đã bán {product.soldCount ?? 0}
+    </span>
+   </div>
    {/* 4. Giá */}
    <div className="mt-auto flex items-center justify-between gap-2 pt-2">
     <div>
-     <p className="text-base font-bold text-ink sm:text-lg">
+     <p className="text-base font-bold text-blue-600 sm:text-lg  ">
       {formatCurrency(product.price)}
      </p>
     </div>
