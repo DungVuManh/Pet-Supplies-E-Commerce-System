@@ -14,7 +14,6 @@ export function useOrderDetail(orderId: string | undefined) {
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
-    // Không gọi API nếu chưa có ID
     if (!orderId) return;
 
     async function loadOrderDetail() {

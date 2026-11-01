@@ -172,6 +172,7 @@ export async function createOrder(request, response, next) {
         name: product.name,
         unitPrice,
         qty,
+        image: variant?.image || product.images?.[0] || "",
       });
 
       subtotal += unitPrice * qty;
@@ -442,16 +443,27 @@ export async function getOrderDetail(request, response, next) {
         { id: "step-4", title: "Hoàn thành", description: "Nhận hàng thành công", status: status === "completed" ? "completed" : "pending" },
       ];
 
+    // Lấy ảnh từ Product nếu item.image trong đơn hàng chưa có
+    const productIds = (order.items || []).map((i) => i.productId).filter(Boolean);
+    const products = await Product.find({ _id: { $in: productIds } }).select("images variants").lean();
+    const productMap = new Map(products.map((p) => [p._id.toString(), p]));
+
     // Map danh sách sản phẩm trong đơn
-    const items = order.items.map((item, index) => ({
-      id: item.productId?.toString() || `item-${index}`,
-      name: item.name,
-      description: `SKU: ${item.variantSku}`,
-      sku: item.variantSku,
-      price: item.unitPrice,
-      quantity: item.qty,
-      image: item.image
-    }));
+    const items = (order.items || []).map((item, index) => {
+      const prod = productMap.get(item.productId?.toString());
+      const variant = prod?.variants?.find((v) => v.sku === item.variantSku);
+      const img = item.image || variant?.image || prod?.images?.[0] || "";
+
+      return {
+        id: item.productId?.toString() || `item-${index}`,
+        name: item.name,
+        description: `SKU: ${item.variantSku}`,
+        sku: item.variantSku,
+        price: item.unitPrice,
+        quantity: item.qty,
+        image: img,
+      };
+    });
 
     // Chuẩn hóa địa chỉ giao hàng
     const shippingAddress = {
@@ -701,6 +713,7 @@ export async function getStaffOrderDetail(request, response, next) {
         name: item.name,
         unitPrice,
         qty,
+        image: variant?.image || product.images?.[0] || "",
         lineTotal: unitPrice * qty,
         currentProduct,
       };
