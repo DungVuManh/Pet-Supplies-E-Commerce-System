@@ -15,9 +15,9 @@ export default function ProfilePage() {
 
   const [profile, setProfile] = useState<CustomerProfile | null>(null);
   const [stats, setStats] = useState<ProfileStats>({
-    orders: 5,
-    pets: 2,
-    addresses: 2,
+    orders: 0,
+    pets: 0,
+    addresses: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -33,22 +33,27 @@ export default function ProfilePage() {
 
   useEffect(() => {
     let active = true;
-    async function load() {
-      setIsLoading(true);
-      setErrorMessage("");
-      try {
-        const data = await accountApi.getProfile();
+    accountApi
+      .getProfile()
+      .then((data) => {
         if (active) {
           setProfile(data.user);
           if (data.stats) setStats(data.stats);
-          if (user && data.user.avatarUrl && user.avatarUrl !== data.user.avatarUrl) {
+          setIsLoading(false);
+          if (data.user) {
             acceptUser({
-              ...user,
+              id: data.user.id,
+              email: data.user.email,
+              role: data.user.role,
+              fullName: data.user.fullName,
+              phone: data.user.phone,
               avatarUrl: data.user.avatarUrl,
+              createdAt: data.user.createdAt,
             });
           }
         }
-      } catch (err: unknown) {
+      })
+      .catch((err: unknown) => {
         if (active) {
           if (user) {
             // Fallback to auth user
@@ -56,7 +61,7 @@ export default function ProfilePage() {
               id: user.id,
               email: user.email,
               fullName: user.fullName,
-              phone: user.phone || "0974 175 587",
+              phone: user.phone || "",
               role: user.role,
               avatarUrl: user.avatarUrl || "/images/customer-avatar.jpg",
             });
@@ -67,19 +72,22 @@ export default function ProfilePage() {
                 : "Không thể tải thông tin hồ sơ tài khoản.",
             );
           }
+          setIsLoading(false);
         }
-      } finally {
-        if (active) setIsLoading(false);
-      }
-    }
+      });
 
-    if (status === "ready") {
-      void load();
-    }
     return () => {
       active = false;
     };
-  }, [status, user, acceptUser]);
+  }, [acceptUser]);
+
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => {
+      setToastMessage("");
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
 
   async function handleSaveProfile(values: ProfileFormValues) {
     setIsSaving(true);
@@ -95,14 +103,17 @@ export default function ProfilePage() {
       setToastMessage("Thông tin của bạn đã được cập nhật.");
       setIsEditing(false);
 
-      if (user) {
-        acceptUser({
-          ...user,
-          fullName: updated.fullName,
-          phone: updated.phone,
-          avatarUrl: nextAvatar,
-        });
-      }
+      acceptUser({
+        ...(user || {
+          id: updated.id,
+          email: updated.email,
+          role: updated.role,
+        }),
+        fullName: updated.fullName,
+        phone: updated.phone,
+        avatarUrl: nextAvatar,
+        createdAt: user?.createdAt || updated.createdAt,
+      });
     } catch (err: unknown) {
       setErrorMessage(
         err instanceof Error
@@ -116,16 +127,14 @@ export default function ProfilePage() {
 
   const currentProfile: CustomerProfile = profile || {
     id: user?.id || "",
-    email: user?.email || "minhanh.nguyen@gmail.com",
-    fullName: user?.fullName || "Nguyễn Minh Anh",
-    phone: user?.phone || "0974 175 587",
+    email: user?.email || "",
+    fullName: user?.fullName || "",
+    phone: user?.phone || "",
     role: user?.role || "customer",
-    dob: "1998-06-18",
-    gender: "female",
+    dob: "",
+    gender: "other",
     avatarUrl: user?.avatarUrl || "/images/customer-avatar.jpg",
-    createdAt:
-      user?.createdAt ||
-      "2026-02-12T00:00:00.000Z",
+    createdAt: user?.createdAt || new Date().toISOString(),
   };
 
   return (
