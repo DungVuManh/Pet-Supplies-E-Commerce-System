@@ -80,7 +80,7 @@ export function CartItemsTable({
          </h3>
 
          <p className="text-xs text-muted mt-0.5">
-          SKU: {item.product.sku} · {formatVND(item.product.price)}
+          {item.product.sku} · {formatVND(item.product.price)}
          </p>
         </div>
        </div>
