@@ -15,9 +15,9 @@ export default function ProfilePage() {
 
   const [profile, setProfile] = useState<CustomerProfile | null>(null);
   const [stats, setStats] = useState<ProfileStats>({
-    orders: 5,
-    pets: 2,
-    addresses: 2,
+    orders: 0,
+    pets: 0,
+    addresses: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -50,7 +50,7 @@ export default function ProfilePage() {
               id: user.id,
               email: user.email,
               fullName: user.fullName,
-              phone: user.phone || "0974 175 587",
+              phone: user.phone || "",
               role: user.role,
               avatarUrl: user.avatarUrl || "/images/customer-avatar.jpg",
             });
@@ -113,16 +113,14 @@ export default function ProfilePage() {
 
   const currentProfile: CustomerProfile = profile || {
     id: user?.id || "",
-    email: user?.email || "minhanh.nguyen@gmail.com",
-    fullName: user?.fullName || "Nguyễn Minh Anh",
-    phone: user?.phone || "0974 175 587",
+    email: user?.email || "",
+    fullName: user?.fullName || "",
+    phone: user?.phone || "",
     role: user?.role || "customer",
-    dob: "1998-06-18",
-    gender: "female",
+    dob: "",
+    gender: "other",
     avatarUrl: user?.avatarUrl || "/images/customer-avatar.jpg",
-    createdAt:
-      user?.createdAt ||
-      "2026-02-12T00:00:00.000Z",
+    createdAt: user?.createdAt || new Date().toISOString(),
   };
 
   return (
