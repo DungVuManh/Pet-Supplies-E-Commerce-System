@@ -339,12 +339,17 @@ export function MegaMenu({
   // 4. Lọc danh mục thuộc riêng loài thú cưng đang chọn & deduplicate
   const filteredCategories = useMemo(() => {
     return categories.filter((c) => {
+      // Ưu tiên lọc theo petType trả về từ backend API
+      if (c.petType) {
+        if (petType === "dog") return c.petType === "dog" || c.petType === "both";
+        if (petType === "cat") return c.petType === "cat" || c.petType === "both";
+      }
+
       const s = c.slug.toLowerCase();
       const n = c.name.toLowerCase();
 
       if (petType === "dog") {
         // Loại bỏ danh mục của mèo
-        if (c.petType === "cat") return false;
         if (s.includes("-meo") || n.includes("cho mèo") || n.includes("cho meo")) {
           // Ngoại trừ mục dùng chung như "Sữa cho chó mèo"
           if (!s.includes("sua-cho-cho-meo")) return false;
@@ -352,8 +357,13 @@ export function MegaMenu({
         return true;
       } else {
         // petType === 'cat': Loại bỏ danh mục của chó
-        if (c.petType === "dog") return false;
-        if (s.includes("-cho") || n.includes("cho chó") || n.includes("cho cho")) {
+        // Lưu ý: không dùng s.includes("-cho") vì slug tiếng Việt như "thuc-an-cho-meo" chứa "-cho-" (nghĩa là "cho mèo")
+        if (
+          s.endsWith("-cho") ||
+          s.includes("-cho-cho") ||
+          n.includes("cho chó") ||
+          n.includes("cho cho")
+        ) {
           if (!s.includes("sua-cho-cho-meo")) return false;
         }
         return true;

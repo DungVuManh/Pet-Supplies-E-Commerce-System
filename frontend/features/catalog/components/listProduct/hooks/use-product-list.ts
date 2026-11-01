@@ -77,9 +77,9 @@ export function useProductList(defaultCategory?: string, defaultPetType?: string
     let fetchedCategories = categoriesRes.data.categories;
     if (petTypeParam === "dog") {
       fetchedCategories = fetchedCategories.filter((c) => {
+        if (c.petType) return c.petType === "dog" || c.petType === "both";
         const s = c.slug.toLowerCase();
         const n = c.name.toLowerCase();
-        if (c.petType === "cat") return false;
         if (s.includes("-meo") || n.includes("cho mèo") || n.includes("cho meo")) {
           if (!s.includes("sua-cho-cho-meo")) return false;
         }
@@ -87,10 +87,15 @@ export function useProductList(defaultCategory?: string, defaultPetType?: string
       });
     } else if (petTypeParam === "cat") {
       fetchedCategories = fetchedCategories.filter((c) => {
+        if (c.petType) return c.petType === "cat" || c.petType === "both";
         const s = c.slug.toLowerCase();
         const n = c.name.toLowerCase();
-        if (c.petType === "dog") return false;
-        if (s.includes("-cho") || n.includes("cho chó") || n.includes("cho cho")) {
+        if (
+          s.endsWith("-cho") ||
+          s.includes("-cho-cho") ||
+          n.includes("cho chó") ||
+          n.includes("cho cho")
+        ) {
           if (!s.includes("sua-cho-cho-meo")) return false;
         }
         return true;

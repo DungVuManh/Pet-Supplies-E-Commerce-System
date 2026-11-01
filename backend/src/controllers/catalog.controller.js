@@ -170,7 +170,13 @@ export async function getAllProducts(request, response, next) {
 // 2. GET /api/catalog/categories
 export async function getCategories(request, response, next) {
   try {
-    const categories = await Category.find({ isActive: true })
+    const { petType } = request.query;
+    const filter = { isActive: true };
+    if (petType && petType !== "all") {
+      filter.petType = { $in: [petType, "both"] };
+    }
+
+    const categories = await Category.find(filter)
       .sort({ name: 1 })
       .lean();
 
@@ -178,6 +184,7 @@ export async function getCategories(request, response, next) {
       _id: cat._id,
       name: cat.name,
       slug: cat.slug,
+      petType: cat.petType,
     }));
 
     response.json({
