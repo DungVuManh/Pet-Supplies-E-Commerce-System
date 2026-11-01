@@ -63,7 +63,7 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe("sample data seed", () => {
-  it("seeds the described products with stock, no soldCount and categories", async () => {
+  it("seeds the described products with stock, soldCount and categories", async () => {
     const counts = await seedSampleData();
     expect(counts).toMatchObject({ Category: sourceCategories.length, Product: sourceProducts.length });
     const products = documents(models.Product);
@@ -71,7 +71,7 @@ describe("sample data seed", () => {
     expect(categories).toHaveLength(sourceCategories.length);
     for (const source of sourceProducts) {
       expect(source.description.trim()).not.toBe("");
-      expect(Object.hasOwn(source, "soldCount")).toBe(false);
+      expect(Number.isSafeInteger(source.soldCount) && source.soldCount > 0).toBe(true);
       for (const variant of source.variants) {
         expect(Number.isSafeInteger(variant.stock)).toBe(true);
       }
@@ -80,7 +80,7 @@ describe("sample data seed", () => {
         images: source.images, ratingAvg: source.ratingAvg });
       const expectedCatId = source.categoryIds?.[0]?.$oid || source.categoryId?.$oid;
       if (expectedCatId) expect(product.categoryIds.map(String)).toContain(expectedCatId);
-      expect(Object.hasOwn(product, "soldCount")).toBe(false);
+      expect(Number.isSafeInteger(product.soldCount) && product.soldCount > 0).toBe(true);
     }
   });
 
@@ -154,7 +154,7 @@ describe("sample data seed", () => {
     expect(models.Product.collection.updateOne).not.toHaveBeenCalled();
   });
 
-  it("syncs only catalog descriptions/stock and removes soldCount while preserving prices, reservations and customer data", async () => {
+  it("syncs only catalog descriptions/stock and preserves soldCount while preserving prices, reservations and customer data", async () => {
     const source = sourceProducts[0];
     const targetSku = source.variants[0].sku;
     const product = new models.Product({
@@ -184,7 +184,7 @@ describe("sample data seed", () => {
     expect(product.name).toBe("Sản phẩm đã chỉnh sửa");
     expect(product.isActive).toBe(false);
     expect(product.categoryIds.map(String)).toEqual(originalCategoryIds);
-    expect(Object.hasOwn(product, "soldCount")).toBe(false);
+    expect(product.soldCount).toBe(source.soldCount);
     expect(documents(models.Cart)).toContain(cart);
     expect(documents(models.Wishlist)).toContain(wishlist);
     expect(documents(models.Setting)).toContain(setting);

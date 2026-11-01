@@ -58,15 +58,17 @@ async function seedProduct(filter, data) {
       if (variant.stock !== source.stock) changes[`variants.${index}.stock`] = source.stock;
       return { ...variant, stock: source.stock };
     });
-    if (!Object.keys(changes).length && !Object.hasOwn(product, "soldCount")) return product;
-    const updated = { ...product, description: data.description, variants };
-    delete updated.soldCount;
+    if (data.soldCount !== undefined && product.soldCount !== data.soldCount) {
+      changes.soldCount = data.soldCount;
+    }
+    if (!Object.keys(changes).length) return product;
+    const updated = { ...product, description: data.description, variants, soldCount: data.soldCount ?? product.soldCount ?? 0 };
     await new Product(updated).validate();
     const updatedAt = new Date();
     // Match the read snapshot so concurrent stock, reservation or content edits are not overwritten.
     const result = await Product.collection.updateOne({
       _id: product._id, description: product.description, variants: product.variants,
-    }, { $set: { ...changes, updatedAt }, $unset: { soldCount: "" } });
+    }, { $set: { ...changes, updatedAt } });
     if (!result.matchedCount) throw new SeedError("Seed Product: sản phẩm đã thay đổi trong lúc seed; hãy kiểm tra và chạy lại.");
     return { ...updated, updatedAt };
   } catch (error) {
@@ -151,7 +153,7 @@ export async function seedSampleData() {
       name: item.name, categoryIds, brand: item.brand,
       petType: item.petType === "both" ? "all" : item.petType,
       description: item.description, images: item.images, isActive: true,
-      variants: item.variants, ratingAvg: item.ratingAvg, ratingCount: item.ratingCount ?? 0,
+      variants: item.variants, ratingAvg: item.ratingAvg, ratingCount: item.ratingCount ?? 0, soldCount: item.soldCount ?? 0,
     });
     for (const variant of product.variants) productMap.set(variant.sku, product);
   }
