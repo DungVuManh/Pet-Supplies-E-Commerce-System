@@ -29,41 +29,60 @@ const DEFAULT_FILTER: CatalogFilter = {
  limit: 20,
 };
 
-export function useProductList(defaultCategory?: string, defaultPetType?: string) {
- const searchParams = useSearchParams();
- // Ưu tiên: defaultCategory (từ server) → URL param → "all"
- const categoryParam = defaultCategory || searchParams?.get("category") || "all";
- const petTypeParam = (defaultPetType || searchParams?.get("petType") || "all") as "dog" | "cat" | "all";
+export function useProductList(
+  defaultCategory?: string,
+  defaultPetType?: string,
+  defaultSearch?: string
+) {
+  const searchParams = useSearchParams();
+  // Ưu tiên: defaultCategory (từ server) → URL param → "all"
+  const categoryParam = defaultCategory || searchParams?.get("category") || "all";
+  const petTypeParam = (defaultPetType || searchParams?.get("petType") || "all") as "dog" | "cat" | "all";
+  const searchParam = defaultSearch ?? searchParams?.get("q") ?? searchParams?.get("search") ?? "";
 
- // 1. State lưu dữ liệu trả về từ API
- const [products, setProducts] = useState<CatalogProduct[]>([]);
- const [categories, setCategories] = useState<CatalogCategory[]>([]);
- const [brands, setBrands] = useState<string[]>([]);
- const [pagination, setPagination] = useState<Pagination | null>(null);
+  // 1. State lưu dữ liệu trả về từ API
+  const [products, setProducts] = useState<CatalogProduct[]>([]);
+  const [categories, setCategories] = useState<CatalogCategory[]>([]);
+  const [brands, setBrands] = useState<string[]>([]);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
 
- // 2. State trạng thái loading & error
- const [loadingProducts, setLoadingProducts] = useState(true);
- const [loadingFilters, setLoadingFilters] = useState(true);
- const [error, setError] = useState<string | null>(null);
+  // 2. State trạng thái loading & error
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loadingFilters, setLoadingFilters] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
- // 3. State quản lý bộ lọc và ô tìm kiếm
- const [filter, setFilter] = useState<CatalogFilter>(() => ({
-  ...DEFAULT_FILTER,
-  category: categoryParam,
-  petType: petTypeParam,
- }));
- const [searchInput, setSearchInput] = useState("");
+  // 3. State quản lý bộ lọc và ô tìm kiếm
+  const [filter, setFilter] = useState<CatalogFilter>(() => ({
+    ...DEFAULT_FILTER,
+    category: categoryParam,
+    petType: petTypeParam,
+    search: searchParam,
+  }));
+  const [searchInput, setSearchInput] = useState(searchParam);
 
- // Ref lưu trữ AbortController của request fetch sản phẩm
- const abortControllerRef = useRef<AbortController | null>(null);
+  // Ref lưu trữ AbortController của request fetch sản phẩm
+  const abortControllerRef = useRef<AbortController | null>(null);
 
- useEffect(() => {
-  // Khi URL thay đổi (navigate từ menu / filter), sync filter theo categoryParam và petTypeParam mới
-  setFilter((prev) => {
-   if (prev.category === categoryParam && prev.petType === petTypeParam) return prev;
-   return { ...prev, category: categoryParam, petType: petTypeParam, page: 1 };
-  });
- }, [categoryParam, petTypeParam]);
+  useEffect(() => {
+    // Khi URL thay đổi (navigate từ menu / filter / search), sync filter theo params mới
+    setFilter((prev) => {
+      if (
+        prev.category === categoryParam &&
+        prev.petType === petTypeParam &&
+        prev.search === searchParam
+      ) {
+        return prev;
+      }
+      return {
+        ...prev,
+        category: categoryParam,
+        petType: petTypeParam,
+        search: searchParam,
+        page: 1,
+      };
+    });
+    setSearchInput(searchParam);
+  }, [categoryParam, petTypeParam, searchParam]);
 
  useEffect(() => {
   let active = true;
