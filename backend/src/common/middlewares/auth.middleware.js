@@ -48,6 +48,13 @@ export function validateUserRole(user) {
  }
 }
 
+/** A locked account has no access: refused at sign-in and on every protected request (MSG07). */
+export function assertNotLocked(user) {
+ if (user.status === "locked") {
+  throw new AppError("Tài khoản đang bị khóa.", 403, "ACCOUNT_LOCKED");
+ }
+}
+
 export async function requireAuth(request, response, next) {
  const { sessionName, cookieOptions } = cookieSettings(request);
  try {
@@ -63,10 +70,11 @@ export async function requireAuth(request, response, next) {
   if (!user) {
    throw new AppError("Vui lòng hoàn tất hồ sơ để tiếp tục.", 409, "PROFILE_INCOMPLETE");
   }
+  assertNotLocked(user);
   validateUserRole(user);
   request.user = user;
  } catch (error) {
-  if (error.statusCode === 401) response.clearCookie(sessionName, cookieOptions);
+  if (error.statusCode === 401 || error.code === "ACCOUNT_LOCKED") response.clearCookie(sessionName, cookieOptions);
   throw error;
  }
  next();

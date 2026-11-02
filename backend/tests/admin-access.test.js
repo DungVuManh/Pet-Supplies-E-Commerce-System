@@ -24,6 +24,9 @@ describe("Admin route access", () => {
  it("registers the Admin routes", () => {
   expect(routes.map(label)).toEqual(expect.arrayContaining([
    "GET /api/v1/admin/dashboard", "GET /api/v1/admin/inventory", "GET /api/v1/admin/users",
+   "GET /api/v1/admin/users/000000000000000000000000",
+   "POST /api/v1/admin/users/000000000000000000000000/lock",
+   "POST /api/v1/admin/users/000000000000000000000000/unlock",
   ]));
  });
 

@@ -4,13 +4,12 @@ import { CircleX, Package } from "lucide-react";
 import { ActionLink, Field, ListState, Pagination, TabNav, control, primaryLink, secondaryButton } from "@/components/workspace/workspace-ui";
 import { formatDate, formatPhone } from "@/lib/format";
 import { useUsersList } from "../hooks/use-users-list";
-import { userStatusLabels } from "../status";
+import { userRoleLabels, userStatusLabels } from "../status";
 import type { UserFilter, UserRole, UserStatus } from "../types";
 import { DataTable, StatusBadge, Stack, Td, Th } from "./admin-ui";
 
-const roleLabels: Record<UserRole, string> = { customer: "Customer", staff: "Staff" };
 const tabs: { value: UserFilter["tab"]; label: string }[] = [
-  { value: "all", label: "Tất cả" }, { value: "customer", label: roleLabels.customer }, { value: "staff", label: roleLabels.staff },
+  { value: "all", label: "Tất cả" }, { value: "customer", label: userRoleLabels.customer }, { value: "staff", label: userRoleLabels.staff },
 ];
 
 export function UsersList() {
@@ -22,7 +21,7 @@ export function UsersList() {
     <form onSubmit={submit} className="grid items-end gap-4 md:grid-cols-[minmax(0,1fr)_232px_232px_auto]" aria-label="Bộ lọc người dùng">
       <Field label="Tìm kiếm" htmlFor="user-query"><input id="user-query" type="search" className={control} placeholder="Tên, email hoặc số điện thoại" value={draft.q} onChange={(e) => setDraft({ ...draft, q: e.target.value })} /></Field>
       <Field label="Vai trò" htmlFor="user-role"><select id="user-role" className={control} value={draft.role} onChange={(e) => setDraft({ ...draft, role: e.target.value as UserRole | "all" })}>
-        <option value="all">Tất cả vai trò</option><option value="customer">{roleLabels.customer}</option><option value="staff">{roleLabels.staff}</option>
+        <option value="all">Tất cả vai trò</option><option value="customer">{userRoleLabels.customer}</option><option value="staff">{userRoleLabels.staff}</option>
       </select></Field>
       <Field label="Trạng thái" htmlFor="user-status"><select id="user-status" className={control} value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value as UserStatus | "all" })}>
         <option value="all">Tất cả trạng thái</option><option value="active">{userStatusLabels.active}</option><option value="locked">{userStatusLabels.locked}</option>
@@ -44,7 +43,7 @@ export function UsersList() {
       </td></tr> : items.map((user) => <tr key={user.id}>
         <Td><Stack primary={user.code} secondary={`Tham gia ${formatDate(user.joinedAt)}`} strong /></Td>
         <Td><Stack primary={user.fullName} secondary={`${user.email} · ${formatPhone(user.phone)}`} /></Td>
-        <Td className="font-semibold">{roleLabels[user.role]}</Td>
+        <Td className="font-semibold">{userRoleLabels[user.role]}</Td>
         <Td><StatusBadge status={userStatusLabels[user.status]} /></Td>
         <Td><ActionLink href={`/admin/users/${user.id}`}>Chi tiết</ActionLink></Td>
       </tr>)}

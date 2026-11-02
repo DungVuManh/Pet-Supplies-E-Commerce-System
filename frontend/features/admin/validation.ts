@@ -2,6 +2,12 @@
 export type UserFormValues = { fullName: string; email: string; phone: string };
 export type FormErrors<T> = Partial<Record<keyof T, string>>;
 
+/** The error for an account-lock reason, or "" when it is valid (3–200 characters once trimmed). */
+export function validateLockReason(reason: string) {
+  const { length } = reason.trim();
+  return length < 3 || length > 200 ? "Nhập lý do khóa, từ 3 đến 200 ký tự." : "";
+}
+
 /** Reads "450.000" or "450000" as 450000; empty or non-numeric input gives NaN. */
 export function parseAmount(value: string) {
   const digits = value.replace(/[.\s]/g, "");

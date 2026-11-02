@@ -8,7 +8,7 @@ import {
  sessionSchema,
 } from "../validators/auth.schema.js";
 
-import { cookieSettings, firebaseError, database, validateUserRole } from "../common/middlewares/auth.middleware.js";
+import { assertNotLocked, cookieSettings, firebaseError, database, validateUserRole } from "../common/middlewares/auth.middleware.js";
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -109,6 +109,7 @@ async function sendSession(request, response, input, user) {
    "PROFILE_INCOMPLETE",
   );
  }
+ assertNotLocked(user);
  validateUserRole(user);
  const expiresIn = input.remember ? 14 * DAY : DAY;
  let cookie;

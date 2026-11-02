@@ -13,7 +13,7 @@ export async function requireDashboardUser(role: Exclude<Role, "customer">) {
       `${name}=${encodeURIComponent(session.value)}`, role);
   } catch (error) {
     if (error instanceof AuthApiError) {
-      if (error.status === 401) redirect("/login");
+      if (error.status === 401 || error.code === "ACCOUNT_LOCKED") redirect("/login");
       if (error.status === 403) redirect("/forbidden");
       if (error.code === "PROFILE_INCOMPLETE") redirect("/login");
     }

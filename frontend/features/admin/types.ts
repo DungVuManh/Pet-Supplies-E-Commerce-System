@@ -27,5 +27,35 @@ export type AdminUserRow = {
   status: UserStatus;
 };
 
+export type UserActivityStatus = "pending" | "confirmed" | "processing" | "shipping" | "completed" | "cancelled" | "success" | "denied";
+
+/** One entry of a user's history, merged from their orders and the audit log. `amount` is set for orders. */
+export type UserActivity = {
+  id: string;
+  at: string;
+  title: string;
+  detail: string;
+  amount: number | null;
+  status: UserActivityStatus;
+  href: string;
+};
+
+export type UserAddress = { recipientName: string; phone: string; street: string; ward: string; district: string; province: string };
+
+/** `GET /api/v1/admin/users/:id`. `lastSignInAt` is null when Firebase cannot provide it. */
+export type AdminUserDetail = AdminUserRow & {
+  lockedAt: string | null;
+  lockReason: string | null;
+  adminNote: string;
+  lastSignInAt: string | null;
+  defaultAddress: UserAddress | null;
+  completedOrders: number;
+  totalSpent: number;
+  activity: UserActivity[];
+};
+
+/** `POST /api/v1/admin/users/:id/lock` and `/unlock`. */
+export type UserLockResult = Pick<AdminUserDetail, "id" | "status" | "lockedAt" | "lockReason">;
+
 export type UserCounts = { all: number; customer: number; staff: number };
 export type UserFilter = { tab: UserRole | "all"; q: string; role: UserRole | "all"; status: UserStatus | "all" };
