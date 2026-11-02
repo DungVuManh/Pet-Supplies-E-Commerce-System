@@ -789,3 +789,148 @@ export async function getStaffOrderDetail(request, response, next) {
     next(error);
   }
 }
+
+/**
+ * GET /api/v1/orders/lookup
+ * POST /api/v1/orders/lookup
+ * Tra cứu thông tin đơn hàng công khai theo Mã đơn hàng và Số điện thoại
+ * Dành cho khách hàng tra cứu tiến độ giao hàng mà không bắt buộc phải đăng nhập
+ */
+export async function lookupOrder(request, response, next) {
+  try {
+    // 1. Nhận mã đơn hàng và số điện thoại từ query param (GET) hoặc body (POST)
+    const orderCode = (request.query.orderCode || request.body?.orderCode || "").trim();
+    const phone = (request.query.phone || request.body?.phone || "").trim();
+
+    // 2. Kiểm tra nếu người dùng chưa nhập đủ thông tin
+    if (!orderCode || !phone) {
+      throw new AppError("Vui lòng nhập đầy đủ Mã đơn hàng và Số điện thoại để tra cứu.", 400, "MISSING_LOOKUP_INFO");
+    }
+
+    // Chuẩn hóa mã đơn hàng: loại bỏ ký tự # nếu có
+    const normalizedCode = orderCode.replace(/^#/, "").trim();
+
+    // Chuẩn hóa số điện thoại: chỉ giữ lại các chữ số
+    const cleanInputPhone = phone.replace(/\D/g, "");
+
+    if (cleanInputPhone.length < 8) {
+      throw new AppError("Số điện thoại không hợp lệ. Vui lòng nhập ít nhất 8 chữ số.", 400, "INVALID_PHONE");
+    }
+
+    // 3. Tìm kiếm đơn hàng trong cơ sở dữ liệu MongoDB theo mã đơn (không phân biệt chữ hoa/thường)
+    // Thoát các ký tự đặc biệt trong regex để tránh lỗi RegExp injection
+    const escapedCode = normalizedCode.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const order = await Order.findOne({
+      orderCode: { $regex: new RegExp(`^${escapedCode}$`, "i") },
+    })
+      .populate("customerId", "phone fullName email")
+      .lean();
+
+    // Nếu không tìm thấy đơn hàng theo mã
+    if (!order) {
+      throw new AppError(
+        "Không tìm thấy đơn hàng với mã vừa nhập. Vui lòng kiểm tra lại chính xác mã đơn.",
+        404,
+        "ORDER_NOT_FOUND"
+      );
+    }
+
+    // 4. So khớp số điện thoại để đảm bảo tính riêng tư của đơn hàng
+    // Lấy số điện thoại từ địa chỉ giao hàng, thông tin khách vãng lai, hoặc tài khoản người đặt
+    const shippingPhone = (order.shippingAddress?.phone || "").replace(/\D/g, "");
+    const guestPhone = (order.guestInfo?.phone || "").replace(/\D/g, "");
+    const customerPhone = (order.customerId?.phone || "").replace(/\D/g, "");
+
+    // Hàm kiểm tra khớp số điện thoại: so sánh bằng hoặc 9 số cuối (trường hợp có mã vùng +84 hoặc 0)
+    const isPhoneMatch = (targetPhone) => {
+      if (!targetPhone) return false;
+      if (targetPhone === cleanInputPhone) return true;
+      const targetLast9 = targetPhone.slice(-9);
+      const inputLast9 = cleanInputPhone.slice(-9);
+      return targetLast9.length === 9 && targetLast9 === inputLast9;
+    };
+
+    const isMatched =
+      isPhoneMatch(shippingPhone) ||
+      isPhoneMatch(guestPhone) ||
+      isPhoneMatch(customerPhone);
+
+    if (!isMatched) {
+      throw new AppError(
+        "Số điện thoại không khớp với thông tin người nhận của đơn hàng này. Vui lòng kiểm tra lại.",
+        400,
+        "PHONE_NOT_MATCH"
+      );
+    }
+
+    // 5. Lấy thêm hình ảnh sản phẩm từ Product collection nếu trong đơn hàng chưa lưu ảnh
+    const productIds = (order.items || []).map((i) => i.productId).filter(Boolean);
+    let productMap = new Map();
+    if (productIds.length > 0) {
+      const products = await Product.find({ _id: { $in: productIds } })
+        .select("images variants name")
+        .lean();
+      productMap = new Map(products.map((p) => [p._id.toString(), p]));
+    }
+
+    // Chuẩn bị dữ liệu hiển thị dạng bảng thông tin cho giao diện
+    const recipientName =
+      order.shippingAddress?.recipientName ||
+      order.guestInfo?.name ||
+      order.customerId?.fullName ||
+      "Khách hàng";
+
+    const fullAddress = order.shippingAddress
+      ? [
+          order.shippingAddress.street,
+          order.shippingAddress.ward,
+          order.shippingAddress.district,
+          order.shippingAddress.province,
+        ]
+          .filter(Boolean)
+          .join(", ")
+      : "Mua trực tiếp tại cửa hàng";
+
+    const lookupResult = {
+      orderCode: order.orderCode,
+      createdAt: order.createdAt,
+      orderStatus: order.orderStatus,
+      paymentStatus: order.paymentStatus,
+      paymentMethod: order.paymentMethod,
+      channel: order.channel || "online",
+      recipientName,
+      phone: order.shippingAddress?.phone || order.guestInfo?.phone || order.customerId?.phone || phone,
+      shippingAddress: fullAddress,
+      carrier: order.shipping?.carrier || "Giao hàng tiêu chuẩn",
+      trackingNumber: order.shipping?.trackingNumber || "Chưa có",
+      subtotal: order.subtotal,
+      shippingFee: order.shippingFee || 0,
+      discount: order.discount || 0,
+      total: order.total,
+      items: (order.items || []).map((item) => {
+        const prod = productMap.get(item.productId?.toString());
+        const variant = prod?.variants?.find((v) => v.sku === item.variantSku);
+        const itemImg = item.image || variant?.image || prod?.images?.[0] || "/images/placeholder.svg";
+
+        return {
+          productId: item.productId,
+          variantSku: item.variantSku,
+          name: item.name,
+          image: itemImg,
+          unitPrice: item.unitPrice,
+          qty: item.qty,
+          totalPrice: item.unitPrice * item.qty,
+        };
+      }),
+      statusHistory: order.statusHistory || [],
+    };
+
+    response.set("Cache-Control", "no-store");
+    return response.json({
+      success: true,
+      data: lookupResult,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
