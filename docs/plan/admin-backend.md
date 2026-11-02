@@ -249,11 +249,15 @@ UI it serves: `docs/specs/admin-workspace-ui.md` (complete on mock data in `fron
 
 ## 5. Orders: `/admin/orders`
 
-- [ ] `GET /orders`: all channels, `creationState` not `pending`. Tabs: all, processing (pending, confirmed, processing), shipping, completed, cancelled. `q` matches the order code (a leading `#` is ignored), customer or guest name, and phone, reusing `buildOrderSearchFilter`. Rows `{ orderCode, customerName, phone, createdAt, total, paymentMethod, status }`, where processing shows "Đang đóng gói".
-- [ ] Tests: tab grouping covers every status, search by code with `#`, guest and customer names, and that pending staff sales are hidden
-- [ ] Frontend: `services/orders.ts`, a `useOrdersList` hook, and `orders-view.tsx` on the hook. `?q=` still pre-fills the search. Delete `mock/orders.ts`, which also removes the cross-feature import of `features/staff/mock-data.ts`.
-- [ ] Browser check, including the dashboard and user-activity links that open `?q=`
-- [ ] **🛑 Commit checkpoint: Orders**
+- [x] `GET /orders`: all channels, `creationState` not `pending`. Tabs: all, processing (pending, confirmed, processing), shipping, completed, cancelled. `q` matches the order code (a leading `#` is ignored), customer or guest name, and phone, reusing `buildOrderSearchFilter`. Rows `{ orderCode, customerName, phone, createdAt, total, paymentMethod, status }`, where processing shows "Đang đóng gói".
+  - Note: `buildOrderSearchFilter` only reads names on the order, so `q` also matches registered accounts by name and phone. A name comes from the guest, then the recipient, then the account, then "Khách lẻ", and the literal text `"null"` that checkout stores for an empty address field counts as missing. Legacy `delivered` orders count as completed. `counts` holds each tab and ignores the filters.
+- [x] Tests: tab grouping covers every status, search by code with `#`, guest and customer names, and that pending staff sales are hidden
+  - Note: `tests/admin-orders.test.js`. It caught a real bug: text with no searchable word, such as `(`, made an empty account filter that matched every account.
+- [x] Frontend: `services/orders.ts`, a `useOrdersList` hook, and `orders-view.tsx` on the hook. `?q=` still pre-fills the search. Delete `mock/orders.ts`, which also removes the cross-feature import of `features/staff/mock-data.ts`.
+  - Note: search waits for a 300 ms pause while typing, because each change now calls the server. A new `?q=` link replaces the search even though Next keeps the route mounted. The status filter's "Chờ xử lý" covers pending and confirmed, matching the badge. The mock's fixed reporting period line is gone, because the list is no longer limited to a period. Tabs now show counts. Other mocks stay until their phases.
+- [x] Browser check, including the dashboard and user-activity links that open `?q=`
+  - Note: read-only on the local database (9 orders), at 1440 and 320 px: tabs add up to the total, paging, `#code` and accent-free search, one request for 42 typed keys, status filter, empty state, `?state=` previews, and no page-level horizontal scroll. A real user-activity link opened that order, and a second link replaced the search. Dashboard links still carry mock codes until phase 8, so they open the list with an empty result. The only console error is the expected 401.
+- [x] **🛑 Commit checkpoint: Orders**
 
 ## 6. Cancellation requests: `/admin/cancellations`
 

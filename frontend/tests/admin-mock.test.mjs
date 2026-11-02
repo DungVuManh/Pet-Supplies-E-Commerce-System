@@ -4,7 +4,6 @@ import { adminStatusTone, adminStatusTones } from "../features/admin/status.ts";
 import { isLowStock, lowStockLevels, lowStockTotal, stockLevels } from "../features/admin/mock/inventory.ts";
 import { cumulativeRevenue, overview, recentActivity } from "../features/admin/mock/overview.ts";
 import { parseAmount, validateCategory, validateProduct } from "../features/admin/validation.ts";
-import { adminOrders, countOrders, filterOrders, getAdminOrder, orderStatusLabel } from "../features/admin/mock/orders.ts";
 
 test("product form validation and amount parsing", () => {
   const valid = { name: "Royal Canin Mini Adult 2 kg", sku: "RC-MA-2KG", categoryCodes: ["DM002"], price: "450.000", cost: "325.000", stock: "120", threshold: "20" };
@@ -28,28 +27,6 @@ test("category form validation", () => {
   assert.deepEqual(Object.keys(validateCategory({ name: "Thức ăn", slug: "thuc-an", order: "1", description: "x".repeat(501) })), ["description"]);
 });
 
-test("admin orders include every Staff order and every order linked from other admin screens", () => {
-  const ids = new Set(adminOrders.map((o) => o.id));
-  assert.equal(ids.size, adminOrders.length, "unique order IDs");
-  for (const order of orders) assert.deepEqual(getAdminOrder(order.id), order, `shared with Staff: ${order.id}`);
-  const linked = recentActivity.map((r) => r.href)
-    .filter((href) => href.startsWith("/admin/orders?q=")).map((href) => href.split("=")[1]);
-  for (const id of linked) assert.ok(ids.has(id), `linked order ${id} exists`);
-  for (const request of initialCancellations) assert.ok(ids.has(request.orderId), `cancellation ${request.id} order exists`);
-  assert.ok(adminOrders.every((o) => orderStatusLabel[o.status] in adminStatusTones));
-});
-
-test("order tabs group statuses and filters combine with search", () => {
-  const all = { tab: "all", query: "", status: "all" };
-  assert.equal(countOrders("all"), adminOrders.length);
-  assert.ok(filterOrders({ ...all, tab: "processing" }).every((o) => o.status === "pending" || o.status === "packing"));
-  assert.equal(["processing", "shipping", "completed", "cancelled"].reduce((sum, tab) => sum + countOrders(tab), 0), adminOrders.length);
-  assert.deepEqual(filterOrders({ ...all, query: "#PA261012018" }).map((o) => o.id), ["PA261012018"]);
-  assert.deepEqual(filterOrders({ ...all, query: "PA999" }), []);
-  assert.deepEqual(filterOrders({ ...all, tab: "all", status: "pending", query: "PA999" }), []);
-  assert.ok(filterOrders({ ...all, query: "minh anh" }).length >= 2);
-});
-
 test("teammate screens search Vietnamese names with đ/Đ and ignore accents", () => {
   assert.deepEqual(filterAuditLog(auditLogEntries, { search: "duc long" }).map((e) => e.actor), ["Vũ Đức Long"]);
   assert.deepEqual(filterAuditLog(auditLogEntries, { search: "Đức" }).map((e) => e.actor), ["Vũ Đức Long"]);
@@ -63,10 +40,6 @@ test("audit log details open the affected record", () => {
     "/admin/products/RC-MA-2KG", "/admin/users/KH0003", "/admin/orders?q=PA261011009",
     "/admin/system/policies", "/admin/products/RC-IN-2KG", "/admin/system/settings",
   ]);
-  for (const entry of auditLogEntries) {
-    const href = auditTargetHref(entry.target);
-    if (href.startsWith("/admin/orders")) assert.ok(getAdminOrder(entry.target), entry.target);
-  }
 });
 
 test("dashboard revenue chart ends at the net revenue KPI and only grows", () => {

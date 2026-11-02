@@ -164,6 +164,24 @@ export type ProductOptions = { petTypes: { code: string; name: string }[]; brand
 /** `POST /api/v1/admin/products/:sku/hide` and `/show`. */
 export type ProductVisibilityResult = Pick<AdminProductDetail, "sku" | "isActive" | "status">;
 
+export type OrderStatus = "pending" | "confirmed" | "processing" | "shipping" | "completed" | "cancelled";
+export type OrderTab = "all" | "processing" | "shipping" | "completed" | "cancelled";
+export type OrderStatusFilter = "all" | "pending" | "processing" | "shipping" | "completed" | "cancelled";
+export type OrderFilter = { tab: OrderTab; q: string; status: OrderStatusFilter };
+export type OrderCounts = Record<OrderTab, number>;
+export type PaymentMethod = "COD" | "ONLINE" | "CASH";
+
+/** One row of `GET /api/v1/admin/orders`. `phone` is "" when the order has none. */
+export type AdminOrderRow = {
+  orderCode: string;
+  customerName: string;
+  phone: string;
+  createdAt: string;
+  total: number;
+  paymentMethod: PaymentMethod;
+  status: OrderStatus;
+};
+
 export type PermissionRole = "customer" | "staff" | "admin";
 
 /** `GET /api/v1/admin/permissions`: fixed in code, so read-only here. */
