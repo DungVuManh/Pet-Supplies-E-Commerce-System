@@ -46,5 +46,8 @@ export interface ToastInfo {
   id: number;
   type: "success" | "info" | "error";
   message: string;
+  action?: {
+    label: string;
+    href: string;
+  };
 }
-
