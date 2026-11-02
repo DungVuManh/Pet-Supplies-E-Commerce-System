@@ -131,6 +131,36 @@ export type AdminProductRow = {
   categories: ProductCategory[];
 };
 
+/** `GET /api/v1/admin/products/:sku`. `cost` and `ownThreshold` are null when not set. */
+export type AdminProductDetail = {
+  sku: string;
+  code: string;
+  label: string;
+  name: string;
+  brand: string;
+  unit: string;
+  petType: string;
+  description: string;
+  images: string[];
+  categories: ProductCategory[];
+  price: number;
+  cost: number | null;
+  stock: number;
+  reservedStock: number;
+  available: number;
+  threshold: number;
+  ownThreshold: number | null;
+  status: ProductStatus;
+  isActive: boolean;
+  hasOrders: boolean;
+  updatedAt: string;
+  lastUpdate: { at: string; actorName: string | null } | null;
+  history: { id: string; at: string; title: string; actorName: string | null }[];
+};
+
+/** `POST /api/v1/admin/products/:sku/hide` and `/show`. */
+export type ProductVisibilityResult = Pick<AdminProductDetail, "sku" | "isActive" | "status">;
+
 export type PermissionRole = "customer" | "staff" | "admin";
 
 /** `GET /api/v1/admin/permissions`: fixed in code, so read-only here. */

@@ -212,12 +212,17 @@ UI it serves: `docs/specs/admin-workspace-ui.md` (complete on mock data in `fron
 - [x] **🛑 Commit checkpoint: Product list**
 
 ### 4b. Product detail: `/admin/products/[sku]`
-- [ ] `GET /products/:sku`: product and variant fields, category path, images, the last update (from the audit log: actor name and time), and a history tab built from the audit entries plus `StockMovement` rows for the SKU. 404 for an unknown SKU.
-- [ ] `POST /products/:sku/hide` and `/show`: toggle `Product.isActive`, conditional and audited
-- [ ] Tests: the detail shape, unknown SKU, the hide/show toggle and audit, and that a hidden product disappears from `GET /api/v1/products` (public)
-- [ ] Frontend: server load and the hide/show button on the API (with confirmation for hide)
-- [ ] Browser check
-- [ ] **🛑 Commit checkpoint: Product detail**
+- [x] `GET /products/:sku`: product and variant fields, category path, images, the last update (from the audit log: actor name and time), and a history tab built from the audit entries plus `StockMovement` rows for the SKU. 404 for an unknown SKU.
+  - Note: the history has audit entries only here, because `StockMovement` arrives in 4c, which adds its rows. **Staff edits do not appear in it**, because `updateStaffProduct` writes no audit entry (cross-team follow-up for the Staff owner).
+- [x] `POST /products/:sku/hide` and `/show`: toggle `Product.isActive`, conditional and audited
+  - Note: a repeat returns 409 `ALREADY_HIDDEN` or `ALREADY_VISIBLE`. Visibility is product-level, so it applies to all of a product's variants.
+- [x] Tests: the detail shape, unknown SKU, the hide/show toggle and audit, and that a hidden product disappears from `GET /api/v1/products` (public)
+  - Note: `tests/admin-product-detail.test.js`.
+- [x] Frontend: server load and the hide/show button on the API (with confirmation for hide)
+  - Note: fields the mock invented and the data does not have (weight, description title, ingredients) are gone; "Phân loại" shows the variant label. Pet type shows Chó, Mèo, or Tất cả for the stored `dog`, `cat`, and `all`. Until 4c, "Chỉnh sửa" on a real product returns 404.
+- [x] Browser check
+  - Note: on the temporary database, at 1440 and 320 px: the real cost through `select: false`, tabs, hide with Hủy and confirm, a stale tab's 409, show, the audit history, not-found, and no page-level horizontal scroll. A guest's public catalog returned 404 while hidden and 200 after showing. The automated image check ran before the external image finished loading; the screenshot shows real images loaded. The only console errors are the expected 401 and 409.
+- [x] **🛑 Commit checkpoint: Product detail**
 
 ### 4c. Edit product: `/admin/products/[sku]/edit`
 - [ ] Add the `StockMovement` model and register it. The model list test now really includes it, replacing the reverted phantom entry.

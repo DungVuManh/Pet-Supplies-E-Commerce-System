@@ -41,6 +41,9 @@ export const masterDataStatusLabels: Record<MasterDataStatus, AdminStatus> = { a
 
 export const productStatusLabels: Record<ProductStatus, AdminStatus> = { active: "Đang bán", low: "Sắp hết hàng", hidden: "Đã ẩn" };
 
+/** The values `Product.petType` stores; the Customer catalog filters on them. */
+export const petTypeLabels: Record<string, string> = { dog: "Chó", cat: "Mèo", all: "Tất cả" };
+
 export const userRoleLabels: Record<UserRole, string> = { customer: "Customer", staff: "Staff" };
 
 /** Badge label for an order status or an audit result in a user's history. */

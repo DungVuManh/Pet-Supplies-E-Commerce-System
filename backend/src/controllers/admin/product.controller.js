@@ -1,5 +1,9 @@
+import { recordAudit } from "../../common/audit.js";
+import { AppError } from "../../common/errors/app-error.js";
 import { pageDto } from "../../common/pagination.js";
 import { accentInsensitiveRegex, searchTokens } from "../../common/search.js";
+import { AuditLog } from "../../models/audit-log.model.js";
+import { Order } from "../../models/order.model.js";
 import { Product } from "../../models/product.model.js";
 import { parseQuery } from "../../validators/admin/list-query.js";
 import { productListQuerySchema } from "../../validators/admin/product.validator.js";
@@ -62,5 +66,101 @@ export async function listProducts(request, response) {
    ...pageDto(rows.slice(start, start + query.pageSize), rows.length, query),
    counts: { all: all.length, active: all.length - hidden, hidden },
   },
+ });
+}
+
+const HISTORY_LIMIT = 20;
+
+async function findProductBySku(sku) {
+ const product = await Product.findOne({ "variants.sku": sku }).select("+variants.cost").lean();
+ if (!product) throw new AppError("Không tìm thấy sản phẩm.", 404, "NOT_FOUND");
+ return { product, variant: product.variants.find((item) => item.sku === sku) };
+}
+
+/** What the audit log recorded for this product, newest first. */
+async function productHistory(product) {
+ const entries = await AuditLog.find({ "target.collectionName": "products", "target.id": String(product._id) })
+  .sort({ at: -1 }).limit(HISTORY_LIMIT).populate("actorId", "fullName").lean();
+ return entries.map((entry) => ({
+  id: String(entry._id),
+  at: entry.at,
+  title: entry.summary || entry.action,
+  actorName: entry.actorId?.fullName ?? null,
+ }));
+}
+
+async function productDetail(product, variant) {
+ const [threshold, index, hasOrders, history] = await Promise.all([
+  globalLowStockThreshold(),
+  categoryIndex(),
+  Order.exists({ "items.productId": product._id }),
+  productHistory(product),
+ ]);
+ return {
+  sku: variant.sku,
+  code: productCode(product),
+  label: variant.label,
+  name: product.name,
+  brand: product.brand ?? "",
+  unit: product.unit ?? "",
+  petType: product.petType,
+  description: product.description ?? "",
+  images: product.images ?? [],
+  categories: productCategories(product, index),
+  price: variant.price,
+  cost: variant.cost ?? null,
+  stock: variant.stock,
+  reservedStock: variant.reservedStock ?? 0,
+  available: availableStock(variant),
+  threshold: variant.lowStockThreshold ?? threshold,
+  ownThreshold: variant.lowStockThreshold ?? null,
+  status: variantStatus(product, variant, threshold),
+  isActive: product.isActive !== false,
+  hasOrders: Boolean(hasOrders),
+  updatedAt: product.updatedAt,
+  lastUpdate: history[0] ? { at: history[0].at, actorName: history[0].actorName } : null,
+  history,
+ };
+}
+
+export async function getProduct(request, response) {
+ const { product, variant } = await findProductBySku(request.params.sku);
+ response.json({ success: true, data: await productDetail(product, variant) });
+}
+
+/**
+ * Visibility belongs to the product, so it applies to all of its variants. The
+ * update is conditional on the current value, so a repeat changes nothing.
+ */
+async function setVisibility(request, response, { isActive, action, summary, conflict }) {
+ const { product, variant } = await findProductBySku(request.params.sku);
+ const matchesCurrent = isActive ? { isActive: false } : { isActive: { $ne: false } };
+ const result = await Product.updateOne({ _id: product._id, ...matchesCurrent }, { $set: { isActive } });
+ if (result.matchedCount === 0) throw conflict();
+ await recordAudit(request, {
+  action,
+  target: { collectionName: "products", id: product._id },
+  before: { isActive: !isActive },
+  after: { isActive },
+  summary: `${summary} ${variant.sku} · ${product.name}`,
+ });
+ const threshold = await globalLowStockThreshold();
+ response.json({
+  success: true,
+  data: { sku: variant.sku, isActive, status: variantStatus({ ...product, isActive }, variant, threshold) },
+ });
+}
+
+export function hideProduct(request, response) {
+ return setVisibility(request, response, {
+  isActive: false, action: "product.hide", summary: "Ẩn sản phẩm",
+  conflict: () => new AppError("Sản phẩm này đã được ẩn trước đó.", 409, "ALREADY_HIDDEN"),
+ });
+}
+
+export function showProduct(request, response) {
+ return setVisibility(request, response, {
+  isActive: true, action: "product.show", summary: "Hiện sản phẩm",
+  conflict: () => new AppError("Sản phẩm này đang hiển thị.", 409, "ALREADY_VISIBLE"),
  });
 }
