@@ -4,9 +4,7 @@ import { accentInsensitiveRegex, searchFilter, searchTokens } from "../src/commo
 import { listQuerySchema, parseQuery } from "../src/validators/admin/list-query.js";
 import { pageDto, paginate } from "../src/common/pagination.js";
 import { recordAudit, stripSecrets } from "../src/common/audit.js";
-import { notifyAdmins } from "../src/common/admin-notify.js";
 import { AuditLog } from "../src/models/audit-log.model.js";
-import { AdminNotification } from "../src/models/admin-notification.model.js";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -114,17 +112,3 @@ describe("recordAudit", () => {
  });
 });
 
-describe("notifyAdmins", () => {
- it("creates one shared notification", async () => {
-  vi.spyOn(AdminNotification, "create").mockImplementation(async (data) => data);
-  const data = { type: "stock", title: "Sắp hết hàng", detail: "SKU-1 còn 3", targetHref: "/admin/inventory", reference: "SKU-1" };
-  await expect(notifyAdmins(data)).resolves.toEqual(data);
- });
-
- it("logs failures instead of throwing", async () => {
-  vi.spyOn(console, "error").mockImplementation(() => {});
-  vi.spyOn(AdminNotification, "create").mockRejectedValue(new Error("down"));
-  await expect(notifyAdmins({ type: "order", title: "Đơn mới", reference: "PA1" })).resolves.toBeNull();
-  expect(console.error).toHaveBeenCalledWith("[admin-notify] Failed to create notification", { type: "order", reference: "PA1" });
- });
-});

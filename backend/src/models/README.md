@@ -30,7 +30,6 @@ import { Product, Order, Setting } from "./models/index.js";
 | Notification | notifications | User/order reference, type/channel, delivery status/error/time |
 | AuditLog | auditLogs | Actor, action, target, before/after snapshots, IP, result, summary, event time |
 | Setting | settings | Global low-stock threshold and flat shipping fee |
-| AdminNotification | adminNotifications | Order/stock/system notice shared by all Admins, with per-Admin read/saved state |
 
 All models use timestamps and disable buffered commands. References to users
 store `User._id` (MongoDB ObjectId), not `firebaseUid`. References do not enforce
@@ -81,12 +80,6 @@ Admin actions write audit entries through `recordAudit()` in `src/common/audit.j
 which strips secret-looking fields and records the request IP. `result` is
 `success` (default) or `denied`; a Customer or Staff session refused on an
 `/api/v1/admin` route is logged as `admin.access` with result `denied`.
-
-`AdminNotification` entries are created through `notifyAdmins()` in
-`src/common/admin-notify.js` and shared by every Admin. `readBy` and `savedBy`
-hold the `User._id` of each Admin who read or saved the entry. `targetHref` must
-be an `/admin` path. A failed notification never fails the triggering request.
-Its sample data comes from `npm run seed:admin`, not `npm run seed`.
 
 `createModelIndexes()` in `src/config/database.js` explicitly creates declared
 indexes before startup listens, since the connection disables `autoIndex`. It

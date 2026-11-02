@@ -4,13 +4,10 @@ import { protectMutation } from "../controllers/auth.controller.js";
 import { dashboard } from "../controllers/dashboard.controller.js";
 import { listInventory } from "../controllers/inventory.controller.js";
 import {
-  listAdminNotifications,
-  markNotificationRead,
-  markNotificationSaved,
-  markAllNotificationsRead,
-  createAdminNotification,
-  deleteAdminNotification,
-} from "../controllers/admin-notification.controller.js";
+  getStoreSettings,
+  updateStoreSettings,
+} from "../controllers/admin-settings.controller.js";
+import { getAdminNotifications } from "../controllers/admin-notification.controller.js";
 
 // Mounted at /api/v1/admin. Every route requires an Admin session; mutations
 // also add `protectMutation` (JSON, allowed Origin, and the CSRF pair).
@@ -20,12 +17,12 @@ router.use(readCookies, requireAuth, requireRole("admin"));
 router.get("/dashboard", dashboard);
 router.get("/inventory", listInventory);
 
-// Admin Notifications API
-router.get("/notifications", listAdminNotifications);
-router.post("/notifications", protectMutation, createAdminNotification);
-router.post("/notifications/mark-all-read", protectMutation, markAllNotificationsRead);
-router.patch("/notifications/:id/read", protectMutation, markNotificationRead);
-router.patch("/notifications/:id/save", protectMutation, markNotificationSaved);
-router.delete("/notifications/:id", protectMutation, deleteAdminNotification);
+// Admin Notifications API (Aggregate from Product, Order, Setting, AuditLog)
+router.get("/notifications", getAdminNotifications);
+
+// Store Settings API
+router.get("/settings", getStoreSettings);
+router.put("/settings", protectMutation, updateStoreSettings);
+router.patch("/settings", protectMutation, updateStoreSettings);
 
 export default router;
