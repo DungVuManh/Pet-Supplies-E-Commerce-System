@@ -2,6 +2,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { connectDatabase, disconnectDatabase } from "../config/database.js";
 import { loadEnvironment } from "../config/env.js";
+import { Category } from "../models/category.model.js";
 import { User } from "../models/user.model.js";
 
 /**
@@ -16,6 +17,30 @@ export const migrations = [
   async run() {
    const result = await User.updateMany({ status: { $exists: false } }, { $set: { status: "active" } }, { timestamps: false });
    return result.modifiedCount;
+  },
+ },
+ {
+  name: "categories.tree",
+  // Existing categories stay roots. Codes follow creation order and display order follows the name.
+  async run() {
+   const categories = await Category.find().select("name code parentId displayOrder createdAt").sort({ createdAt: 1, _id: 1 }).lean();
+   const updates = new Map();
+   const change = (category, field, value) => updates.set(category._id, { ...updates.get(category._id), [field]: value });
+
+   let lastCode = Math.max(0, ...categories.map((category) => Number(category.code?.slice(2)) || 0));
+   for (const category of categories) {
+    if (!category.code) change(category, "code", `DM${String(++lastCode).padStart(3, "0")}`);
+   }
+
+   const siblings = Map.groupBy(categories, (category) => String(category.parentId ?? "root"));
+   for (const group of siblings.values()) {
+    let lastOrder = Math.max(0, ...group.map((category) => category.displayOrder ?? 0));
+    const unordered = group.filter((category) => !category.displayOrder).sort((a, b) => a.name.localeCompare(b.name, "vi"));
+    for (const category of unordered) change(category, "displayOrder", ++lastOrder);
+   }
+
+   for (const [_id, $set] of updates) await Category.updateOne({ _id }, { $set }, { timestamps: false });
+   return updates.size;
   },
  },
 ];

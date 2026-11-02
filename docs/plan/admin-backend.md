@@ -150,15 +150,22 @@ UI it serves: `docs/specs/admin-workspace-ui.md` (complete on mock data in `fron
 ## 2. Categories
 
 ### 2a. Category tree: `/admin/categories`
-- [ ] `Category`: add `code` (unique, `DM###`), `parentId` (ref Category, default null), `description` (≤ 500), and `displayOrder` (integer ≥ 1). Index `{ parentId: 1, displayOrder: 1 }`.
-- [ ] Migration: give existing categories codes `DM001…` in `createdAt` order and `displayOrder` by name. All stay roots.
-- [ ] `GET /categories`: the tree in display order with `productCount` aggregated (including children) and the `q`/`status` filters. A matching child keeps its parent, flagged `context: true`, mirroring the mock's `filterCategories`.
-- [ ] `DELETE /categories/:code`: 409 `CATEGORY_IN_USE` with the reason ("còn N sản phẩm liên kết" / "còn danh mục con"), otherwise delete and audit
-- [ ] Tests: tree order, counts including children, filter keeps the parent, both delete blockers, and a successful delete
-- [ ] Seed: a sample child category under "Dành cho chó" and one under "Dành cho mèo", so the tree has two levels
-- [ ] Frontend: `services/categories.ts`, a `useCategoryTree` hook, and `categories-list.tsx` on the hook. The delete icon asks for confirmation, then calls the API and shows the server's reason.
-- [ ] Browser check
-- [ ] **🛑 Commit checkpoint: Category tree**
+- [x] `Category`: add `code` (unique, `DM###`), `parentId` (ref Category, default null), `description` (≤ 500), and `displayOrder` (integer ≥ 1). Index `{ parentId: 1, displayOrder: 1 }`.
+  - Note: all optional, and `code` is `sparse`, so the teammates' seed and catalog keep working without them. Nothing else reads these fields, so the Customer catalog and Staff screens still list categories flat.
+- [x] Migration: give existing categories codes `DM001…` in `createdAt` order and `displayOrder` by name. All stay roots.
+  - Note: the `categories.tree` step passes `timestamps: false`. It has not been run on your local database; the browser check used a temporary copy.
+- [x] `GET /categories`: the tree in display order with `productCount` aggregated (including children) and the `q`/`status` filters. A matching child keeps its parent, flagged `context: true`, mirroring the mock's `filterCategories`.
+  - Note: `dev` gives a product several categories (`categoryIds`), and the agreed rule is to count it under each one, once per tree branch: a parent with the product in two children counts it once. Products that still have the older `categoryId` are counted too, because local databases hold both shapes. Rows carry `ref` (the code, or the id until the migration runs), which addresses them in URLs.
+- [x] `DELETE /categories/:code`: 409 `CATEGORY_IN_USE` with the reason ("còn N sản phẩm liên kết" / "còn danh mục con"), otherwise delete and audit
+- [x] Tests: tree order, counts including children, filter keeps the parent, both delete blockers, and a successful delete
+  - Note: `tests/admin-categories.test.js`.
+- [x] Seed: a sample child category under "Dành cho chó" and one under "Dành cho mèo", so the tree has two levels
+  - Note: `dev`'s seed replaced those two categories with 42 flat ones. `seed-admin.js` instead nests the dry food and pate categories under the food category for each pet, without touching the shared `seed.js` or `categories.json`. It finds them by slug, because `seed.js` keeps the name of a category that already exists.
+- [x] Frontend: `services/categories.ts`, a `useCategoryTree` hook, and `categories-list.tsx` on the hook. The delete icon asks for confirmation, then calls the API and shows the server's reason.
+  - Note: the confirmation is a new shared `admin-confirm-dialog.tsx`, which `lock-user-dialog.tsx` now uses too, ready for product hide and cancellations.
+- [x] Browser check
+  - Note: run on a temporary copy of the local database with `npm run seed`, `migrate:admin`, and `seed:admin` applied, so old `categoryId` and new `categoryIds` products are both present. Your own database was not changed. 46 categories at 1440 and 320 px: tree order, search keeping the parent, empty state, Hủy, both delete refusals, a real delete, `?state=` previews, and no page-level horizontal scroll. The only console errors are the expected 401 and 409. The no-code fallback also rendered correctly on the unmigrated database. Run `npm --prefix backend run migrate:admin` on your database when you want codes to appear. Until 2b, the edit link still opens the mock.
+- [x] **🛑 Commit checkpoint: Category tree**
 
 ### 2b. Edit category: `/admin/categories/[code]/edit`
 - [ ] `GET /categories/:code` and `PATCH /categories/:code`: `name` (unique), `slug` (unique, `^[a-z0-9]+(-[a-z0-9]+)*$`), `parentCode` (a root, not itself; refused when the category has children), `description`, `displayOrder`, and `isActive`. 409 `DUPLICATE_VALUE` (MSG32) on duplicates. Audited.

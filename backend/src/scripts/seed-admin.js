@@ -2,6 +2,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { connectDatabase, disconnectDatabase } from "../config/database.js";
 import { loadEnvironment } from "../config/env.js";
+import { Category } from "../models/category.model.js";
 
 class SeedAdminError extends Error {}
 
@@ -10,7 +11,27 @@ class SeedAdminError extends Error {}
  * idempotent and resolves to the number of records it ensured. Later phases
  * append their steps here. Users are never created.
  */
-export const seedSteps = [];
+export const seedSteps = [
+ {
+  name: "categories.tree",
+  // Nests existing sample categories, so the tree has two levels. Addressed by slug, because the
+  // base seed keeps the name of a category that already exists. Slugs an older seed lacks are skipped.
+  async run() {
+   const tree = {
+    "thuc-an-cho-cho": ["hat-cho-cho", "pate-cho"],
+    "thuc-an-cho-meo": ["hat-cho-meo", "pate-meo"],
+   };
+   let ensured = 0;
+   for (const [parentSlug, childSlugs] of Object.entries(tree)) {
+    const parent = await Category.findOne({ slug: parentSlug }).select("_id").lean();
+    if (!parent) continue;
+    const result = await Category.updateMany({ slug: { $in: childSlugs } }, { $set: { parentId: parent._id } });
+    ensured += result.matchedCount;
+   }
+   return ensured;
+  },
+ },
+];
 
 export async function seedAdminData(steps = seedSteps) {
  const counts = {};

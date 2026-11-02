@@ -58,6 +58,26 @@ export type AdminUserDetail = AdminUserRow & {
 /** `POST /api/v1/admin/users/:id/lock` and `/unlock`. */
 export type UserLockResult = Pick<AdminUserDetail, "id" | "status" | "lockedAt" | "lockReason">;
 
+export type CategoryStatus = "active" | "hidden";
+export type CategoryFilter = { q: string; status: CategoryStatus | "all" };
+
+/**
+ * One row of `GET /api/v1/admin/categories`, in tree order. `ref` addresses it in
+ * URLs: the code, or the id for a category the migration has not reached.
+ * `context` marks a parent shown only to keep a matching child in place.
+ */
+export type AdminCategoryRow = {
+  id: string;
+  ref: string;
+  code: string | null;
+  name: string;
+  parentCode: string | null;
+  isChild: boolean;
+  status: CategoryStatus;
+  productCount: number;
+  context: boolean;
+};
+
 export type PermissionRole = "customer" | "staff" | "admin";
 
 /** `GET /api/v1/admin/permissions`: fixed in code, so read-only here. */

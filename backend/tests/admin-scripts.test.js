@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as database from "../src/config/database.js";
 import * as environment from "../src/config/env.js";
+import { Category } from "../src/models/category.model.js";
 import { User } from "../src/models/user.model.js";
 import { migrateAdmin, migrateAdminData } from "../src/scripts/migrate-admin.js";
 import { seedAdmin, seedAdminData } from "../src/scripts/seed-admin.js";
@@ -13,6 +14,8 @@ beforeEach(() => {
  vi.spyOn(database, "connectDatabase").mockResolvedValue();
  vi.spyOn(database, "disconnectDatabase").mockResolvedValue();
  vi.spyOn(User, "updateMany").mockResolvedValue({ modifiedCount: 0 });
+ vi.spyOn(Category, "find").mockImplementation(() => ({ select: () => ({ sort: () => ({ lean: async () => [] }) }) }));
+ vi.spyOn(Category, "findOne").mockImplementation(() => ({ select: () => ({ lean: async () => null }) }));
 });
 afterEach(() => vi.restoreAllMocks());
 
@@ -26,8 +29,8 @@ describe("Admin migration and seed scripts", () => {
  });
 
  it("connect, run, and always disconnect", async () => {
-  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 0 });
-  await expect(seedAdmin()).resolves.toEqual({});
+  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 0, "categories.tree": 0 });
+  await expect(seedAdmin()).resolves.toEqual({ "categories.tree": 0 });
   expect(database.connectDatabase).toHaveBeenCalledWith("mongodb://localhost/admin-test");
   expect(database.disconnectDatabase).toHaveBeenCalledTimes(2);
  });
@@ -43,13 +46,22 @@ describe("Admin migration and seed scripts", () => {
   nodeEnv = "production";
   await expect(seedAdmin()).rejects.toThrow("không chạy trong production");
   expect(database.connectDatabase).not.toHaveBeenCalled();
-  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 0 });
+  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 0, "categories.tree": 0 });
  });
 
  it("backfills a missing user status once, without touching updatedAt", async () => {
   User.updateMany.mockResolvedValueOnce({ modifiedCount: 4 });
-  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 4 });
+  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 4, "categories.tree": 0 });
   expect(User.updateMany).toHaveBeenCalledWith({ status: { $exists: false } }, { $set: { status: "active" } }, { timestamps: false });
-  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 0 });
+  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 0, "categories.tree": 0 });
+ });
+
+ it("nests the sample categories, skipping parents an older seed does not have", async () => {
+  const parent = { _id: "dog-food" };
+  Category.findOne.mockImplementation(({ slug }) => ({ select: () => ({ lean: async () => (slug === "thuc-an-cho-cho" ? parent : null) }) }));
+  const updateMany = vi.spyOn(Category, "updateMany").mockResolvedValue({ matchedCount: 2 });
+  await expect(seedAdmin()).resolves.toEqual({ "categories.tree": 2 });
+  expect(updateMany).toHaveBeenCalledTimes(1);
+  expect(updateMany).toHaveBeenCalledWith({ slug: { $in: ["hat-cho-cho", "pate-cho"] } }, { $set: { parentId: "dog-food" } });
  });
 });
