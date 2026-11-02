@@ -183,13 +183,18 @@ UI it serves: `docs/specs/admin-workspace-ui.md` (complete on mock data in `fron
 
 ## 3. Master data: `/admin/master-data`
 
-- [ ] Add the `MasterData` model (`kind`, `code`, `name`, `description`, `petTypeCode`, `fee`, `isActive`), with a unique index `{ kind: 1, code: 1 }`, and register it
-- [ ] Seed: the 5 pet types, the breeds, and the 6 units and 3 shipping methods from `mock/master-data.ts`. Brands come from the distinct `Product.brand` values, with the origins from the mock where a brand matches.
-- [ ] `GET /master-data?kind=&q=&status=&page=`: rows with the computed metric, plus counts per kind. `GET /master-data/options`: active pet types, brands, and units for the product form.
-- [ ] Tests: counts per kind, computed metrics (breeds per pet, products per brand and unit), filters, and options exclude inactive rows
-- [ ] Frontend: `services/master-data.ts`, a `useMasterData` hook, and `master-data-view.tsx` on the hook. The "Dữ liệu liên quan" cards use the counts. "+ Thêm …" and "Chi tiết" keep their notices.
-- [ ] Browser check
-- [ ] **🛑 Commit checkpoint: Master data**
+- [x] Add the `MasterData` model (`kind`, `code`, `name`, `description`, `petTypeCode`, `fee`, `isActive`), with a unique index `{ kind: 1, code: 1 }`, and register it
+  - Note: one additive line each in the shared `models/index.js`, `tests/seed.test.js`, and `tests/models.test.js`, the same places `AdminNotification` uses.
+- [x] Seed: the 5 pet types, the breeds, and the 6 units and 3 shipping methods from `mock/master-data.ts`. Brands come from the distinct `Product.brand` values, with the origins from the mock where a brand matches.
+  - Note: a `masterData` step in `seed-admin.js`, insert-only, with its data in `scripts/data/admin-master-data.js`. **Your local database has no master data until `npm --prefix backend run seed:admin` runs**, so this screen shows its empty state until then. With `dev`'s seed there are 191 brands.
+- [x] `GET /master-data?kind=&q=&status=&page=`: rows with the computed metric, plus counts per kind. `GET /master-data/options`: active pet types, brands, and units for the product form.
+  - Note: the unit metric stays 0 until `Product.unit` exists (phase 4a).
+- [x] Tests: counts per kind, computed metrics (breeds per pet, products per brand and unit), filters, and options exclude inactive rows
+  - Note: `tests/admin-master-data.test.js`. `tests/seed.test.js` (`dev`'s test, which seeds 1,111 products) failed once in a full run, then passed 3 times alone and again in a full run. The cause was not captured.
+- [x] Frontend: `services/master-data.ts`, a `useMasterData` hook, and `master-data-view.tsx` on the hook. The "Dữ liệu liên quan" cards use the counts. "+ Thêm …" and "Chi tiết" keep their notices.
+- [x] Browser check
+  - Note: on the temporary database copy, at 1440 and 320 px: every tab's metric, paging, filters, empty state, `?state=` previews, and no page-level horizontal scroll. A server-rendering error appeared once, caused by the dev server holding an old `status.ts`, and did not return after a restart. The only other console error is the expected 401.
+- [x] **🛑 Commit checkpoint: Master data**
 
 ## 4. Products
 

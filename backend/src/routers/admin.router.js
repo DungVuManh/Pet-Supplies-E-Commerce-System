@@ -4,6 +4,7 @@ import { protectMutation } from "../controllers/auth.controller.js";
 import { dashboard } from "../controllers/dashboard.controller.js";
 import { listInventory } from "../controllers/inventory.controller.js";
 import { deleteCategory, getCategory, listCategories, updateCategory } from "../controllers/admin/category.controller.js";
+import { listMasterData, listMasterDataOptions } from "../controllers/admin/master-data.controller.js";
 import { listPermissions } from "../controllers/admin/permission.controller.js";
 import { getUser, listUsers, lockUser, unlockUser, updateUser } from "../controllers/admin/user.controller.js";
 import {
@@ -26,6 +27,8 @@ router.get("/categories", listCategories);
 router.get("/categories/:code", getCategory);
 router.patch("/categories/:code", protectMutation, updateCategory);
 router.delete("/categories/:code", protectMutation, deleteCategory);
+router.get("/master-data", listMasterData);
+router.get("/master-data/options", listMasterDataOptions);
 router.get("/permissions", listPermissions);
 router.get("/users", listUsers);
 router.get("/users/:id", getUser);

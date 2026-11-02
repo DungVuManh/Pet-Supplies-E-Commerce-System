@@ -281,7 +281,7 @@ describe("supporting models", () => {
 
  it("exports all SRS models without changing Firebase users", () => {
   expect(Object.keys(models).sort()).toEqual([
-   "Address", "AdminNotification", "AuditLog", "Cart", "Category", "Notification", "Order", "Payment",
+   "Address", "AdminNotification", "AuditLog", "Cart", "Category", "MasterData", "Notification", "Order", "Payment",
    "PetProfile", "Product", "Promotion", "Review", "Setting", "User", "Wishlist",
   ]);
   expect(models.User.schema.path("firebaseUid").options.unique).toBe(true);

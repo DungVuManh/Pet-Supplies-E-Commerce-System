@@ -3,8 +3,33 @@ import { pathToFileURL } from "node:url";
 import { connectDatabase, disconnectDatabase } from "../config/database.js";
 import { loadEnvironment } from "../config/env.js";
 import { Category } from "../models/category.model.js";
+import { MasterData } from "../models/master-data.model.js";
+import { Product } from "../models/product.model.js";
+import { brandOrigins, breedsByPetType, petTypes, shippingMethods, units } from "./data/admin-master-data.js";
 
 class SeedAdminError extends Error {}
+
+/** "Thương hiệu Mới" → "THUONG-HIEU-MOI" */
+function codeFrom(name) {
+ return name.normalize("NFD").replace(/\p{M}/gu, "").replace(/[đĐ]/g, "D").toUpperCase().replace(/[^A-Z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+/** Every master data row: the designed ones, plus one brand per brand name used by a product. */
+async function masterDataRows() {
+ const brands = (await Product.distinct("brand")).filter(Boolean);
+ let breedNumber = 0;
+ return [
+  ...petTypes.map((row) => ({ kind: "petType", ...row })),
+  ...Object.entries(breedsByPetType).flatMap(([petTypeCode, names]) => names.map((name) => {
+   breedNumber += 1;
+   const petName = petTypes.find((pet) => pet.code === petTypeCode).name.toLowerCase();
+   return { kind: "breed", code: `BR-${String(breedNumber).padStart(3, "0")}`, name, petTypeCode, description: `Giống ${petName}` };
+  })),
+  ...brands.map((name) => ({ kind: "brand", code: `BRD-${codeFrom(name)}`, name, description: brandOrigins[name] ?? "" })),
+  ...units.map((row) => ({ kind: "unit", code: `UNIT-${codeFrom(row.name)}`, ...row })),
+  ...shippingMethods.map((row) => ({ kind: "shippingMethod", ...row })),
+ ];
+}
 
 /**
  * Admin sample data on top of `npm run seed`, applied in order. Each step is
@@ -29,6 +54,17 @@ export const seedSteps = [
     ensured += result.matchedCount;
    }
    return ensured;
+  },
+ },
+ {
+  name: "masterData",
+  // Insert-only, so an existing row is never overwritten.
+  async run() {
+   const rows = await masterDataRows();
+   for (const { kind, code, ...fields } of rows) {
+    await MasterData.updateOne({ kind, code }, { $setOnInsert: fields }, { upsert: true, setDefaultsOnInsert: true });
+   }
+   return rows.length;
   },
  },
 ];

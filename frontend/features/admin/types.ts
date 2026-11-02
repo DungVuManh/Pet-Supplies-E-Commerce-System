@@ -97,6 +97,21 @@ export type AdminCategoryDetail = {
   parentOptions: { ref: string; name: string }[];
 };
 
+export type MasterDataKind = "petType" | "breed" | "brand" | "unit" | "shippingMethod";
+export type MasterDataStatus = "active" | "inactive";
+export type MasterDataFilter = { kind: MasterDataKind; q: string; status: MasterDataStatus | "all" };
+export type MasterDataCounts = Record<MasterDataKind, number>;
+
+/** One row of `GET /api/v1/admin/master-data`. `metric` depends on the kind: a count, a pet type name, or a fee. */
+export type MasterDataRow = {
+  code: string;
+  name: string;
+  description: string;
+  metric: number | string;
+  status: MasterDataStatus;
+  updatedAt: string;
+};
+
 export type PermissionRole = "customer" | "staff" | "admin";
 
 /** `GET /api/v1/admin/permissions`: fixed in code, so read-only here. */
