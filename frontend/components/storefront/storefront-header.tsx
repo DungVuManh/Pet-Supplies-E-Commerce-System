@@ -36,10 +36,16 @@ export function StorefrontHeader() {
 
 function StorefrontHeaderWithParams() {
  const searchParams = useSearchParams();
- return <StorefrontHeaderContent currentPetType={searchParams.get("petType")} />;
+ return (
+  <StorefrontHeaderContent currentPetType={searchParams.get("petType")} />
+ );
 }
 
-function StorefrontHeaderContent({ currentPetType }: { currentPetType: string | null }) {
+function StorefrontHeaderContent({
+ currentPetType,
+}: {
+ currentPetType: string | null;
+}) {
  const [activeMenu, setActiveMenu] = useState<"dog" | "cat" | null>(null);
  const headerRef = useRef<HTMLElement>(null);
  const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -104,12 +110,7 @@ function StorefrontHeaderContent({ currentPetType }: { currentPetType: string | 
       <StorefrontSearch />
      </Suspense>
      <div className="ml-auto flex items-center gap-4 whitespace-nowrap md:ml-0 md:gap-8">
-      <a
-       href="tel:1900636789"
-       className="hidden text-brand hover:underline sm:inline"
-      >
-       Trợ giúp
-      </a>
+      <Link href="/support" className="hidden text-brand hover:underline sm:inline">Hỗ trợ</Link>
       <CartPreview />
       <AccountMenu />
      </div>

@@ -12,62 +12,59 @@ import { usePathname } from "next/navigation";
 import React from "react";
 
 const NAV_ITEMS = [
-  { label: "Thông tin cá nhân", href: "/account/profile" },
-  { label: "Đơn hàng ", href: "/orders" },
-  { label: "Đánh giá ", href: "/reviews" },
-  { label: "Sổ địa chỉ", href: "/account/addresses" },
-  { label: "Thú cưng của tôi", href: "/account/pets" },
-  { label: "Thông báo", href: "#" },
+ { label: "Thông tin cá nhân", href: "/account/profile" },
+ { label: "Đơn hàng ", href: "/orders" },
+ { label: "Đánh giá ", href: "/reviews" },
+ { label: "Sổ địa chỉ", href: "/account/addresses" },
+ { label: "Thú cưng của tôi", href: "/account/pets" },
+ { label: "Thông báo", href: "#" },
 ];
 
 export function AccountSidebar() {
-  const pathname = usePathname();
+ const pathname = usePathname();
 
-  return (
-    <aside className="w-full md:w-64 shrink-0 flex flex-col justify-between">
-      <div>
-        {/* Danh sách menu tài khoản */}
-        <nav aria-label="Menu tài khoản" className="space-y-4 text-sm font-medium">
-          {NAV_ITEMS.map((item) => {
-            const isActive = (() => {
-              if (item.href === "#") return false;
-              if (item.href === "/account/profile") {
-                return pathname === "/account" || pathname?.startsWith("/account/profile");
-              }
-              return (
-                pathname === item.href ||
-                (item.href !== "/" && pathname?.startsWith(item.href))
-              );
-            })();
+ return (
+  <aside className="w-full md:w-64 shrink-0 flex flex-col justify-between">
+   <div>
+    {/* Danh sách menu tài khoản */}
+    <nav aria-label="Menu tài khoản" className="space-y-4 text-sm font-medium">
+     {NAV_ITEMS.map((item) => {
+      const isActive = (() => {
+       if (item.href === "#") return false;
+       if (item.href === "/account/profile") {
+        return (
+         pathname === "/account" || pathname?.startsWith("/account/profile")
+        );
+       }
+       return (
+        pathname === item.href ||
+        (item.href !== "/" && pathname?.startsWith(item.href))
+       );
+      })();
 
-            return (
-              <div key={item.label}>
-                <Link
-                  href={item.href}
-                  className={
-                    isActive
-                      ? "text-blue-600 font-bold flex items-center gap-1.5 transition-colors"
-                      : "text-slate-600 hover:text-ink font-medium transition-colors block"
-                  }
-                >
-                  {isActive && <span className="font-bold">→</span>}
-                  <span>{item.label}</span>
-                </Link>
-              </div>
-            );
-          })}
-        </nav>
-      </div>
-
-      {/* Đường dẫn hỗ trợ ở dưới chân sidebar */}
-      <div className="mt-16 pt-6 border-t border-line/40">
-        <a
-          href="tel:1900636789"
-          className="text-xs text-blue-600 hover:underline font-medium inline-block"
+      return (
+       <div key={item.label}>
+        <Link
+         href={item.href}
+         className={
+          isActive
+           ? "text-blue-600 font-bold flex items-center gap-1.5 transition-colors"
+           : "text-slate-600 hover:text-ink font-medium transition-colors block"
+         }
         >
-          Trợ giúp · 0363090151
-        </a>
-      </div>
-    </aside>
-  );
+         {isActive && <span className="font-bold">→</span>}
+         <span>{item.label}</span>
+        </Link>
+       </div>
+      );
+     })}
+    </nav>
+   </div>
+
+   {/* Đường dẫn hỗ trợ ở dưới chân sidebar */}
+   <div className="mt-16 pt-6 border-t border-line/40">
+    <Link href="/support" className="text-xs text-brand hover:underline font-medium inline-block">Trung tâm hỗ trợ →</Link>
+   </div>
+  </aside>
+ );
 }
