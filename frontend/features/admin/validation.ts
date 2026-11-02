@@ -1,5 +1,6 @@
 /** Client-side checks for Admin forms; the backend repeats them once it exists. */
-export type UserFormValues = { fullName: string; email: string; phone: string };
+/** `lockReason` is checked only when present, because only a change to locked needs one. */
+export type UserFormValues = { fullName: string; phone: string; adminNote?: string; lockReason?: string };
 export type FormErrors<T> = Partial<Record<keyof T, string>>;
 
 /** The error for an account-lock reason, or "" when it is valid (3–200 characters once trimmed). */
@@ -41,8 +42,14 @@ export function validateCategory(values: CategoryFormValues): FormErrors<Categor
 
 export function validateUser(values: UserFormValues): FormErrors<UserFormValues> {
   const errors: FormErrors<UserFormValues> = {};
-  if (values.fullName.trim().length < 2) errors.fullName = "Nhập họ và tên (ít nhất 2 ký tự).";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) errors.email = "Nhập email hợp lệ, ví dụ ten@gmail.com.";
-  if (!/^0\d{9}$/.test(values.phone.replace(/\s+/g, ""))) errors.phone = "Số điện thoại gồm 10 chữ số và bắt đầu bằng 0.";
+  const fullName = values.fullName.trim();
+  if (fullName.length < 2 || fullName.length > 100) errors.fullName = "Nhập họ và tên, từ 2 đến 100 ký tự.";
+  // The same rule as the account profile; stored numbers may use +84.
+  if (!/^(?:0|\+84)\d{9}$/.test(values.phone.replace(/[\s.-]/g, ""))) errors.phone = "Nhập số điện thoại Việt Nam hợp lệ, ví dụ 0912 345 678.";
+  if ((values.adminNote?.trim().length ?? 0) > 1000) errors.adminNote = "Ghi chú tối đa 1000 ký tự.";
+  if (values.lockReason !== undefined) {
+    const reason = validateLockReason(values.lockReason);
+    if (reason) errors.lockReason = reason;
+  }
   return errors;
 }

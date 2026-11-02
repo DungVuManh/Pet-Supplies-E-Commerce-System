@@ -1,14 +1,11 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
 import { UserEditForm } from "@/features/admin/components/user-edit-form";
-import { getUserDetail } from "@/features/admin/mock/users";
+import { getUser } from "@/features/admin/services/users.server";
 
 type Params = PageProps<"/admin/users/[id]/edit">["params"];
 
 async function EditUser({ params }: { params: Params }) {
-  const user = getUserDetail((await params).id);
-  if (!user) notFound();
-  return <UserEditForm user={user} />;
+  return <UserEditForm user={await getUser((await params).id)} />;
 }
 
 export default function AdminUserEditPage({ params }: PageProps<"/admin/users/[id]/edit">) {

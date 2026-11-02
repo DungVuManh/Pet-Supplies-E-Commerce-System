@@ -8,7 +8,7 @@ import { AuditLog } from "../../models/audit-log.model.js";
 import { Order } from "../../models/order.model.js";
 import { User } from "../../models/user.model.js";
 import { parseQuery } from "../../validators/admin/list-query.js";
-import { parseLockBody, userListQuerySchema } from "../../validators/admin/user.validator.js";
+import { parseLockBody, userListQuerySchema, userPatchSchema } from "../../validators/admin/user.validator.js";
 import { visibleOrders } from "../staff-analytics.helpers.js";
 
 const MANAGED_ROLES = ["customer", "staff"];
@@ -149,39 +149,41 @@ function addressDto(address) {
  return { recipientName, phone, street, ward, district, province };
 }
 
-export async function getUser(request, response) {
- const user = await findUser(request.params.id);
- // Admin accounts are not managed here, so they look the same as an unknown id.
- if (!MANAGED_ROLES.includes(user.role)) throw userNotFound();
+async function userDetail(request, user) {
  const [address, totals, lastSignInAt, activity] = await Promise.all([
   Address.findOne({ userId: user._id, isDefault: true }).lean(),
   orderTotals(user),
   lastSignIn(request, user),
   recentActivity(user),
  ]);
- response.json({
-  success: true,
-  data: {
-   ...userRow(user),
-   lockedAt: user.lockedAt ?? null,
-   lockReason: user.lockReason ?? null,
-   adminNote: user.adminNote ?? "",
-   lastSignInAt,
-   defaultAddress: addressDto(address),
-   ...totals,
-   activity,
-  },
- });
+ return {
+  ...userRow(user),
+  updatedAt: user.updatedAt,
+  lockedAt: user.lockedAt ?? null,
+  lockReason: user.lockReason ?? null,
+  adminNote: user.adminNote ?? "",
+  lastSignInAt,
+  defaultAddress: addressDto(address),
+  ...totals,
+  activity,
+ };
 }
 
-/** The account a lock or unlock may change: never the caller's own, never an Admin. */
-async function findLockTarget(request) {
+export async function getUser(request, response) {
+ const user = await findUser(request.params.id);
+ // Admin accounts are not managed here, so they look the same as an unknown id.
+ if (!MANAGED_ROLES.includes(user.role)) throw userNotFound();
+ response.json({ success: true, data: await userDetail(request, user) });
+}
+
+/** The account an Admin action may change: never the caller's own, never an Admin. */
+async function findManagedTarget(request) {
  if (String(request.user._id) === request.params.id.toLowerCase()) {
-  throw new AppError("Bạn không thể khóa hoặc mở khóa tài khoản của chính mình.", 403, "CANNOT_CHANGE_SELF");
+  throw new AppError("Bạn không thể thay đổi tài khoản của chính mình tại đây.", 403, "CANNOT_CHANGE_SELF");
  }
  const user = await findUser(request.params.id);
  if (!MANAGED_ROLES.includes(user.role)) {
-  throw new AppError("Không thể khóa hoặc mở khóa tài khoản quản trị.", 403, "CANNOT_CHANGE_ADMIN");
+  throw new AppError("Không thể thay đổi tài khoản quản trị.", 403, "CANNOT_CHANGE_ADMIN");
  }
  return user;
 }
@@ -211,7 +213,7 @@ const notLocked = () => new AppError("Tài khoản này không ở trạng thái
  */
 export async function lockUser(request, response) {
  const { reason } = parseLockBody(request.body);
- const user = await findLockTarget(request);
+ const user = await findManagedTarget(request);
  if (user.status === "locked") throw alreadyLocked();
  await revokeSessions(request, user);
  const updated = await User.findOneAndUpdate(
@@ -231,7 +233,7 @@ export async function lockUser(request, response) {
 }
 
 export async function unlockUser(request, response) {
- const user = await findLockTarget(request);
+ const user = await findManagedTarget(request);
  if (user.status !== "locked") throw notLocked();
  // A session created while the lock was being written must not come back to life.
  await revokeSessions(request, user);
@@ -249,4 +251,87 @@ export async function unlockUser(request, response) {
   summary: `Mở khóa tài khoản ${accountCode(user)}`,
  });
  response.json({ success: true, data: lockDto(updated) });
+}
+
+const EDITABLE_FIELDS = { fullName: "họ tên", phone: "số điện thoại", role: "vai trò", status: "trạng thái", adminNote: "ghi chú" };
+
+function validationFailure(response, fields) {
+ response.status(400).json({
+  success: false,
+  message: "Thông tin chưa hợp lệ. Vui lòng kiểm tra lại.",
+  error: { code: "VALIDATION_ERROR", fields },
+ });
+}
+
+/** First message per field. Unknown keys, such as `email`, are reported under their own name. */
+function fieldErrors(issues) {
+ const fields = {};
+ for (const issue of issues) {
+  const paths = issue.code === "unrecognized_keys" ? issue.keys : [issue.path.join(".")];
+  for (const path of paths) {
+   fields[path] ??= issue.code === "unrecognized_keys" ? "Không được phép thay đổi trường này." : issue.message;
+  }
+ }
+ return fields;
+}
+
+const currentValue = (user, field) => {
+ if (field === "status") return user.status === "locked" ? "locked" : "active";
+ return field === "adminNote" ? user.adminNote ?? "" : user[field];
+};
+
+/**
+ * Edits an account. A change of role or status revokes the user's sessions
+ * first, so a revocation failure leaves the account unchanged. The write is
+ * conditional on the `updatedAt` the form was loaded with.
+ */
+export async function updateUser(request, response) {
+ const parsed = userPatchSchema.safeParse(request.body);
+ if (!parsed.success) return validationFailure(response, fieldErrors(parsed.error.issues));
+ const { expectedUpdatedAt, lockReason, ...input } = parsed.data;
+
+ const user = await findManagedTarget(request);
+ const stale = () => new AppError("Người dùng vừa được thay đổi ở nơi khác. Dữ liệu mới nhất đã được tải lại.", 409, "STALE_USER");
+ if (new Date(user.updatedAt).getTime() !== new Date(expectedUpdatedAt).getTime()) throw stale();
+
+ const before = {};
+ const after = {};
+ for (const [field, value] of Object.entries(input)) {
+  if (value !== currentValue(user, field)) {
+   before[field] = currentValue(user, field);
+   after[field] = value;
+  }
+ }
+ if (Object.keys(after).length === 0) {
+  return response.json({ success: true, data: { ...(await userDetail(request, user)), changed: false } });
+ }
+
+ // Locking from this form follows the same rule as the lock endpoint.
+ const locking = after.status === "locked";
+ if (locking && !lockReason) return validationFailure(response, { lockReason: "Nhập lý do khóa, từ 3 đến 200 ký tự." });
+
+ if (after.role || after.status) await revokeSessions(request, user);
+
+ const $set = { ...after };
+ const update = { $set };
+ if (locking) {
+  Object.assign($set, { lockedAt: new Date(), lockedBy: request.user._id, lockReason });
+  after.lockReason = lockReason;
+ } else if (after.status === "active") {
+  update.$unset = { lockedAt: 1, lockedBy: 1, lockReason: 1 };
+ }
+ // `role` is immutable in the schema so no other flow can change it by accident.
+ const result = await User.updateOne({ _id: user._id, updatedAt: user.updatedAt }, update, { overwriteImmutable: true, runValidators: true });
+ if (result.matchedCount === 0) throw stale();
+
+ const labels = Object.keys(before).map((field) => EDITABLE_FIELDS[field]).join(", ");
+ await recordAudit(request, {
+  action: "user.update",
+  target: { collectionName: "users", id: user._id },
+  before,
+  after,
+  summary: `Cập nhật tài khoản ${accountCode(user)}: ${labels}`,
+ });
+ const updated = await User.findById(user._id).lean();
+ response.json({ success: true, data: { ...(await userDetail(request, updated)), changed: true } });
 }

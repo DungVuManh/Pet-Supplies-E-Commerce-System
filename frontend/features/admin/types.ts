@@ -44,6 +44,7 @@ export type UserAddress = { recipientName: string; phone: string; street: string
 
 /** `GET /api/v1/admin/users/:id`. `lastSignInAt` is null when Firebase cannot provide it. */
 export type AdminUserDetail = AdminUserRow & {
+  updatedAt: string;
   lockedAt: string | null;
   lockReason: string | null;
   adminNote: string;

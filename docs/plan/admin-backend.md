@@ -122,11 +122,19 @@ UI it serves: `docs/specs/admin-workspace-ui.md` (complete on mock data in `fron
 - [x] **🛑 Commit checkpoint: User detail + lock**
 
 ### 1c. Edit user: `/admin/users/[id]/edit`
-- [ ] `PATCH /users/:id`: `fullName` (2–100), `phone` (VN format, same rule as account validation), `role` (`customer`|`staff`), `status`, and `adminNote`. Email is rejected if sent. The role change uses `updateOne` with `overwriteImmutable: true` and revokes sessions. Returns the updated detail and writes before/after to the audit log.
-- [ ] Tests: role change customer ↔ staff, to or from `admin` refused (400), no-op detection ("Không có thay đổi nào để lưu."), validation messages per field, and a 409 when the user was changed concurrently (compare `updatedAt`)
-- [ ] Frontend: move `validateUser` from `features/admin/validation.ts` into `hooks/use-user-edit.ts`. Server field errors map onto the form. Email and the default address are read-only. "Gửi đặt lại mật khẩu" keeps its demo notice (email sending is a non-goal).
-- [ ] Browser check: validation errors and focus, save, role change visible in the list, Hủy
-- [ ] **🛑 Commit checkpoint: Edit user**
+- [x] `PATCH /users/:id`: `fullName` (2–100), `phone` (VN format, same rule as account validation), `role` (`customer`|`staff`), `status`, and `adminNote`. Email is rejected if sent. The role change uses `updateOne` with `overwriteImmutable: true` and revokes sessions. Returns the updated detail and writes before/after to the audit log.
+  - Note: changes beyond the item:
+    - The body requires `expectedUpdatedAt`, and the detail response now includes `updatedAt`. A mismatch is 409 `STALE_USER`.
+    - Setting `status: "locked"` requires `lockReason`, the same rule as the lock endpoint, and a status change revokes sessions too.
+    - A no-op returns 200 with `changed: false` and writes nothing.
+    - The shared `error.middleware.js` drops `fields`, so the controller sends this 400 itself. That keeps the change out of a file every role uses. If several Admin screens need it, teach the middleware to pass `AppError.fields` through, after checking with the team.
+- [x] Tests: role change customer ↔ staff, to or from `admin` refused (400), no-op detection ("Không có thay đổi nào để lưu."), validation messages per field, and a 409 when the user was changed concurrently (compare `updatedAt`)
+  - Note: `tests/admin-user-edit.test.js`. A change from `admin` cannot be requested, because editing an Admin account is refused with 403 `CANNOT_CHANGE_ADMIN` before the role is read.
+- [x] Frontend: move `validateUser` from `features/admin/validation.ts` into `hooks/use-user-edit.ts`. Server field errors map onto the form. Email and the default address are read-only. "Gửi đặt lại mật khẩu" keeps its demo notice (email sending is a non-goal).
+  - Note: `validateUser` stays in `validation.ts`, because the frontend runner cannot import a hook that uses `next/navigation`, and the rule needs a unit test. The hook owns the state and calls it. The phone rule now accepts `+84`, matching the server, so a stored `+84` number is not reported as invalid. Choosing "Đã khóa" reveals a required reason field. The list's filter ids became `users-filter-role` and `users-filter-status`, because Next keeps the previous route mounted and the duplicate ids could send the edit form's labels to the hidden filters.
+- [x] Browser check: validation errors and focus, save, role change visible in the list, Hủy
+  - Note: 1440 and 320 px on a throwaway customer, against the real local database, so `overwriteImmutable` is proven there: after customer → staff, the old session is refused, the list shows Staff, and the next sign-in has the new role. A stale tab shows the 409 and reloads the newest values. The only console errors are the expected 401 and 409. The throwaway's Firebase account and profile were deleted; its audit entries remain.
+- [x] **🛑 Commit checkpoint: Edit user**
 
 ### 1d. Roles & permissions: `/admin/users/roles`
 - [ ] `GET /permissions`: the 9-row matrix from a constant in `common/permissions.js`, documented as mirroring the `requireRole` usage, plus the per-role account counts

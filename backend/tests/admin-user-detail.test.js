@@ -53,11 +53,11 @@ beforeEach(() => {
  accounts = [
   {
    _id: id("3f2a"), firebaseUid: "uid-customer", role: "customer", status: "active", fullName: "Đỗ Khánh Linh",
-   email: "linh@gmail.com", phone: "0945678901", createdAt: new Date("2026-09-01T03:00:00Z"), adminNote: "Khách quen",
+   email: "linh@gmail.com", phone: "0945678901", createdAt: new Date("2026-09-01T03:00:00Z"), updatedAt: new Date("2026-09-05T03:00:00Z"), adminNote: "Khách quen",
   },
   {
    _id: id("7c8d"), firebaseUid: "uid-staff", role: "staff", fullName: "Vũ Đức Long",
-   email: "long@petly.vn", phone: "0987654321", createdAt: new Date("2026-09-02T03:00:00Z"),
+   email: "long@petly.vn", phone: "0987654321", createdAt: new Date("2026-09-02T03:00:00Z"), updatedAt: new Date("2026-09-06T03:00:00Z"),
   },
   {
    _id: id("00aa"), firebaseUid: "uid-admin", role: "admin", status: "active", fullName: "Admin khác",
@@ -88,7 +88,7 @@ describe("GET /api/v1/admin/users/:id", () => {
   expect(body.data).toEqual({
    id: String(customer()._id), code: "KH003F2A", role: "customer", fullName: "Đỗ Khánh Linh",
    email: "linh@gmail.com", phone: "0945678901", joinedAt: "2026-09-01T03:00:00.000Z", status: "active",
-   lockedAt: null, lockReason: null, adminNote: "Khách quen", lastSignInAt: "2026-10-12T03:40:00.000Z",
+   updatedAt: "2026-09-05T03:00:00.000Z", lockedAt: null, lockReason: null, adminNote: "Khách quen", lastSignInAt: "2026-10-12T03:40:00.000Z",
    defaultAddress: null, completedOrders: 0, totalSpent: 0, activity: [],
   });
   expect(JSON.stringify(body)).not.toContain("uid-customer");

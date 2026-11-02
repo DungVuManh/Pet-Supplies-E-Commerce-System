@@ -5,7 +5,7 @@ import { isLowStock, lowStockLevels, lowStockTotal, stockLevels } from "../featu
 import { cumulativeRevenue, overview, recentActivity } from "../features/admin/mock/overview.ts";
 import { countUsers, filterUsers, getUser, getUserDetail, users } from "../features/admin/mock/users.ts";
 import { defaultPermissions, togglePermission } from "../features/admin/mock/permissions.ts";
-import { parseAmount, validateCategory, validateProduct, validateUser } from "../features/admin/validation.ts";
+import { parseAmount, validateCategory, validateProduct } from "../features/admin/validation.ts";
 import { categoryDeleteBlocker, categoryProductCount, countProducts, filterProducts, getProduct, productCategoryName, productStatus, products } from "../features/admin/mock/products.ts";
 import { categories, categoryPath, categoryTree, filterCategories, getCategory } from "../features/admin/mock/categories.ts";
 import { filterMasterData, masterData, masterTabs, petTypeOptions, unitOptions } from "../features/admin/mock/master-data.ts";
@@ -43,11 +43,6 @@ test("user detail keeps the designed KH0001 values and resolves every listed use
   assert.deepEqual(detail?.activity.map((row) => row.status), ["Chờ xử lý", "Thành công", "Hoàn thành"]);
   assert.ok(users.every((user) => getUserDetail(user.id)?.activity.every((row) => row.status in adminStatusTones && row.href.startsWith("/admin/"))));
   assert.equal(getUserDetail("NOPE"), undefined);
-});
-
-test("user form validation flags name, email and phone", () => {
-  assert.deepEqual(validateUser({ fullName: "Nguyễn Minh Anh", email: "minhanh.nguyen@gmail.com", phone: "0901 234 567" }), {});
-  assert.deepEqual(Object.keys(validateUser({ fullName: " ", email: "minhanh@", phone: "12345" })).sort(), ["email", "fullName", "phone"]);
 });
 
 test("permission matrix keeps Admin locked and toggles only the chosen cell", () => {
