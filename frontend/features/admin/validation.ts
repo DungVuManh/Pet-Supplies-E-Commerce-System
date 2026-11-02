@@ -30,13 +30,15 @@ export function validateProduct(values: ProductFormValues): FormErrors<ProductFo
   return errors;
 }
 
-export type CategoryFormValues = { name: string; slug: string; order: string };
+export type CategoryFormValues = { name: string; slug: string; order: string; description?: string };
 
 export function validateCategory(values: CategoryFormValues): FormErrors<CategoryFormValues> {
   const errors: FormErrors<CategoryFormValues> = {};
-  if (values.name.trim().length < 2) errors.name = "Nhập tên danh mục (ít nhất 2 ký tự).";
+  const name = values.name.trim();
+  if (name.length < 2 || name.length > 100) errors.name = "Nhập tên danh mục, từ 2 đến 100 ký tự.";
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(values.slug.trim())) errors.slug = "Đường dẫn gồm chữ thường không dấu, số và dấu gạch ngang, ví dụ thuc-an-cho-cho.";
   if (!/^[1-9]\d*$/.test(values.order.trim())) errors.order = "Thứ tự hiển thị là số nguyên từ 1.";
+  if ((values.description?.trim().length ?? 0) > 500) errors.description = "Mô tả tối đa 500 ký tự.";
   return errors;
 }
 

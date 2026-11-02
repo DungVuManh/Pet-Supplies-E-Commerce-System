@@ -168,12 +168,18 @@ UI it serves: `docs/specs/admin-workspace-ui.md` (complete on mock data in `fron
 - [x] **🛑 Commit checkpoint: Category tree**
 
 ### 2b. Edit category: `/admin/categories/[code]/edit`
-- [ ] `GET /categories/:code` and `PATCH /categories/:code`: `name` (unique), `slug` (unique, `^[a-z0-9]+(-[a-z0-9]+)*$`), `parentCode` (a root, not itself; refused when the category has children), `description`, `displayOrder`, and `isActive`. 409 `DUPLICATE_VALUE` (MSG32) on duplicates. Audited.
-- [ ] Tests: each validation rule, duplicate name and slug, parent rules, and deactivation
+- [x] `GET /categories/:code` and `PATCH /categories/:code`: `name` (unique), `slug` (unique, `^[a-z0-9]+(-[a-z0-9]+)*$`), `parentCode` (a root, not itself; refused when the category has children), `description`, `displayOrder`, and `isActive`. 409 `DUPLICATE_VALUE` (MSG32) on duplicates. Audited.
+  - Note: `:code` and `parentCode` also accept the id of a category the migration has not reached. Added `expectedUpdatedAt` with 409 `STALE_CATEGORY`, as on the user form, so one Admin cannot silently overwrite another. The field-error helpers from 1c moved to `common/field-errors.js`. Changing a slug changes that category's public catalog links, because the catalog addresses categories by slug.
+- [x] Tests: each validation rule, duplicate name and slug, parent rules, and deactivation
+  - Note: `tests/admin-category-edit.test.js`.
 - [ ] **(cross-team)** Ask the catalog owner to hide products of inactive categories on the public storefront ("category state controls catalog visibility", UC28). Note the outcome here.
-- [ ] Frontend: server load for the edit page, `hooks/use-category-edit.ts` (moving `validateCategory` into it), and server errors mapped to fields. The "+ Thêm danh mục" button stays a demo notice (no create design).
-- [ ] Browser check
-- [ ] **🛑 Commit checkpoint: Edit category**
+- [x] Frontend: server load for the edit page, `hooks/use-category-edit.ts` (moving `validateCategory` into it), and server errors mapped to fields. The "+ Thêm danh mục" button stays a demo notice (no create design).
+  - Note: `validateCategory` stays in `validation.ts` so it can be unit tested, as with `validateUser` in 1c. The list's filter ids became `category-filter-query` and `category-filter-status`, because they duplicated the form's ids while Next kept the list mounted. The delete button on this page now really deletes, after confirmation.
+- [x] Browser check
+  - Note: on the temporary database copy, at 1440 and 320 px: client and server errors with focus, a duplicate name on its field, saving a parent and status, a stale tab's 409, the parent lock, both delete outcomes, Hủy, and not-found. The only console errors are the expected 401 and 409.
+- [x] **🛑 Commit checkpoint: Edit category**
+  - Note: committed with the cross-team item above still open, because it needs the catalog owner.
+  - Known issues from merging `origin/dev`, present on a clean checkout of `dev` too and left for their owners: `npm --prefix frontend run build` fails type checking (`account/profile/page.tsx` and a missing `cart-trust-banner` in `features/cart/index.tsx`), and two backend tests fail (`app.test.js`, because the rate limiter is commented out in `app.js`, and `order-status.test.js`). From here each checkpoint runs `tsc` and accepts only those 3 errors, in place of the build.
 
 ## 3. Master data: `/admin/master-data`
 

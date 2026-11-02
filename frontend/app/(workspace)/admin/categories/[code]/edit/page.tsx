@@ -1,17 +1,12 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
 import { CategoryEditForm } from "@/features/admin/components/category-edit-form";
-import { getCategory } from "@/features/admin/mock/categories";
-import { categoryDeleteBlocker, categoryProductCount } from "@/features/admin/mock/products";
+import { getCategory } from "@/features/admin/services/categories.server";
 
 type Params = PageProps<"/admin/categories/[code]/edit">["params"];
 
 // URL params are read below a Suspense boundary so navigating from the tree stays instant.
 async function EditCategory({ params }: { params: Params }) {
-  const { code } = await params;
-  const category = getCategory(code);
-  if (!category) notFound();
-  return <CategoryEditForm category={category} linkedProducts={categoryProductCount(code)} blocker={categoryDeleteBlocker(code)} />;
+  return <CategoryEditForm category={await getCategory((await params).code)} />;
 }
 
 export default function AdminCategoryEditPage({ params }: PageProps<"/admin/categories/[code]/edit">) {

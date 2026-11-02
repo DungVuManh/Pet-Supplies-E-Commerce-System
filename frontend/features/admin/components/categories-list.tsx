@@ -16,8 +16,8 @@ export function CategoriesList() {
 
   return <>
     <form onSubmit={submit} className="grid items-end gap-4 md:grid-cols-[minmax(0,360px)_232px_auto] md:justify-start" aria-label="Bộ lọc danh mục">
-      <Field label="Tìm kiếm" htmlFor="category-query"><input id="category-query" type="search" className={control} placeholder="Tìm theo tên danh mục" value={draft.q} onChange={(e) => setDraft({ ...draft, q: e.target.value })} /></Field>
-      <Field label="Trạng thái" htmlFor="category-status"><select id="category-status" className={control} value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value as CategoryStatus | "all" })}>
+      <Field label="Tìm kiếm" htmlFor="category-filter-query"><input id="category-filter-query" type="search" className={control} placeholder="Tìm theo tên danh mục" value={draft.q} onChange={(e) => setDraft({ ...draft, q: e.target.value })} /></Field>
+      <Field label="Trạng thái" htmlFor="category-filter-status"><select id="category-filter-status" className={control} value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value as CategoryStatus | "all" })}>
         <option value="all">Tất cả trạng thái</option><option value="active">{categoryStatusLabels.active}</option><option value="hidden">{categoryStatusLabels.hidden}</option>
       </select></Field>
       <button type="submit" className={`${secondaryButton} min-h-12`}>Lọc dữ liệu</button>

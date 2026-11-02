@@ -1,5 +1,6 @@
 import { recordAudit } from "../../common/audit.js";
 import { AppError } from "../../common/errors/app-error.js";
+import { sendFieldErrors, zodFieldErrors } from "../../common/field-errors.js";
 import { paginate } from "../../common/pagination.js";
 import { searchFilter } from "../../common/search.js";
 import { getFirebaseAuth } from "../../config/firebase.js";
@@ -255,26 +256,6 @@ export async function unlockUser(request, response) {
 
 const EDITABLE_FIELDS = { fullName: "họ tên", phone: "số điện thoại", role: "vai trò", status: "trạng thái", adminNote: "ghi chú" };
 
-function validationFailure(response, fields) {
- response.status(400).json({
-  success: false,
-  message: "Thông tin chưa hợp lệ. Vui lòng kiểm tra lại.",
-  error: { code: "VALIDATION_ERROR", fields },
- });
-}
-
-/** First message per field. Unknown keys, such as `email`, are reported under their own name. */
-function fieldErrors(issues) {
- const fields = {};
- for (const issue of issues) {
-  const paths = issue.code === "unrecognized_keys" ? issue.keys : [issue.path.join(".")];
-  for (const path of paths) {
-   fields[path] ??= issue.code === "unrecognized_keys" ? "Không được phép thay đổi trường này." : issue.message;
-  }
- }
- return fields;
-}
-
 const currentValue = (user, field) => {
  if (field === "status") return user.status === "locked" ? "locked" : "active";
  return field === "adminNote" ? user.adminNote ?? "" : user[field];
@@ -287,7 +268,7 @@ const currentValue = (user, field) => {
  */
 export async function updateUser(request, response) {
  const parsed = userPatchSchema.safeParse(request.body);
- if (!parsed.success) return validationFailure(response, fieldErrors(parsed.error.issues));
+ if (!parsed.success) return sendFieldErrors(response, zodFieldErrors(parsed.error.issues));
  const { expectedUpdatedAt, lockReason, ...input } = parsed.data;
 
  const user = await findManagedTarget(request);
@@ -308,7 +289,7 @@ export async function updateUser(request, response) {
 
  // Locking from this form follows the same rule as the lock endpoint.
  const locking = after.status === "locked";
- if (locking && !lockReason) return validationFailure(response, { lockReason: "Nhập lý do khóa, từ 3 đến 200 ký tự." });
+ if (locking && !lockReason) return sendFieldErrors(response, { lockReason: "Nhập lý do khóa, từ 3 đến 200 ký tự." });
 
  if (after.role || after.status) await revokeSessions(request, user);
 

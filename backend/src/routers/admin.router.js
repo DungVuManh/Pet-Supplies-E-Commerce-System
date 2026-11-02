@@ -3,7 +3,7 @@ import { readCookies, requireAuth, requireRole } from "../common/middlewares/aut
 import { protectMutation } from "../controllers/auth.controller.js";
 import { dashboard } from "../controllers/dashboard.controller.js";
 import { listInventory } from "../controllers/inventory.controller.js";
-import { deleteCategory, listCategories } from "../controllers/admin/category.controller.js";
+import { deleteCategory, getCategory, listCategories, updateCategory } from "../controllers/admin/category.controller.js";
 import { listPermissions } from "../controllers/admin/permission.controller.js";
 import { getUser, listUsers, lockUser, unlockUser, updateUser } from "../controllers/admin/user.controller.js";
 import {
@@ -23,6 +23,8 @@ router.use(readCookies, requireAuth, requireRole("admin"));
 router.get("/dashboard", dashboard);
 router.get("/inventory", listInventory);
 router.get("/categories", listCategories);
+router.get("/categories/:code", getCategory);
+router.patch("/categories/:code", protectMutation, updateCategory);
 router.delete("/categories/:code", protectMutation, deleteCategory);
 router.get("/permissions", listPermissions);
 router.get("/users", listUsers);
