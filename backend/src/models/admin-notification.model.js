@@ -12,7 +12,10 @@ const adminNotificationSchema = new mongoose.Schema(
   targetHref: {
    type: String,
    trim: true,
-   validate: { validator: (value) => /^\/admin(\/|\?|$)/.test(value), message: "targetHref must be an Admin path" },
+   validate: {
+    validator: (value) => !value || /^\/admin(\/|\?|$)/.test(value),
+    message: "targetHref must be an Admin path",
+   },
   },
   // Business key of the source record (an order code or SKU), for deduplication and search.
   reference: { type: String, trim: true, maxlength: 100 },
