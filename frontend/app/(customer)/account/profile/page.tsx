@@ -138,14 +138,46 @@ export default function ProfilePage() {
   };
 
   return (
-    <AccountShell activeTab="profile">
-      {/* Toast Alert */}
-      {toastMessage && (
-        <div
-          role="status"
-          className="mb-6 flex items-center justify-between rounded-2xl border border-success/30 bg-success-subtle p-4 text-sm font-semibold text-success shadow-xs"
-        >
-          <div className="flex items-center gap-3">
+    <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col px-4 py-6 outline-none sm:px-6 xl:px-16">
+      <AccountShell activeTab="profile">
+        {/* Toast Alert */}
+        {toastMessage && (
+          <div
+            role="status"
+            className="mb-6 flex items-center justify-between rounded-2xl border border-success/30 bg-success-subtle p-4 text-sm font-semibold text-success shadow-xs"
+          >
+            <div className="flex items-center gap-3">
+              <svg
+                className="h-5 w-5 shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="2"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                />
+              </svg>
+              <span>{toastMessage}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setToastMessage("")}
+              className="text-xs hover:underline"
+            >
+              Đóng
+            </button>
+          </div>
+        )}
+
+        {/* Error Alert */}
+        {errorMessage && (
+          <div
+            role="alert"
+            className="mb-6 flex items-center gap-3 rounded-2xl border border-danger/30 bg-danger-subtle p-4 text-sm font-semibold text-danger shadow-xs"
+          >
             <svg
               className="h-5 w-5 shrink-0"
               fill="none"
@@ -156,63 +188,33 @@ export default function ProfilePage() {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
               />
             </svg>
-            <span>{toastMessage}</span>
+            <span>{errorMessage}</span>
           </div>
-          <button
-            type="button"
-            onClick={() => setToastMessage("")}
-            className="text-xs hover:underline"
-          >
-            Đóng
-          </button>
-        </div>
-      )}
+        )}
 
-      {/* Error Alert */}
-      {errorMessage && (
-        <div
-          role="alert"
-          className="mb-6 flex items-center gap-3 rounded-2xl border border-danger/30 bg-danger-subtle p-4 text-sm font-semibold text-danger shadow-xs"
-        >
-          <svg
-            className="h-5 w-5 shrink-0"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="2"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
-            />
-          </svg>
-          <span>{errorMessage}</span>
-        </div>
-      )}
-
-      {isLoading ? (
-        <div className="rounded-2xl border border-line bg-surface p-12 text-center text-sm text-muted shadow-xs">
-          <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-brand border-r-transparent" />
-          <p className="mt-3">Đang tải thông tin tài khoản…</p>
-        </div>
-      ) : isEditing ? (
-        <ProfileEdit
-          profile={currentProfile}
-          onSave={handleSaveProfile}
-          onCancel={() => setIsEditing(false)}
-          isSaving={isSaving}
-        />
-      ) : (
-        <ProfileView
-          profile={currentProfile}
-          stats={stats}
-          onEdit={() => setIsEditing(true)}
-        />
-      )}
-    </AccountShell>
+        {isLoading ? (
+          <div className="rounded-2xl border border-line bg-surface p-12 text-center text-sm text-muted shadow-xs">
+            <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-brand border-r-transparent" />
+            <p className="mt-3">Đang tải thông tin tài khoản…</p>
+          </div>
+        ) : isEditing ? (
+          <ProfileEdit
+            profile={currentProfile}
+            onSave={handleSaveProfile}
+            onCancel={() => setIsEditing(false)}
+            isSaving={isSaving}
+          />
+        ) : (
+          <ProfileView
+            profile={currentProfile}
+            stats={stats}
+            onEdit={() => setIsEditing(true)}
+          />
+        )}
+      </AccountShell>
+    </div>
   );
 }

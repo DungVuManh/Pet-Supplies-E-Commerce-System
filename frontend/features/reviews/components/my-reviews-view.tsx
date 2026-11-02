@@ -48,9 +48,8 @@ export function MyReviewsView() {
         <div
           role="status"
           aria-live="polite"
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-2xl px-5 py-3 text-xs font-bold text-white shadow-lg animate-in slide-in-from-bottom duration-200 ${
-            toastMessage.type === "success" ? "bg-emerald-600" : "bg-rose-600"
-          }`}
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-2xl px-5 py-3 text-xs font-bold text-white shadow-lg animate-in slide-in-from-bottom duration-200 ${toastMessage.type === "success" ? "bg-emerald-600" : "bg-rose-600"
+            }`}
         >
           <span>{toastMessage.text}</span>
         </div>
@@ -62,7 +61,7 @@ export function MyReviewsView() {
           Trang chủ
         </Link>
         <ChevronRight className="size-3.5 text-slate-400" />
-        <Link href="/orders" className="hover:text-brand transition-colors">
+        <Link href="/account/profile" className="hover:text-brand transition-colors">
           Tài khoản
         </Link>
         <ChevronRight className="size-3.5 text-slate-400" />

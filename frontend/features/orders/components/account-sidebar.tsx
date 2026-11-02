@@ -3,6 +3,8 @@
 // =============================================================
 // features/orders/components/account-sidebar.tsx
 // Sidebar thông tin tài khoản & menu điều hướng bên trái
+// Bám chuẩn UI thiết kế: chữ xanh bold có mũi tên khi active,
+// chữ xám trung tính khi inactive, link hỗ trợ ở chân sidebar
 // =============================================================
 
 import Link from "next/link";
@@ -10,12 +12,11 @@ import { usePathname } from "next/navigation";
 import React from "react";
 
 const NAV_ITEMS = [
-  { label: "Thông tin cá nhân", href: "/account" },
-  { label: "Đơn hàng của tôi", href: "/orders" },
-  { label: "Danh sách yêu thích", href: "/wishlist" },
-  { label: "Đánh giá của tôi", href: "/reviews" },
-  { label: "Sổ địa chỉ", href: "#" },
-  { label: "Thú cưng của tôi", href: "#" },
+  { label: "Thông tin cá nhân", href: "/account/profile" },
+  { label: "Đơn hàng ", href: "/orders" },
+  { label: "Đánh giá ", href: "/reviews" },
+  { label: "Sổ địa chỉ", href: "/account/addresses" },
+  { label: "Thú cưng của tôi", href: "/account/pets" },
   { label: "Thông báo", href: "#" },
 ];
 
@@ -28,7 +29,16 @@ export function AccountSidebar() {
         {/* Danh sách menu tài khoản */}
         <nav aria-label="Menu tài khoản" className="space-y-4 text-sm font-medium">
           {NAV_ITEMS.map((item) => {
-            const isActive = item.href !== "#" && (pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href)));
+            const isActive = (() => {
+              if (item.href === "#") return false;
+              if (item.href === "/account/profile") {
+                return pathname === "/account" || pathname?.startsWith("/account/profile");
+              }
+              return (
+                pathname === item.href ||
+                (item.href !== "/" && pathname?.startsWith(item.href))
+              );
+            })();
 
             return (
               <div key={item.label}>
@@ -36,11 +46,11 @@ export function AccountSidebar() {
                   href={item.href}
                   className={
                     isActive
-                      ? "text-blue-600 font-semibold flex items-center gap-1.5 transition-colors"
-                      : "text-muted hover:text-ink transition-colors block"
+                      ? "text-blue-600 font-bold flex items-center gap-1.5 transition-colors"
+                      : "text-slate-600 hover:text-ink font-medium transition-colors block"
                   }
                 >
-                  {isActive && <span>→</span>}
+                  {isActive && <span className="font-bold">→</span>}
                   <span>{item.label}</span>
                 </Link>
               </div>
@@ -49,13 +59,13 @@ export function AccountSidebar() {
         </nav>
       </div>
 
-      {/* Đường dẫn hỗ trợ ở dưới */}
-      <div className="mt-12 pt-6 border-t border-line/40">
+      {/* Đường dẫn hỗ trợ ở dưới chân sidebar */}
+      <div className="mt-16 pt-6 border-t border-line/40">
         <a
           href="tel:1900636789"
-          className="text-xs text-blue-600 hover:underline font-medium"
+          className="text-xs text-blue-600 hover:underline font-medium inline-block"
         >
-          Trợ giúp · 1900 636 789
+          Trợ giúp · 0363090151
         </a>
       </div>
     </aside>
