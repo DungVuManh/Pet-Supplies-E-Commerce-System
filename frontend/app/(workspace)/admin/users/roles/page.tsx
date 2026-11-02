@@ -1,8 +1,13 @@
+import { Suspense } from "react";
 import { RolesMatrix } from "@/features/admin/components/roles-matrix";
-import { adminAccountCount, countUsers } from "@/features/admin/mock/users";
+import { getPermissions } from "@/features/admin/services/permissions.server";
 
 export const metadata = { title: "Vai trò & phân quyền" };
 
+async function Roles() {
+  return <RolesMatrix matrix={await getPermissions()} />;
+}
+
 export default function AdminRolesPage() {
-  return <RolesMatrix counts={{ customer: countUsers("customer"), staff: countUsers("staff"), admin: adminAccountCount }} />;
+  return <Suspense fallback={<p role="status">Đang tải phân quyền…</p>}><Roles /></Suspense>;
 }

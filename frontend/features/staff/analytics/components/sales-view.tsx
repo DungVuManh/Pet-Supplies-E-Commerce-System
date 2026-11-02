@@ -1,7 +1,7 @@
 "use client";
 
 import { Package } from "lucide-react";
-import { BarChart, MetricCard, PageHeader, card } from "@/features/workspace/components/workspace-ui";
+import { BarChart, MetricCard, PageHeader, card } from "@/components/workspace/workspace-ui";
 import { formatCurrency } from "@/lib/format-currency";
 import { ReportControls } from "../../components/report-controls";
 import { useStaffAnalytics } from "../hooks/use-staff-analytics";

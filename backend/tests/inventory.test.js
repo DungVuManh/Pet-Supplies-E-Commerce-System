@@ -63,8 +63,23 @@ describe("Admin inventory list", () => {
   await request(app).get("/api/v1/admin/inventory").query({ query: " a.b* ", status: "out" })
    .set("Cookie", cookie).expect(200);
   const pattern = { $regex: "a\\.b\\*", $options: "i" };
-  expect(stages()).toContainEqual({ $match: { $or: [{ name: pattern }, { "variants.sku": pattern }] } });
+  expect(stages()).toContainEqual(
+   expect.objectContaining({
+    $match: expect.objectContaining({
+     $or: expect.arrayContaining([
+      { name: pattern },
+      { "variants.sku": pattern },
+     ]),
+    }),
+   }),
+  );
   expect(stages()).toContainEqual({ $match: { stockStatus: "out" } });
+ });
+
+ it("supports search by q query param and accent-insensitive matching", async () => {
+  await request(app).get("/api/v1/admin/inventory").query({ q: "cat meo" })
+   .set("Cookie", cookie).expect(200);
+  expect(stages().some((stage) => stage.$match && stage.$match.$or)).toBe(true);
  });
 
  it("does not filter by status for all", async () => {

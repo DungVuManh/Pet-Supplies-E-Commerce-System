@@ -1,6 +1,6 @@
 // =============================================================
 // features/policy/components/policy-sidebar.tsx
-// Sidebar danh mục chính sách: Bám bố cục ảnh mẫu, dạng pill bo tròn,
+// Sidebar danh mục chính sách: Bám chuẩn bố cục ảnh mẫu, dạng pill bo tròn,
 // chỉ dùng màu theme primary (brand), hỗ trợ tab cuộn ngang trên mobile
 // =============================================================
 
@@ -59,15 +59,15 @@ export function PolicySidebar({ menuPolicies, activeSlug }: PolicySidebarProps) 
         </div>
       </div>
 
-      {/* 2. Phiên bản Desktop: Danh sách dọc dạng pill bo tròn (bám bố cục ảnh mẫu) */}
-      <nav className="hidden lg:flex flex-col gap-1.5 p-1 select-none">
+      {/* 2. Phiên bản Desktop: Danh sách dọc dạng pill bo tròn (bám chuẩn bố cục ảnh mẫu) */}
+      <nav className="hidden lg:flex flex-col gap-2.5 p-1 select-none">
         {menuPolicies.map((item) => {
           const isActive = activeSlug === item.slug;
           return (
             <Link
               key={item.slug}
               href={`/policy/${item.slug}`}
-              className={`flex items-center px-4 py-3 rounded-2xl text-sm transition-all duration-200 cursor-pointer ${
+              className={`flex items-center px-5 py-3.5 rounded-2xl text-[14.5px] transition-all duration-200 cursor-pointer ${
                 isActive
                   ? "bg-brand-subtle text-brand font-bold shadow-xs"
                   : "text-slate-600 font-medium hover:bg-brand-subtle/50 hover:text-brand"
@@ -81,4 +81,3 @@ export function PolicySidebar({ menuPolicies, activeSlug }: PolicySidebarProps) 
     </aside>
   );
 }
-

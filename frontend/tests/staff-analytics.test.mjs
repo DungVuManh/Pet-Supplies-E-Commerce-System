@@ -60,7 +60,7 @@ test("client preserves credentials/no-store, HTTP status and abort", async (t) =
 test("shared chart renders empty/zero/positive values without NaN or fake positive bars", () => {
   const require = createRequire(import.meta.url), ts = require("typescript"), React = require("react");
   const { renderToStaticMarkup } = require("react-dom/server");
-  const path = fileURLToPath(new URL("../features/workspace/components/workspace-ui.tsx", import.meta.url));
+  const path = fileURLToPath(new URL("../components/workspace/workspace-ui.tsx", import.meta.url));
   const source = ts.transpileModule(readFileSync(path, "utf8"), { compilerOptions: {
     module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true,
   } }).outputText;

@@ -1,5 +1,6 @@
 import { parseCookie } from "cookie";
 import { AppError } from "../errors/app-error.js";
+import { recordAudit } from "../audit.js";
 import { getFirebaseAuth } from "../../config/firebase.js";
 import { USER_ROLES, userRepository } from "../../models/user.model.js";
 
@@ -47,6 +48,13 @@ export function validateUserRole(user) {
  }
 }
 
+/** A locked account has no access: refused at sign-in and on every protected request (MSG07). */
+export function assertNotLocked(user) {
+ if (user.status === "locked") {
+  throw new AppError("Tài khoản đang bị khóa.", 403, "ACCOUNT_LOCKED");
+ }
+}
+
 export async function requireAuth(request, response, next) {
  const { sessionName, cookieOptions } = cookieSettings(request);
  try {
@@ -62,10 +70,11 @@ export async function requireAuth(request, response, next) {
   if (!user) {
    throw new AppError("Vui lòng hoàn tất hồ sơ để tiếp tục.", 409, "PROFILE_INCOMPLETE");
   }
+  assertNotLocked(user);
   validateUserRole(user);
   request.user = user;
  } catch (error) {
-  if (error.statusCode === 401) response.clearCookie(sessionName, cookieOptions);
+  if (error.statusCode === 401 || error.code === "ACCOUNT_LOCKED") response.clearCookie(sessionName, cookieOptions);
   throw error;
  }
  next();
@@ -81,9 +90,19 @@ export function optionalAuth(request, response, next) {
 }
 
 export function requireRole(role) {
- return (request, _response, next) => {
+ return async (request, _response, next) => {
   if (!request.user) throw new AppError("Bạn chưa đăng nhập.", 401, "UNAUTHENTICATED");
   if (!USER_ROLES.includes(role) || request.user.role !== role) {
+   // Refused Admin access is part of the Admin audit trail (CR-11).
+   if (request.originalUrl.startsWith("/api/v1/admin")) {
+    const path = request.originalUrl.split("?")[0];
+    await recordAudit(request, {
+     action: "admin.access",
+     target: { collectionName: "routes", id: `${request.method} ${path}` },
+     result: "denied",
+     summary: `Từ chối truy cập quản trị: ${request.method} ${path}`,
+    });
+   }
    throw new AppError("Bạn không có quyền truy cập chức năng này.", 403, "FORBIDDEN");
   }
   next();

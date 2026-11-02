@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { Plus } from "lucide-react";
 import { AdminPageHeader } from "@/features/admin/components/admin-ui";
 import { CategoriesList } from "@/features/admin/components/categories-list";
-import { DemoNotice } from "@/features/workspace/components/demo-notice";
+import { DemoNotice } from "@/components/workspace/demo-notice";
 
 export const metadata = { title: "Danh mục sản phẩm" };
 

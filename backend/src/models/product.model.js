@@ -15,6 +15,10 @@ const variantSchema = new mongoose.Schema(
         { validator(value) { return value <= this.stock; }, message: "Reserved stock exceeds stock" },
       ],
     },
+    // Admin fields. Cost is internal, and catalog responses return variants as stored,
+    // so it stays out of queries unless one asks for "+variants.cost".
+    cost: { ...nonNegativeInteger, select: false },
+    lowStockThreshold: { ...nonNegativeInteger },
   },
   { _id: false },
 );
@@ -24,6 +28,7 @@ const productSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     description: { type: String, default: "" },
     brand: { type: String, trim: true },
+    unit: { type: String, trim: true },
     petType: { type: String, required: true, trim: true },
     categoryIds: {
       type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],

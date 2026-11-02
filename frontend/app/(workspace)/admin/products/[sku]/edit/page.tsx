@@ -1,14 +1,11 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
 import { ProductEditForm } from "@/features/admin/components/product-edit-form";
-import { getProduct } from "@/features/admin/mock/products";
+import { getProduct } from "@/features/admin/services/products.server";
 
 type Params = PageProps<"/admin/products/[sku]/edit">["params"];
 
 async function EditProduct({ params }: { params: Params }) {
-  const product = getProduct((await params).sku);
-  if (!product) notFound();
-  return <ProductEditForm product={product} />;
+  return <ProductEditForm product={await getProduct(decodeURIComponent((await params).sku))} />;
 }
 
 export default function AdminProductEditPage({ params }: PageProps<"/admin/products/[sku]/edit">) {

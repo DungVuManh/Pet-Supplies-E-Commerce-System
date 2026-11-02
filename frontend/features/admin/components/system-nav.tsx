@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { TabNav } from "@/features/workspace/components/workspace-ui";
+import { TabNav } from "@/components/workspace/workspace-ui";
 
 const links = [
   { href: "/admin/system/settings", label: "Cấu hình" },

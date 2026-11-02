@@ -5,8 +5,8 @@ import { Download, ShieldCheck } from "lucide-react";
 import { AdminPageHeader, DataTable, StatusBadge, Stack, Td, Th } from "./admin-ui";
 import { SystemNav } from "./system-nav";
 import { auditLogEntries, auditTargetHref, filterAuditLog } from "../mock/system";
-import { ActionLink, InfoCallout, Pagination, card, control, secondaryButton } from "@/features/workspace/components/workspace-ui";
-import { DemoNotice } from "@/features/workspace/components/demo-notice";
+import { ActionLink, InfoCallout, Pagination, card, control, secondaryButton } from "@/components/workspace/workspace-ui";
+import { DemoNotice } from "@/components/workspace/demo-notice";
 
 const ACTIONS = [
   "Tất cả hành động",

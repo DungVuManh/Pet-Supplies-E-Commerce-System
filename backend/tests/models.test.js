@@ -234,6 +234,28 @@ describe("supporting models", () => {
   await expect(new AuditLog({ action: "order.confirm" }).validate()).rejects.toThrow();
  });
 
+ it("records audit results, IPs and summaries, newest first", async () => {
+  const data = { actorId: userId, action: "admin.access", target: { collectionName: "routes", id: "GET /api/v1/admin/users" } };
+  const audit = new AuditLog({ ...data, ip: "127.0.0.1", summary: "Từ chối truy cập" });
+  await expect(audit.validate()).resolves.toBeUndefined();
+  expect(audit.result).toBe("success");
+  await expect(new AuditLog({ ...data, result: "denied" }).validate()).resolves.toBeUndefined();
+  await expect(new AuditLog({ ...data, result: "failed" }).validate()).rejects.toThrow("result");
+  expect(AuditLog.schema.indexes()).toContainEqual([{ at: -1 }, expect.anything()]);
+ });
+
+ it("defaults accounts to active and limits the Admin-managed fields", async () => {
+  const data = { firebaseUid: "uid-1", email: "a@example.test", fullName: "Test User", phone: "0912345678", termsAcceptedAt: new Date() };
+  const user = new models.User(data);
+  await expect(user.validate()).resolves.toBeUndefined();
+  expect(user.status).toBe("active");
+  await expect(new models.User({ ...data, status: "locked", lockReason: "x".repeat(200), adminNote: "x".repeat(1000) }).validate()).resolves.toBeUndefined();
+  for (const patch of [{ status: "banned" }, { lockReason: "x".repeat(201) }, { adminNote: "x".repeat(1001) }]) {
+   await expect(new models.User({ ...data, ...patch }).validate()).rejects.toThrow();
+  }
+  expect(models.User.schema.indexes()).toContainEqual([{ role: 1, status: 1, createdAt: -1 }, expect.anything()]);
+ });
+
  it("provides singleton settings with the SRS defaults and validates counts/fees", async () => {
   const settings = new Setting();
   await expect(settings.validate()).resolves.toBeUndefined();
@@ -247,8 +269,8 @@ describe("supporting models", () => {
 
  it("exports all SRS models without changing Firebase users", () => {
   expect(Object.keys(models).sort()).toEqual([
-   "Address", "AuditLog", "Cart", "Category", "Notification", "Order", "Payment",
-   "PetProfile", "Product", "Promotion", "Review", "Setting", "User", "Wishlist",
+   "Address", "AuditLog", "Cart", "Category", "MasterData", "Notification", "Order", "Payment",
+   "PetProfile", "Product", "Promotion", "Review", "Setting", "StockMovement", "User", "Wishlist",
   ]);
   expect(models.User.schema.path("firebaseUid").options.unique).toBe(true);
   expect(models.User.schema.path("passwordHash")).toBeUndefined();

@@ -9,6 +9,9 @@ import { updateStaffProduct } from "../controllers/product-update.controller.js"
 import { protectMutation } from "../controllers/auth.controller.js";
 import { createStaffSale, getSaleCreation, listSaleCustomers, listSaleProducts } from "../controllers/staff-sale.controller.js";
 import { listInventory } from "../controllers/inventory.controller.js";
+import { getFinanceSummary } from "../controllers/admin-finance.controller.js";
+import { getSalesSummary } from "../controllers/admin-sales.controller.js";
+import { getInventoryReport } from "../controllers/admin-inventory-report.controller.js";
 
 const router = Router();
 router.get("/staff/analytics/sales", readCookies, requireAuth, requireRole("staff"), getStaffSales);
@@ -28,5 +31,8 @@ router.patch("/staff/products/:sku", readCookies, requireAuth, requireRole("staf
 
 router.get("/admin/dashboard", readCookies, requireAuth, requireRole("admin"), dashboard);
 router.get("/admin/inventory", readCookies, requireAuth, requireRole("admin"), listInventory);
+router.get("/admin/reports/finance/summary", readCookies, requireAuth, requireRole("admin"), getFinanceSummary);
+router.get("/admin/reports/sales/summary", readCookies, requireAuth, requireRole("admin"), getSalesSummary);
+router.get("/admin/reports/inventory", readCookies, requireAuth, requireRole("admin"), getInventoryReport);
 
 export default router;

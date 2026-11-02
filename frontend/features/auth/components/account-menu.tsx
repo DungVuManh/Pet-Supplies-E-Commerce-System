@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Heart, LayoutDashboard, LogOut, MapPin, PawPrint, ShoppingCart, UserRound } from "lucide-react";
+import { Heart, LayoutDashboard, LogOut, MapPin, PawPrint, ShoppingCart, Star, UserRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../auth-provider";
@@ -96,12 +96,7 @@ export function AccountMenu({ roleLabel }: { roleLabel?: string } = {}) {
                     >
                         Thử lại
                     </button>
-                    <Link
-                        href="/login"
-                        className="ml-4 inline-flex min-h-11 items-center font-semibold text-brand hover:underline"
-                    >
-                        Đăng nhập
-                    </Link>
+
                 </div>
             </details>
         );
@@ -183,14 +178,14 @@ export function AccountMenu({ roleLabel }: { roleLabel?: string } = {}) {
                                 <PawPrint aria-hidden="true" className="h-4 w-4 shrink-0" />
                                 Thú cưng của tôi
                             </Link>
-                            <Link
+                            {/* <Link
                                 href="/account/addresses"
                                 onClick={closeMenu}
                                 className={menuItemClassName}
                             >
                                 <MapPin aria-hidden="true" className="h-4 w-4 shrink-0" />
                                 Sổ địa chỉ nhận hàng
-                            </Link>
+                            </Link> */}
                             <Link
                                 href="/orders"
                                 onClick={closeMenu}
@@ -207,6 +202,15 @@ export function AccountMenu({ roleLabel }: { roleLabel?: string } = {}) {
                                 <Heart aria-hidden="true" className="h-4 w-4 shrink-0 text-rose-500" />
                                 Danh sách yêu thích
                             </Link>
+                            {/* <Link
+                                href="/reviews"
+                                onClick={closeMenu}
+                                className={menuItemClassName}
+                            >
+                                <Star aria-hidden="true" className="h-4 w-4 shrink-0 text-amber-500 fill-amber-500" />
+                                Đánh giá của tôi
+                            </Link> */}
+
 
                         </>
                     )}

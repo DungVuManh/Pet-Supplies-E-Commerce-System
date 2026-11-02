@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ActionLink, BarChart, MetricCard, PageHeader, TableFrame, TableHead, Th, Td, card, primaryLink } from "@/features/workspace/components/workspace-ui";
+import { ActionLink, BarChart, MetricCard, PageHeader, TableFrame, TableHead, Th, Td, card, primaryLink } from "@/components/workspace/workspace-ui";
 import { formatCurrency } from "@/lib/format-currency";
 import { useStaffAnalytics } from "../hooks/use-staff-analytics";
 import { ReportError, ReportLoading, ReportRefresh } from "./report-state";

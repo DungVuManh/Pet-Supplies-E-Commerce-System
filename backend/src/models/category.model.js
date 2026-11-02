@@ -17,11 +17,17 @@ const categorySchema = new mongoose.Schema(
    trim: true,
   },
   isActive: { type: Boolean, default: true },
+  // Admin category tree. Optional, so documents without them keep working everywhere else.
+  code: { type: String, trim: true, uppercase: true, match: /^DM\d{3,}$/, unique: true, sparse: true },
+  parentId: { type: mongoose.Schema.Types.ObjectId, ref: "Category", default: null },
+  description: { type: String, trim: true, maxlength: 500 },
+  displayOrder: { type: Number, min: 1, validate: { validator: Number.isSafeInteger, message: "Must be a safe integer" } },
  },
  { timestamps: true, bufferCommands: false },
 );
 
 categorySchema.index({ petType: 1, isActive: 1 });
+categorySchema.index({ parentId: 1, displayOrder: 1 });
 
 export const Category =
  mongoose.models.Category || mongoose.model("Category", categorySchema);

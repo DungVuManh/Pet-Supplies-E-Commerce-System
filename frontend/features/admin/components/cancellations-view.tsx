@@ -5,9 +5,9 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Download, Package, XCircle, CheckCircle2 } from "lucide-react";
 import { AdminPageHeader, StatusBadge, Stack, Td, Th } from "./admin-ui";
-import { Badge, ListState, listStatePill, Pagination, TabNav, card, control } from "@/features/workspace/components/workspace-ui";
-import { DemoNotice } from "@/features/workspace/components/demo-notice";
-import { useListState } from "@/features/workspace/components/use-list-state";
+import { Badge, ListState, listStatePill, Pagination, TabNav, card, control } from "@/components/workspace/workspace-ui";
+import { DemoNotice } from "@/components/workspace/demo-notice";
+import { useListState } from "@/components/workspace/use-list-state";
 import {
   initialCancellations,
   filterCancellations,

@@ -1,80 +1,59 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
 import { Star } from "lucide-react";
 import { TextField } from "@/components/ui/text-field";
-import { Badge, DetailList, InfoCallout, card, control, dangerButton, primaryLink, secondaryButton } from "@/features/workspace/components/workspace-ui";
-import { categories, childCategories, getCategory, type Category, type CategoryStatus } from "../mock/categories";
-import { validateCategory, type CategoryFormValues } from "../validation";
+import { Badge, DetailList, InfoCallout, card, control, dangerButton, primaryLink, secondaryButton } from "@/components/workspace/workspace-ui";
+import { formatDate } from "@/lib/format";
+import { useCategoryEdit } from "../hooks/use-category-edit";
+import { categoryStatusLabels } from "../status";
+import type { AdminCategoryDetail, CategoryStatus } from "../types";
+import { AdminConfirmDialog } from "./admin-confirm-dialog";
 import { AdminPageHeader } from "./admin-ui";
 
-type Values = CategoryFormValues & { parent: string; description: string; status: CategoryStatus };
 const textarea = `${control} h-auto min-h-28 py-3 leading-relaxed`;
 
-/** Edit form for one category; `linkedProducts` and `blocker` come from the product data on the server page. */
-export function CategoryEditForm({ category, linkedProducts, blocker }: { category: Category; linkedProducts: number; blocker: string | null }) {
-  const initial: Values = { name: category.name, slug: category.slug, order: String(category.order), parent: category.parent ?? "", description: category.description, status: category.status };
-  const [values, setValues] = useState(initial);
-  const [saved, setSaved] = useState(initial);
-  const [submitted, setSubmitted] = useState(false);
-  const [notice, setNotice] = useState("");
-  const errors = submitted ? validateCategory(values) : {};
-  const dirty = (Object.keys(values) as (keyof Values)[]).some((key) => values[key] !== saved[key]);
-  const hasChildren = childCategories(category.code).length > 0;
-  const parentOptions = categories.filter((item) => !item.parent && item.code !== category.code);
-
-  function set<K extends keyof Values>(key: K, value: Values[K]) { setValues((current) => ({ ...current, [key]: value })); setNotice(""); }
-
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSubmitted(true);
-    const first = Object.keys(validateCategory(values))[0];
-    if (first) { document.getElementById(`category-${first}`)?.focus(); return; }
-    if (!dirty) { setNotice("Không có thay đổi nào để lưu."); return; }
-    setSaved(values);
-    setNotice("Đã lưu danh mục trong bản demo; dữ liệu chưa được gửi đến hệ thống.");
-  }
-
-  function remove() {
-    setNotice(blocker
-      ? `Không thể xóa “${category.name}”: ${blocker}. Chuyển sản phẩm sang danh mục khác trước khi xóa.`
-      : `Xóa “${category.name}” chưa kết nối backend; danh mục vẫn được giữ nguyên.`);
-  }
+export function CategoryEditForm({ category: initialCategory }: { category: AdminCategoryDetail }) {
+  const { category, values, errors, notice, formError, pending, parentName, set, submit, deleteOpen, deletePending, deleteError, askDelete, cancelDelete, confirmDelete } = useCategoryEdit(initialCategory);
+  const describedParent = category.hasChildren ? "category-parent-hint" : errors.parent ? "category-parent-error" : undefined;
 
   return <>
-    <AdminPageHeader breadcrumbs={["Danh mục", "Chỉnh sửa danh mục"]} title="Chỉnh sửa danh mục" subtitle={`${category.code} · ${category.name}`}
+    <AdminPageHeader breadcrumbs={["Danh mục", "Chỉnh sửa danh mục"]} title="Chỉnh sửa danh mục" subtitle={`${category.code ?? "Chưa có mã"} · ${category.name}`}
       actions={<>
         <Link href="/admin/categories" className={`${secondaryButton} min-h-12`}>Hủy</Link>
-        <button type="submit" form="category-edit-form" className={`${primaryLink} min-h-12 px-8`}>Lưu danh mục</button>
+        <button type="submit" form="category-edit-form" disabled={pending} className={`${primaryLink} min-h-12 px-8 disabled:opacity-60`}>{pending ? "Đang lưu…" : "Lưu danh mục"}</button>
       </>} />
     {notice && <p role="status" className="rounded-lg bg-brand-subtle px-4 py-3 text-sm text-brand">{notice}</p>}
+    {formError && <p role="alert" className="rounded-lg bg-danger-subtle px-4 py-3 text-sm text-danger">{formError}</p>}
 
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <form id="category-edit-form" noValidate onSubmit={submit} aria-labelledby="category-form-title" className={`${card} min-w-0 p-6`}>
+      <form id="category-edit-form" noValidate onSubmit={submit} aria-busy={pending} aria-labelledby="category-form-title" className={`${card} min-w-0 p-6`}>
         <h2 id="category-form-title" className="text-xl font-semibold">Thông tin danh mục</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <TextField id="category-name" label="Tên danh mục" required value={values.name} error={errors.name} onChange={(e) => set("name", e.target.value)} />
-          <TextField id="category-code" label="Mã danh mục" value={category.code} disabled readOnly />
+          <TextField id="category-name" label="Tên danh mục" required maxLength={100} value={values.name} error={errors.name} onChange={(e) => set("name", e.target.value)} />
+          <TextField id="category-code" label="Mã danh mục" value={category.code ?? "Chưa có mã"} disabled readOnly />
           <div className="flex min-w-0 flex-col gap-2 sm:col-span-2">
             <label htmlFor="category-parent" className="text-sm font-medium">Danh mục cha</label>
-            <select id="category-parent" className={control} value={values.parent} disabled={hasChildren} aria-describedby={hasChildren ? "category-parent-hint" : undefined}
+            <select id="category-parent" className={control} value={values.parent} disabled={category.hasChildren} aria-invalid={Boolean(errors.parent)} aria-describedby={describedParent}
               onChange={(e) => set("parent", e.target.value)}>
               <option value="">Không có (danh mục gốc)</option>
-              {parentOptions.map((option) => <option key={option.code} value={option.code}>{option.name}</option>)}
+              {category.parentOptions.map((option) => <option key={option.ref} value={option.ref}>{option.name}</option>)}
             </select>
-            {hasChildren && <p id="category-parent-hint" className="text-xs text-muted">Danh mục đang có danh mục con nên phải là danh mục gốc.</p>}
+            {category.hasChildren && <p id="category-parent-hint" className="text-xs text-muted">Danh mục đang có danh mục con nên phải là danh mục gốc.</p>}
+            {errors.parent && <p id="category-parent-error" role="alert" className="text-xs text-danger">{errors.parent}</p>}
           </div>
-          <div className="sm:col-span-2"><TextField id="category-slug" label="Đường dẫn" value={values.slug} error={errors.slug} onChange={(e) => set("slug", e.target.value)} /></div>
+          <div className="sm:col-span-2"><TextField id="category-slug" label="Đường dẫn" maxLength={120} value={values.slug} error={errors.slug} hint="Đổi đường dẫn sẽ đổi liên kết công khai của danh mục." onChange={(e) => set("slug", e.target.value)} /></div>
           <div className="flex min-w-0 flex-col gap-2 sm:col-span-2">
             <label htmlFor="category-description" className="text-sm font-medium">Mô tả</label>
-            <textarea id="category-description" className={textarea} value={values.description} onChange={(e) => set("description", e.target.value)} />
+            <textarea id="category-description" maxLength={500} className={textarea} value={values.description} onChange={(e) => set("description", e.target.value)}
+              aria-invalid={Boolean(errors.description)} aria-describedby={errors.description ? "category-description-error" : undefined} />
+            {errors.description && <p id="category-description-error" role="alert" className="text-xs text-danger">{errors.description}</p>}
           </div>
           <TextField id="category-order" label="Thứ tự hiển thị" inputMode="numeric" value={values.order} error={errors.order} onChange={(e) => set("order", e.target.value)} />
           <div className="flex min-w-0 flex-col gap-2">
             <label htmlFor="category-status" className="text-sm font-medium">Trạng thái</label>
             <select id="category-status" className={control} value={values.status} onChange={(e) => set("status", e.target.value as CategoryStatus)}>
-              <option value="Hiển thị">Hiển thị</option><option value="Đã ẩn">Đã ẩn</option>
+              <option value="active">{categoryStatusLabels.active}</option><option value="hidden">{categoryStatusLabels.hidden}</option>
             </select>
           </div>
         </div>
@@ -85,16 +64,20 @@ export function CategoryEditForm({ category, linkedProducts, blocker }: { catego
           <h2 id="category-links" className="text-xl font-semibold">Thông tin liên kết</h2>
           <div className="mt-4"><Badge>{values.parent ? "Danh mục con" : "Danh mục gốc"}</Badge></div>
           <div className="mt-2"><DetailList items={[
-            { label: "Danh mục cha", value: values.parent ? getCategory(values.parent)?.name : "—" },
-            { label: "Sản phẩm liên kết", value: `${linkedProducts} sản phẩm` },
-            { label: "Cập nhật gần nhất", value: category.updatedAt },
+            { label: "Danh mục cha", value: values.parent ? parentName : "—" },
+            { label: "Sản phẩm liên kết", value: `${category.productCount.toLocaleString("vi-VN")} sản phẩm` },
+            { label: "Cập nhật gần nhất", value: formatDate(category.updatedAt) },
           ]} /></div>
         </section>
-        {blocker && <InfoCallout icon={<Star className="h-5 w-5" strokeWidth={1.7} />} title="Không thể xóa danh mục">
-          Danh mục {blocker}. {linkedProducts > 0 ? "Chuyển sản phẩm sang danh mục khác trước khi xóa." : "Xóa hoặc chuyển các danh mục con trước."}
+        {category.blocker && <InfoCallout icon={<Star className="h-5 w-5" strokeWidth={1.7} />} title="Không thể xóa danh mục">
+          Danh mục {category.blocker}. {category.hasChildren ? "Xóa hoặc chuyển các danh mục con trước." : "Chuyển sản phẩm sang danh mục khác trước khi xóa."}
         </InfoCallout>}
-        <button type="button" className={`${dangerButton} min-h-12 w-full`} onClick={remove}>Xóa danh mục</button>
+        <button type="button" className={`${dangerButton} min-h-12 w-full`} onClick={askDelete}>Xóa danh mục</button>
       </aside>
     </div>
+
+    <AdminConfirmDialog open={deleteOpen} danger pending={deletePending} error={deleteError} onConfirm={confirmDelete} onClose={cancelDelete}
+      title="Xóa danh mục?" confirmLabel="Xóa danh mục"
+      description={`“${category.name}” sẽ bị xóa vĩnh viễn. Danh mục còn sản phẩm hoặc danh mục con sẽ không thể xóa.`} />
   </>;
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Package, XCircle } from "lucide-react";
 import { AdminPageHeader, StatusBadge, Stack, Td, Th } from "./admin-ui";
 import {
@@ -14,9 +14,9 @@ import {
   TabNav,
   card,
   control,
-} from "@/features/workspace/components/workspace-ui";
-import { DemoNotice } from "@/features/workspace/components/demo-notice";
-import { useListState } from "@/features/workspace/components/use-list-state";
+} from "@/components/workspace/workspace-ui";
+import { DemoNotice } from "@/components/workspace/demo-notice";
+import { useListState } from "@/components/workspace/use-list-state";
 
 type InventoryTab = "all" | "low" | "history";
 
@@ -40,11 +40,27 @@ interface PaginationMeta {
 
 export function InventoryView() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const forcedState = useListState();
 
-  const [activeTab, setActiveTab] = useState<InventoryTab>("all");
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("Tất cả");
+  const urlQuery =
+    searchParams?.get("q") ||
+    searchParams?.get("query") ||
+    searchParams?.get("search") ||
+    "";
+  const urlStatus = searchParams?.get("status") || "";
+
+  const [activeTab, setActiveTab] = useState<InventoryTab>(() => {
+    return urlStatus === "low" ? "low" : "all";
+  });
+  const [search, setSearch] = useState<string>(urlQuery);
+  const [debouncedSearch, setDebouncedSearch] = useState<string>(urlQuery);
+  const [statusFilter, setStatusFilter] = useState<string>(() => {
+    if (urlStatus === "low") return "Sắp hết";
+    if (urlStatus === "available") return "Đủ hàng";
+    if (urlStatus === "out") return "Hết hàng";
+    return "Tất cả";
+  });
 
   // State phân trang (mỗi trang 6 sản phẩm)
   const [page, setPage] = useState<number>(1);
@@ -60,13 +76,39 @@ export function InventoryView() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Debounce gọi API khi nhập từ khóa tìm kiếm (300ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Đồng bộ khi URL search params thay đổi (ví dụ click từ trang thông báo)
+  useEffect(() => {
+    const q =
+      searchParams?.get("q") ||
+      searchParams?.get("query") ||
+      searchParams?.get("search");
+    if (q !== null && q !== undefined && q !== search) {
+      setSearch(q);
+      setDebouncedSearch(q);
+      setPage(1);
+    }
+  }, [searchParams]);
+
   // Gọi API thực tế từ Backend
   const fetchInventoryData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const queryParams = new URLSearchParams();
-      if (search) queryParams.set("query", search);
+      const trimmedQuery = debouncedSearch.trim();
+      if (trimmedQuery) {
+        queryParams.set("query", trimmedQuery);
+        queryParams.set("q", trimmedQuery);
+      }
 
       let apiStatus = "all";
       if (statusFilter === "Đủ hàng") apiStatus = "available";
@@ -111,21 +153,24 @@ export function InventoryView() {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, activeTab, page, pageSize, router]);
+  }, [debouncedSearch, statusFilter, activeTab, page, pageSize, router]);
 
-  // Debounce gọi API khi nhập từ khóa tìm kiếm
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchInventoryData();
-    }, 300);
-
-    return () => clearTimeout(timer);
+    fetchInventoryData();
   }, [fetchInventoryData]);
 
-  // Đổi bộ lọc luôn quay về trang 1
+  // Nhập từ khóa tìm kiếm: cập nhật input ngay lập tức và reset về trang 1
   const handleSearchChange = (value: string) => {
     setSearch(value);
     setPage(1);
+  };
+
+  // Nhấn Enter trong ô tìm kiếm: kích hoạt tìm kiếm ngay mà không cần chờ debounce
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      setDebouncedSearch(search);
+    }
   };
 
   // Chọn Tab
@@ -153,6 +198,7 @@ export function InventoryView() {
   // Reset bộ lọc
   const resetFilters = () => {
     setSearch("");
+    setDebouncedSearch("");
     setStatusFilter("Tất cả");
     setActiveTab("all");
     setPage(1);
@@ -170,10 +216,12 @@ export function InventoryView() {
     return "Đủ hàng";
   };
 
-  const isCurrentLoading = forcedState === "loading" || loading;
-  const isCurrentError = forcedState === "error" || !!error;
+  const showInitialLoading =
+    forcedState === "loading" || (loading && items.length === 0);
+  const isCurrentError =
+    forcedState === "error" || (!!error && items.length === 0);
   const isEmpty =
-    forcedState === "empty" || (!isCurrentLoading && items.length === 0);
+    forcedState === "empty" || (!loading && !error && items.length === 0);
 
   const tabs = [
     {
@@ -193,7 +241,7 @@ export function InventoryView() {
     },
   ];
 
-  const exportAction = isCurrentLoading ? (
+  const exportAction = showInitialLoading ? (
     <button
       type="button"
       disabled
@@ -250,8 +298,9 @@ export function InventoryView() {
               type="search"
               value={search}
               onChange={(e) => handleSearchChange(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
               placeholder="Nhập từ khóa tìm kiếm (SKU, Tên sản phẩm...)"
-              disabled={isCurrentLoading}
+              disabled={forcedState === "loading"}
               className={control}
             />
           </div>
@@ -264,7 +313,7 @@ export function InventoryView() {
               id="inventory-status"
               value={statusFilter}
               onChange={(e) => handleStatusChange(e.target.value)}
-              disabled={isCurrentLoading}
+              disabled={forcedState === "loading"}
               className={control}
             >
               <option value="Tất cả">Tất cả</option>
@@ -276,7 +325,7 @@ export function InventoryView() {
         </div>
 
         {/* Card Body */}
-        {isCurrentLoading ? (
+        {showInitialLoading ? (
           <>
             <div className="p-6">
               <ListState
@@ -323,8 +372,8 @@ export function InventoryView() {
                 icon={<Package className="h-12 w-12 text-muted stroke-1" />}
                 title="Không tìm thấy sản phẩm"
                 description={
-                  search
-                    ? `Không có sản phẩm khớp từ khóa "${search}". Xóa bộ lọc để xem toàn bộ.`
+                  debouncedSearch
+                    ? `Không có sản phẩm khớp từ khóa "${debouncedSearch}". Xóa bộ lọc để xem toàn bộ.`
                     : "Không có sản phẩm nào khớp với điều kiện lọc."
                 }
                 action={
@@ -343,7 +392,7 @@ export function InventoryView() {
             </div>
           </>
         ) : (
-          <>
+          <div className={loading ? "opacity-60 transition-opacity" : "transition-opacity"}>
             {/* Table */}
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] border-collapse text-left">
@@ -427,12 +476,12 @@ export function InventoryView() {
               pages={pagination.totalPages}
               onPage={(newPage) => setPage(newPage)}
             />
-          </>
+          </div>
         )}
       </section>
 
       <footer className="text-xs text-muted">
-        {isCurrentLoading
+        {showInitialLoading
           ? "Đang đối chiếu dữ liệu nhập – xuất – tồn. Vui lòng không đóng trang."
           : isCurrentError
             ? "Không có thay đổi số lượng tồn kho. Liên hệ support@petly.vn nếu lỗi tiếp tục xảy ra."

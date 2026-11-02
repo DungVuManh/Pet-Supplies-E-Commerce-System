@@ -52,7 +52,8 @@ export function AuthProvider({ children, initialUser }: { children: ReactNode; i
       }
     }, (error: unknown) => {
       if (current !== revision.current) return;
-      const guest = error instanceof AuthApiError && error.status === 401;
+      // A locked account has just lost its session, so it is a guest like an expired one.
+      const guest = error instanceof AuthApiError && (error.status === 401 || error.code === "ACCOUNT_LOCKED");
       setState((previous) => ({ status: guest ? "ready" : "error", user: guest ? null : previous.user }));
       if (guest) {
         syncAuthStorage(null);

@@ -17,6 +17,7 @@ export function authErrorMessage(error: unknown): string {
     case "NETWORK_ERROR": return "Không thể kết nối. Vui lòng kiểm tra mạng và thử lại.";
     case "PROFILE_UNAVAILABLE": return "Chưa thể lưu hoặc đọc hồ sơ. Vui lòng thử lại; nếu đã tạo tài khoản, bạn có thể đăng nhập để hoàn tất hồ sơ.";
     case "PROFILE_INCOMPLETE": return "Vui lòng hoàn tất hồ sơ để tiếp tục.";
+    case "ACCOUNT_LOCKED": return "Tài khoản đang bị khóa.";
     case "RECENT_LOGIN_REQUIRED":
     case "UNAUTHENTICATED": return "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
     case "AUTH_CLOCK_SKEW": return "Dịch vụ đăng nhập chưa đồng bộ thời gian. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.";

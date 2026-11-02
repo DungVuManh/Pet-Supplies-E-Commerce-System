@@ -17,6 +17,7 @@ export * from "./types";
 export function CheckoutView() {
   const {
     address,
+    setAddress,
     handleAddressChange,
     addressErrors,
     isGuest,
@@ -142,6 +143,7 @@ export function CheckoutView() {
             address={address}
             isGuest={isGuest}
             onAddressChange={handleAddressChange}
+            onSelectAddress={setAddress}
             addressErrors={addressErrors}
           />
           <PaymentMethodCard
