@@ -1,5 +1,5 @@
 import type { BadgeTone } from "@/components/workspace/workspace-ui";
-import type { CategoryStatus, MasterDataStatus, UserActivityStatus, UserRole, UserStatus } from "./types";
+import type { CategoryStatus, MasterDataStatus, ProductStatus, UserActivityStatus, UserRole, UserStatus } from "./types";
 
 /** Every status label shown in the Admin workspace and its badge tone; screens never pick tones themselves. */
 export const adminStatusTones = {
@@ -38,6 +38,8 @@ export const userStatusLabels: Record<UserStatus, AdminStatus> = { active: "Ho�
 export const categoryStatusLabels: Record<CategoryStatus, AdminStatus> = { active: "Hiển thị", hidden: "Đã ẩn" };
 
 export const masterDataStatusLabels: Record<MasterDataStatus, AdminStatus> = { active: "Hoạt động", inactive: "Tạm ngưng" };
+
+export const productStatusLabels: Record<ProductStatus, AdminStatus> = { active: "Đang bán", low: "Sắp hết hàng", hidden: "Đã ẩn" };
 
 export const userRoleLabels: Record<UserRole, string> = { customer: "Customer", staff: "Staff" };
 

@@ -3,14 +3,13 @@ import { Suspense } from "react";
 import { Plus } from "lucide-react";
 import { AdminPageHeader } from "@/features/admin/components/admin-ui";
 import { ProductsList } from "@/features/admin/components/products-list";
-import { countProducts } from "@/features/admin/mock/products";
 import { DemoNotice } from "@/components/workspace/demo-notice";
 
 export const metadata = { title: "Sản phẩm" };
 
 export default function AdminProductsPage() {
   return <>
-    <AdminPageHeader breadcrumbs={["Sản phẩm", "Sản phẩm"]} title="Sản phẩm" subtitle={`Quản lý ${countProducts("all")} sản phẩm, giá bán và tình trạng hiển thị.`}
+    <AdminPageHeader breadcrumbs={["Sản phẩm", "Sản phẩm"]} title="Sản phẩm" subtitle="Quản lý sản phẩm, giá bán và tình trạng hiển thị."
       actions={<>
         <DemoNotice label="Xuất danh sách" message="Xuất danh sách sản phẩm chưa kết nối backend; bản demo không tạo tệp." />
         <DemoNotice variant="primary" label="Thêm sản phẩm" icon={<Plus className="h-4 w-4" aria-hidden="true" />}

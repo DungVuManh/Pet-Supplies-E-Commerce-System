@@ -199,12 +199,17 @@ UI it serves: `docs/specs/admin-workspace-ui.md` (complete on mock data in `fron
 ## 4. Products
 
 ### 4a. Product list: `/admin/products`
-- [ ] `Product`: add optional `unit`, `variants[].cost` (non-negative integer VND), and `variants[].lowStockThreshold`
-- [ ] `GET /products`: one row per variant via `$unwind`, with category name and path, brand, price, available stock, threshold (variant value or `Setting.lowStockThreshold`), and the derived status (hidden, else `available ≤ threshold` → "Sắp hết hàng", else "Đang bán"). Filters: `tab`, `q` (SKU, name, brand), `category` (including children), `status`. Counts: all, on sale, hidden.
-- [ ] Tests: one row per variant, threshold fallback, status derivation at the boundary (`available == threshold` is low), category scope including children, and counts
-- [ ] Frontend: `services/products.ts`, a `useProductsList` hook, and `products-list.tsx` on the hook. Category options come from `GET /categories`. Change the UI's `<` to `≤` to match UC30, and update its test.
-- [ ] Browser check
-- [ ] **🛑 Commit checkpoint: Product list**
+- [x] `Product`: add optional `unit`, `variants[].cost` (non-negative integer VND), and `variants[].lowStockThreshold`
+  - Note: `cost` has `select: false`, because `catalog.controller.js` and `product.controller.js` return `variants` as stored and customers must not see it. Tried on real MongoDB: plain `find` hides it, `doc.save()` and positional updates keep it, and `.select("+variants.cost")` returns it. An explicit `.select("variants")`, `populate`, or an aggregation still includes it, so a future query of that kind must not return raw variants. The ones existing today map to specific fields.
+- [x] `GET /products`: one row per variant via `$unwind`, with category name and path, brand, price, available stock, threshold (variant value or `Setting.lowStockThreshold`), and the derived status (hidden, else `available ≤ threshold` → "Sắp hết hàng", else "Đang bán"). Filters: `tab`, `q` (SKU, name, brand), `category` (including children), `status`. Counts: all, on sale, hidden.
+  - Note: built in code instead of `$unwind`, so the threshold and status rules exist once in `product.helpers.js` and the detail screen can share them. It loads about 1,100 products per request, which is fine at this size; revisit if the catalog grows a lot. A row carries every category (`dev` allows several), `q` also matches the derived code, and products with the older `categoryId` are handled.
+- [x] Tests: one row per variant, threshold fallback, status derivation at the boundary (`available == threshold` is low), category scope including children, and counts
+  - Note: `tests/admin-products.test.js`.
+- [x] Frontend: `services/products.ts`, a `useProductsList` hook, and `products-list.tsx` on the hook. Category options come from `GET /categories`. Change the UI's `<` to `≤` to match UC30, and update its test.
+  - Note: the `≤` rule now lives on the server and is tested in `tests/admin-products.test.js`. The mock's `<` and its test go away with `mock/products.ts` in 4c. A row with several categories shows the first and "+N". The filter's ids became `product-filter-category` and `product-filter-status`, so they cannot collide with the edit form. **Until 4b, "Chi tiết" on a real row returns 404.**
+- [x] Browser check
+  - Note: on a temporary database copy with `dev`'s seed (1,390 variants), at 1440 and 320 px: counts, paging, parent category scope, status, search, empty state, `?state=` previews, and no page-level horizontal scroll. A cost was written on the temporary products, and five public catalog and product URLs returned no cost. A hydration warning appeared once in that run, and did not reproduce when each Admin route was loaded fresh. The run also passes through `/login` and the storefront from `dev`, so it most likely comes from there, but this is unconfirmed.
+- [x] **🛑 Commit checkpoint: Product list**
 
 ### 4b. Product detail: `/admin/products/[sku]`
 - [ ] `GET /products/:sku`: product and variant fields, category path, images, the last update (from the audit log: actor name and time), and a history tab built from the audit entries plus `StockMovement` rows for the SKU. 404 for an unknown SKU.

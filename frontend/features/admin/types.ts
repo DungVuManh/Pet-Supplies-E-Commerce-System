@@ -112,6 +112,25 @@ export type MasterDataRow = {
   updatedAt: string;
 };
 
+export type ProductStatus = "active" | "low" | "hidden";
+export type ProductFilter = { tab: "all" | "active" | "hidden"; q: string; category: string; status: ProductStatus | "all" };
+export type ProductCounts = { all: number; active: number; hidden: number };
+export type ProductCategory = { ref: string; name: string; path: string };
+
+/** One row of `GET /api/v1/admin/products`: one variant. `sku` addresses it in URLs. */
+export type AdminProductRow = {
+  sku: string;
+  code: string;
+  name: string;
+  brand: string;
+  unit: string;
+  price: number;
+  available: number;
+  threshold: number;
+  status: ProductStatus;
+  categories: ProductCategory[];
+};
+
 export type PermissionRole = "customer" | "staff" | "admin";
 
 /** `GET /api/v1/admin/permissions`: fixed in code, so read-only here. */
