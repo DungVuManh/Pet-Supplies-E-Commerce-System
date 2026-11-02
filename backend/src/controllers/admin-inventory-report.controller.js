@@ -69,10 +69,12 @@ export async function getInventoryReport(request, response) {
     const pipeline = [
       { $match: matchProduct },
       { $unwind: "$variants" },
+      // One row per SKU: a product in several categories is listed under its first one.
+      { $addFields: { primaryCategoryId: { $ifNull: [{ $first: "$categoryIds" }, "$categoryId"] } } },
       {
         $lookup: {
           from: "categories",
-          localField: "categoryId",
+          localField: "primaryCategoryId",
           foreignField: "_id",
           as: "categoryDoc",
         },

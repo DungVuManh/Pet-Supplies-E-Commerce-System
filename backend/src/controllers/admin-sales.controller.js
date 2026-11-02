@@ -115,10 +115,12 @@ export async function getSalesSummary(request, response) {
           },
         },
         { $unwind: { path: "$product", preserveNullAndEmptyArrays: true } },
+        // Revenue counts once: a product in several categories goes under its first one.
+        { $addFields: { primaryCategoryId: { $ifNull: [{ $first: "$product.categoryIds" }, "$product.categoryId"] } } },
         {
           $lookup: {
             from: "categories",
-            localField: "product.categoryId",
+            localField: "primaryCategoryId",
             foreignField: "_id",
             as: "category",
           },
