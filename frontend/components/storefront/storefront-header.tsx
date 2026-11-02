@@ -24,15 +24,27 @@ const categories: NavigationCategory[] = [
 
 const pageHome = [{ name: "Trang chủ", href: "/" }];
 
+// Reading the URL suspends during prerendering, so the header is first shown with no
+// pet type highlighted. That keeps the logo and navigation in the static shell.
 export function StorefrontHeader() {
+ return (
+  <Suspense fallback={<StorefrontHeaderContent currentPetType={null} />}>
+   <StorefrontHeaderWithParams />
+  </Suspense>
+ );
+}
+
+function StorefrontHeaderWithParams() {
+ const searchParams = useSearchParams();
+ return <StorefrontHeaderContent currentPetType={searchParams.get("petType")} />;
+}
+
+function StorefrontHeaderContent({ currentPetType }: { currentPetType: string | null }) {
  const [activeMenu, setActiveMenu] = useState<"dog" | "cat" | null>(null);
  const headerRef = useRef<HTMLElement>(null);
  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
  const pathname = usePathname();
- const searchParams = useSearchParams();
- const currentPetType = searchParams?.get("petType");
-
  // Mở menu có độ trễ nhỏ (~100ms) khi hover để trải nghiệm mượt mà, tránh nhấp nháy
  const handleMouseEnter = (type: "dog" | "cat") => {
   if (timerRef.current) clearTimeout(timerRef.current);
@@ -226,13 +238,15 @@ export function StorefrontHeader() {
    </div>
 
    {/* Panel dropdown mega menu danh mục cho Chó & Mèo riêng biệt */}
-   <MegaMenu
-    isOpen={Boolean(activeMenu)}
-    petType={activeMenu || "dog"}
-    onClose={() => setActiveMenu(null)}
-    onMouseEnter={handleMenuMouseEnter}
-    onMouseLeave={handleMouseLeave}
-   />
+   <Suspense fallback={null}>
+    <MegaMenu
+     isOpen={Boolean(activeMenu)}
+     petType={activeMenu || "dog"}
+     onClose={() => setActiveMenu(null)}
+     onMouseEnter={handleMenuMouseEnter}
+     onMouseLeave={handleMouseLeave}
+    />
+   </Suspense>
   </header>
  );
 }
