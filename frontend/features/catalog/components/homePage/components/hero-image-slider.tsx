@@ -1,66 +1,39 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-export type HeroSlide = {
-  id: string;
-  title: string;
-  imageUrl: string;
-  link: string;
-  tag?: string;
-};
+import type { HeroSlide } from "../types";
+import { useHeroSlider } from "../hooks/use-hero-slider";
 
 const DEFAULT_SLIDES: readonly HeroSlide[] = [
   {
-    id: "ciao-churu",
-    title: "Khuyến mãi súp thưởng Ciao Churu - Hộp 100 thanh tặng thêm 20 thanh",
-    imageUrl:
-      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/render/image/public/banners/hero/1792128054158-banner_web__1920_x_600_px___1_.jpg?width=1536&resize=contain&quality=70",
-    link: "/listProduct/allProducts?brands=Ciao%20Churu",
-    tag: "Khuyến mãi Hot",
-  },
-  {
-    id: "purina-one",
-    title: "Chương trình khuyến mãi Purina One - Dinh dưỡng chuyên sâu cho thú cưng",
-    imageUrl:
-      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/render/image/public/banners/hero/1793004851925-banner_web__1920_x_600_px_.jpg?width=1536&resize=contain&quality=70",
+    id: "senmoi-deal",
+    title: "Ra mắt Website mới - Sen mới nhận deal hời giảm 50K",
+    imageUrl: "/images/hero/hero-senmoi-deal.png",
     link: "/listProduct/allProducts",
-    tag: "Chính hãng",
+    tag: "Ưu đãi Hot",
   },
   {
     id: "smartheart-gold",
-    title: "SmartHeart Gold Holistic - Thức ăn cao cấp bảo vệ sức khoẻ Cún cưng",
-    imageUrl:
-      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/render/image/public/banners/hero/1783412855404-banner_web__1920_x_600_px_.jpg.jpg?width=1536&resize=contain&quality=70",
+    title: "SmartHeart Gold Holistic - Tạm biệt ố mắt, dinh dưỡng chuyên sâu cho Cún",
+    imageUrl: "/images/hero/hero-smartheart-gold.png",
     link: "/listProduct/allProducts?petType=dog",
     tag: "Dành cho Cún",
   },
   {
-    id: "catidea",
-    title: "Catidea - Cát vệ sinh và phụ kiện cao cấp cho Mèo",
-    imageUrl:
-      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/render/image/public/banners/hero/1781066232477-banner_web__1920_x_600_px_.jpg.jpg?width=1536&resize=contain&quality=70",
-    link: "/listProduct/allProducts?petType=cat",
-    tag: "Dành cho Mèo",
+    id: "ciao-churu",
+    title: "Khuyến mãi súp thưởng Ciao Churu - Hộp 100 thanh tặng thêm 20 thanh",
+    imageUrl: "/images/hero/hero-ciao-churu.png",
+    link: "/listProduct/allProducts?brands=Ciao%20Churu",
+    tag: "Khuyến mãi Hot",
   },
   {
     id: "silver-spoon",
-    title: "Silver Spoon - Thức ăn hạt cao cấp thơm ngon cho Mèo",
-    imageUrl:
-      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/render/image/public/banners/hero/1782471878066-banner_web__1920_x_600_px_.jpg.jpg?width=1536&resize=contain&quality=70",
+    title: "Silver Spoon - Tặng voucher Urbox 100K cho hóa đơn từ 399K",
+    imageUrl: "/images/hero/hero-silver-spoon.png",
     link: "/listProduct/allProducts?petType=cat",
-    tag: "Bán chạy",
-  },
-  {
-    id: "senmoi",
-    title: "SENMOI - Chăm sóc và phụ kiện thú cưng chính hãng",
-    imageUrl:
-      "https://fexafkqzpbzjcupvbfhe.supabase.co/storage/v1/render/image/public/banners/hero/1777953740201-Banner_1_1920x600.png.png?width=1536&resize=contain&quality=70",
-    link: "/listProduct/allProducts",
-    tag: "Ưu đãi",
+    tag: "Quà tặng",
   },
 ];
 
@@ -71,67 +44,17 @@ export function HeroImageSlider({
   slides?: readonly HeroSlide[];
   autoplayInterval?: number;
 }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const touchStartXRef = useRef<number | null>(null);
-  const touchEndXRef = useRef<number | null>(null);
-
-  const total = slides.length;
-
-  const nextSlide = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % total);
-  }, [total]);
-
-  const prevSlide = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + total) % total);
-  }, [total]);
-
-  const goToSlide = (index: number) => {
-    setCurrentIndex(index);
-  };
-
-  // Autoplay
-  useEffect(() => {
-    if (isPaused || total <= 1) return;
-
-    const timer = setInterval(() => {
-      nextSlide();
-    }, autoplayInterval);
-
-    return () => clearInterval(timer);
-  }, [isPaused, total, nextSlide, autoplayInterval]);
-
-  // Keyboard navigation
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "ArrowLeft") {
-      prevSlide();
-    } else if (e.key === "ArrowRight") {
-      nextSlide();
-    }
-  };
-
-  // Touch handlers for mobile swipe
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartXRef.current = e.touches[0].clientX;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndXRef.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = () => {
-    if (touchStartXRef.current !== null && touchEndXRef.current !== null) {
-      const diff = touchStartXRef.current - touchEndXRef.current;
-      const minSwipeDistance = 50;
-      if (diff > minSwipeDistance) {
-        nextSlide();
-      } else if (diff < -minSwipeDistance) {
-        prevSlide();
-      }
-    }
-    touchStartXRef.current = null;
-    touchEndXRef.current = null;
-  };
+  const {
+    currentIndex,
+    nextSlide,
+    prevSlide,
+    goToSlide,
+    setIsPaused,
+    handleKeyDown,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+  } = useHeroSlider(slides.length, autoplayInterval);
 
   return (
     <section
@@ -171,7 +94,7 @@ export function HeroImageSlider({
         ))}
       </div>
 
-      {/* 2. Nút chuyển slide Trái (Previous button) - tròn trắng nổi bật */}
+      {/* 2. Nút chuyển slide Trái */}
       <button
         type="button"
         aria-label="Slide trước"
@@ -181,7 +104,7 @@ export function HeroImageSlider({
         <ChevronLeft className="size-5 sm:size-6" />
       </button>
 
-      {/* 3. Nút chuyển slide Phải (Next button) - tròn trắng nổi bật */}
+      {/* 3. Nút chuyển slide Phải */}
       <button
         type="button"
         aria-label="Slide kế tiếp"
@@ -191,9 +114,8 @@ export function HeroImageSlider({
         <ChevronRight className="size-5 sm:size-6" />
       </button>
 
-      {/* 4. Thanh điều hướng đáy (Bottom-center indicator pill - chuẩn như ảnh mẫu) */}
+      {/* 4. Thanh điều hướng đáy (Dots & arrows) */}
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 rounded-full border border-white/20 bg-black/45 px-3 py-1.5 shadow-md backdrop-blur-md sm:bottom-4">
-        {/* Nút lùi nhỏ trong pill */}
         <button
           type="button"
           aria-label="Lùi 1 slide"
@@ -203,7 +125,6 @@ export function HeroImageSlider({
           <ChevronLeft className="size-3.5" />
         </button>
 
-        {/* Các chấm chuyển slide (Pagination dots) */}
         <div className="flex items-center gap-1.5 px-0.5">
           {slides.map((slide, index) => {
             const isActive = currentIndex === index;
@@ -224,7 +145,6 @@ export function HeroImageSlider({
           })}
         </div>
 
-        {/* Nút tiến nhỏ trong pill */}
         <button
           type="button"
           aria-label="Tiến 1 slide"
@@ -237,3 +157,4 @@ export function HeroImageSlider({
     </section>
   );
 }
+export type { HeroSlide };

@@ -1,9 +1,59 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { filterProducts, products } from "../features/catalog/products.ts";
 import { addCartItem, cartQuantity, cartTotal } from "../features/cart/cart.ts";
 
-// The sample grid repeats 4 distinct products 3 times, so assertions compare distinct names.
+const products = [
+  {
+    id: "1",
+    brand: "Royal Canin",
+    name: "Royal Canin Mini Adult",
+    description: "Thức ăn cho chó trưởng thành · 2 kg",
+    price: 420000,
+    image: "/images/products/royal-canin-mini-adult.png",
+    categories: ["dog", "food"],
+  },
+  {
+    id: "2",
+    brand: "Royal Canin",
+    name: "Royal Canin Indoor 27",
+    description: "Thức ăn cho mèo trong nhà · 2 kg",
+    price: 480000,
+    image: "/images/products/royal-canin-indoor.png",
+    categories: ["cat", "food"],
+  },
+  {
+    id: "3",
+    brand: "KONG",
+    name: "Bóng cao su KONG",
+    description: "Đồ chơi cho chó · Cỡ nhỏ",
+    price: 85000,
+    image: "/images/products/kong-ball.png",
+    categories: ["dog", "accessories"],
+  },
+  {
+    id: "4",
+    brand: "Cat’s Best",
+    name: "Cát mèo Cat’s Best Original",
+    description: "Cát hữu cơ vón cục · 5 L",
+    price: 195000,
+    image: "/images/products/cats-best-original.png",
+    categories: ["cat", "accessories"],
+  },
+];
+
+function normalizeSearch(value) {
+  return value.toLocaleLowerCase("vi").normalize("NFD").replace(/\p{M}/gu, "").replace(/đ/g, "d");
+}
+
+function filterProducts(query = "", category = "") {
+  const words = normalizeSearch(query).trim().split(/\s+/).filter(Boolean);
+  return products.filter((product) => {
+    if (category && category !== "unknown" && !product.categories.includes(category)) return false;
+    const text = normalizeSearch(`${product.brand} ${product.name} ${product.description}`);
+    return words.every((word) => text.includes(word));
+  });
+}
+
 const names = (list) => [...new Set(list.map((p) => p.name))];
 
 test("public catalog shows all sample products without account data", () => {

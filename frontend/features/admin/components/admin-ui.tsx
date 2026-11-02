@@ -39,8 +39,8 @@ export function DataTable({ head, children, footer, caption }: { head: ReactNode
 export function Th({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <th scope="col" className={`px-6 py-4 font-semibold ${className}`}>{children}</th>;
 }
-export function Td({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <td className={`border-t border-line px-6 py-4 align-middle ${className}`}>{children}</td>;
+export function Td({ children, className = "", colSpan }: { children: ReactNode; className?: string; colSpan?: number }) {
+  return <td colSpan={colSpan} className={`border-t border-line px-6 py-4 align-middle ${className}`}>{children}</td>;
 }
 /** Primary line plus muted secondary line, as in every Admin list row. */
 export function Stack({ primary, secondary, strong = false }: { primary: ReactNode; secondary?: ReactNode; strong?: boolean }) {

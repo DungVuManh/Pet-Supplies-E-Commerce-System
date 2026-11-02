@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Award, ArrowRight } from "lucide-react";
+import type { BrandItem } from "../types";
 
-const BRANDS = [
+const BRANDS: readonly BrandItem[] = [
   { name: "Royal Canin", origin: "Pháp", tag: "Dinh dưỡng chuẩn xác" },
   { name: "KONG", origin: "Mỹ", tag: "Đồ chơi huấn luyện" },
   { name: "Ganador", origin: "Pháp", tag: "Thức ăn cao cấp cho Cún" },

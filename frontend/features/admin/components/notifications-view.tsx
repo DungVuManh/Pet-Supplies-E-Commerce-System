@@ -1,34 +1,94 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, BellOff, Bookmark, BookmarkCheck, Settings, ShoppingBag, Warehouse } from "lucide-react";
+import {
+  AlertCircle,
+  BellOff,
+  Bookmark,
+  BookmarkCheck,
+  RefreshCw,
+  Settings,
+  ShoppingBag,
+  Warehouse,
+} from "lucide-react";
 import { AdminPageHeader } from "./admin-ui";
 import {
-  filterNotifications,
-  initialNotifications,
   notificationTypeLabels,
-  unreadNotificationsCount,
   type NotificationItem,
   type NotificationType,
 } from "../mock/notifications";
-import { Badge, ListState, listStatePill, TabNav, card, control, secondaryButton } from "@/components/workspace/workspace-ui";
+import {
+  Badge,
+  ListState,
+  listStatePill,
+  TabNav,
+  card,
+  control,
+  secondaryButton,
+} from "@/components/workspace/workspace-ui";
 import { useListState } from "@/components/workspace/use-list-state";
+import { apiGet, apiSend } from "@/lib/api-client";
 
 type TabKey = "unread" | "all" | "saved";
+
+interface NotificationApiResponse {
+  items: NotificationItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+  counts: {
+    unread: number;
+    all: number;
+    saved: number;
+  };
+}
 
 export function NotificationsView() {
   const router = useRouter();
   const forcedState = useListState();
 
-  const [items, setItems] = useState<NotificationItem[]>(initialNotifications);
+  const [items, setItems] = useState<NotificationItem[]>([]);
+  const [counts, setCounts] = useState({ unread: 0, all: 0, saved: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [activeTab, setActiveTab] = useState<TabKey>("unread");
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("Tất cả");
   const [statusFilter, setStatusFilter] = useState("Tất cả");
 
-  const unreadTotal = unreadNotificationsCount(items);
+  // Tải danh sách thông báo thực tế từ Backend
+  const fetchNotifications = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await apiGet<NotificationApiResponse>("/api/v1/admin/notifications", {
+        tab: activeTab,
+        type: typeFilter !== "Tất cả" ? typeFilter : undefined,
+        status: statusFilter !== "Tất cả" ? statusFilter : undefined,
+        q: search.trim() || undefined,
+      });
+      setItems(data.items);
+      setCounts(data.counts);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Kết nối đến máy chủ bị gián đoạn. Kiểm tra kết nối mạng và thử lại.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [activeTab, typeFilter, statusFilter, search]);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   // Tab change
   const handleTabSelect = (tab: TabKey) => {
@@ -40,23 +100,72 @@ export function NotificationsView() {
     }
   };
 
-  // Toggle read state
-  const toggleRead = (id: string) => {
+  // Toggle read state (Cập nhật lạc quan & đồng bộ Backend)
+  const toggleRead = async (id: string) => {
+    const target = items.find((item) => item.id === id);
+    if (!target) return;
+    const nextRead = !target.read;
+
     setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, read: !item.read } : item))
+      prev.map((item) => (item.id === id ? { ...item, read: nextRead } : item)),
     );
+    setCounts((prev) => ({
+      ...prev,
+      unread: Math.max(0, prev.unread + (nextRead ? -1 : 1)),
+    }));
+
+    try {
+      await apiSend("PATCH", `/api/v1/admin/notifications/${id}/read`, { read: nextRead });
+    } catch {
+      // Rollback nếu API lỗi
+      setItems((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, read: target.read } : item)),
+      );
+      setCounts((prev) => ({
+        ...prev,
+        unread: Math.max(0, prev.unread + (target.read ? -1 : 1)),
+      }));
+    }
   };
 
-  // Toggle saved state
-  const toggleSave = (id: string) => {
+  // Toggle saved state (Cập nhật lạc quan & đồng bộ Backend)
+  const toggleSave = async (id: string) => {
+    const target = items.find((item) => item.id === id);
+    if (!target) return;
+    const nextSaved = !target.saved;
+
     setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, saved: !item.saved } : item))
+      prev.map((item) => (item.id === id ? { ...item, saved: nextSaved } : item)),
     );
+    setCounts((prev) => ({
+      ...prev,
+      saved: Math.max(0, prev.saved + (nextSaved ? 1 : -1)),
+    }));
+
+    try {
+      await apiSend("PATCH", `/api/v1/admin/notifications/${id}/save`, { saved: nextSaved });
+    } catch {
+      // Rollback nếu API lỗi
+      setItems((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, saved: target.saved } : item)),
+      );
+      setCounts((prev) => ({
+        ...prev,
+        saved: Math.max(0, prev.saved + (target.saved ? 1 : -1)),
+      }));
+    }
   };
 
   // Mark all as read
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
     setItems((prev) => prev.map((item) => ({ ...item, read: true })));
+    setCounts((prev) => ({ ...prev, unread: 0 }));
+
+    try {
+      await apiSend("POST", "/api/v1/admin/notifications/mark-all-read", {});
+    } catch {
+      fetchNotifications();
+    }
   };
 
   // Reset filters
@@ -67,31 +176,23 @@ export function NotificationsView() {
     setActiveTab("all");
   };
 
-  // Filtered notifications
-  const filteredList = useMemo(() => {
-    return filterNotifications(items, {
-      tab: activeTab,
-      search,
-      type: typeFilter,
-      status: statusFilter,
-    });
-  }, [items, activeTab, search, typeFilter, statusFilter]);
-
-  const isEmpty = forcedState === "empty" || filteredList.length === 0;
+  const isEffectiveLoading = forcedState === "loading" || (loading && items.length === 0);
+  const isEffectiveError = forcedState === "error" || (Boolean(error) && items.length === 0);
+  const isEffectiveEmpty = forcedState === "empty" || (!loading && items.length === 0);
 
   const tabs = [
     {
-      label: `Chưa đọc (${unreadTotal})`,
+      label: `Chưa đọc (${counts.unread})`,
       active: activeTab === "unread",
       onSelect: () => handleTabSelect("unread"),
     },
     {
-      label: "Tất cả thông báo",
+      label: `Tất cả thông báo (${counts.all})`,
       active: activeTab === "all",
       onSelect: () => handleTabSelect("all"),
     },
     {
-      label: "Đã lưu",
+      label: `Đã lưu (${counts.saved})`,
       active: activeTab === "saved",
       onSelect: () => handleTabSelect("saved"),
     },
@@ -131,7 +232,7 @@ export function NotificationsView() {
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line p-6">
           <div className="flex items-center gap-3">
             <h2 className="text-xl font-semibold">Thông báo hệ thống</h2>
-            {unreadTotal > 0 && activeTab !== "unread" && !forcedState && (
+            {counts.unread > 0 && activeTab !== "unread" && !forcedState && (
               <button
                 type="button"
                 onClick={markAllAsRead}
@@ -146,10 +247,10 @@ export function NotificationsView() {
               <Badge tone={listStatePill[forcedState].tone}>
                 {forcedState === "error" ? "Lỗi kết nối" : listStatePill[forcedState].label}
               </Badge>
-            ) : unreadTotal === 0 ? (
+            ) : counts.unread === 0 ? (
               <Badge tone="neutral">0 chưa đọc</Badge>
             ) : (
-              <Badge tone="warning">{unreadTotal} chưa đọc</Badge>
+              <Badge tone="warning">{counts.unread} chưa đọc</Badge>
             )}
           </div>
         </div>
@@ -166,7 +267,7 @@ export function NotificationsView() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Tiêu đề hoặc nội dung thông báo"
-              disabled={forcedState === "loading"}
+              disabled={isEffectiveLoading}
               className={control}
             />
           </div>
@@ -179,7 +280,7 @@ export function NotificationsView() {
               id="notif-type"
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              disabled={forcedState === "loading"}
+              disabled={isEffectiveLoading}
               className={control}
             >
               <option value="Tất cả">Tất cả</option>
@@ -197,7 +298,7 @@ export function NotificationsView() {
               id="notif-status"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              disabled={forcedState === "loading"}
+              disabled={isEffectiveLoading}
               className={control}
             >
               <option value="Tất cả">Tất cả</option>
@@ -208,10 +309,10 @@ export function NotificationsView() {
         </div>
 
         {/* Card Body */}
-        {forcedState === "loading" ? (
+        {isEffectiveLoading ? (
           <>
             <div className="p-6">
-              <p className="font-semibold text-muted">Đang tải thông báo...</p>
+              <p className="font-semibold text-muted">Đang tải thông báo từ máy chủ...</p>
               <div className="mt-6 space-y-6" aria-hidden="true">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} className="flex gap-4">
@@ -226,30 +327,31 @@ export function NotificationsView() {
               </div>
             </div>
             <div className="border-t border-line px-6 py-4 text-xs text-muted">
-              Đang đồng bộ thông báo mới nhất từ hệ thống.
+              Đang đồng bộ thông báo mới nhất từ cơ sở dữ liệu.
             </div>
           </>
-        ) : forcedState === "error" ? (
+        ) : isEffectiveError ? (
           <>
             <div className="p-6">
               <ListState
                 kind="error"
                 icon={<AlertCircle className="h-12 w-12 text-danger stroke-1" />}
                 title="Không thể tải thông báo"
-                description="Kết nối đến máy chủ bị gián đoạn. Kiểm tra kết nối mạng và thử lại; thông báo của bạn vẫn được lưu."
+                description={error || "Kết nối đến máy chủ bị gián đoạn. Kiểm tra kết nối mạng và thử lại."}
                 action={
                   <button
                     type="button"
-                    onClick={() => router.push("/admin/notifications")}
-                    className="inline-flex min-h-10 items-center justify-center rounded-lg bg-brand px-6 font-semibold text-white hover:bg-brand-hover"
+                    onClick={fetchNotifications}
+                    className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-brand px-6 font-semibold text-white hover:bg-brand-hover"
                   >
-                    Thử lại
+                    <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                    <span>Thử lại</span>
                   </button>
                 }
               />
             </div>
           </>
-        ) : isEmpty ? (
+        ) : isEffectiveEmpty ? (
           <>
             <div className="p-6">
               <ListState
@@ -282,7 +384,7 @@ export function NotificationsView() {
           </>
         ) : (
           <ul className="divide-y divide-line">
-            {filteredList.map((item) => (
+            {items.map((item) => (
               <li
                 key={item.id}
                 className={`flex flex-col gap-4 p-6 transition-colors sm:flex-row sm:items-start sm:justify-between ${
@@ -382,7 +484,7 @@ export function NotificationsView() {
         ) : forcedState === "error" ? (
           "Thông báo chưa đọc vẫn được giữ nguyên. Liên hệ support@petly.vn nếu lỗi tiếp tục xảy ra."
         ) : (
-          "Thông báo được lưu trong 90 ngày. Chỉ Admin và Staff được xem thông báo vận hành."
+          "Thông báo được lưu trong cơ sở dữ liệu. Chỉ Admin và Staff được xem thông báo vận hành."
         )}
       </footer>
     </div>

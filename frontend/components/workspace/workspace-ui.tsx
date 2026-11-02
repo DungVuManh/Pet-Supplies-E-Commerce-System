@@ -35,21 +35,64 @@ function ChartDataTable({ data, unit }: { data: { label: string; value: number }
   return <details className="mt-12"><summary className="cursor-pointer font-semibold text-brand">Xem bảng dữ liệu</summary><table className="mt-3 w-full text-sm"><thead><tr><th className="py-2 text-left">Ngày</th><th className="py-2 text-right">Giá trị ({unit})</th></tr></thead><tbody>{data.map((item) => <tr key={item.label}><td className="border-t border-line py-2">{item.label}</td><td className="border-t border-line py-2 text-right tabular-nums">{item.value}</td></tr>)}</tbody></table></details>;
 }
 
-export function BarChart({ title, subtitle, data, unit }: { title: string; subtitle: string; data: { label: string; value: number }[]; unit: string }) {
-  const max = Math.max(1, ...data.map((item) => item.value));
+export function BarChart({ title, subtitle, data, unit, legend = "Kỳ này", ticks = 4 }: { title: string; subtitle: string; data: { label: string; value: number }[]; unit: string; legend?: string; ticks?: number }) {
+  const top = Math.max(1, ...data.map((item) => item.value));
+  const step = Math.ceil(top / ticks / 5) * 5 || 1;
+  const max = step * ticks;
   const headingId = chartId(title);
-  return <section className={`${card} p-6`} aria-labelledby={headingId}>
-    <h2 id={headingId} className="text-xl font-semibold">{title}</h2><p className="mt-3 text-xs text-muted">{subtitle}</p>
-    {data.length === 0 && <p role="status" className="mt-6 text-muted">Chưa có dữ liệu trong kỳ này.</p>}
-    <div className="max-w-full overflow-x-auto pb-8">
-    <div className="mt-8 flex h-56 items-end justify-around gap-3 border-b border-line px-2" style={{ minWidth: data.length * 48 }} role="group" aria-label={`${title}. ${data.map((d) => `${d.label}: ${d.value} ${unit}`).join(", ")}`}>
-      {data.map((item) => <div key={item.label} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2">
-        <button type="button" className="group relative flex w-full max-w-10 items-end justify-center rounded-t focus-visible:outline-2 focus-visible:outline-brand" style={{ height: `${item.value / max * 82}%`, minHeight: item.value === 0 ? 2 : undefined }} aria-label={`${item.label}: ${item.value} ${unit}`}>
-          <span className="absolute -top-6 whitespace-nowrap text-xs font-semibold text-ink">{new Intl.NumberFormat("vi-VN", { notation: "compact", maximumFractionDigits: 1 }).format(item.value)}</span><span className="h-full w-full rounded-t bg-brand transition-colors group-hover:bg-brand-hover" style={{ opacity: item.value === 0 ? 0 : 1 }} />
-        </button><span className="-mb-7 whitespace-nowrap text-xs text-muted" title={item.label}>{/^\d{4}-\d{2}-\d{2}$/.test(item.label) ? `${item.label.slice(8)}/${item.label.slice(5, 7)}` : item.label}</span>
-      </div>)}
+
+  return <section className={`${card} min-w-0 p-6`} aria-labelledby={headingId}>
+    <h2 id={headingId} className="text-xl font-semibold">{title}</h2>
+    <div className="mt-4 flex items-center justify-between gap-4 text-xs text-muted">
+      <p>{subtitle}</p>
+      <p className="flex items-center gap-1.5 text-brand">
+        <span className="h-2 w-2 rounded-full bg-brand" aria-hidden="true" />
+        {legend}
+      </p>
     </div>
-    </div>
+    {data.length === 0 ? (
+      <p role="status" className="mt-6 text-muted">Chưa có dữ liệu trong kỳ này.</p>
+    ) : (
+      <div className="mt-4 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4" role="img" aria-label={`${title}. ${data.map((d) => `${d.label}: ${d.value} ${unit}`).join(", ")}`}>
+        <div className="flex h-[140px] flex-col justify-between text-xs text-muted tabular-nums" aria-hidden="true">
+          {Array.from({ length: ticks + 1 }, (_, i) => <span key={i} className="-my-2 text-right">{max - i * step}</span>)}
+        </div>
+        <div className="relative h-[140px] w-full">
+          <div className="absolute inset-0 flex flex-col justify-between pointer-events-none" aria-hidden="true">
+            {Array.from({ length: ticks + 1 }, (_, i) => <div key={i} className="w-full border-b border-line" />)}
+          </div>
+          <div className="relative z-10 flex h-full items-end justify-between gap-1 sm:gap-2 px-1">
+            {data.map((item) => {
+              const h = max > 0 ? (item.value / max) * 100 : 0;
+              return (
+                <div key={item.label} className="group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end">
+                  <button
+                    type="button"
+                    className="group relative flex w-full max-w-7 sm:max-w-10 items-end justify-center rounded-t focus-visible:outline-2 focus-visible:outline-brand"
+                    style={{ height: `${h}%`, minHeight: item.value === 0 ? 0 : 3 }}
+                    aria-label={`${item.label}: ${item.value} ${unit}`}
+                  >
+                    <span
+                      className="h-full w-full rounded-t bg-brand transition-colors group-hover:bg-brand-hover"
+                      style={{ opacity: item.value === 0 ? 0 : 1 }}
+                    />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <span aria-hidden="true" />
+        <div className="mt-4 flex justify-between text-xs text-muted px-1" aria-hidden="true">
+          {data.map((item, index) => {
+            const labelEvery = Math.max(1, Math.ceil(data.length / 12));
+            const last = data.length - 1;
+            const show = index === last || (index % labelEvery === 0 && last - index >= labelEvery);
+            return show ? <span key={item.label}>{/^\d{4}-\d{2}-\d{2}$/.test(item.label) ? `${item.label.slice(8)}/${item.label.slice(5, 7)}` : item.label}</span> : null;
+          })}
+        </div>
+      </div>
+    )}
     <ChartDataTable data={data} unit={unit} />
   </section>;
 }
@@ -119,7 +162,7 @@ export function Pagination({ from, to, total, page = 1, pages = 1, onPage }: { f
     <nav aria-label="Phân trang"><ul className="flex items-center gap-1 text-sm">
       <li><button type="button" className={pageStyle(false)} disabled={!onPage || page <= 1} onClick={onPage && (() => onPage(page - 1))} aria-label="Trang trước">‹</button></li>
       {shown.map((n) => <li key={n}><button type="button" className={pageStyle(n === page)} disabled={!onPage} aria-current={n === page ? "page" : undefined} onClick={onPage && (() => onPage(n))}>{n}</button></li>)}
-      {(shown.at(-1) ?? pages) < pages &&<li aria-hidden="true" className="px-1">…</li>}
+      {(shown.at(-1) ?? pages) < pages && <li aria-hidden="true" className="px-1">…</li>}
       <li><button type="button" className={pageStyle(false)} disabled={!onPage || page >= pages} onClick={onPage && (() => onPage(page + 1))} aria-label="Trang sau">›</button></li>
     </ul></nav>
   </div>;

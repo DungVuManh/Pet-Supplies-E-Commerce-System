@@ -63,7 +63,7 @@ export function ProductCard({ product }: { product: Product }) {
         {product.name}
       </h3>
 
-      {/* 4. Giá & Nút thêm giỏ hàng nhanh */}
+      {/* 4. Giá */}
       <div className="mt-auto flex items-center justify-between gap-2 pt-2">
         <div>
           <p className="text-base font-bold text-ink sm:text-lg">
@@ -71,7 +71,7 @@ export function ProductCard({ product }: { product: Product }) {
           </p>
         </div>
 
-        <button
+        {/* <button
           type="button"
           aria-label={`Thêm ${product.name} vào giỏ hàng`}
           onClick={handleAddToCart}
@@ -82,7 +82,7 @@ export function ProductCard({ product }: { product: Product }) {
           }`}
         >
           {isAdded ? <Check className="size-4" /> : <ShoppingBag className="size-4" />}
-        </button>
+        </button> */}
       </div>
     </article>
   );
