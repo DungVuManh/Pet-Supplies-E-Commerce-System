@@ -14,9 +14,16 @@ export function StorefrontFooter() {
           <p>© 2026 Petjoy. Chăm sóc trọn vẹn, yêu thương mỗi ngày.</p>
         </div>
 
-        {/* Block Hỗ Trợ Khách Hàng: 11 link theo đúng thứ tự từ JSON */}
+        {/* Block Hỗ Trợ Khách Hàng: Link liên hệ trực tiếp + 11 policy links */}
         <div className="flex flex-wrap items-center justify-center md:justify-end gap-x-3.5 gap-y-2">
           <span className="font-bold text-ink mr-0.5">Hỗ Trợ Khách Hàng:</span>
+          <Link
+            href="/support"
+            className="font-semibold text-brand hover:underline transition-colors whitespace-nowrap"
+          >
+            Liên hệ Petjoy
+          </Link>
+          <span aria-hidden="true" className="text-line">·</span>
           {footerLinks.map((item, index) => (
             <React.Fragment key={item.slug}>
               <Link

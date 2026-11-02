@@ -10,9 +10,14 @@ import { useProductList } from "./hooks/use-product-list";
 type AllProductProps = {
   defaultCategory?: string;
   defaultPetType?: string;
+  defaultSearch?: string;
 };
 
-export function AllProduct({ defaultCategory, defaultPetType }: AllProductProps = {}) {
+export function AllProduct({
+  defaultCategory,
+  defaultPetType,
+  defaultSearch,
+}: AllProductProps = {}) {
  const {
   products,
   categories,
@@ -31,7 +36,7 @@ export function AllProduct({ defaultCategory, defaultPetType }: AllProductProps 
   handleSortChange,
   handleDeleteFilter,
   handlePageChange,
- } = useProductList(defaultCategory, defaultPetType);
+ } = useProductList(defaultCategory, defaultPetType, defaultSearch);
 
  return (
   <main>

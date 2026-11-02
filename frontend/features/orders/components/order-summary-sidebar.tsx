@@ -174,12 +174,7 @@ export function OrderSummarySidebar({
         )}
 
         <div className="text-center">
-          <a
-            href="tel:1900636789"
-            className="text-xs text-muted hover:text-ink font-medium inline-block py-1 hover:underline transition-colors"
-          >
-            Liên hệ hỗ trợ
-          </a>
+          <Link href="/support" className="text-xs text-muted hover:text-ink font-medium inline-block py-1 hover:underline transition-colors">Liên hệ hỗ trợ</Link>
         </div>
       </div>
 

@@ -6,11 +6,10 @@
 "use client";
 
 import React from "react";
-import { useWishlist } from "../hooks/use-wishlist";
+import { useWishlist } from "../wishlist-provider";
 import { WishlistEmpty } from "./wishlist-empty";
 import { WishlistGrid } from "./wishlist-grid";
 import { WishlistHeader } from "./wishlist-header";
-import { WishlistToast } from "./wishlist-toast";
 import { WishlistToolbar } from "./wishlist-toolbar";
 
 export function WishlistView() {
@@ -23,8 +22,6 @@ export function WishlistView() {
     setSearchQuery,
     sortBy,
     setSortBy,
-    toasts,
-    removeToast,
     removeItem,
     clearAll,
   } = useWishlist();
@@ -82,9 +79,6 @@ export function WishlistView() {
           )}
         </div>
       )}
-
-      {/* 5. Toast thông báo góc màn hình */}
-      <WishlistToast toasts={toasts} onDismiss={removeToast} />
     </section>
   );
 }
