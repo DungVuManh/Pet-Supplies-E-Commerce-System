@@ -4,7 +4,14 @@
 // =============================================================
 
 import { Router } from "express";
-import { createOrder, cancelOrder, deleteOrder, getMyOrders, getOrderDetail } from "../controllers/order.controller.js";
+import {
+  createOrder,
+  cancelOrder,
+  deleteOrder,
+  getMyOrders,
+  getOrderDetail,
+  previewBuyNow,
+} from "../controllers/order.controller.js";
 import { confirmCustomerOrderReceipt } from "../controllers/order-status.controller.js";
 import { protectMutation } from "../controllers/auth.controller.js";
 import {
@@ -38,10 +45,13 @@ router.patch(
 // 2. GET /api/v1/orders/:id - Lấy chi tiết 1 đơn hàng (customer xem đơn của mình)
 router.get("/:id", requireAuth, requireRole("customer"), getOrderDetail);
 
-// 3. POST /api/v1/orders - Tạo đơn hàng (Mua ngay & Cart)
+// 3. POST /api/v1/orders/buy-now-preview - Kiểm tra tính hợp lệ và tồn kho Mua ngay
+router.post("/buy-now-preview", optionalAuth, previewBuyNow);
+
+// 4. POST /api/v1/orders - Tạo đơn hàng (Mua ngay & Cart)
 router.post("/", optionalAuth, createOrder);
 
-// 4. PATCH /api/v1/orders/:id/cancel & DELETE /:id - Hủy đơn hàng (chuyển sang 'cancelled')
+// 5. PATCH /api/v1/orders/:id/cancel & DELETE /:id - Hủy đơn hàng (chuyển sang 'cancelled')
 router.patch("/:id/cancel", cancelOrder);
 router.delete("/:id", cancelOrder);
 

@@ -1,13 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   clearGuestCart,
   getCartApi,
   removeCartItemApi,
 } from "@/features/cart/services/cart.service";
-import { createOrderApi } from "@/features/orders/services/order.service";
+import {
+  clearBuyNowSession,
+  createOrderApi,
+  getBuyNowSession,
+} from "@/features/orders/services/order.service";
 import { getCheckoutAddress, type CheckoutAddress } from "../services/checkout.service";
 import { useAuth } from "@/features/auth/auth-provider";
 
@@ -115,6 +119,8 @@ async function getCheckoutCartData(): Promise<CheckoutCartData> {
 
 export function useCheckout() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isBuyNow = searchParams?.get("buyNow") === "1";
   const { status: authStatus, user } = useAuth();
   const isGuest = authStatus === "ready" && !user;
 
@@ -147,7 +153,30 @@ export function useCheckout() {
     try {
       setIsLoading(true);
       setLoadError(null);
-      applyCartData(await getCheckoutCartData());
+      if (isBuyNow) {
+        const buyNowData = getBuyNowSession();
+        if (buyNowData?.item) {
+          setItems([
+            {
+              id: buyNowData.item.id || buyNowData.item.sku,
+              productId: buyNowData.item.productId,
+              name: buyNowData.item.name,
+              description:
+                buyNowData.item.description ||
+                (buyNowData.item.label ? `Phân loại: ${buyNowData.item.label}` : ""),
+              sku: buyNowData.item.sku,
+              price: buyNowData.item.price,
+              quantity: buyNowData.item.quantity,
+              image: buyNowData.item.image || "/images/products/royal-canin-mini-adult.png",
+            },
+          ]);
+          if (buyNowData.summary) setSummary(buyNowData.summary);
+        } else {
+          setLoadError("Không tìm thấy thông tin sản phẩm Mua ngay. Vui lòng chọn lại sản phẩm.");
+        }
+      } else {
+        applyCartData(await getCheckoutCartData());
+      }
     } catch (error) {
       setLoadError(
         error instanceof Error ? error.message : "Không thể tải giỏ hàng.",
@@ -155,7 +184,7 @@ export function useCheckout() {
     } finally {
       setIsLoading(false);
     }
-  }, [applyCartData]);
+  }, [applyCartData, isBuyNow]);
 
   // Handler cập nhật từng trường địa chỉ nhập vào và tự động xóa lỗi tương ứng
   const handleAddressChange = useCallback((field: keyof CheckoutAddress, value: string) => {
@@ -220,32 +249,63 @@ export function useCheckout() {
         });
     }
 
-    // 2. Lấy giỏ hàng:
-    // - Guest: tự động đọc từ localStorage của guest trong phiên
-    // - User: đọc từ DB
-    getCheckoutCartData()
-      .then((data) => {
-        if (isActive) applyCartData(data);
-      })
-      .catch((error: unknown) => {
+    // 2. Lấy dữ liệu sản phẩm để thanh toán:
+    // - Chế độ Mua ngay: lấy trực tiếp từ session Mua ngay, không động chạm tới giỏ hàng thật
+    // - Chế độ Giỏ hàng: Guest đọc từ localStorage, User đọc từ DB
+    if (isBuyNow) {
+      const buyNowData = getBuyNowSession();
+      if (!buyNowData?.item) {
         if (isActive) {
-          setLoadError(
-            error instanceof Error ? error.message : "Không thể tải giỏ hàng.",
-          );
+          setItems([]);
+          setLoadError("Không tìm thấy thông tin sản phẩm Mua ngay. Vui lòng quay lại chọn sản phẩm.");
+          setIsLoading(false);
         }
-      })
-      .finally(() => {
-        if (isActive) setIsLoading(false);
-      });
+        return;
+      }
+
+      if (isActive) {
+        setItems([
+          {
+            id: buyNowData.item.id || buyNowData.item.sku,
+            productId: buyNowData.item.productId,
+            name: buyNowData.item.name,
+            description:
+              buyNowData.item.description ||
+              (buyNowData.item.label ? `Phân loại: ${buyNowData.item.label}` : ""),
+            sku: buyNowData.item.sku,
+            price: buyNowData.item.price,
+            quantity: buyNowData.item.quantity,
+            image: buyNowData.item.image || "/images/products/royal-canin-mini-adult.png",
+          },
+        ]);
+        if (buyNowData.summary) setSummary(buyNowData.summary);
+        setIsLoading(false);
+      }
+    } else {
+      getCheckoutCartData()
+        .then((data) => {
+          if (isActive) applyCartData(data);
+        })
+        .catch((error: unknown) => {
+          if (isActive) {
+            setLoadError(
+              error instanceof Error ? error.message : "Không thể tải giỏ hàng.",
+            );
+          }
+        })
+        .finally(() => {
+          if (isActive) setIsLoading(false);
+        });
+    }
 
     return () => {
       isActive = false;
     };
-  }, [applyCartData, authStatus, user]);
+  }, [applyCartData, authStatus, isBuyNow, user]);
 
   const handleSubmitOrder = useCallback(async () => {
     if (items.length === 0) {
-      setSubmitError("Giỏ hàng đang trống, không thể thanh toán.");
+      setSubmitError(isBuyNow ? "Không tìm thấy sản phẩm Mua ngay." : "Giỏ hàng đang trống, không thể thanh toán.");
       return;
     }
 
@@ -286,24 +346,31 @@ export function useCheckout() {
         },
         email: address.email?.trim() || undefined,
         paymentMethod: paymentMethod === "vnpay" ? ("ONLINE" as const) : ("COD" as const),
+        isBuyNow,
       };
 
       const response = await createOrderApi(orderPayload);
       const order = response.data?.order;
 
-      // Xóa các sản phẩm đã mua khỏi giỏ hàng
-      if (isGuest) {
-        clearGuestCart();
+      // Xử lý dọn dẹp sau khi đặt hàng thành công
+      if (isBuyNow) {
+        // Chỉ xóa session Mua ngay, KHÔNG động đến giỏ hàng thật của người dùng
+        clearBuyNowSession();
       } else {
-        await Promise.allSettled(
-          items.map((item) => removeCartItemApi(item.sku))
-        );
+        // Xóa giỏ hàng thông thường
+        if (isGuest) {
+          clearGuestCart();
+        } else {
+          await Promise.allSettled(
+            items.map((item) => removeCartItemApi(item.sku))
+          );
+        }
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("cart-updated"));
+        }
       }
 
       setItems([]);
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new Event("cart-updated"));
-      }
 
       const queryParams = new URLSearchParams({
         orderCode: order?.orderCode || "",
@@ -320,7 +387,7 @@ export function useCheckout() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [address, isGuest, items, paymentMethod, router, summary.total]);
+  }, [address, isBuyNow, isGuest, items, paymentMethod, router, summary.total]);
 
   return {
     address,
@@ -328,6 +395,7 @@ export function useCheckout() {
     handleAddressChange,
     addressErrors,
     isGuest,
+    isBuyNow,
     handleSubmitOrder,
     isLoading,
     isSubmitting,

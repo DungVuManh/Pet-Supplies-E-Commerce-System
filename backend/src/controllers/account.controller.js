@@ -3,6 +3,7 @@ import { AppError } from "../common/errors/app-error.js";
 import { User, publicUser } from "../models/user.model.js";
 import { Address } from "../models/address.model.js";
 import { PetProfile } from "../models/pet-profile.model.js";
+import { Order } from "../models/order.model.js";
 import {
   validateInput,
   updateProfileSchema,
@@ -29,13 +30,16 @@ export async function getProfile(request, response) {
 
   let petsCount = 0;
   let addressesCount = 0;
+  let ordersCount = 0;
   try {
-    const [pCount, aCount] = await Promise.all([
+    const [pCount, aCount, oCount] = await Promise.all([
       PetProfile.countDocuments({ userId: request.user._id }),
       Address.countDocuments({ userId: request.user._id }),
+      Order.countDocuments({ customerId: request.user._id }),
     ]);
     petsCount = pCount;
     addressesCount = aCount;
+    ordersCount = oCount;
   } catch {
     // Fallback if counts unavailable
   }
@@ -48,7 +52,7 @@ export async function getProfile(request, response) {
         createdAt: user.createdAt,
       },
       stats: {
-        orders: 5,
+        orders: ordersCount,
         pets: petsCount,
         addresses: addressesCount,
       },

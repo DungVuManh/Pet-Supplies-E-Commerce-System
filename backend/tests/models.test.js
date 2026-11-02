@@ -22,7 +22,7 @@ const address = {
  district: "District 1", ward: "Ward 1", street: "1 Test Street",
 };
 const productData = () => ({
- name: "Cat food", petType: "cat", categoryId: new mongoose.Types.ObjectId(),
+ name: "Cat food", petType: "cat", categoryIds: [new mongoose.Types.ObjectId()],
  variants: [{ sku: "CAT-1", label: "1 kg", price: 100000, stock: 10 }],
 });
 const orderData = () => ({
@@ -77,6 +77,28 @@ describe("products and shopping models", () => {
   const data = productData();
   data.variants.push({ ...data.variants[0] });
   await expect(new Product(data).validate()).rejects.toThrow("distinct SKUs");
+ });
+
+ it("supports multiple categoryIds and deduplicates them", async () => {
+  const cat1 = new mongoose.Types.ObjectId();
+  const cat2 = new mongoose.Types.ObjectId();
+  const product = new Product({
+   name: "Multi-cat food",
+   petType: "cat",
+   categoryIds: [cat1, cat2, cat1],
+   variants: [{ sku: "MULTI-1", label: "1 kg", price: 50000, stock: 5 }],
+  });
+  await expect(product.validate()).resolves.toBeUndefined();
+  expect(product.categoryIds).toHaveLength(2);
+  expect(product.categoryIds[0].toString()).toBe(cat1.toString());
+  expect(product.categoryIds[1].toString()).toBe(cat2.toString());
+
+  await expect(new Product({
+   name: "No-cat food",
+   petType: "cat",
+   categoryIds: [],
+   variants: [{ sku: "NO-CAT-1", label: "1 kg", price: 50000, stock: 5 }],
+  }).validate()).rejects.toThrow("at least one category");
  });
 
  it("requires exactly one cart owner and positive whole quantities", async () => {

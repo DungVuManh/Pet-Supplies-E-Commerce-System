@@ -10,6 +10,7 @@ const orderItemSchema = new mongoose.Schema(
         name: { type: String, required: true, trim: true },
         unitPrice: { ...nonNegativeInteger, required: true },
         qty: { ...nonNegativeInteger, min: 1, required: true },
+        image: { type: String, trim: true },
     },
     { _id: false },
 );

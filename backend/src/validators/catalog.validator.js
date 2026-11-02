@@ -25,10 +25,26 @@ const catalogQuerySchema = z.object({
     .transform((val) => parseInt(val, 10))
     .refine((val) => val >= 1, { message: "Page phải >= 1" }),
 
+  minPrice: z
+    .string()
+    .optional()
+    .transform((val) => (val !== undefined && val !== "" ? parseInt(val, 10) : undefined))
+    .refine((val) => val === undefined || (!isNaN(val) && val >= 0), {
+      message: "minPrice phải >= 0",
+    }),
+
+  maxPrice: z
+    .string()
+    .optional()
+    .transform((val) => (val !== undefined && val !== "" ? parseInt(val, 10) : undefined))
+    .refine((val) => val === undefined || (!isNaN(val) && val >= 0), {
+      message: "maxPrice phải >= 0",
+    }),
+
   limit: z
     .string()
     .optional()
-    .default("12")
+    .default("20")
     .transform((val) => parseInt(val, 10))
     .refine((val) => val >= 1 && val <= 100, { message: "Limit phải từ 1 đến 100" }),
 });

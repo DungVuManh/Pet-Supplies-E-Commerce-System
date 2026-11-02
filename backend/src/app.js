@@ -13,6 +13,8 @@ import workspaceRouter from "./routers/workspace.router.js";
 import adminRouter from "./routers/admin.router.js";
 import cartRouter from "./routers/cart.router.js";
 import orderRouter from "./routers/order.router.js";
+import wishlistRouter from "./routers/wishlist.router.js";
+import reviewRouter from "./routers/review.router.js";
 
 export function createApp(config) {
  const app = express();
@@ -37,21 +39,27 @@ export function createApp(config) {
    },
   }),
  );
- app.use(
-  "/api/v1",
-  rateLimit({
-   windowMs: 15 * 60 * 1000,
-   // Local development reloads and polls far more often than real clients.
-   limit: config.NODE_ENV === "development" ? 1000 : 100,
-   standardHeaders: "draft-8",
-   legacyHeaders: false,
-   handler: (_request, _response, next) => {
-    next(
-     new AppError("Too many requests; try again later", 429, "RATE_LIMITED"),
-    );
-   },
-  }),
- );
+ //  app.use(
+ //   "/api/v1",
+ //   rateLimit({
+ //    windowMs: 15 * 60 * 1000,
+ //    // Local development reloads and polls far more often than real clients.
+ //    limit: config.NODE_ENV === "development" ? 10000 : 100,
+ //    standardHeaders: "draft-8",
+ //    legacyHeaders: false,
+ //    skip: (request) => {
+ //      if (config.NODE_ENV === "development" && request.originalUrl?.includes("/catalog/")) {
+ //        return true;
+ //      }
+ //      return false;
+ //    },
+ //    handler: (_request, _response, next) => {
+ //     next(
+ //      new AppError("Too many requests; try again later", 429, "RATE_LIMITED"),
+ //     );
+ //    },
+ //   }),
+ //  );
  // Account updates carry base64 avatar images; every other route keeps the
  // small default. A body parsed here is skipped by the parsers below.
  app.use("/api/v1/account", express.json({ limit: "10mb" }));
@@ -63,6 +71,8 @@ export function createApp(config) {
  app.use("/api/v1/catalog", catalogRouter);
  app.use("/api/v1/cart", cartRouter);
  app.use("/api/v1/orders", orderRouter);
+ app.use("/api/v1/wishlist", wishlistRouter);
+ app.use("/api/v1/reviews", reviewRouter);
  app.use("/api/v1/admin", adminRouter);
  app.use("/api/v1", workspaceRouter);
  app.use(notFoundMiddleware);

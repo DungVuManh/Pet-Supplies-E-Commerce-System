@@ -27,7 +27,7 @@ try {
   phone: "0912345678", email: "staff@example.test", termsAcceptedAt: new Date() });
  const customer = await User.create({ firebaseUid: "fixture-customer", role: "customer", fullName: "Customer fixture",
   phone: "0912345678", email: "customer@example.test", termsAcceptedAt: new Date() });
- const product = await Product.create({ name: "Product fixture", petType: "cat", categoryId: new mongoose.Types.ObjectId(),
+ const product = await Product.create({ name: "Product fixture", petType: "cat", categoryIds: [new mongoose.Types.ObjectId()],
   variants: [{ sku: "SKU-1", label: "1 kg", price: 10000, stock: 10, reservedStock: 2 }] });
  const payload = { customer: { name: "Guest fixture", phone: "0912345678" },
   items: [{ sku: "SKU-1", qty: 2, expectedPrice: 10000 }], cashReceived: true };
@@ -83,9 +83,9 @@ try {
  }
  console.log("PASS standalone compensation even after Payment/AuditLog writes lost acknowledgement");
 
- await Product.create({ name: "Hidden fixture", petType: "cat", isActive: false, categoryId: new mongoose.Types.ObjectId(),
+ await Product.create({ name: "Hidden fixture", petType: "cat", isActive: false, categoryIds: [new mongoose.Types.ObjectId()],
   variants: [{ sku: "HIDDEN", label: "1 kg", price: 1, stock: 10 }] });
- await Product.create({ name: "Reserved fixture", petType: "cat", categoryId: new mongoose.Types.ObjectId(),
+ await Product.create({ name: "Reserved fixture", petType: "cat", categoryIds: [new mongoose.Types.ObjectId()],
   variants: [{ sku: "RESERVED", label: "1 kg", price: 1, stock: 3, reservedStock: 3 }] });
  async function lookup(handler, query) {
   let result; await handler({ query }, { json(value) { result = value.data; } }); return result;
@@ -95,7 +95,7 @@ try {
  assert.equal((await lookup(listSaleProducts, { query: ".*" })).items.length, 0);
  const customers = await lookup(listSaleCustomers, { query: "fixture" });
  assert.deepEqual(customers.items.map((item) => item.id), [String(customer._id)]);
- await Product.create({ name: "Page fixture", petType: "cat", categoryId: new mongoose.Types.ObjectId(),
+ await Product.create({ name: "Page fixture", petType: "cat", categoryIds: [new mongoose.Types.ObjectId()],
   variants: Array.from({ length: 15 }, (_, i) => ({ sku: `PAGE-${String(i).padStart(2, "0")}`, label: "1 kg", price: 1, stock: 1 })) });
  const firstPage = await lookup(listSaleProducts, { query: "Page", page: "1" });
  const secondPage = await lookup(listSaleProducts, { query: "Page", page: "2" });

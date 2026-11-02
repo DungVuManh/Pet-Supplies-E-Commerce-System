@@ -41,6 +41,7 @@ async function DetailProductsContent({
           ratingAvg: p.ratingAvg,
           ratingCount: p.ratingCount,
           inStock: p.inStock,
+          soldCount: p.soldCount || 0,
         };
       } else {
         errorMessage = "Không tìm thấy thông tin sản phẩm.";

@@ -3,76 +3,69 @@
 // =============================================================
 // features/orders/components/account-sidebar.tsx
 // Sidebar thông tin tài khoản & menu điều hướng bên trái
+// Bám chuẩn UI thiết kế: chữ xanh bold có mũi tên khi active,
+// chữ xám trung tính khi inactive, link hỗ trợ ở chân sidebar
 // =============================================================
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import React from "react";
 
+const NAV_ITEMS = [
+  { label: "Thông tin cá nhân", href: "/account/profile" },
+  { label: "Đơn hàng ", href: "/orders" },
+  { label: "Đánh giá ", href: "/reviews" },
+  { label: "Sổ địa chỉ", href: "/account/addresses" },
+  { label: "Thú cưng của tôi", href: "/account/pets" },
+  { label: "Thông báo", href: "#" },
+];
+
 export function AccountSidebar() {
+  const pathname = usePathname();
 
   return (
     <aside className="w-full md:w-64 shrink-0 flex flex-col justify-between">
       <div>
-        {/* Thông tin người dùng */}
-        <div className="mb-6">
-          {/* <h2 className="text-lg font-bold text-ink">{profile.fullName}</h2>
-          <p className="text-xs text-muted mt-1">{profile.joinedDate}</p> */}
-        </div>
-
         {/* Danh sách menu tài khoản */}
         <nav aria-label="Menu tài khoản" className="space-y-4 text-sm font-medium">
-          <div>
-            <Link
-              href="#"
-              className="text-muted hover:text-ink transition-colors block"
-            >
-              Thông tin cá nhân
-            </Link>
-          </div>
-          <div>
-            <Link
-              href="#"
-              className="text-muted hover:text-ink transition-colors block"
-            >
-              Sổ địa chỉ
-            </Link>
-          </div>
-          <div>
-            {/* Mục đang hoạt động: Đơn hàng của tôi */}
-            <Link
-              href="/orders"
-              className="text-blue-600 font-semibold flex items-center gap-1.5 transition-colors"
-            >
-              <span>→</span>
-              <span>Đơn hàng của tôi</span>
-            </Link>
-          </div>
-          <div>
-            <Link
-              href="#"
-              className="text-muted hover:text-ink transition-colors block"
-            >
-              Thú cưng của tôi
-            </Link>
-          </div>
-          <div>
-            <Link
-              href="#"
-              className="text-muted hover:text-ink transition-colors block"
-            >
-              Thông báo
-            </Link>
-          </div>
+          {NAV_ITEMS.map((item) => {
+            const isActive = (() => {
+              if (item.href === "#") return false;
+              if (item.href === "/account/profile") {
+                return pathname === "/account" || pathname?.startsWith("/account/profile");
+              }
+              return (
+                pathname === item.href ||
+                (item.href !== "/" && pathname?.startsWith(item.href))
+              );
+            })();
+
+            return (
+              <div key={item.label}>
+                <Link
+                  href={item.href}
+                  className={
+                    isActive
+                      ? "text-blue-600 font-bold flex items-center gap-1.5 transition-colors"
+                      : "text-slate-600 hover:text-ink font-medium transition-colors block"
+                  }
+                >
+                  {isActive && <span className="font-bold">→</span>}
+                  <span>{item.label}</span>
+                </Link>
+              </div>
+            );
+          })}
         </nav>
       </div>
 
-      {/* Đường dẫn hỗ trợ ở dưới */}
-      <div className="mt-12 pt-6">
+      {/* Đường dẫn hỗ trợ ở dưới chân sidebar */}
+      <div className="mt-16 pt-6 border-t border-line/40">
         <a
           href="tel:1900636789"
-          className="text-xs text-blue-600 hover:underline font-medium"
+          className="text-xs text-blue-600 hover:underline font-medium inline-block"
         >
-          Trợ giúp · 1900 636 789
+          Trợ giúp · 0363090151
         </a>
       </div>
     </aside>

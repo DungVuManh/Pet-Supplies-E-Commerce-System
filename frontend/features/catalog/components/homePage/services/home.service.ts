@@ -21,7 +21,7 @@ export async function fetchHomeProductsApi(
   signal?: AbortSignal
 ): Promise<Product[]> {
   const searchParams = new URLSearchParams();
-  searchParams.set("limit", String(params.limit ?? 8));
+  searchParams.set("limit", String(params.limit ?? 12));
   searchParams.set("page", "1");
 
   if (params.query?.trim()) {
@@ -76,6 +76,7 @@ export async function fetchHomeProductsApi(
       categories: [],
       ratingAvg: p.ratingAvg,
       ratingCount: p.ratingCount,
+      soldCount: p.soldCount || 0,
       variants: p.variants?.map((v) => ({
         sku: v.sku,
         label: v.label,
