@@ -225,14 +225,27 @@ UI it serves: `docs/specs/admin-workspace-ui.md` (complete on mock data in `fron
 - [x] **🛑 Commit checkpoint: Product detail**
 
 ### 4c. Edit product: `/admin/products/[sku]/edit`
-- [ ] Add the `StockMovement` model and register it. The model list test now really includes it, replacing the reverted phantom entry.
-- [ ] `PATCH /products/:sku`: product fields (`name`, `brand`, `petType`, `categoryCode` (leaf or root without children), `description`, `unit`, `isActive`) and variant fields (`price`, `cost`, `stock`, `lowStockThreshold`). A stock change requires `expectedStock` and writes conditionally (`variants.stock: expectedStock`, 409 `STALE_STOCK`). It never goes below `reservedStock` and records an `adjust` movement. A SKU rename is refused when orders reference the old SKU. Audited, with a low-stock notification when the new stock is at or below the threshold.
-- [ ] `DELETE /products/:sku`: 409 `PRODUCT_HAS_ORDERS` when `Order.exists({ "items.productId" })`. Otherwise delete the product and audit.
-- [ ] Tests: field validation, stale stock, stock below reserved, the movement recorded, both delete outcomes, and the notification created
-- [ ] Frontend: `hooks/use-product-edit.ts` (moving `validateProduct`/`parseAmount` into it). Pet type and unit options come from `GET /master-data/options`. Server errors map to fields. "Tải ảnh lên" stays a demo (no uploads).
-- [ ] Delete `mock/products.ts` and `mock/categories.ts` once no screen imports them
-- [ ] Browser check
-- [ ] **🛑 Commit checkpoint: Edit product**
+- [x] Add the `StockMovement` model and register it. The model list test now really includes it, replacing the reverted phantom entry.
+  - Note: one additive line each in the shared `models/index.js`, `tests/seed.test.js`, and `tests/models.test.js`. The product history tab from 4b now includes movements.
+- [x] `PATCH /products/:sku`: product fields (`name`, `brand`, `petType`, `categoryCode` (leaf or root without children), `description`, `unit`, `isActive`) and variant fields (`price`, `cost`, `stock`, `lowStockThreshold`). A stock change requires `expectedStock` and writes conditionally (`variants.stock: expectedStock`, 409 `STALE_STOCK`). It never goes below `reservedStock` and records an `adjust` movement. A SKU rename is refused when orders reference the old SKU. Audited, with a low-stock notification when the new stock is at or below the threshold.
+  - Note: differences from the item, each agreed or forced by the merged code:
+    - `categoryCodes` is a list and writes `categoryIds`, because `dev` allows several categories and you chose "show all, edit all". Any existing category may be chosen, because `dev`'s data links products to both parents and children.
+    - `petType` stays `dog`, `cat`, or `all`, as you chose, because the Customer catalog filters on those values.
+    - A rename is also refused while a cart holds the SKU (409 `SKU_IN_USE`), because carts store it too. A duplicate SKU is 409 `DUPLICATE_VALUE`.
+    - Only the changed fields are sent, and a SKU is checked only when it changes, because 162 of `dev`'s 1,379 SKUs contain `--` and break the rule. Those products can still be edited.
+    - No conditional write on non-stock fields, because orders update `updatedAt` constantly and would cause false conflicts on a price edit.
+    - **No notification call:** Quang's `049abff` removed `notifyAdmins()` and `AdminNotification`, and his notifications are computed live from product stock, so low stock appears without one. His screen reads only the global threshold, so it does not yet honor `lowStockThreshold` on a variant.
+- [x] `DELETE /products/:sku`: 409 `PRODUCT_HAS_ORDERS` when `Order.exists({ "items.productId" })`. Otherwise delete the product and audit.
+  - Note: it deletes the whole product with all of its variants, because orders reference the product. Customer cart and wishlist code already skip a missing product.
+- [x] Tests: field validation, stale stock, stock below reserved, the movement recorded, both delete outcomes, and the notification created
+  - Note: `tests/admin-product-edit.test.js`, without the notification case, for the reason above.
+- [x] Frontend: `hooks/use-product-edit.ts` (moving `validateProduct`/`parseAmount` into it). Pet type and unit options come from `GET /master-data/options`. Server errors map to fields. "Tải ảnh lên" stays a demo (no uploads).
+  - Note: `validateProduct` and `parseAmount` stay in `validation.ts` so they can be unit tested, as in 1c and 2b. Brand and unit options come from master data, and a current value that is not in the list stays selectable, so the form works before `seed:admin` runs. Pet type is a fixed Chó, Mèo, or Tất cả, saving `dog`, `cat`, or `all`. The designed single category select became a checkbox list with a "Đã chọn" summary, because a product can have several (`frontend/design.md` is updated in phase 12). The SKU field is locked when the product has orders, and the delete button really deletes, after confirmation.
+- [x] Delete `mock/products.ts` and `mock/categories.ts` once no screen imports them
+  - Note: `mock/master-data.ts` went too, because only the product form still used it. Their tests left `tests/admin-mock.test.mjs`; the form validators keep theirs.
+- [x] Browser check
+  - Note: on the temporary database, at 1440 and 320 px: every field saved on real MongoDB, a cleared cost, a stock movement and audit entry in the history, the new price in the Customer catalog, a stale tab's 409, a SKU rename moving the URL, delete, and not-found. On a product with orders (`RC-C02`): SKU locked, rename refused by the server (409 `SKU_IN_USE`), delete refused. On reserved stock (`WH-T01`, 6 of 95): below reserved refused, with the message on the field. The only console errors are the expected 401, 400, and 409.
+- [x] **🛑 Commit checkpoint: Edit product**
 
 ## 5. Orders: `/admin/orders`
 

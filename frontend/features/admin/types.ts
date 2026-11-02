@@ -158,6 +158,9 @@ export type AdminProductDetail = {
   history: { id: string; at: string; title: string; actorName: string | null }[];
 };
 
+/** `GET /api/v1/admin/master-data/options`. */
+export type ProductOptions = { petTypes: { code: string; name: string }[]; brands: { code: string; name: string }[]; units: { code: string; name: string }[] };
+
 /** `POST /api/v1/admin/products/:sku/hide` and `/show`. */
 export type ProductVisibilityResult = Pick<AdminProductDetail, "sku" | "isActive" | "status">;
 

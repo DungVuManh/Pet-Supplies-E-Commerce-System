@@ -13,3 +13,4 @@ export { Notification } from "./notification.model.js";
 export { AuditLog } from "./audit-log.model.js";
 export { Setting } from "./setting.model.js";
 export { MasterData } from "./master-data.model.js";
+export { StockMovement } from "./stock-movement.model.js";

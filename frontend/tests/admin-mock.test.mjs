@@ -4,95 +4,28 @@ import { adminStatusTone, adminStatusTones } from "../features/admin/status.ts";
 import { isLowStock, lowStockLevels, lowStockTotal, stockLevels } from "../features/admin/mock/inventory.ts";
 import { cumulativeRevenue, overview, recentActivity } from "../features/admin/mock/overview.ts";
 import { parseAmount, validateCategory, validateProduct } from "../features/admin/validation.ts";
-import { categoryDeleteBlocker, categoryProductCount, countProducts, filterProducts, getProduct, productCategoryName, productStatus, products } from "../features/admin/mock/products.ts";
-import { categories, categoryPath, categoryTree, filterCategories, getCategory } from "../features/admin/mock/categories.ts";
-import { filterMasterData, masterData, masterTabs, petTypeOptions, unitOptions } from "../features/admin/mock/master-data.ts";
 import { adminOrders, countOrders, filterOrders, getAdminOrder, orderStatusLabel } from "../features/admin/mock/orders.ts";
-import { productSales, staffSales } from "../features/admin/mock/reports.ts";
-
-const allProducts = { tab: "all", query: "", category: "all", status: "all" };
-
-test("product tabs and first page match the product list design", () => {
-  assert.equal(countProducts("all"), 124);
-  assert.equal(countProducts("Đang bán"), 118);
-  assert.equal(countProducts("Đã ẩn"), 6);
-  assert.equal(new Set(products.map((p) => p.sku)).size, products.length);
-  assert.deepEqual(filterProducts(allProducts).slice(0, 6).map((p) => `${p.id} ${p.sku}`),
-    ["SP0001 RC-MA-2KG", "SP0002 RC-IN-2KG", "SP0003 CT-BEN-10L", "SP0004 KG-CL-M", "SP0005 PT-HN-M", "SP0006 WM-PATE-85"]);
-  assert.equal(productStatus(getProduct("CT-BEN-10L")), "Sắp hết hàng");
-  assert.equal(productStatus(getProduct("WM-PATE-85")), "Đã ẩn");
-  assert.equal(getProduct("NOPE"), undefined);
-});
-
-test("products agree with inventory, the dashboard low-stock total and category counts", () => {
-  for (const level of stockLevels) assert.equal(getProduct(level.sku)?.stock, level.available, level.sku);
-  assert.equal(products.filter((p) => p.stock < p.threshold).length, lowStockTotal);
-  const perLeaf = (code) => products.filter((p) => p.categoryCode === code).length;
-  assert.deepEqual(["DM002", "DM003", "DM004", "DM006", "DM007", "DM008", "DM009"].map(perLeaf), [24, 14, 10, 32, 16, 8, 20]);
-  assert.ok(products.every((p) => p.categoryCode !== "DM001" && p.categoryCode !== "DM005"), "products sit in leaf categories");
-  for (const row of [...productSales, ...inventoryReportRows]) assert.ok(getProduct(row.sku), `report links to ${row.sku}`);
-});
-
-test("product filters combine category scope, status and accent-insensitive search", () => {
-  assert.equal(filterProducts({ ...allProducts, category: "DM001" }).length, 48);
-  assert.ok(filterProducts({ ...allProducts, category: "DM001" }).every((p) => ["DM002", "DM003", "DM004"].includes(p.categoryCode)));
-  assert.deepEqual(filterProducts({ ...allProducts, query: "cat ve sinh catsan" }).map((p) => p.sku), ["CT-BEN-10L"]);
-  assert.equal(filterProducts({ ...allProducts, status: "Sắp hết hàng" }).length, lowStockTotal);
-  assert.equal(filterProducts({ ...allProducts, tab: "Đã ẩn", status: "Đang bán" }).length, 0);
-  assert.equal(categoryPath("DM002"), "Chó / Thức ăn cho chó");
-});
 
 test("product form validation and amount parsing", () => {
-  const valid = { name: "Royal Canin Mini Adult 2 kg", sku: "RC-MA-2KG", categoryCode: "DM002", price: "450.000", cost: "325.000", stock: "120", threshold: "20" };
+  const valid = { name: "Royal Canin Mini Adult 2 kg", sku: "RC-MA-2KG", categoryCodes: ["DM002"], price: "450.000", cost: "325.000", stock: "120", threshold: "20" };
   assert.deepEqual(validateProduct(valid), {});
+  assert.deepEqual(validateProduct({ ...valid, categoryCodes: ["DM002", "DM003"], cost: "", threshold: "" }), {});
   assert.equal(parseAmount("450.000"), 450000);
   assert.ok(Number.isNaN(parseAmount("45a")));
-  assert.deepEqual(Object.keys(validateProduct({ ...valid, name: "R", sku: "rc ma", categoryCode: "", price: "0", stock: "-1" })).sort(),
-    ["categoryCode", "name", "price", "sku", "stock"]);
+  assert.deepEqual(Object.keys(validateProduct({ ...valid, name: "R", sku: "rc ma", categoryCodes: [], price: "0", stock: "-1" })).sort(),
+    ["categoryCodes", "name", "price", "sku", "stock"]);
 });
 
-test("category tree matches the design order, codes, slugs and derived product counts", () => {
-  assert.deepEqual(categoryTree().map((c) => c.code), ["DM001", "DM002", "DM003", "DM004", "DM005", "DM006", "DM007", "DM008", "DM009"]);
-  assert.deepEqual(categoryTree().map((c) => categoryProductCount(c.code)), [48, 24, 14, 10, 56, 32, 16, 8, 20]);
-  assert.equal(getCategory("DM002")?.slug, "thuc-an-cho-cho");
-  assert.equal(getCategory("DM007")?.slug, "ve-sinh-cat-meo");
-  assert.equal(getCategory("NOPE"), undefined);
-});
-
-test("category filter keeps the parent of a matching child and the delete rule explains blockers", () => {
-  const rows = filterCategories({ query: "cat meo", status: "all" });
-  assert.deepEqual(rows.map((r) => [r.category.code, r.context]), [["DM005", true], ["DM007", false]]);
-  assert.equal(filterCategories({ query: "", status: "Đã ẩn" }).length, 0);
-  assert.equal(categoryDeleteBlocker("DM002"), "còn 24 sản phẩm liên kết");
-  assert.match(categoryDeleteBlocker("DM001"), /48 sản phẩm/);
+test("an older SKU is checked only when it changes, so its product can still be saved", () => {
+  const valid = { name: "Pate", sku: "PATE--001", categoryCodes: ["DM002"], price: "1", cost: "", stock: "0", threshold: "" };
+  assert.deepEqual(validateProduct({ ...valid, skuChanged: false }), {});
+  assert.deepEqual(Object.keys(validateProduct({ ...valid, skuChanged: true })), ["sku"]);
 });
 
 test("category form validation", () => {
   assert.deepEqual(validateCategory({ name: "Thức ăn cho chó", slug: "thuc-an-cho-cho", order: "1" }), {});
   assert.deepEqual(Object.keys(validateCategory({ name: "T", slug: "Thức ăn", order: "0" })).sort(), ["name", "order", "slug"]);
-});
-
-test("master data tab counts match the design and agree with products and breeds", () => {
-  assert.deepEqual(masterTabs.map((t) => masterData[t.kind].length), [5, 24, 12, 6, 3]);
-  assert.deepEqual(masterData.pets.map((r) => `${r.code} ${r.metric} ${r.status}`),
-    ["PET-DOG 12 giống Hoạt động", "PET-CAT 8 giống Hoạt động", "PET-BIRD 2 giống Hoạt động", "PET-HAM 2 giống Hoạt động", "PET-FISH 0 giống Tạm ngưng"]);
-  const brandTotal = masterData.brands.reduce((sum, r) => sum + Number.parseInt(r.metric, 10), 0);
-  const unitTotal = masterData.units.reduce((sum, r) => sum + Number.parseInt(r.metric, 10), 0);
-  assert.equal(brandTotal, products.length);
-  assert.equal(unitTotal, products.length);
-  assert.ok(products.every((p) => unitOptions.includes(p.unit)), "every product unit is a master-data unit");
-  assert.ok(!petTypeOptions.includes("Cá cảnh"), "paused pet types are not offered in product forms");
-  for (const kind of Object.keys(masterData)) {
-    assert.equal(new Set(masterData[kind].map((r) => r.code)).size, masterData[kind].length, `unique codes in ${kind}`);
-    assert.ok(masterData[kind].every((r) => r.status in adminStatusTones));
-  }
-});
-
-test("master data filters search code, name and description and status", () => {
-  assert.deepEqual(filterMasterData("pets", { query: "ca canh", status: "all" }).map((r) => r.code), ["PET-FISH"]);
-  assert.deepEqual(filterMasterData("pets", { query: "", status: "Tạm ngưng" }).map((r) => r.code), ["PET-FISH"]);
-  assert.equal(filterMasterData("breeds", { query: "meo", status: "all" }).length, 8);
-  assert.equal(filterMasterData("brands", { query: "RC-ZERO", status: "all" }).length, 0);
+  assert.deepEqual(Object.keys(validateCategory({ name: "Thức ăn", slug: "thuc-an", order: "1", description: "x".repeat(501) })), ["description"]);
 });
 
 test("admin orders include every Staff order and every order linked from other admin screens", () => {
@@ -132,21 +65,7 @@ test("audit log details open the affected record", () => {
   ]);
   for (const entry of auditLogEntries) {
     const href = auditTargetHref(entry.target);
-    if (href.startsWith("/admin/products/")) assert.ok(getProduct(entry.target), entry.target);
     if (href.startsWith("/admin/orders")) assert.ok(getAdminOrder(entry.target), entry.target);
-  }
-});
-
-test("report and inventory data agree with products, categories and staff accounts", () => {
-  const leafNames = new Set(categories.filter((c) => c.parent || c.code === "DM009").map((c) => c.name));
-  for (const level of stockLevels) {
-    assert.ok(leafNames.has(level.category), `inventory category ${level.category}`);
-    assert.equal(level.category, productCategoryName(getProduct(level.sku)), level.sku);
-    assert.equal(level.unit, getProduct(level.sku).unit.toLowerCase(), `unit of ${level.sku}`);
-  }
-  for (const row of inventoryReportRows) assert.equal(row.category, productCategoryName(getProduct(row.sku)), row.sku);
-  for (const row of productSales) {
-    assert.equal(row.unit, getProduct(row.sku).unit.toLowerCase(), `sales unit of ${row.sku}`);
   }
 });
 

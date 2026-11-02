@@ -6,6 +6,7 @@ import { Category } from "../src/models/category.model.js";
 import { Order } from "../src/models/order.model.js";
 import { Product } from "../src/models/product.model.js";
 import { Setting } from "../src/models/setting.model.js";
+import { StockMovement } from "../src/models/stock-movement.model.js";
 import { createAdminTestApp } from "./helpers/admin-app.js";
 
 const id = (suffix) => new mongoose.Types.ObjectId(`d0000000000000000000${suffix}`);
@@ -41,6 +42,7 @@ beforeEach(() => {
  vi.spyOn(Setting, "findById").mockImplementation(() => query({ lowStockThreshold: 5 }));
  vi.spyOn(Order, "exists").mockResolvedValue(null);
  vi.spyOn(AuditLog, "find").mockImplementation(() => query(audits));
+ vi.spyOn(StockMovement, "find").mockImplementation(() => query([]));
  vi.spyOn(AuditLog, "create").mockImplementation(async (entry) => entry);
  vi.spyOn(Product, "updateOne").mockImplementation(async (filter, update) => {
   const current = product.isActive !== false;
@@ -87,6 +89,16 @@ describe("GET /api/v1/admin/products/:sku", () => {
    { id: String(id("c001")), at: "2026-10-20T03:00:00.000Z", title: "Ẩn sản phẩm RC-1", actorName: "Quản trị viên" },
    { id: String(id("c002")), at: "2026-10-19T03:00:00.000Z", title: "product.show", actorName: null },
   ]);
+ });
+
+ it("merges stock movements into the history, newest first", async () => {
+  audits = [{ _id: id("c001"), at: new Date("2026-10-20T03:00:00Z"), action: "product.hide", summary: "Ẩn", actorId: null }];
+  StockMovement.find.mockImplementation(() => query([
+   { _id: id("e001"), at: new Date("2026-10-21T03:00:00Z"), sku: "RC-1", quantity: -5, stockBefore: 50, stockAfter: 45, actorId: { fullName: "Quản trị viên" } },
+  ]));
+  const { body } = await admin.send("GET", url("RC-1")).expect(200);
+  expect(body.data.history.map((entry) => entry.title)).toEqual(["Điều chỉnh tồn kho RC-1: -5 (50 → 45)", "Ẩn"]);
+  expect(StockMovement.find).toHaveBeenCalledWith({ productId: product._id });
  });
 
  it("returns 404 for an unknown SKU", async () => {

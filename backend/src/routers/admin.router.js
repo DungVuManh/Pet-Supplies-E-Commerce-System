@@ -5,7 +5,7 @@ import { dashboard } from "../controllers/dashboard.controller.js";
 import { listInventory } from "../controllers/inventory.controller.js";
 import { deleteCategory, getCategory, listCategories, updateCategory } from "../controllers/admin/category.controller.js";
 import { listMasterData, listMasterDataOptions } from "../controllers/admin/master-data.controller.js";
-import { getProduct, hideProduct, listProducts, showProduct } from "../controllers/admin/product.controller.js";
+import { deleteProduct, getProduct, hideProduct, listProducts, showProduct, updateProduct } from "../controllers/admin/product.controller.js";
 import { listPermissions } from "../controllers/admin/permission.controller.js";
 import { getUser, listUsers, lockUser, unlockUser, updateUser } from "../controllers/admin/user.controller.js";
 import {
@@ -30,6 +30,8 @@ router.get("/master-data/options", listMasterDataOptions);
 router.get("/permissions", listPermissions);
 router.get("/products", listProducts);
 router.get("/products/:sku", getProduct);
+router.patch("/products/:sku", protectMutation, updateProduct);
+router.delete("/products/:sku", protectMutation, deleteProduct);
 router.post("/products/:sku/hide", protectMutation, hideProduct);
 router.post("/products/:sku/show", protectMutation, showProduct);
 router.get("/users", listUsers);
