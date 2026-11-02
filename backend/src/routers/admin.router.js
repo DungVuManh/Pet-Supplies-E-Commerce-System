@@ -3,6 +3,7 @@ import { readCookies, requireAuth, requireRole } from "../common/middlewares/aut
 import { dashboard } from "../controllers/dashboard.controller.js";
 import { listInventory } from "../controllers/inventory.controller.js";
 import { protectMutation } from "../controllers/auth.controller.js";
+import { listPermissions } from "../controllers/admin/permission.controller.js";
 import { getUser, listUsers, lockUser, unlockUser, updateUser } from "../controllers/admin/user.controller.js";
 
 // Mounted at /api/v1/admin. Every route requires an Admin session; mutations
@@ -12,6 +13,7 @@ router.use(readCookies, requireAuth, requireRole("admin"));
 
 router.get("/dashboard", dashboard);
 router.get("/inventory", listInventory);
+router.get("/permissions", listPermissions);
 router.get("/users", listUsers);
 router.get("/users/:id", getUser);
 router.patch("/users/:id", protectMutation, updateUser);

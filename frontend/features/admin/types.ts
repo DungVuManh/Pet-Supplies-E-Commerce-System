@@ -58,5 +58,13 @@ export type AdminUserDetail = AdminUserRow & {
 /** `POST /api/v1/admin/users/:id/lock` and `/unlock`. */
 export type UserLockResult = Pick<AdminUserDetail, "id" | "status" | "lockedAt" | "lockReason">;
 
+export type PermissionRole = "customer" | "staff" | "admin";
+
+/** `GET /api/v1/admin/permissions`: fixed in code, so read-only here. */
+export type PermissionMatrix = {
+  items: { id: string; label: string; roles: Record<PermissionRole, boolean> }[];
+  counts: Record<PermissionRole, number>;
+};
+
 export type UserCounts = { all: number; customer: number; staff: number };
 export type UserFilter = { tab: UserRole | "all"; q: string; role: UserRole | "all"; status: UserStatus | "all" };

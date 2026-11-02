@@ -3,56 +3,12 @@ import test from "node:test";
 import { adminStatusTone, adminStatusTones } from "../features/admin/status.ts";
 import { isLowStock, lowStockLevels, lowStockTotal, stockLevels } from "../features/admin/mock/inventory.ts";
 import { cumulativeRevenue, overview, recentActivity } from "../features/admin/mock/overview.ts";
-import { countUsers, filterUsers, getUser, getUserDetail, users } from "../features/admin/mock/users.ts";
-import { defaultPermissions, togglePermission } from "../features/admin/mock/permissions.ts";
 import { parseAmount, validateCategory, validateProduct } from "../features/admin/validation.ts";
 import { categoryDeleteBlocker, categoryProductCount, countProducts, filterProducts, getProduct, productCategoryName, productStatus, products } from "../features/admin/mock/products.ts";
 import { categories, categoryPath, categoryTree, filterCategories, getCategory } from "../features/admin/mock/categories.ts";
 import { filterMasterData, masterData, masterTabs, petTypeOptions, unitOptions } from "../features/admin/mock/master-data.ts";
 import { adminOrders, countOrders, filterOrders, getAdminOrder, orderStatusLabel } from "../features/admin/mock/orders.ts";
 import { productSales, staffSales } from "../features/admin/mock/reports.ts";
-
-const allUsers = { tab: "all", query: "", role: "all", status: "all" };
-
-test("user tab counts match the design and identifiers are unique", () => {
-  assert.equal(countUsers("all"), 348);
-  assert.equal(countUsers("customer"), 342);
-  assert.equal(countUsers("staff"), 6);
-  assert.equal(new Set(users.map((user) => user.id)).size, users.length);
-  assert.ok(users.every((user) => /^0\d{3} \d{3} \d{3}$/.test(user.phone)), "phones use the 0901 234 567 format");
-});
-
-test("the first user page shows the six designed rows in order", () => {
-  assert.deepEqual(filterUsers(allUsers).slice(0, 6).map((user) => user.id), ["KH0001", "KH0002", "NV0001", "NV0002", "KH0003", "KH0004"]);
-  assert.equal(getUser("KH0003")?.status, "Đã khóa");
-  assert.equal(getUser("NOPE"), undefined);
-});
-
-test("user search ignores accents and combines with tab, role and status", () => {
-  assert.deepEqual(filterUsers({ ...allUsers, query: "do khanh linh" }).map((user) => user.id), ["KH0004"]);
-  assert.deepEqual(filterUsers({ ...allUsers, query: "0934 567 890" }).map((user) => user.id), ["NV0001"]);
-  assert.deepEqual(filterUsers({ ...allUsers, query: "0934567890" }).map((user) => user.id), ["NV0001"]);
-  assert.ok(filterUsers({ ...allUsers, tab: "staff", status: "Đã khóa" }).every((user) => user.role === "staff" && user.status === "Đã khóa"));
-  assert.equal(filterUsers({ ...allUsers, tab: "customer", role: "staff" }).length, 0);
-});
-
-test("user detail keeps the designed KH0001 values and resolves every listed user", () => {
-  const detail = getUserDetail("KH0001");
-  assert.equal(detail?.completedOrders, 12);
-  assert.equal(detail?.totalSpent, 5_840_000);
-  assert.deepEqual(detail?.activity.map((row) => row.status), ["Chờ xử lý", "Thành công", "Hoàn thành"]);
-  assert.ok(users.every((user) => getUserDetail(user.id)?.activity.every((row) => row.status in adminStatusTones && row.href.startsWith("/admin/"))));
-  assert.equal(getUserDetail("NOPE"), undefined);
-});
-
-test("permission matrix keeps Admin locked and toggles only the chosen cell", () => {
-  assert.equal(defaultPermissions.length, 9);
-  assert.ok(defaultPermissions.every((item) => item.roles.admin));
-  assert.equal(togglePermission(defaultPermissions, "finance", "admin"), defaultPermissions);
-  const next = togglePermission(defaultPermissions, "finance", "staff");
-  assert.equal(next.find((item) => item.id === "finance")?.roles.staff, true);
-  assert.equal(defaultPermissions.find((item) => item.id === "finance")?.roles.staff, false, "original matrix is not mutated");
-});
 
 const allProducts = { tab: "all", query: "", category: "all", status: "all" };
 
@@ -143,7 +99,7 @@ test("admin orders include every Staff order and every order linked from other a
   const ids = new Set(adminOrders.map((o) => o.id));
   assert.equal(ids.size, adminOrders.length, "unique order IDs");
   for (const order of orders) assert.deepEqual(getAdminOrder(order.id), order, `shared with Staff: ${order.id}`);
-  const linked = [...recentActivity.map((r) => r.href), ...users.flatMap((u) => getUserDetail(u.id).activity.map((a) => a.href))]
+  const linked = recentActivity.map((r) => r.href)
     .filter((href) => href.startsWith("/admin/orders?q=")).map((href) => href.split("=")[1]);
   for (const id of linked) assert.ok(ids.has(id), `linked order ${id} exists`);
   for (const request of initialCancellations) assert.ok(ids.has(request.orderId), `cancellation ${request.id} order exists`);
@@ -177,7 +133,6 @@ test("audit log details open the affected record", () => {
   for (const entry of auditLogEntries) {
     const href = auditTargetHref(entry.target);
     if (href.startsWith("/admin/products/")) assert.ok(getProduct(entry.target), entry.target);
-    if (href.startsWith("/admin/users/")) assert.ok(getUser(entry.target), entry.target);
     if (href.startsWith("/admin/orders")) assert.ok(getAdminOrder(entry.target), entry.target);
   }
 });
@@ -190,12 +145,9 @@ test("report and inventory data agree with products, categories and staff accoun
     assert.equal(level.unit, getProduct(level.sku).unit.toLowerCase(), `unit of ${level.sku}`);
   }
   for (const row of inventoryReportRows) assert.equal(row.category, productCategoryName(getProduct(row.sku)), row.sku);
-  const staffNames = new Set(users.filter((u) => u.role === "staff").map((u) => u.fullName));
   for (const row of productSales) {
-    assert.ok(staffNames.has(row.staff), `sales staff ${row.staff}`);
     assert.equal(row.unit, getProduct(row.sku).unit.toLowerCase(), `sales unit of ${row.sku}`);
   }
-  for (const row of staffSales) assert.ok(staffNames.has(row.staff), `staff report ${row.staff}`);
 });
 
 test("dashboard revenue chart ends at the net revenue KPI and only grows", () => {

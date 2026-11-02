@@ -137,11 +137,15 @@ UI it serves: `docs/specs/admin-workspace-ui.md` (complete on mock data in `fron
 - [x] **🛑 Commit checkpoint: Edit user**
 
 ### 1d. Roles & permissions: `/admin/users/roles`
-- [ ] `GET /permissions`: the 9-row matrix from a constant in `common/permissions.js`, documented as mirroring the `requireRole` usage, plus the per-role account counts
-- [ ] Test: the matrix's Staff rows agree with the routes guarded by `requireRole("staff")`
-- [ ] Frontend: render the matrix read-only. Replace "Lưu phân quyền" with an `InfoCallout` explaining that permissions are fixed by the system for this release. Delete `mock/permissions.ts` and `mock/users.ts`.
-- [ ] Browser check
-- [ ] **🛑 Commit checkpoint: Roles & permissions**
+- [x] `GET /permissions`: the 9-row matrix from a constant in `common/permissions.js`, documented as mirroring the `requireRole` usage, plus the per-role account counts
+  - Note: the matrix differs from the mock, because the spec says it follows the real rules. "Mua hàng và xem đơn của mình" is Customer only: `/orders/my-orders` is `requireRole("customer")`, and roles do not inherit. Rows for Admin screens not built yet (orders, cancellations, reports) already show Admin as allowed, because that is the planned access.
+- [x] Test: the matrix's Staff rows agree with the routes guarded by `requireRole("staff")`
+  - Note: `tests/admin-permissions.test.js` walks `workspace.router.js`. A new `/staff/*` route fails the test until a row lists it, so whoever adds one will see it. Every listed route is also requested as Customer and Admin and must return 403.
+- [x] Frontend: render the matrix read-only. Replace "Lưu phân quyền" with an `InfoCallout` explaining that permissions are fixed by the system for this release. Delete `mock/permissions.ts` and `mock/users.ts`.
+  - Note: the tests of those mocks left `tests/admin-mock.test.mjs`, and the check that report Staff names exist as mock users went with them. **Until phases 8 and 11c, the mock links `/admin/users/KH0004` on the dashboard and `/admin/users/KH…` in the audit log return 404**, because real users are addressed by id.
+- [x] Browser check
+  - Note: 1440 and 320 px: 9 rows, nothing editable, counts match the API, no page-level horizontal scroll. The only console error is the expected 401 before login.
+- [x] **🛑 Commit checkpoint: Roles & permissions**
 
 ## 2. Categories
 
