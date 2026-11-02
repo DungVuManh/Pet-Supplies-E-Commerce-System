@@ -83,11 +83,10 @@ export function ProductTabs({ product }: { product: Product }) {
         {[1, 2, 3, 4, 5].map((s) => (
           <Star
             key={s}
-            className={`${size} ${
-              s <= Math.round(rating)
-                ? "fill-yellow-400 text-yellow-400"
-                : "text-gray-200 fill-gray-200"
-            }`}
+            className={`${size} ${s <= Math.round(rating)
+              ? "fill-yellow-400 text-yellow-400"
+              : "text-gray-200 fill-gray-200"
+              }`}
           />
         ))}
       </div>
@@ -103,11 +102,10 @@ export function ProductTabs({ product }: { product: Product }) {
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id)}
-            className={`-mb-px border-b-2 px-3 py-3 text-sm font-medium transition-colors cursor-pointer ${
-              activeTab === tab.id
-                ? "border-[#0B4DFF] text-[#0B4DFF] font-bold"
-                : "border-transparent text-slate-500 hover:text-slate-700"
-            }`}
+            className={`-mb-px border-b-2 px-3 py-3 text-sm font-medium transition-colors cursor-pointer ${activeTab === tab.id
+              ? "border-[#0B4DFF] text-[#0B4DFF] font-bold"
+              : "border-transparent text-slate-500 hover:text-slate-700"
+              }`}
           >
             {tab.label}
           </button>
@@ -185,22 +183,6 @@ export function ProductTabs({ product }: { product: Product }) {
                   })}
                 </div>
 
-                {/* 4. Nút xanh to "Viết đánh giá" */}
-                <div className="mt-8 flex flex-col items-center sm:items-stretch">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      alert("Tính năng viết đánh giá dành cho khách hàng đã hoàn thành đơn hàng có chứa sản phẩm này.");
-                    }}
-                    className="w-full rounded-xl bg-[#0B4DFF] px-6 py-3.5 text-center text-sm font-bold text-white transition-all hover:bg-blue-700 active:scale-[0.99] cursor-pointer shadow-sm shadow-blue-500/20"
-                  >
-                    Viết đánh giá
-                  </button>
-                  {/* 5. Dòng chữ nhỏ giải thích điều kiện */}
-                  <p className="mt-2 text-center text-xs text-gray-400">
-                    Chỉ khách đã mua và nhận hàng mới đánh giá được.
-                  </p>
-                </div>
               </div>
 
               {/* ================= CỘT PHẢI: DANH SÁCH REVIEW (chiếm 7/12 cột) ================= */}
