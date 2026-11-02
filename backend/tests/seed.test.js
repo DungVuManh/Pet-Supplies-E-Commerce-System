@@ -7,7 +7,7 @@ import * as environment from "../src/config/env.js";
 import { seed, seedSampleData } from "../src/scripts/seed.js";
 
 // Admin-only models get their sample data from seed-admin.js instead.
-const sampleModels = Object.values(models).filter((Model) => ![models.User, models.AdminNotification, models.MasterData].includes(Model));
+const sampleModels = Object.values(models).filter((Model) => ![models.User, models.MasterData].includes(Model));
 const sourceCategories = JSON.parse(readFileSync(new URL("../src/scripts/data/categories.json", import.meta.url), "utf8"));
 const sourceProducts = JSON.parse(readFileSync(new URL("../src/scripts/data/products.json", import.meta.url), "utf8"));
 const key = (Model, filter) => `${Model.modelName}:${JSON.stringify(filter)}`;

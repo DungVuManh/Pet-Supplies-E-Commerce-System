@@ -1,6 +1,7 @@
 import { Setting } from "../models/setting.model.js";
 import { Product } from "../models/product.model.js";
 import { parseInventoryQuery } from "../validators/inventory.validator.js";
+import { searchTokens, accentInsensitiveRegex } from "../common/search.js";
 
 function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -53,8 +54,30 @@ export async function listInventory(request, response, next) {
 
     if (query) {
       const pattern = { $regex: escapeRegex(query), $options: "i" };
+      const tokens = searchTokens(query);
+
+      const tokenConditions = tokens.map((token) => {
+        const regex = accentInsensitiveRegex(token);
+        return {
+          $or: [
+            { name: regex },
+            { "variants.sku": regex },
+            { brand: regex },
+          ],
+        };
+      });
+
+      const orBranches = [
+        { name: pattern },
+        { "variants.sku": pattern },
+      ];
+
+      if (tokenConditions.length > 0) {
+        orBranches.push({ $and: tokenConditions });
+      }
+
       pipeline.push({
-        $match: { $or: [{ name: pattern }, { "variants.sku": pattern }] },
+        $match: { $or: orBranches },
       });
     }
 

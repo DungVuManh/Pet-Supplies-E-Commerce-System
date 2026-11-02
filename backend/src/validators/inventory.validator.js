@@ -5,13 +5,15 @@ export function parseInventoryQuery(query = {}) {
     Math.max(1, parseInt(query.pageSize || query.limit, 10) || 6),
   );
 
-  // Xử lý từ khóa tìm kiếm (nhận cả query lẫn search)
+  // Xử lý từ khóa tìm kiếm (nhận q, query lẫn search)
   const searchQuery =
     typeof query.query === "string"
       ? query.query.trim()
       : typeof query.search === "string"
         ? query.search.trim()
-        : "";
+        : typeof query.q === "string"
+          ? query.q.trim()
+          : "";
 
   // Xử lý trạng thái (chuyển đổi từ giao diện sang format DB: 'all', 'available', 'low', 'out')
   let status =

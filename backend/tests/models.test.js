@@ -13,7 +13,6 @@ import { Review } from "../src/models/review.model.js";
 import { Notification } from "../src/models/notification.model.js";
 import { AuditLog } from "../src/models/audit-log.model.js";
 import { Setting } from "../src/models/setting.model.js";
-import { AdminNotification } from "../src/models/admin-notification.model.js";
 import * as models from "../src/models/index.js";
 
 const userId = new mongoose.Types.ObjectId();
@@ -257,17 +256,6 @@ describe("supporting models", () => {
   expect(models.User.schema.indexes()).toContainEqual([{ role: 1, status: 1, createdAt: -1 }, expect.anything()]);
  });
 
- it("stores shared Admin notifications with per-Admin read and saved state", async () => {
-  const notification = new AdminNotification({ type: "stock", title: "Sắp hết hàng", targetHref: "/admin/inventory", reference: "SKU-1" });
-  await expect(notification.validate()).resolves.toBeUndefined();
-  expect(notification.readBy).toHaveLength(0);
-  expect(notification.savedBy).toHaveLength(0);
-  expect(AdminNotification.collection.name).toBe("adminNotifications");
-  for (const patch of [{ type: "promo" }, { title: " " }, { targetHref: "https://example.test" }]) {
-   await expect(new AdminNotification({ type: "order", title: "Đơn mới", ...patch }).validate()).rejects.toThrow();
-  }
- });
-
  it("provides singleton settings with the SRS defaults and validates counts/fees", async () => {
   const settings = new Setting();
   await expect(settings.validate()).resolves.toBeUndefined();
@@ -281,7 +269,7 @@ describe("supporting models", () => {
 
  it("exports all SRS models without changing Firebase users", () => {
   expect(Object.keys(models).sort()).toEqual([
-   "Address", "AdminNotification", "AuditLog", "Cart", "Category", "MasterData", "Notification", "Order", "Payment",
+   "Address", "AuditLog", "Cart", "Category", "MasterData", "Notification", "Order", "Payment",
    "PetProfile", "Product", "Promotion", "Review", "Setting", "User", "Wishlist",
   ]);
   expect(models.User.schema.path("firebaseUid").options.unique).toBe(true);

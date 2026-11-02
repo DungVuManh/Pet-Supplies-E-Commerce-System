@@ -1,23 +1,90 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { useState, useEffect, type FormEvent } from "react";
+import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { AdminPageHeader } from "./admin-ui";
 import { SystemNav } from "./system-nav";
-import { defaultStoreSettings, type StoreSettings } from "../mock/system";
 import { Switch } from "@/components/workspace/switch";
 import { card, control, primaryLink } from "@/components/workspace/workspace-ui";
+import { apiGet, apiSend } from "@/lib/api-client";
+
+export type StoreSettings = {
+  storeName: string;
+  contactEmail: string;
+  hotline: string;
+  address: string;
+  timezone: string;
+  currency: string;
+  standardShipping: boolean;
+  expressShipping: boolean;
+  freeShippingThreshold: number;
+  codPayment: boolean;
+  bankTransfer: boolean;
+  vnpay: boolean;
+  accountHolder: string;
+  emailOrderConfirmation: boolean;
+  lowStockAlert: boolean;
+  dailyRevenueReport: boolean;
+  promoNotification: boolean;
+  lowStockThreshold?: number;
+  shippingFee?: number;
+};
+
+const initialFormState: StoreSettings = {
+  storeName: "",
+  contactEmail: "",
+  hotline: "",
+  address: "",
+  timezone: "GMT+7 · Việt Nam",
+  currency: "VND – Việt Nam đồng",
+  standardShipping: true,
+  expressShipping: false,
+  freeShippingThreshold: 0,
+  codPayment: true,
+  bankTransfer: false,
+  vnpay: false,
+  accountHolder: "",
+  emailOrderConfirmation: true,
+  lowStockAlert: true,
+  dailyRevenueReport: false,
+  promoNotification: false,
+};
 
 export function StoreSettingsView() {
-  const [form, setForm] = useState<StoreSettings>(defaultStoreSettings);
+  const [form, setForm] = useState<StoreSettings>(initialFormState);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [saveError, setSaveError] = useState("");
   const [errors, setErrors] = useState<{ storeName?: string; contactEmail?: string }>({});
   const [notice, setNotice] = useState("");
 
-  const handleSubmit = (e: FormEvent) => {
+  const loadSettings = async () => {
+    setIsLoading(true);
+    setLoadError("");
+    try {
+      const data = await apiGet<StoreSettings>("/api/v1/admin/settings");
+      if (data) {
+        setForm(data);
+      }
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : "Không thể kết nối máy chủ để lấy cấu hình.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const found: typeof errors = {};
     if (!form.storeName.trim()) found.storeName = "Vui lòng nhập tên cửa hàng.";
-    if (form.contactEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contactEmail.trim())) found.contactEmail = "Nhập email hợp lệ, ví dụ hello@petly.vn.";
+    if (form.contactEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contactEmail.trim())) {
+      found.contactEmail = "Nhập email hợp lệ, ví dụ admin@example.com.";
+    }
     setErrors(found);
     const first = Object.keys(found)[0];
     if (first) {
@@ -25,7 +92,22 @@ export function StoreSettingsView() {
       document.getElementById(first === "storeName" ? "store-name" : "store-email")?.focus();
       return;
     }
-    setNotice("Đã lưu cấu hình hệ thống thành công (bản demo không lưu vào cơ sở dữ liệu).");
+
+    setIsSaving(true);
+    setSaveError("");
+    setNotice("");
+
+    try {
+      const updated = await apiSend<StoreSettings>("PUT", "/api/v1/admin/settings", form);
+      if (updated) {
+        setForm(updated);
+      }
+      setNotice("Đã lưu cấu hình hệ thống thành công vào cơ sở dữ liệu MongoDB.");
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Đã xảy ra lỗi khi lưu cấu hình vào cơ sở dữ liệu.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -38,14 +120,68 @@ export function StoreSettingsView() {
           <button
             type="submit"
             form="store-settings-form"
-            className={`${primaryLink} min-h-12 px-8`}
+            disabled={isLoading || isSaving}
+            className={`${primaryLink} min-h-12 px-8 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed`}
           >
-            Lưu cấu hình
+            {isSaving && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+            {isSaving ? "Đang lưu..." : "Lưu cấu hình"}
           </button>
         }
       />
 
       <SystemNav />
+
+      {/* Loading indicator */}
+      {isLoading && (
+        <div
+          role="status"
+          className="flex items-center gap-3 rounded-lg border border-line bg-surface px-6 py-4 text-sm text-muted"
+        >
+          <Loader2 className="h-5 w-5 animate-spin text-brand" aria-hidden="true" />
+          <span>Đang tải cấu hình thực tế từ MongoDB...</span>
+        </div>
+      )}
+
+      {/* Load error */}
+      {loadError && (
+        <div
+          role="alert"
+          className="flex items-center justify-between gap-3 rounded-lg border border-danger/20 bg-danger/10 px-6 py-4 text-sm font-medium text-danger"
+        >
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
+            <span>{loadError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={loadSettings}
+            className="text-xs underline hover:no-underline font-semibold"
+          >
+            Thử lại
+          </button>
+        </div>
+      )}
+
+      {/* Save error */}
+      {saveError && (
+        <div
+          role="alert"
+          className="flex items-center justify-between gap-3 rounded-lg border border-danger/20 bg-danger/10 px-6 py-4 text-sm font-medium text-danger"
+        >
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
+            <span>{saveError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSaveError("")}
+            className="text-xs text-muted hover:text-ink"
+            aria-label="Đóng thông báo lỗi"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Success notice */}
       {notice && (
@@ -98,7 +234,11 @@ export function StoreSettingsView() {
                   }}
                   className={`${control} ${errors.storeName ? "border-danger" : ""}`}
                 />
-                {errors.storeName && <p id="store-name-error" role="alert" className="text-xs text-danger">{errors.storeName}</p>}
+                {errors.storeName && (
+                  <p id="store-name-error" role="alert" className="text-xs text-danger">
+                    {errors.storeName}
+                  </p>
+                )}
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -118,7 +258,11 @@ export function StoreSettingsView() {
                     }}
                     className={`${control} ${errors.contactEmail ? "border-danger" : ""}`}
                   />
-                  {errors.contactEmail && <p id="store-email-error" role="alert" className="text-xs text-danger">{errors.contactEmail}</p>}
+                  {errors.contactEmail && (
+                    <p id="store-email-error" role="alert" className="text-xs text-danger">
+                      {errors.contactEmail}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex min-w-0 flex-col gap-2">
@@ -220,7 +364,7 @@ export function StoreSettingsView() {
 
         {/* Right column */}
         <div className="space-y-6">
-          {/* Phương thức thanh toán */}
+          {/* Phương thức thanh toán (giữ nguyên giao diện - xử lý logic sau) */}
           <section className={`${card} p-6`}>
             <h2 className="text-xl font-semibold">Phương thức thanh toán</h2>
 
