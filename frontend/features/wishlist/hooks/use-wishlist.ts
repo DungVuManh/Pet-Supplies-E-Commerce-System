@@ -257,3 +257,5 @@ export function useWishlistInternal() {
     refreshWishlist: loadWishlist,
   };
 }
+
+export const useWishlist = useWishlistInternal;

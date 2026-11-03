@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { ReactNode } from "react";
@@ -7,7 +6,7 @@ import { AccountSidebar } from "@/features/orders/components/account-sidebar";
 import { ChevronRight } from "lucide-react";
 
 interface AccountShellProps {
-  activeTab: "profile" | "addresses" | "pets" | "orders";
+  activeTab: "profile" | "addresses" | "pets" | "orders" | "wishlist";
   children: ReactNode;
 }
 
@@ -17,11 +16,11 @@ export function AccountShell({ activeTab, children }: AccountShellProps) {
     addresses: "Sổ địa chỉ",
     pets: "Thú cưng của tôi",
     orders: "Đơn hàng của tôi",
+    wishlist: "Sản phẩm yêu thích",
   };
 
   return (
     <div className="container mx-auto px-4 py-6 md:py-8">
-
       {/* Breadcrumb */}
       <nav
         aria-label="Đường dẫn"
@@ -56,6 +55,5 @@ export function AccountShell({ activeTab, children }: AccountShellProps) {
         </main>
       </div>
     </div>
-
   );
 }

@@ -5,8 +5,6 @@ import React from "react";
 import { useCartPage } from "./hooks/use-cart-page";
 import { CartItemsTable } from "./components/cart-items-table";
 import { CartSummary } from "./components/cart-summary";
-import { CartTrustBanner } from "./components/cart-trust-banner";
-import { PromoCodeCard } from "./components/promo-code-card";
 
 export function CartView() {
  const {
