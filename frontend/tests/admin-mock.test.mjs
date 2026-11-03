@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { adminStatusTone, adminStatusTones } from "../features/admin/status.ts";
 import { isLowStock, lowStockLevels, lowStockTotal, stockLevels } from "../features/admin/mock/inventory.ts";
-import { cumulativeRevenue, overview, recentActivity } from "../features/admin/mock/overview.ts";
 import { parseAmount, validateCategory, validateProduct } from "../features/admin/validation.ts";
 
 test("product form validation and amount parsing", () => {
@@ -42,22 +41,10 @@ test("audit log details open the affected record", () => {
   ]);
 });
 
-test("dashboard revenue chart ends at the net revenue KPI and only grows", () => {
-  assert.equal(Math.round(cumulativeRevenue.at(-1)?.value * 1_000_000), overview.netRevenue);
-  for (let i = 1; i < cumulativeRevenue.length; i += 1) assert.ok(cumulativeRevenue[i].value >= cumulativeRevenue[i - 1].value);
-});
-
 test("dashboard stock alert lists only below-threshold items, within the low-stock total", () => {
   assert.deepEqual(lowStockLevels().map((item) => item.sku), ["CT-BEN-10L", "KG-CL-M", "PT-HN-M"]);
   assert.ok(lowStockLevels().length <= lowStockTotal);
   assert.ok(stockLevels.filter((item) => !isLowStock(item)).every((item) => item.available >= item.threshold));
-});
-
-test("every recent activity row uses a mapped status and an admin link", () => {
-  for (const row of recentActivity) {
-    assert.ok(row.status in adminStatusTones, row.status);
-    assert.match(row.href, /^\/admin\//);
-  }
 });
 
 import { filterCancellations, getCancellation, initialCancellations } from "../features/admin/mock/cancellations.ts";

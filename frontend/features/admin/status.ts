@@ -65,6 +65,9 @@ export const userActivityStatusLabels: Record<UserActivityStatus, AdminStatus> =
   denied: "Bị từ chối",
 };
 
+/** Badge label for a dashboard activity row: an order, an audit entry, or a new account. */
+export const overviewActivityStatusLabels: Record<UserActivityStatus | UserStatus, AdminStatus> = { ...userActivityStatusLabels, ...userStatusLabels };
+
 export function adminStatusTone(status: AdminStatus): BadgeTone {
   return adminStatusTones[status];
 }

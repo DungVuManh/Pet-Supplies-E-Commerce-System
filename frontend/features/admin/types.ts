@@ -27,6 +27,33 @@ export type AdminUserRow = {
   status: UserStatus;
 };
 
+export type OverviewPreset = "this-month" | "last-month" | "this-quarter";
+
+/** A count or amount in the period; `growthPercent` is null when the previous period gives no comparison. */
+export type OverviewMetric = { value: number; growthPercent: number | null };
+
+/** One row of the dashboard's recent activity. `value` is already formatted, or null when it doesn't apply. */
+export type OverviewActivity = {
+  id: string;
+  time: string;
+  title: string;
+  detail: string;
+  value: string | null;
+  status: UserActivityStatus | UserStatus;
+  href: string;
+};
+
+/** `GET /api/v1/admin/overview`. A metric that failed to load is null. */
+export type AdminOverview = {
+  generatedAt: string;
+  period: { preset: OverviewPreset | null; from: string; to: string };
+  revenue: OverviewMetric | null;
+  orders: OverviewMetric | null;
+  newCustomers: OverviewMetric | null;
+  lowStock: { total: number; items: { sku: string; name: string; available: number; threshold: number }[] } | null;
+  recentActivity: OverviewActivity[] | null;
+};
+
 export type UserActivityStatus = "pending" | "confirmed" | "processing" | "shipping" | "completed" | "cancelled" | "success" | "denied";
 
 /** One entry of a user's history, merged from their orders and the audit log. `amount` is set for orders. */
