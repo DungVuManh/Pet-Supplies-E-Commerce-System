@@ -23,7 +23,9 @@ const categories: NavigationCategory[] = [
   { name: "Dành cho mèo", href: "/products?petType=cat", petType: "cat" },
 ];
 
-const pageHome = [{ name: "Trang chủ", href: "/" }];
+const pageHome = [{ name: "Trang chủ", href: "/" }
+];
+const promotion = [{ name: "Khuyến mãi", href: "/voucher" }]
 
 // Reading the URL suspends during prerendering, so the header is first shown with no
 // pet type highlighted. That keeps the logo and navigation in the static shell.
@@ -223,6 +225,23 @@ function StorefrontHeaderContent({ currentPetType }: { currentPetType: string | 
                     >
                       {category.name}
                       {isAllProductActive && (
+                        <span className="absolute bottom-0 left-0 h-0.5 w-full bg-[#0B4DFF]" />
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
+              {promotion.map((item) => {
+                const isHomeActive = pathname === "/voucher";
+                return (
+                  <li key={item.name} className="flex h-full items-center">
+                    <Link
+                      href={item.href}
+                      className={`relative flex h-full items-center font-bold transition-colors ${isHomeActive ? "text-[#0B4DFF]" : "text-gray-700 hover:text-brand"
+                        }`}
+                    >
+                      {item.name}
+                      {isHomeActive && (
                         <span className="absolute bottom-0 left-0 h-0.5 w-full bg-[#0B4DFF]" />
                       )}
                     </Link>
