@@ -123,7 +123,6 @@ export function OrderStatusAction({ order }: { order: StaffOrderDetail }) {
         ))}
        </select>
       </label>
-      )}
      </fieldset>
      {confirming && (
       <p role="status" className="rounded-lg bg-canvas p-4">
