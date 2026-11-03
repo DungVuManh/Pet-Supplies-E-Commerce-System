@@ -5,10 +5,23 @@
 // Hook quản lý logic sao chép mã giảm giá vào clipboard
 // =============================================================
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { PublicVoucher } from "@/lib/voucher";
+import { listPublicVouchers } from "@/lib/voucher-api";
 
 export function useVoucherBar() {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [vouchers, setVouchers] = useState<PublicVoucher[]>([]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    listPublicVouchers({ signal: controller.signal }).then(
+      setVouchers,
+      // The homepage still loads without the bar.
+      () => {},
+    );
+    return () => controller.abort();
+  }, []);
 
   const handleCopy = async (code: string) => {
     try {
@@ -22,6 +35,7 @@ export function useVoucherBar() {
   };
 
   return {
+    vouchers,
     copiedCode,
     handleCopy,
   };

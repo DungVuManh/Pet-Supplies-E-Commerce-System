@@ -50,6 +50,7 @@ type LookupOrderData = {
   subtotal: number;
   shippingFee: number;
   discount: number;
+  promotionCode?: string | null;
   total: number;
   items: LookupOrderItem[];
 };
@@ -574,7 +575,7 @@ export function OrderTrackingView() {
                   {orderData.discount > 0 && (
                     <tr className="border-b border-line/60">
                       <td colSpan={5} className="px-6 py-2.5 text-right text-xs font-medium text-rose-600">
-                        Giảm giá:
+                        Giảm giá{orderData.promotionCode ? ` (${orderData.promotionCode})` : ""}:
                       </td>
                       <td colSpan={2} className="px-6 py-2.5 text-right font-semibold text-rose-600">
                         -{formatVND(orderData.discount)}

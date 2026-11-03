@@ -463,6 +463,7 @@ export async function getOrderDetail(request, response, next) {
       subtotal: order.subtotal,
       shippingFee: order.shippingFee || 0,
       discount: order.discount || 0,
+      promotionCode: order.promotionCode || null,
       totalAmount: order.total,
       paymentMethod: order.paymentMethod === "COD" ? "COD" : order.paymentMethod,
       paymentStatus: order.paymentStatus === "unpaid" ? "Chưa thanh toán" : "Đã thanh toán",
@@ -879,6 +880,7 @@ export async function lookupOrder(request, response, next) {
       subtotal: order.subtotal,
       shippingFee: order.shippingFee || 0,
       discount: order.discount || 0,
+      promotionCode: order.promotionCode || null,
       total: order.total,
       items: (order.items || []).map((item) => {
         const prod = productMap.get(item.productId?.toString());

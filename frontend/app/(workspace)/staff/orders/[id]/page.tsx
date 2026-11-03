@@ -130,7 +130,7 @@ export default async function OrderDetailPage({
        <dd className="text-right font-medium">{money(order.subtotal)}</dd>
        {order.discount > 0 && (
         <>
-         <dt className="text-muted">Giảm giá</dt>
+         <dt className="text-muted">Giảm giá{order.promotionCode ? ` (${order.promotionCode})` : ""}</dt>
          <dd className="text-right font-medium text-success">
           −{money(order.discount)}
          </dd>

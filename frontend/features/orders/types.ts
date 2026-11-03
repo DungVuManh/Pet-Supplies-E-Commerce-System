@@ -51,6 +51,7 @@ export type OrderDetail = {
   subtotal: number;
   shippingFee: number;
   discount: number;
+  promotionCode?: string | null;
   totalAmount: number;
   paymentMethod: string;
   paymentStatus: string;

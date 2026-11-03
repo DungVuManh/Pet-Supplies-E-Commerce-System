@@ -8,11 +8,12 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { ChevronRight, CheckCircle2, Copy } from "lucide-react";
+import { ChevronRight, CheckCircle2 } from "lucide-react";
 import { VoucherCard } from "./voucher-card";
-import { MOCK_VOUCHERS } from "../mock-data";
+import { usePublicVouchers } from "../hooks/use-public-vouchers";
 
 export function VoucherView() {
+  const { vouchers, status, retry } = usePublicVouchers();
   // Quản lý danh sách ID voucher đã lưu (lưu vào localStorage)
   const [savedIds, setSavedIds] = useState<string[]>([]);
   // Toast thông báo
@@ -91,8 +92,16 @@ export function VoucherView() {
       </div>
 
       {/* Lưới card: 5 cột trên desktop, 2 cột tablet, 1 cột mobile; khoảng cách đều ~24px (gap-6) */}
+      {status === "loading" && <p role="status" className="py-16 text-center text-sm text-muted">Đang tải mã giảm giá…</p>}
+      {status === "error" && (
+        <div role="alert" className="py-16 text-center">
+          <p className="text-sm text-danger">Không thể tải mã giảm giá. Vui lòng thử lại.</p>
+          <button type="button" onClick={retry} className="mt-4 min-h-11 rounded-xl bg-brand px-6 text-sm font-semibold text-white hover:bg-brand-hover">Thử lại</button>
+        </div>
+      )}
+      {status === "ready" && vouchers.length === 0 && <p className="py-16 text-center text-sm text-muted">Hiện chưa có mã giảm giá nào.</p>}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-        {MOCK_VOUCHERS.map((voucher) => (
+        {vouchers.map((voucher) => (
           <VoucherCard
             key={voucher.id}
             voucher={voucher}

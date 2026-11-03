@@ -167,23 +167,23 @@ Only touches `features/admin`, `app/(workspace)/admin`, and `admin-shell.tsx`. R
 
 Changes `features/cart`, `features/checkout`, `features/orders`, and the homepage voucher bar. Get the user's agreement first.
 
-- [ ] `lib/voucher.ts`: `quoteVoucher()` through the shared API client, and the remembered code in `sessionStorage`, cleared after an order.
-- [ ] Move `PromoCodeCard` to `components/storefront/promo-code-card.tsx`. Add a loading state, an applied state with the discount and a "Bỏ mã" button, and replace `text-red-500` with the semantic `text-danger` token.
-- [ ] Cart: remove the hard-coded `PETLY10` from `use-cart-page.ts`. Apply through the API, and quote again whenever the items change. The cart's guest and account paths must both work.
-- [ ] Checkout: add the card to the review column and restore the "Giảm giá" line in `order-review-card.tsx`, shown only when a voucher applies. Compute the displayed total from the quote.
-- [ ] Checkout covers Buy Now too: quote with the Buy Now item, and do not reuse a code remembered from the cart, because it belongs to different items.
-- [ ] Send `promotionCode` and `expectedDiscount` in `orderPayload` in `use-checkout.ts`. On `VOUCHER_INVALID` or `VOUCHER_CHANGED`, show the reason, refresh the total, and leave the cart and form intact.
-- [ ] A guest's phone number reaches the quote once entered, so once-per-customer is checked before they press order. If they change it later, the order step still catches it.
-- [ ] Order result page and order history: show the discount and code. `order-summary-sidebar.tsx` already has the field, so confirm it renders. Confirm Staff and Admin order details too.
-- [ ] Homepage voucher bar: read `GET /vouchers/public`, remove the hard-coded list, and hide the bar when there are none. The homepage must still load if the request fails.
-- [ ] `/voucher` page (added on `dev` on 03/11/2026, after this plan was written): read `GET /vouchers/public` and remove `features/vouchers/mock-data.ts`, so every code shown can be redeemed. The 6-item limit applies only to the homepage bar. Keep the existing layout. Agreed with the working-branch owner on 03/11/2026.
-- [ ] Browser check as a guest and as a Customer, at 1440 and 320 px:
-  - [ ] Cart to order: apply, remove, invalid code, below minimum, percent with a cap, and fixed.
-  - [ ] Buy Now to order.
-  - [ ] Turn the voucher off in a second window while checkout is open: the order is refused, nothing is charged, and the customer can continue.
-  - [ ] Cancel the order, then see the use return on the Admin page.
-  - [ ] An order without a voucher works exactly as before.
-- [ ] **🛑 Commit checkpoint: Vouchers at checkout.**
+- [x] `lib/voucher.ts`: `quoteVoucher()` through the shared API client, and the remembered code in `sessionStorage`, cleared after an order. API calls are in `lib/voucher-api.ts`, so the rest can be unit tested, and the shared state is in `lib/use-voucher-quote.ts`, because the cart and checkout both need it.
+- [x] Move `PromoCodeCard` to `components/storefront/promo-code-card.tsx`. Add a loading state, an applied state with the discount and a "Bỏ mã" button, and replace `text-red-500` with the semantic `text-danger` token.
+- [x] Cart: remove the hard-coded `PETLY10` from `use-cart-page.ts`. `dev` had removed the card from the cart page on 03/11/2026, so this also puts it back. Apply through the API, and quote again whenever the items change. The cart's guest and account paths must both work.
+- [x] Checkout: add the card to the review column and restore the "Giảm giá" line in `order-review-card.tsx`, shown only when a voucher applies. Compute the displayed total from the quote.
+- [x] Checkout covers Buy Now too: quote with the Buy Now item, and do not reuse a code remembered from the cart, because it belongs to different items.
+- [x] Send `promotionCode` and `expectedDiscount` in `orderPayload` in `use-checkout.ts`. On `VOUCHER_INVALID` or `VOUCHER_CHANGED`, show the reason, refresh the total, and leave the cart and form intact.
+- [x] A guest's phone number reaches the quote once entered, so once-per-customer is checked before they press order. If they change it later, the order step still catches it.
+- [x] Order result page and order history: show the discount and code. `order-summary-sidebar.tsx` already has the field, so confirm it renders. Confirm Staff and Admin order details too. The customer order page, public order tracking, and Staff order view now show both. Admin has an order list with no detail page, so there is nothing to change there.
+- [x] Homepage voucher bar: read `GET /vouchers/public`, remove the hard-coded list, and hide the bar when there are none. The homepage must still load if the request fails.
+- [x] `/voucher` page (added on `dev` on 03/11/2026, after this plan was written): read `GET /vouchers/public` and remove `features/vouchers/mock-data.ts`, so every code shown can be redeemed. The 6-item limit applies only to the homepage bar. Keep the existing layout. Agreed with the working-branch owner on 03/11/2026.
+- [x] Browser check as a guest and as a Customer, at 1440 and 320 px:
+  - [x] Cart to order: apply, remove, invalid code, below minimum, percent with a cap, and fixed.
+  - [x] Buy Now to order.
+  - [x] Turn the voucher off in a second window while checkout is open: the order is refused, nothing is charged, and the customer can continue.
+  - [x] Cancel the order, then see the use return on the Admin page.
+  - [x] An order without a voucher works exactly as before.
+- [x] **🛑 Commit checkpoint: Vouchers at checkout.**
 
 ## 7. Reports and final checks
 
