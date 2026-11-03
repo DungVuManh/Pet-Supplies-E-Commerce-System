@@ -114,16 +114,16 @@ Only touches `admin.router.js` and new files.
 
 Only touches `features/admin`, `app/(workspace)/admin`, and `admin-shell.tsx`. Read `frontend/design.md` first.
 
-- [ ] Add a "Voucher" sidebar entry to `admin-shell.tsx`, with a `TicketPercent` icon, after "Đơn hàng".
-- [ ] Add voucher types to `features/admin/types.ts`, and state labels and tones to `status.ts`.
-- [ ] Add `services/vouchers.ts`, `services/vouchers.server.ts`, and `hooks/use-vouchers-list.ts` on `useAdminList`.
-- [ ] `/admin/vouchers`, titled "Quản Lí Voucher": tabs with counts, search, a table (code and name, value as "Giảm 10%, tối đa 50.000 ₫", validity, uses as "12 / 100", discount given, status, actions), paging, the designed loading, empty, and error states, and `?state=` previews.
-- [ ] Row actions: edit, turn on or off, and delete, using `AdminConfirmDialog`. Delete shows the server's reason when refused. Turning off also asks for confirmation.
-- [ ] `/admin/vouchers/new` and `/admin/vouchers/[code]/edit` with one shared `voucher-form.tsx`: a type switch that changes the value field (% or ₫), a cap shown only for percent, date fields in Vietnam time, and a live preview such as "Đơn 500.000 ₫ giảm 50.000 ₫".
-- [ ] `hooks/use-voucher-form.ts`: client validation matching the server, server errors mapped to fields with focus on the first, locked fields disabled with an explanation, and a 409 reloading the newest data.
-- [ ] `validateVoucher` in `validation.ts`, plus unit tests in `tests/admin-vouchers.test.mjs`.
-- [ ] Browser check at 1440 and 320 px: create each type, every validation error, duplicate code, edit, turn off, delete, and not-found. A Staff session gets `/forbidden`, and no page-level horizontal scroll or unexpected console errors.
-- [ ] **🛑 Commit checkpoint: Admin voucher management.** Vouchers can be managed but do not affect orders yet, so this part is safe to merge alone.
+- [x] Add a "Voucher" sidebar entry to `admin-shell.tsx`, with a `TicketPercent` icon, after "Đơn hàng".
+- [x] Add voucher types to `features/admin/types.ts`, and state labels and tones to `status.ts`.
+- [x] Add `services/vouchers.ts`, `services/vouchers.server.ts`, and `hooks/use-vouchers-list.ts` on `useAdminList`.
+- [x] `/admin/vouchers`, titled "Quản Lí Voucher": tabs with counts, search, a table (code and name, value as "Giảm 10%, tối đa 50.000 ₫", validity, uses as "12 / 100", discount given, status, actions), paging, the designed loading, empty, and error states, and `?state=` previews.
+- [x] Row actions: edit, turn on or off, and delete, using `AdminConfirmDialog`. Delete shows the server's reason when refused. Turning off also asks for confirmation.
+- [x] `/admin/vouchers/new` and `/admin/vouchers/[code]/edit` with one shared `voucher-form.tsx`: a type switch that changes the value field (% or ₫), a cap shown only for percent, date fields in Vietnam time, and a live preview such as "Đơn 500.000 ₫ giảm 50.000 ₫".
+- [x] `hooks/use-voucher-form.ts`: client validation matching the server, server errors mapped to fields with focus on the first, locked fields disabled with an explanation, and a 409 reloading the newest data.
+- [x] `validateVoucher` in `validation.ts`, plus unit tests in `tests/admin-vouchers.test.mjs`.
+- [x] Browser check at 1440 and 320 px: create each type, every validation error, duplicate code, edit, turn off, delete, and not-found. A Staff session gets `/forbidden`, and no page-level horizontal scroll or unexpected console errors.
+- [x] **🛑 Commit checkpoint: Admin voucher management.** Vouchers can be managed but do not affect orders yet, so this part is safe to merge alone.
 
 ## 5. Backend purchase flow ⚠️
 

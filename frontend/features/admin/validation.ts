@@ -56,3 +56,32 @@ export function validateUser(values: UserFormValues): FormErrors<UserFormValues>
   }
   return errors;
 }
+
+/** Text inputs, plus the two switches. The cap is ignored for a fixed amount, because the form hides it. */
+export type VoucherFormValues = {
+  code: string; name: string; type: "percent" | "fixed"; value: string; maxDiscount: string; minOrderAmount: string;
+  startDate: string; endDate: string; usageLimit: string; oncePerCustomer: boolean; isPublic: boolean;
+};
+
+/** The same rules as the server's voucher validator. */
+export function validateVoucher(values: VoucherFormValues): FormErrors<VoucherFormValues> {
+  const errors: FormErrors<VoucherFormValues> = {};
+  if (!/^[A-Z0-9-]{3,30}$/.test(values.code.trim().toUpperCase())) errors.code = "Mã voucher gồm 3–30 ký tự: chữ không dấu, số hoặc dấu gạch ngang.";
+  const name = values.name.trim();
+  if (name.length < 1 || name.length > 100) errors.name = "Nhập tên voucher, tối đa 100 ký tự.";
+
+  if (values.type === "percent") {
+    // No thousand separators here, or "5.5" would read as 55.
+    if (!/^\d+$/.test(values.value.trim()) || Number(values.value) < 1 || Number(values.value) > 100) errors.value = "Phần trăm giảm là số nguyên từ 1 đến 100.";
+    if (values.maxDiscount.trim() && !(parseAmount(values.maxDiscount) >= 1)) errors.maxDiscount = "Mức giảm tối đa phải từ 1 ₫ trở lên.";
+  } else if (!(parseAmount(values.value) >= 1)) {
+    errors.value = "Số tiền giảm phải từ 1 ₫ trở lên.";
+  }
+  if (values.minOrderAmount.trim() && Number.isNaN(parseAmount(values.minOrderAmount))) errors.minOrderAmount = "Đơn tối thiểu phải là số không âm.";
+  if (values.usageLimit.trim() && !(parseAmount(values.usageLimit) >= 1)) errors.usageLimit = "Giới hạn lượt dùng phải từ 1 trở lên.";
+
+  if (!values.startDate) errors.startDate = "Chọn ngày bắt đầu.";
+  if (!values.endDate) errors.endDate = "Chọn ngày kết thúc.";
+  else if (values.startDate && values.endDate < values.startDate) errors.endDate = "Ngày kết thúc phải từ ngày bắt đầu trở đi.";
+  return errors;
+}
