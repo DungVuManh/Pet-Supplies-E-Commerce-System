@@ -9,6 +9,7 @@ import { Wishlist } from "../src/models/wishlist.model.js";
 import { Order } from "../src/models/order.model.js";
 import { Payment } from "../src/models/payment.model.js";
 import { Promotion } from "../src/models/promotion.model.js";
+import { PromotionRedemption } from "../src/models/promotion-redemption.model.js";
 import { Review } from "../src/models/review.model.js";
 import { Notification } from "../src/models/notification.model.js";
 import { AuditLog } from "../src/models/audit-log.model.js";
@@ -196,6 +197,37 @@ describe("checkout models", () => {
   }
   await expect(new Promotion({ ...data, type: "fixed", value: 10000 }).validate()).resolves.toBeUndefined();
  });
+
+ it("defaults voucher fields and validates their limits", async () => {
+  const data = { code: "SALE", type: "percent", value: 10, startAt: new Date("2026-01-01"), endAt: new Date("2026-12-31") };
+  const promotion = new Promotion(data);
+  await expect(promotion.validate()).resolves.toBeUndefined();
+  expect(promotion).toMatchObject({ usedCount: 0, oncePerCustomer: true, isPublic: false });
+  expect(promotion.usageLimit).toBeUndefined();
+  expect(promotion.maxDiscount).toBeUndefined();
+  for (const patch of [
+   { name: "x".repeat(101) }, { maxDiscount: 0 }, { maxDiscount: 1.5 }, { usageLimit: 0 }, { usageLimit: 1.5 }, { usedCount: -1 },
+  ]) {
+   await expect(new Promotion({ ...data, ...patch }).validate()).rejects.toThrow();
+  }
+  await expect(new Promotion({ ...data, name: "Giảm 10%", maxDiscount: 50000, usageLimit: 100 }).validate()).resolves.toBeUndefined();
+ });
+
+ it("enforces one redemption per order and one active use per once-only customer", async () => {
+  const id = () => new mongoose.Types.ObjectId();
+  const redemption = { promotionId: id(), code: "sale", orderId: id(), customerKey: "guest:0912345678", discount: 1000, oncePerCustomer: true };
+  const document = new PromotionRedemption(redemption);
+  await expect(document.validate()).resolves.toBeUndefined();
+  expect(document).toMatchObject({ code: "SALE", status: "active" });
+  for (const patch of [{ status: "other" }, { discount: -1 }, { discount: 1.5 }, { customerKey: "" }, { oncePerCustomer: undefined }]) {
+   await expect(new PromotionRedemption({ ...redemption, ...patch }).validate()).rejects.toThrow();
+  }
+  expect(PromotionRedemption.schema.indexes()).toContainEqual([{ orderId: 1 }, expect.objectContaining({ unique: true })]);
+  expect(PromotionRedemption.schema.indexes()).toContainEqual([
+   { promotionId: 1, customerKey: 1 },
+   expect.objectContaining({ unique: true, partialFilterExpression: { status: "active", oncePerCustomer: true } }),
+  ]);
+ });
 });
 
 describe("supporting models", () => {
@@ -270,7 +302,7 @@ describe("supporting models", () => {
  it("exports all SRS models without changing Firebase users", () => {
   expect(Object.keys(models).sort()).toEqual([
    "Address", "AuditLog", "Cart", "Category", "MasterData", "Notification", "Order", "Payment",
-   "PetProfile", "Product", "Promotion", "Review", "Setting", "StockMovement", "User", "Wishlist",
+   "PetProfile", "Product", "Promotion", "PromotionRedemption", "Review", "Setting", "StockMovement", "User", "Wishlist",
   ]);
   expect(models.User.schema.path("firebaseUid").options.unique).toBe(true);
   expect(models.User.schema.path("passwordHash")).toBeUndefined();

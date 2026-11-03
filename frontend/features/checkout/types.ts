@@ -31,6 +31,8 @@ export type CheckoutSummary = {
   totalQuantity: number;
   subtotal: number;
   // shippingFee: number;
-  // discount: number;
+  /** Set only when a voucher applies. */
+  discount?: number;
+  promotionCode?: string;
   total: number;
 };

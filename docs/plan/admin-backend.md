@@ -261,6 +261,8 @@ UI it serves: `docs/specs/admin-workspace-ui.md` (complete on mock data in `fron
 
 ## 6. Cancellation requests: `/admin/cancellations`
 
+> **Voucher note:** approving a cancellation must also call `releaseVoucher(orderId)` from `common/voucher-redemption.js`, or the order's voucher use is never returned. See `docs/plan/voucher-system.md`.
+
 - [ ] `Order`: add the `cancellationRequest` subdocument (see the spec) and an index `{ "cancellationRequest.status": 1, "cancellationRequest.requestedAt": -1 }`
 - [ ] `GET /cancellations`: tabs (pending, approved, rejected), `q` (order code, customer), and status. Rows `{ orderCode, customer, requesterRole, reason, value, requestedAt, status, note }`.
 - [ ] `POST /cancellations/:orderCode/approve`: a conditional update on `cancellationRequest.status: "pending"`, then the order is set to `cancelled` with `statusHistory`, the order's stock is given back (release reserved or add back deducted), `StockMovement` rows are recorded (source `cancellation`), and the action is audited. A paid order gets `refundStatus: "pending"` for follow-up. 409 `ALREADY_DECIDED` on a repeat.
@@ -285,12 +287,15 @@ UI it serves: `docs/specs/admin-workspace-ui.md` (complete on mock data in `fron
 
 ## 8. Dashboard: `/admin/dashboard`
 
-- [ ] `validators/admin/period.validator.js`: `from`/`to` (ISO dates, `from` ≤ `to`, at most 366 days), default the current month to date in Asia/Ho_Chi_Minh, and presets `this-month`, `last-month`, `this-quarter`
-- [ ] `GET /overview`: net revenue (reusing `salesMatch`), growth against the previous equal-length period, orders in the period, new customers, the low-stock count, the cumulative daily revenue series, the top 3 stock alerts, and recent activity (the newest audit entries, orders, and sign-ups, as `{ time, title, detail, value, status, href }`). Each metric is computed independently and becomes `null` on failure (UC40 2a).
-- [ ] Tests: revenue includes only paid and completed orders, the series ends at the net revenue, growth with a zero previous period is shown as "—", and one failing metric doesn't fail the response
-- [ ] Frontend: `services/overview.ts`, and the dashboard on server-loaded data with a preset period select in place of the fixed chip. `null` metrics show "Không có dữ liệu". Delete `mock/overview.ts`.
-- [ ] Browser check
-- [ ] **🛑 Commit checkpoint: Dashboard**
+- [x] `validators/admin/period.validator.js`: `from`/`to` (ISO dates, `from` ≤ `to`, at most 366 days), default the current month to date in Asia/Ho_Chi_Minh, and presets `this-month`, `last-month`, `this-quarter`
+- [x] `GET /overview`: net revenue (reusing `salesMatch`), growth against the previous equal-length period, orders in the period, new customers, the low-stock count, the cumulative daily revenue series, the top 3 stock alerts, and recent activity (the newest audit entries, orders, and sign-ups, as `{ time, title, detail, value, status, href }`). Each metric is computed independently and becomes `null` on failure (UC40 2a).
+  - Note: net revenue follows the finance report so the two screens agree: `completed` paid orders minus `cancelled` paid orders, summing `total`. It narrows `salesMatch`, which alone would add legacy `delivered` orders and leave out refunds. Low stock follows the Admin product list's rule (own or global threshold, hidden products excluded), so it can differ from `/admin/inventory` until phase 7 adds per-variant thresholds there. Recent activity shows up to 6 rows, the newest 2 of each type with spare rows going to the newest of the rest, because a plain newest-first list was filled by a single type (the user's choice, 2026-11-03). The cumulative daily series was removed afterwards, along with the dashboard's chart, because it duplicated the finance report (agreed with Quang, 2026-11-03); the revenue, orders, and low-stock cards link to the matching report for the same period instead.
+- [x] Tests: revenue includes only paid and completed orders, the series ends at the net revenue, growth with a zero previous period is shown as "—", and one failing metric doesn't fail the response
+- [x] Frontend: `services/overview.ts`, and the dashboard on server-loaded data with a preset period select in place of the fixed chip. `null` metrics show "Không có dữ liệu". Delete `mock/overview.ts`.
+  - Note: the service is `services/overview.server.ts`, matching the other server-loaded screens. The period is in the URL as `?period=`, and an unknown value falls back to this month. The dashboard has no `?state=` previews, because it is server-loaded rather than a list screen.
+- [x] Browser check
+  - Note: read-only on the local database, at 1440 and 320 px. All three presets work; October's net revenue is 1.740.000 ₫ on both the dashboard and the finance API; the low-stock count equals the product list's; there is no page-level horizontal scroll, and the only console errors are the expected 401s on `/login`. Failed metrics, empty results, and order and sign-up rows were checked through a temporary proxy that changed the `/overview` response, because the local data doesn't produce them. `next build` is blocked by type errors that are also on `HEAD` (`account/profile/page.tsx`, `features/cart/index.tsx`), so `tsc` was used to confirm the dashboard has none.
+- [x] **🛑 Commit checkpoint: Dashboard**
 
 ## 9. Reports
 

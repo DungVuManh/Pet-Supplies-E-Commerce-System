@@ -24,7 +24,8 @@ import { Product, Order, Setting } from "./models/index.js";
 | Cart | carts | Exactly one customer/guest owner, product/SKU quantities |
 | Order | orders | Customer/guest contact, item/address snapshots, totals, statuses, history |
 | Payment | payments | Order reference, method, amount, transaction reference, QR/result |
-| Promotion | promotions | Code, percentage/fixed value, minimum order, validity, eligibility |
+| Promotion | promotions | Code, name, percentage/fixed value, cap, minimum order, validity, usage limit and count, once-per-customer and public flags, eligibility |
+| PromotionRedemption | promotionRedemptions | One voucher use: voucher, order, customer key, discount, active/released status |
 | Review | reviews | Product/user references, whole rating from 1 to 5, published comment |
 | Wishlist | wishlists | One list per user with product references |
 | Notification | notifications | User/order reference, type/channel, delivery status/error/time |
@@ -68,7 +69,10 @@ does not authenticate payment callbacks or enforce order-state transitions.
 Promotion codes are trimmed/uppercased. Percent discounts are greater than zero
 and at most 100; fixed discounts are positive integer VND amounts. End dates must
 follow start dates. `eligibility` remains provider-independent Mixed data because
-the SRS does not define its shape. Notification delivery statuses are `pending`,
+the SRS does not define its shape. A document with no `usedCount` counts as zero.
+`PromotionRedemption` has a unique `orderId` and a partial unique
+`{ promotionId, customerKey }` covering active once-per-customer uses, which is what
+enforces those rules under concurrent orders without transactions. Notification delivery statuses are `pending`,
 `sent`, and `failed`; type and channel remain strings for future integrations.
 
 Settings use `_id: "global"`, `lowStockThreshold: 5`, and `shippingFee: 0` by

@@ -27,6 +27,33 @@ export type AdminUserRow = {
   status: UserStatus;
 };
 
+export type OverviewPreset = "this-month" | "last-month" | "this-quarter";
+
+/** A count or amount in the period; `growthPercent` is null when the previous period gives no comparison. */
+export type OverviewMetric = { value: number; growthPercent: number | null };
+
+/** One row of the dashboard's recent activity. `value` is already formatted, or null when it doesn't apply. */
+export type OverviewActivity = {
+  id: string;
+  time: string;
+  title: string;
+  detail: string;
+  value: string | null;
+  status: UserActivityStatus | UserStatus;
+  href: string;
+};
+
+/** `GET /api/v1/admin/overview`. A metric that failed to load is null. */
+export type AdminOverview = {
+  generatedAt: string;
+  period: { preset: OverviewPreset | null; from: string; to: string };
+  revenue: OverviewMetric | null;
+  orders: OverviewMetric | null;
+  newCustomers: OverviewMetric | null;
+  lowStock: { total: number; items: { sku: string; name: string; available: number; threshold: number }[] } | null;
+  recentActivity: OverviewActivity[] | null;
+};
+
 export type UserActivityStatus = "pending" | "confirmed" | "processing" | "shipping" | "completed" | "cancelled" | "success" | "denied";
 
 /** One entry of a user's history, merged from their orders and the audit log. `amount` is set for orders. */
@@ -192,3 +219,31 @@ export type PermissionMatrix = {
 
 export type UserCounts = { all: number; customer: number; staff: number };
 export type UserFilter = { tab: UserRole | "all"; q: string; role: UserRole | "all"; status: UserStatus | "all" };
+
+export type VoucherType = "percent" | "fixed";
+export type VoucherState = "active" | "scheduled" | "expired" | "disabled" | "exhausted";
+/** The list's tabs; "ended" joins expired and used-up vouchers. */
+export type VoucherTab = "all" | "active" | "scheduled" | "ended" | "disabled";
+export type VoucherFilter = { tab: VoucherTab; q: string };
+export type VoucherCounts = Record<VoucherTab, number>;
+
+/** What the voucher form edits. Dates are Vietnam calendar days, `YYYY-MM-DD`. */
+export type VoucherFields = {
+  code: string;
+  name: string;
+  type: VoucherType;
+  value: number;
+  maxDiscount: number | null;
+  minOrderAmount: number;
+  startDate: string;
+  endDate: string;
+  usageLimit: number | null;
+  oncePerCustomer: boolean;
+  isPublic: boolean;
+};
+
+/** One row of `GET /api/v1/admin/vouchers`. `discountGiven` counts only uses that still stand. */
+export type AdminVoucherRow = VoucherFields & { usedCount: number; state: VoucherState; discountGiven: number };
+
+/** `GET /api/v1/admin/vouchers/:code`. `lockedFields` is filled once the voucher has been used. */
+export type AdminVoucherDetail = AdminVoucherRow & { updatedAt: string; used: boolean; lockedFields: ("code" | "type" | "value")[] };

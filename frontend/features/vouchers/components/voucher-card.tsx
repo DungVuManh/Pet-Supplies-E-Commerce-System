@@ -24,16 +24,6 @@ const VOUCHER_THEMES = {
     tagBg: "#FFE600", // Vàng
     tagText: "#000000",
   },
-  "PHÍ SHIP": {
-    headerBg: "#0B4DFF", // Xanh dương
-    tagBg: "#FFE600", // Vàng
-    tagText: "#000000",
-  },
-  "SẢN PHẨM": {
-    headerBg: "#FF8A14", // Cam
-    tagBg: "#0B4DFF", // Xanh dương
-    tagText: "#FFFFFF",
-  },
 };
 
 export function VoucherCard({
@@ -156,10 +146,10 @@ export function VoucherCard({
           {voucher.title}
         </h3>
 
-        {/* Hàng điều kiện: "Từ xxx.000đ" bên trái và "Không giới hạn" bên phải */}
+        {/* Hàng điều kiện: "Từ xxx.000đ" bên trái và hạn dùng bên phải */}
         <div className="flex items-center justify-between text-[11px] sm:text-xs text-[#8E95A5] mb-4 font-medium">
           <span>{voucher.minOrder}</span>
-          <span>{voucher.usageLimit}</span>
+          <span>{voucher.validUntil}</span>
         </div>
 
         {/* Dưới cùng: Pill chứa mã và Nút Lưu */}

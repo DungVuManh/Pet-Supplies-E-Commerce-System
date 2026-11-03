@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   clearGuestCart,
@@ -14,6 +14,8 @@ import {
 } from "@/features/orders/services/order.service";
 import { getCheckoutAddress, type CheckoutAddress } from "../services/checkout.service";
 import { useAuth } from "@/features/auth/auth-provider";
+import { useVoucherQuote } from "@/lib/use-voucher-quote";
+import { forgetVoucherCode, voucherQuotePhone } from "@/lib/voucher";
 
 import type {
   CheckoutOrderItem,
@@ -143,6 +145,18 @@ export function useCheckout() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const voucherItems = useMemo(
+    () => items.map((item) => ({ productId: item.productId, variantSku: item.sku, qty: item.quantity })),
+    [items],
+  );
+  // Mua ngay không dùng mã nhớ từ giỏ hàng, vì mã đó thuộc về các sản phẩm khác.
+  const voucher = useVoucherQuote({
+    items: voucherItems,
+    phone: isGuest ? voucherQuotePhone(address.phone) : undefined,
+    remember: !isBuyNow,
+  });
+  const { applied: appliedVoucher, refresh: refreshVoucher } = voucher;
 
   const applyCartData = useCallback((data: CheckoutCartData) => {
     setItems(data.items);
@@ -347,6 +361,7 @@ export function useCheckout() {
         email: address.email?.trim() || undefined,
         paymentMethod: paymentMethod === "vnpay" ? ("ONLINE" as const) : ("COD" as const),
         isBuyNow,
+        ...(appliedVoucher ? { promotionCode: appliedVoucher.code, expectedDiscount: appliedVoucher.discount } : {}),
       };
 
       const response = await createOrderApi(orderPayload);
@@ -357,6 +372,7 @@ export function useCheckout() {
         // Chỉ xóa session Mua ngay, KHÔNG động đến giỏ hàng thật của người dùng
         clearBuyNowSession();
       } else {
+        forgetVoucherCode();
         // Xóa giỏ hàng thông thường
         if (isGuest) {
           clearGuestCart();
@@ -378,16 +394,23 @@ export function useCheckout() {
         paymentMethod: order?.paymentMethod || (paymentMethod === "vnpay" ? "ONLINE" : "COD"),
         createdAt: order?.createdAt || new Date().toISOString(),
       });
+      if (order?.promotionCode) {
+        queryParams.set("promotionCode", order.promotionCode);
+        queryParams.set("discount", String(order.discount ?? 0));
+      }
 
       router.push(`/checkout/result?${queryParams.toString()}`);
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : "Có lỗi xảy ra khi tạo đơn hàng.",
       );
+      // Mã vừa đổi: không tạo đơn, cập nhật lại tổng tiền và giữ nguyên giỏ hàng, biểu mẫu.
+      const code = (error as { code?: string }).code;
+      if (code === "VOUCHER_INVALID" || code === "VOUCHER_CHANGED") refreshVoucher();
     } finally {
       setIsSubmitting(false);
     }
-  }, [address, isBuyNow, isGuest, items, paymentMethod, router, summary.total]);
+  }, [address, appliedVoucher, isBuyNow, isGuest, items, paymentMethod, refreshVoucher, router, summary.total]);
 
   return {
     address,
@@ -405,7 +428,10 @@ export function useCheckout() {
     paymentMethod,
     setPaymentMethod,
     submitError,
-    summary,
+    summary: appliedVoucher
+      ? { ...summary, subtotal: appliedVoucher.subtotal, discount: appliedVoucher.discount, promotionCode: appliedVoucher.code, total: appliedVoucher.total }
+      : summary,
+    voucher,
     shippingMethod: DEFAULT_SHIPPING_METHOD,
   };
 }

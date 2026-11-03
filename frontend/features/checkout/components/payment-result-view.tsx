@@ -35,6 +35,8 @@ export function PaymentResultView() {
   const total = Number(searchParams.get("total") || 0);
   const paymentMethod = searchParams.get("paymentMethod") || "COD";
   const createdAt = searchParams.get("createdAt");
+  const promotionCode = searchParams.get("promotionCode");
+  const discount = Number(searchParams.get("discount") || 0);
 
   const displayMethod =
     paymentMethod === "COD"
@@ -94,6 +96,13 @@ export function PaymentResultView() {
               #{orderCode}
             </span>
           </div>
+
+          {promotionCode && discount > 0 && (
+            <div className="flex items-center justify-between gap-3">
+              <span className="min-w-0 break-words text-muted">Giảm giá ({promotionCode}):</span>
+              <span className="shrink-0 font-semibold text-danger">-{formatVND(discount)}</span>
+            </div>
+          )}
 
           <div className="flex items-center justify-between">
             <span className="text-muted">Số tiền:</span>

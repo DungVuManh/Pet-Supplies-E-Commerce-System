@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import React from "react";
+import { PromoCodeCard } from "@/components/storefront/promo-code-card";
 import { useCartPage } from "./hooks/use-cart-page";
 import { CartItemsTable } from "./components/cart-items-table";
 import { CartSummary } from "./components/cart-summary";
@@ -11,10 +12,7 @@ export function CartView() {
   items,
   summary,
   isLoading,
-  promoCodeInput,
-  promoMessage,
-  promoError,
-  setPromoCodeInput,
+  voucher,
   increaseQuantity,
   decreaseQuantity,
   removeItem,
@@ -75,6 +73,18 @@ export function CartView() {
     {/* CỘT PHẢI (4/12): Tóm tắt đơn hàng + Mã ưu đãi */}
     <div className="lg:col-span-4 flex flex-col gap-6">
      <CartSummary summary={summary} />
+     {items.length > 0 && (
+      <PromoCodeCard
+       value={voucher.input}
+       onChange={voucher.setInput}
+       onApply={voucher.apply}
+       onRemove={voucher.remove}
+       message={voucher.message}
+       isError={voucher.isError}
+       pending={voucher.pending}
+       applied={voucher.applied}
+      />
+     )}
     </div>
    </div>
   </div>

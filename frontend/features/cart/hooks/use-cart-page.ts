@@ -3,7 +3,8 @@
 // Hook quản lý dữ liệu giỏ hàng, kết nối API backend bằng useEffect
 // =============================================================
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useVoucherQuote } from "@/lib/use-voucher-quote";
 import {
   getCartApi,
   removeCartItemApi,
@@ -47,10 +48,11 @@ export function useCartPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const [promoCodeInput, setPromoCodeInput] = useState("");
-  const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
-  const [promoMessage, setPromoMessage] = useState<string>("Chưa áp dụng mã giảm giá.");
-  const [promoError, setPromoError] = useState<boolean>(false);
+  const voucherItems = useMemo(
+    () => items.map((item) => ({ productId: item.product.productId, variantSku: item.product.sku, qty: item.quantity })),
+    [items],
+  );
+  const voucher = useVoucherQuote({ items: voucherItems, remember: true });
 
   // 1. Hàm tải giỏ hàng từ API backend
   // isLoading bắt đầu là true; các lần tải lại chạy nền nên chỉ cập nhật state sau khi có phản hồi.
@@ -64,15 +66,7 @@ export function useCartPage() {
         const mappedItems = (backendCart.items || []).map(mapBackendItemToCartItem);
         setItems(mappedItems);
 
-        // Áp dụng giảm giá nếu có mã khuyến mãi đang dùng
-        const backendSummary = backendCart.summary || DEFAULT_SUMMARY;
-        const discount = appliedPromo === "PETLY10" ? Math.round(backendSummary.subtotal * 0.1) : 0;
-
-        setSummary({
-          ...backendSummary,
-          discount,
-          total: Math.max(0, backendSummary.subtotal + backendSummary.shippingFee - discount),
-        });
+        setSummary(backendCart.summary || DEFAULT_SUMMARY);
       }
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Lỗi khi tải giỏ hàng");
@@ -92,7 +86,7 @@ export function useCartPage() {
     return () => {
       window.removeEventListener("cart-updated", handleCartUpdated);
     };
-  }, [appliedPromo]);
+  }, []);
 
   // 3. Tăng số lượng sản phẩm
   async function increaseQuantity(itemId: string) {
@@ -160,39 +154,23 @@ export function useCartPage() {
     }
   }
 
-  // 6. Áp dụng mã giảm giá
-  function applyPromoCode() {
-    const code = promoCodeInput.trim().toUpperCase();
-    if (!code) {
-      setPromoError(true);
-      setPromoMessage("Vui lòng nhập mã giảm giá.");
-      return;
-    }
-
-    if (code === "PETLY10") {
-      setAppliedPromo("PETLY10");
-      setPromoError(false);
-      setPromoMessage("Đã áp dụng mã giảm giá 10% thành công!");
-    } else {
-      setPromoError(true);
-      setPromoMessage("Mã giảm giá không hợp lệ hoặc đã hết hạn.");
-    }
-  }
+  // 6. Mã giảm giá do server tính; ở đây chỉ hiển thị
+  const discount = voucher.applied?.discount ?? 0;
+  const summaryWithVoucher: CartSummary = {
+    ...summary,
+    discount,
+    total: Math.max(0, summary.subtotal + summary.shippingFee - discount),
+  };
 
   return {
     items,
-    summary,
+    summary: summaryWithVoucher,
     isLoading,
     errorMessage,
-    promoCodeInput,
-    promoMessage,
-    promoError,
-    appliedPromo,
-    setPromoCodeInput,
+    voucher,
     increaseQuantity,
     decreaseQuantity,
     removeItem,
-    applyPromoCode,
     refreshCart: fetchCart,
   };
 }

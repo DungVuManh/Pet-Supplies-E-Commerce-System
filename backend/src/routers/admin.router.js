@@ -7,8 +7,10 @@ import { deleteCategory, getCategory, listCategories, updateCategory } from "../
 import { listMasterData, listMasterDataOptions } from "../controllers/admin/master-data.controller.js";
 import { deleteProduct, getProduct, hideProduct, listProducts, showProduct, updateProduct } from "../controllers/admin/product.controller.js";
 import { listOrders } from "../controllers/admin/order.controller.js";
+import { getOverview } from "../controllers/admin/overview.controller.js";
 import { listPermissions } from "../controllers/admin/permission.controller.js";
 import { getUser, listUsers, lockUser, unlockUser, updateUser } from "../controllers/admin/user.controller.js";
+import { createVoucher, deleteVoucher, disableVoucher, enableVoucher, getVoucher, listVouchers, updateVoucher } from "../controllers/admin/voucher.controller.js";
 import {
   getStoreSettings,
   updateStoreSettings,
@@ -21,6 +23,7 @@ const router = Router();
 router.use(readCookies, requireAuth, requireRole("admin"));
 
 router.get("/dashboard", dashboard);
+router.get("/overview", getOverview);
 router.get("/inventory", listInventory);
 router.get("/categories", listCategories);
 router.get("/categories/:code", getCategory);
@@ -41,6 +44,13 @@ router.get("/users/:id", getUser);
 router.patch("/users/:id", protectMutation, updateUser);
 router.post("/users/:id/lock", protectMutation, lockUser);
 router.post("/users/:id/unlock", protectMutation, unlockUser);
+router.get("/vouchers", listVouchers);
+router.post("/vouchers", protectMutation, createVoucher);
+router.get("/vouchers/:code", getVoucher);
+router.patch("/vouchers/:code", protectMutation, updateVoucher);
+router.delete("/vouchers/:code", protectMutation, deleteVoucher);
+router.post("/vouchers/:code/enable", protectMutation, enableVoucher);
+router.post("/vouchers/:code/disable", protectMutation, disableVoucher);
 
 // Admin Notifications API (Aggregate from Product, Order, Setting, AuditLog)
 router.get("/notifications", getAdminNotifications);

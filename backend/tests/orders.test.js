@@ -186,6 +186,24 @@ describe("Customer order creation HTTP", () => {
     expect(response.body.data.order.orderCode).toBe(createdOrder.orderCode);
   });
 
+  it("ignores a forged discount and shipping fee", async () => {
+    const productId = "507f1f77bcf86cd799439011";
+    vi.spyOn(Product, "findById").mockResolvedValue({ _id: productId, name: "Thức ăn", price: 420000, variants: [{ sku: "PET-001", price: 420000 }] });
+    const createOrder = vi.spyOn(Order, "create").mockResolvedValue({ _id: "607f1f77bcf86cd799439099", orderCode: "ORD789" });
+
+    await request(createApp(config))
+      .post("/api/v1/orders")
+      .send({
+        items: [{ productId, variantSku: "PET-001", qty: 1 }],
+        guestInfo: { name: "Khách", phone: "0901234567" },
+        discount: 419999,
+        shippingFee: -5000,
+      })
+      .expect(201);
+
+    expect(createOrder).toHaveBeenCalledWith(expect.objectContaining({ subtotal: 420000, discount: 0, shippingFee: 0, total: 420000 }));
+  });
+
   it("uses the authenticated customer's profile ID instead of a client-provided ID", async () => {
     const customerId = "507f1f77bcf86cd799439099";
     const productId = "507f1f77bcf86cd799439011";

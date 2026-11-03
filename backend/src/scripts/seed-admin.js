@@ -5,9 +5,18 @@ import { loadEnvironment } from "../config/env.js";
 import { Category } from "../models/category.model.js";
 import { MasterData } from "../models/master-data.model.js";
 import { Product } from "../models/product.model.js";
+import { Promotion } from "../models/promotion.model.js";
 import { brandOrigins, breedsByPetType, petTypes, shippingMethods, units } from "./data/admin-master-data.js";
 
 class SeedAdminError extends Error {}
+
+const DAY = 24 * 60 * 60 * 1000;
+// Public samples for the storefront. The base seed's SEED-* codes stay as they are.
+const sampleVouchers = [
+ { code: "PETJOY10", name: "Giảm 10%, tối đa 50.000 ₫", type: "percent", value: 10, maxDiscount: 50000, minOrderAmount: 0 },
+ { code: "PET50K", name: "Giảm 50.000 ₫ cho đơn từ 500.000 ₫", type: "fixed", value: 50000, minOrderAmount: 500000 },
+ { code: "PETFIRST20K", name: "Giảm 20.000 ₫, chỉ một lượt", type: "fixed", value: 20000, minOrderAmount: 0, usageLimit: 1 },
+];
 
 /** "Thương hiệu Mới" → "THUONG-HIEU-MOI" */
 function codeFrom(name) {
@@ -65,6 +74,19 @@ export const seedSteps = [
     await MasterData.updateOne({ kind, code }, { $setOnInsert: fields }, { upsert: true, setDefaultsOnInsert: true });
    }
    return rows.length;
+  },
+ },
+ {
+  name: "vouchers",
+  // Insert-only, so a rerun never resets a sample's usage or dates.
+  async run() {
+   const now = Date.now();
+   for (const { code, ...fields } of sampleVouchers) {
+    await Promotion.updateOne({ code }, {
+     $setOnInsert: { ...fields, startAt: new Date(now - 7 * DAY), endAt: new Date(now + 90 * DAY), isActive: true, isPublic: true, oncePerCustomer: true, usedCount: 0 },
+    }, { upsert: true });
+   }
+   return sampleVouchers.length;
   },
  },
 ];

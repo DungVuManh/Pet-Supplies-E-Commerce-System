@@ -7,6 +7,7 @@ export { Cart } from "./cart.model.js";
 export { Order } from "./order.model.js";
 export { Payment } from "./payment.model.js";
 export { Promotion } from "./promotion.model.js";
+export { PromotionRedemption } from "./promotion-redemption.model.js";
 export { Review } from "./review.model.js";
 export { Wishlist } from "./wishlist.model.js";
 export { Notification } from "./notification.model.js";

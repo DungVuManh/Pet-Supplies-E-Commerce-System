@@ -5,6 +5,8 @@
 
 import mongoose from "mongoose";
 import { AppError } from "../common/errors/app-error.js";
+import { priceOrderItems } from "../common/order-pricing.js";
+import { VOUCHER_CHANGED_MESSAGE, VOUCHER_INVALID_MESSAGE, checkVoucher, releaseVoucher, reserveVoucher, undoReservation, voucherRefusalMessage } from "../common/voucher-redemption.js";
 import { Order } from "../models/order.model.js";
 import { Product } from "../models/product.model.js";
 import { User } from "../models/user.model.js";
@@ -121,69 +123,32 @@ export async function createOrder(request, response, next) {
       return response.status(400).json({ success: false, message: "Đơn hàng phải có ít nhất 1 sản phẩm." });
     }
 
-    const orderItems = [];
-    let subtotal = 0;
-
-    for (const item of items) {
-      if (!item.productId) {
-        throw new AppError("Thiếu mã sản phẩm trong đơn hàng.", 400, "INVALID_PRODUCT");
-      }
-      const qty = Number(item.qty || item.quantity);
-      if (!Number.isInteger(qty) || qty <= 0) {
-        throw new AppError("Số lượng sản phẩm không hợp lệ.", 400, "INVALID_QUANTITY");
-      }
-
-      const product = await Product.findById(item.productId);
-      if (!product || product.isActive === false) {
-        throw new AppError("Không tìm thấy sản phẩm trong đơn hàng hoặc sản phẩm đã ngừng kinh doanh.", 404, "PRODUCT_NOT_FOUND");
-      }
-
-      let variant = null;
-      if (product.variants && product.variants.length > 0) {
-        variant = product.variants.find((v) => v.sku === item.variantSku);
-        if (!variant && item.variantSku && item.variantSku !== "default") {
-          throw new AppError(`Không tìm thấy biến thể sản phẩm với mã SKU ${item.variantSku}.`, 404, "VARIANT_NOT_FOUND");
-        }
-        if (!variant) {
-          variant = product.variants[0];
-        }
-      }
-
-      // Kiểm tra tồn kho khả dụng nếu có dữ liệu stock
-      const physical = variant ? variant.stock : product.stock;
-      if (physical !== undefined && physical !== null) {
-        const reserved = variant ? (variant.reservedStock ?? 0) : 0;
-        const availableStock = Math.max(0, physical - reserved);
-        if (qty > availableStock) {
-          throw new AppError(
-            `Sản phẩm "${product.name}"${variant?.label ? ` (${variant.label})` : ""} trong kho không đủ. Hiện chỉ còn ${availableStock} sản phẩm khả dụng.`,
-            400,
-            "OUT_OF_STOCK"
-          );
-        }
-      }
-
-      // Giá lấy từ server database, tuyệt đối không tin giá client gửi lên
-      const unitPrice = variant?.price ?? product.price ?? 0;
-
-      orderItems.push({
-        productId: product._id,
-        variantSku: variant ? variant.sku : (item.variantSku || "default"),
-        name: product.name,
-        unitPrice,
-        qty,
-        image: variant?.image || product?.images?.[0] || item.image || "",
-      });
-
-      subtotal += unitPrice * qty;
-    }
-
-    const shippingFee = Number(request.body.shippingFee) || 0;
-    const discount = Number(request.body.discount) || 0;
-    const total = subtotal - discount + shippingFee;
+    const { orderItems, subtotal } = await priceOrderItems(items);
 
     // Chỉ lấy customerId từ hồ sơ đã xác thực; không tin ID do client gửi.
     const customerId = request.user?._id;
+
+    // Tiền phải do server tính (BR-11); không đọc discount hay shippingFee từ body.
+    const shippingFee = 0;
+    let discount = 0;
+    let voucher = null;
+    const orderId = new mongoose.Types.ObjectId();
+
+    // Áp mã: đánh giá rồi giữ một lượt dùng. Khách không bao giờ trả số tiền họ chưa thấy.
+    if (request.body.promotionCode) {
+      const refuse = (code, message, currentDiscount) => response.status(409).json({ success: false, message, error: { code, currentDiscount } });
+      const customer = { userId: customerId, phone: guestInfo?.phone ?? shippingAddress?.phone };
+      const check = await checkVoucher(request.body.promotionCode, { subtotal, customer });
+      if (!check.applies) return refuse("VOUCHER_INVALID", voucherRefusalMessage(check), 0);
+      if (check.discount !== request.body.expectedDiscount) return refuse("VOUCHER_CHANGED", VOUCHER_CHANGED_MESSAGE, check.discount);
+
+      const reservation = await reserveVoucher({ voucher: check.voucher, discount: check.discount, customer, orderId });
+      if (!reservation.reserved) return refuse("VOUCHER_INVALID", VOUCHER_INVALID_MESSAGE, 0);
+      discount = check.discount;
+      voucher = check.voucher;
+    }
+
+    const total = subtotal - discount + shippingFee;
 
     // 3. Chuẩn hóa địa chỉ giao hàng
     const finalAddress = {
@@ -197,6 +162,7 @@ export async function createOrder(request, response, next) {
 
     // 4. Tạo document order đảm bảo đầy đủ chính xác tất cả các trường
     const newOrder = await Order.create({
+      _id: orderId,
       orderCode: generateOrderCode(),
       customerId,
       email: email || guestInfo?.email || undefined,
@@ -205,6 +171,7 @@ export async function createOrder(request, response, next) {
       shippingAddress: finalAddress,
       subtotal,
       discount,
+      ...(voucher ? { promotionCode: voucher.code } : {}),
       shippingFee,
       total,
       paymentMethod,
@@ -217,6 +184,10 @@ export async function createOrder(request, response, next) {
           at: new Date(),
         },
       ],
+    }).catch(async (orderError) => {
+      // Không có transaction: đơn không tạo được thì trả lại lượt đã giữ.
+      if (voucher) await undoReservation({ voucher, orderId });
+      throw orderError;
     });
 
     // Cập nhật tăng số lượt bán (soldCount) cho các sản phẩm trong đơn hàng
@@ -307,6 +278,8 @@ export async function cancelOrder(request, response, next) {
       },
       { new: true }
     );
+
+    await releaseVoucher(order._id);
 
     // Giảm soldCount tương ứng khi đơn hàng bị hủy
     try {
@@ -490,6 +463,7 @@ export async function getOrderDetail(request, response, next) {
       subtotal: order.subtotal,
       shippingFee: order.shippingFee || 0,
       discount: order.discount || 0,
+      promotionCode: order.promotionCode || null,
       totalAmount: order.total,
       paymentMethod: order.paymentMethod === "COD" ? "COD" : order.paymentMethod,
       paymentStatus: order.paymentStatus === "unpaid" ? "Chưa thanh toán" : "Đã thanh toán",
@@ -906,6 +880,7 @@ export async function lookupOrder(request, response, next) {
       subtotal: order.subtotal,
       shippingFee: order.shippingFee || 0,
       discount: order.discount || 0,
+      promotionCode: order.promotionCode || null,
       total: order.total,
       items: (order.items || []).map((item) => {
         const prod = productMap.get(item.productId?.toString());

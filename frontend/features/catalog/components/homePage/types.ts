@@ -11,13 +11,6 @@ export type HeroSlide = {
   tag?: string;
 };
 
-export type VoucherItem = {
-  code: string;
-  discount: string;
-  condition: string;
-  badge: string;
-};
-
 export type BrandItem = {
   name: string;
   origin: string;

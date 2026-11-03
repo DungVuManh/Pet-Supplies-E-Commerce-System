@@ -40,11 +40,16 @@ async function searchOrders(q) {
  return { $or: [buildOrderSearchFilter(text), { customerId: { $in: accounts.map((account) => account._id) } }] };
 }
 
+/** The name on the order first, then the account's name. */
+export function orderCustomerName(order, account) {
+ return present(order.guestInfo?.name) ?? present(order.shippingAddress?.recipientName) ?? account?.fullName ?? "Khách lẻ";
+}
+
 function orderRow(order, accounts) {
  const account = order.customerId ? accounts.get(String(order.customerId)) : null;
  return {
   orderCode: order.orderCode,
-  customerName: present(order.guestInfo?.name) ?? present(order.shippingAddress?.recipientName) ?? account?.fullName ?? "Khách lẻ",
+  customerName: orderCustomerName(order, account),
   phone: present(order.guestInfo?.phone) ?? present(order.shippingAddress?.phone) ?? account?.phone ?? "",
   createdAt: order.createdAt,
   total: order.total,
