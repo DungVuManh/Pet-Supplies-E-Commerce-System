@@ -138,6 +138,6 @@ Every Admin screen in `docs/specs/admin-workspace-ui.md` is built, but it reads 
 - Dynamic, database-driven permissions.
 - Create and edit forms for master data (no design).
 - Changing checkout, catalog, or Staff behavior beyond the coordinated hooks listed in the plan.
-- Promotions (UC39): no Admin screen is designed for them.
+- Promotions (UC39) are specified separately, in `docs/specs/voucher-system.md`.
 - Real refunds and payment-provider reconciliation.
 - Reproducing the mock numbers (348 users, 124 products). Cross-screen consistency now comes from computing every figure from the same database.

@@ -18,6 +18,7 @@ The store cannot run discounts. The pieces that exist do not work together:
 - An Admin page, **Quản Lí Voucher**, to create, edit, turn on or off, and delete vouchers.
 - Customers and guests apply one voucher at checkout, in both the cart flow and Buy Now.
 - The backend alone decides whether a voucher applies and how much it takes off.
+- The homepage voucher bar and the `/voucher` page list only public vouchers that can be redeemed now.
 
 ## User-visible behavior
 

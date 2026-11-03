@@ -77,7 +77,9 @@ The backend is layered by responsibility:
 
 Use explicit `.js` extensions in backend ESM imports. Mount feature routers under `/api/v1` before the 404 and error middleware. The current pipeline applies no-store headers to auth/workspace routes, then Helmet, explicit CORS, API rate limiting (relaxed when `NODE_ENV=development`), 100 KB parsers (10 MB JSON on `/api/v1/account` for base64 avatars), routers, 404, and the centralized error handler. Intentional API failures use `AppError` and the `{ success: false, message, error: { code } }` envelope.
 
-`backend/src/models/index.js` registers all 14 Mongoose models. Startup calls `createModelIndexes()` because `autoIndex` is disabled. Domain references to users store MongoDB `User._id`, not Firebase UID. The schemas define persistence and document validation, but product/cart/order controllers, stock reservation, payment verification, review eligibility, and seed data are not implemented. Read `backend/src/models/README.md` and `docs/SRS.md` before implementing those domains.
+`backend/src/models/index.js` registers all the Mongoose models. Startup calls `createModelIndexes()` because `autoIndex` is disabled. Domain references to users store MongoDB `User._id`, not Firebase UID. The schemas define persistence and document validation, but product/cart/order controllers, stock reservation, payment verification, review eligibility, and seed data are not implemented. Read `backend/src/models/README.md` and `docs/SRS.md` before implementing those domains.
+
+Vouchers are implemented, on the `Promotion` model. Admin management is at `/api/v1/admin/vouchers`; customers use `POST /api/v1/vouchers/quote` and `GET /api/v1/vouchers/public`. `createOrder` calculates every amount on the server: rules are in `common/voucher-rules.js`, and reserving and releasing a use are in `common/voucher-redemption.js`. Every path that cancels an order must call `releaseVoucher`. `node backend/tests/voucher-integration.mjs` runs the concurrency checks against a real MongoDB, in a throwaway database.
 
 ## Authentication and authorization
 
@@ -98,7 +100,7 @@ The frontend uses App Router route groups:
 
 `AuthProvider` owns browser auth state and refreshes `/api/v1/auth/me` on mount/focus. `CartProvider` owns the in-memory guest cart; it is sample client state and resets on full reload. Catalog data is currently sample data, not a backend API.
 
-Browser auth requests use relative `/api/v1/...` URLs. `frontend/next.config.ts` rewrites auth/staff/admin paths to `BACKEND_ORIGIN` (default `http://127.0.0.1:3001`). Workspace Server Components read the HttpOnly cookie with `next/headers`, call Express using the configured absolute backend origin, and redirect missing sessions to `/login` or wrong roles to `/forbidden`. Authorization must remain enforced by Express; client state and redirects are only UI behavior.
+Browser auth requests use relative `/api/v1/...` URLs. `frontend/next.config.ts` rewrites the API areas it lists, such as auth/staff/admin/orders/vouchers, to `BACKEND_ORIGIN` (default `http://127.0.0.1:3001`). Workspace Server Components read the HttpOnly cookie with `next/headers`, call Express using the configured absolute backend origin, and redirect missing sessions to `/login` or wrong roles to `/forbidden`. Authorization must remain enforced by Express; client state and redirects are only UI behavior.
 
 Next.js is version 16 with experimental cache/partial-prefetch features. Before changing framework behavior, read the relevant installed guide under `frontend/node_modules/next/dist/docs/` rather than relying on older Next.js conventions. Keep the generated Next.js blocks in `frontend/AGENTS.md`.
 

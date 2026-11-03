@@ -187,16 +187,16 @@ Changes `features/cart`, `features/checkout`, `features/orders`, and the homepag
 
 ## 7. Reports and final checks
 
-- [ ] Sales report: fix the revenue mismatch found on 02/11/2026. Product and category revenue use `unitPrice × qty`, while the total uses order totals, so shares already reach 103.5%, and vouchers make the gap larger. Agree with Quang who changes `admin-sales.controller.js`.
-- [ ] Finance report: confirm gross revenue is after discount, and show total voucher discount in the period if Quang agrees.
-- [ ] Update `CLAUDE.md` (the voucher routes, and that product/cart/order "not implemented" text no longer applies to promotions), `frontend/design.md`, and `docs/specs/admin-backend.md` (Promotions are no longer a non-goal).
-- [ ] `npm run migrate:admin` and `seed:admin` on a copy of the local database: the second run changes nothing, and existing seeded codes work.
-- [ ] Checks: `npm --prefix backend test`, `npm --prefix frontend test`, `npm --prefix frontend run lint`, `npm --prefix frontend exec -- tsc --noEmit`, and the build if `dev`'s failures have been fixed. Only the known failures listed at the top may remain.
-- [ ] Security pass:
-  - [ ] Staff and Customer get 403 on every management API.
-  - [ ] Mutations without the CSRF token are refused.
-  - [ ] Quote errors do not reveal why a code failed.
-  - [ ] The public list exposes no usage figures.
-  - [ ] Forged amounts are ignored.
-- [ ] Report the gaps left open to their owners: `cancelOrder` has no ownership check, so anyone with an order id can cancel it and release its voucher, and `POST /orders` has no CSRF check.
+- [ ] Sales report: fix the revenue mismatch found on 02/11/2026. Product and category revenue use `unitPrice × qty`, while the total uses order totals, so shares already reach 103.5%, and vouchers make the gap larger. Agree with Quang who changes `admin-sales.controller.js`. Not started: this needs his agreement, and it is not needed for vouchers to work.
+- [ ] Finance report: confirm gross revenue is after discount, and show total voucher discount in the period if Quang agrees. Confirmed on 03/11/2026: `admin-finance.controller.js` sums order `total`, so gross revenue is after discount. Showing the total discount still waits for Quang.
+- [x] Update `CLAUDE.md` (the voucher routes, and that product/cart/order "not implemented" text no longer applies to promotions), `frontend/design.md`, and `docs/specs/admin-backend.md` (Promotions are no longer a non-goal).
+- [x] `npm run migrate:admin` and `seed:admin` on a copy of the local database: the second run changes nothing, and existing seeded codes work.
+- [x] Checks: `npm --prefix backend test`, `npm --prefix frontend test`, `npm --prefix frontend run lint`, `npm --prefix frontend exec -- tsc --noEmit`, and the build if `dev`'s failures have been fixed. Only the known failures listed at the top may remain. Result on 03/11/2026: backend fails only `app.test.js`, all 110 frontend tests pass, and `tsc` is clean when run from `frontend/` with current route types. The build still fails on `/orders/[id]`, because `usePathname` in the storefront header is outside Suspense, which is `dev`'s known failure. Lint reports nothing new in voucher code.
+- [x] Security pass:
+  - [x] Staff and Customer get 403 on every management API.
+  - [x] Mutations without the CSRF token are refused.
+  - [x] Quote errors do not reveal why a code failed.
+  - [x] The public list exposes no usage figures.
+  - [x] Forged amounts are ignored.
+- [ ] Report the gaps left open to their owners: `cancelOrder` has no ownership check, so anyone with an order id can cancel it and release its voucher, and `POST /orders` has no CSRF check. `cancelOrder` also has no status check, so it can cancel a shipping or completed order and return its use. Also report the cart's 30.000 ₫ shipping display, and the hard-coded "paddy" logo on `/voucher` cards. Reported to the working-branch owner on 03/11/2026, to pass on.
 - [ ] **🛑 Commit checkpoint: Voucher system complete.**
