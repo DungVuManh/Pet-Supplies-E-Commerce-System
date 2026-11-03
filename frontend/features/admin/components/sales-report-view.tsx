@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AlertCircle, Calendar, Download, RefreshCw } from "lucide-react";
 import { AdminPageHeader, DataTable, KpiCard, Stack, Td, Th } from "./admin-ui";
 import { ReportsNav } from "./reports-nav";
+import { defaultReportPeriod, type ReportPeriod } from "../report-period";
 import { ActionLink, BarChart, Pagination, TabNav, control } from "@/components/workspace/workspace-ui";
 import { downloadExcelCsv } from "../utils/export-excel";
 
@@ -56,21 +57,16 @@ interface TimeSalesRow {
   quantity: number;
 }
 
-export function SalesReportView() {
+export function SalesReportView({ period = defaultReportPeriod }: { period?: ReportPeriod }) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<SalesTab>("product");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Mặc định kỳ báo cáo: Tháng 10 năm 2026 (hoặc 30 ngày)
-  const [dateFrom, setDateFrom] = useState("2026-10-01");
-  const [dateTo, setDateTo] = useState("2026-10-31");
-  const [appliedPeriod, setAppliedPeriod] = useState({
-    from: "2026-10-01",
-    to: "2026-10-31",
-    label: "01/10/2026 – 31/10/2026",
-  });
+  const [dateFrom, setDateFrom] = useState(period.from);
+  const [dateTo, setDateTo] = useState(period.to);
+  const [appliedPeriod, setAppliedPeriod] = useState(period);
   const [isCustomRangeOpen, setIsCustomRangeOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -325,7 +321,7 @@ export function SalesReportView() {
         actions={actions}
       />
 
-      <ReportsNav />
+      <ReportsNav period={appliedPeriod} />
 
       {/* Hiển thị lỗi nếu API thất bại */}
       {error && !loading && (

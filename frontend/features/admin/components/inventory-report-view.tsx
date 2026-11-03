@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AlertCircle, Calendar, Download, RefreshCw } from "lucide-react";
 import { AdminPageHeader, DataTable, KpiCard, StatusBadge, Td, Th } from "./admin-ui";
 import { ReportsNav } from "./reports-nav";
+import { defaultReportPeriod, type ReportPeriod } from "../report-period";
 import { Pagination, card, control, secondaryButton } from "@/components/workspace/workspace-ui";
 import { downloadExcelCsv } from "../utils/export-excel";
 import type { AdminStatus } from "../status";
@@ -41,7 +42,7 @@ interface PaginationData {
   to: number;
 }
 
-export function InventoryReportView() {
+export function InventoryReportView({ period = defaultReportPeriod }: { period?: ReportPeriod }) {
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
@@ -54,13 +55,9 @@ export function InventoryReportView() {
   const [appliedCategory, setAppliedCategory] = useState("Tất cả danh mục");
 
   // Thời gian
-  const [dateFrom, setDateFrom] = useState("2026-10-01");
-  const [dateTo, setDateTo] = useState("2026-10-31");
-  const [appliedPeriod, setAppliedPeriod] = useState({
-    from: "2026-10-01",
-    to: "2026-10-31",
-    label: "01/10/2026 – 31/10/2026",
-  });
+  const [dateFrom, setDateFrom] = useState(period.from);
+  const [dateTo, setDateTo] = useState(period.to);
+  const [appliedPeriod, setAppliedPeriod] = useState(period);
   const [isCustomRangeOpen, setIsCustomRangeOpen] = useState(false);
 
   // Phân trang
@@ -342,7 +339,7 @@ export function InventoryReportView() {
         actions={actions}
       />
 
-      <ReportsNav />
+      <ReportsNav period={appliedPeriod} />
 
       {/* Thông báo lỗi khi API thất bại */}
       {error && !loading && (
