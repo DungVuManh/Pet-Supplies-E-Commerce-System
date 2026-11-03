@@ -7,6 +7,7 @@ import { deleteCategory, getCategory, listCategories, updateCategory } from "../
 import { listMasterData, listMasterDataOptions } from "../controllers/admin/master-data.controller.js";
 import { deleteProduct, getProduct, hideProduct, listProducts, showProduct, updateProduct } from "../controllers/admin/product.controller.js";
 import { listOrders } from "../controllers/admin/order.controller.js";
+import { getOverview } from "../controllers/admin/overview.controller.js";
 import { listPermissions } from "../controllers/admin/permission.controller.js";
 import { getUser, listUsers, lockUser, unlockUser, updateUser } from "../controllers/admin/user.controller.js";
 import {
@@ -21,6 +22,7 @@ const router = Router();
 router.use(readCookies, requireAuth, requireRole("admin"));
 
 router.get("/dashboard", dashboard);
+router.get("/overview", getOverview);
 router.get("/inventory", listInventory);
 router.get("/categories", listCategories);
 router.get("/categories/:code", getCategory);
