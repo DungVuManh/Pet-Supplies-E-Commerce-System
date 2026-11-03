@@ -11,6 +11,7 @@ import {
   getMyOrders,
   getOrderDetail,
   previewBuyNow,
+  lookupOrder,
 } from "../controllers/order.controller.js";
 import { confirmCustomerOrderReceipt } from "../controllers/order-status.controller.js";
 import { protectMutation } from "../controllers/auth.controller.js";
@@ -41,6 +42,10 @@ router.patch(
   protectMutation,
   confirmCustomerOrderReceipt,
 );
+
+// 1b. Tra cứu đơn hàng công khai theo mã đơn hàng và số điện thoại (Không bắt buộc đăng nhập)
+router.get("/lookup", lookupOrder);
+router.post("/lookup", lookupOrder);
 
 // 2. GET /api/v1/orders/:id - Lấy chi tiết 1 đơn hàng (customer xem đơn của mình)
 router.get("/:id", requireAuth, requireRole("customer"), getOrderDetail);

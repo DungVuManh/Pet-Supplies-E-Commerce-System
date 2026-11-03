@@ -195,7 +195,7 @@ export function AccountMenu({ roleLabel }: { roleLabel?: string } = {}) {
                                 Đơn hàng của tôi
                             </Link>
                             <Link
-                                href="/wishlist"
+                                href="/account/wishlist"
                                 onClick={closeMenu}
                                 className={menuItemClassName}
                             >

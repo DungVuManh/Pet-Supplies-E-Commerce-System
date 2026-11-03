@@ -84,7 +84,7 @@ export async function confirmCustomerOrderReceipt(request, response) {
       orderStatus: "shipping",
       creationState: { $ne: "pending" },
     }, {
-      $set: { orderStatus: "completed" },
+      $set: { orderStatus: "completed", paymentStatus: "paid" },
       $push: { statusHistory: { from: "shipping", to: "completed", by: request.user._id, at: new Date() } },
     }, { runValidators: true });
     if (result.modifiedCount !== 1) {
