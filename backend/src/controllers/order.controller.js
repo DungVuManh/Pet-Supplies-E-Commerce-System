@@ -172,7 +172,7 @@ export async function createOrder(request, response, next) {
         name: product.name,
         unitPrice,
         qty,
-        image: variant?.image || product.images?.[0] || "",
+        image: variant?.image || prod?.images?.[0] || item.image || "",
       });
 
       subtotal += unitPrice * qty;
@@ -696,7 +696,7 @@ export async function getStaffOrderDetail(request, response, next) {
         const physical = variant.stock ?? 0;
         const reserved = variant.reservedStock ?? 0;
         currentProduct = {
-          image: prod.images?.[0] || null,
+          image: variant?.image || prod?.images?.[0] || item.image || "",
           variantLabel: variant.label || null,
           stock: physical,
           reservedStock: reserved,
@@ -713,7 +713,7 @@ export async function getStaffOrderDetail(request, response, next) {
         name: item.name,
         unitPrice,
         qty,
-        image: variant?.image || product.images?.[0] || "",
+        image: variant?.image || prod?.images?.[0] || item.image || "",
         lineTotal: unitPrice * qty,
         currentProduct,
       };

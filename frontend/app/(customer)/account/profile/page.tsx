@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/auth-provider";
+import type { Role } from "@/features/auth/types";
 import { AccountShell } from "@/features/account/components/account-shell";
 import { ProfileView } from "@/features/account/components/profile-view";
 import { ProfileEdit } from "@/features/account/components/profile-edit";
@@ -44,7 +45,7 @@ export default function ProfilePage() {
             acceptUser({
               id: data.user.id,
               email: data.user.email,
-              role: data.user.role,
+              role: (data.user.role as Role) || "customer",
               fullName: data.user.fullName,
               phone: data.user.phone,
               avatarUrl: data.user.avatarUrl,
@@ -107,7 +108,7 @@ export default function ProfilePage() {
         ...(user || {
           id: updated.id,
           email: updated.email,
-          role: updated.role,
+          role: (updated.role as Role) || "customer",
         }),
         fullName: updated.fullName,
         phone: updated.phone,

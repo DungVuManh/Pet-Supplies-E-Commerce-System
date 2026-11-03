@@ -11,19 +11,22 @@ import React from "react";
 
 interface WishlistHeaderProps {
   totalCount: number;
+  hideBreadcrumb?: boolean;
 }
 
-export function WishlistHeader({ totalCount }: WishlistHeaderProps) {
+export function WishlistHeader({ totalCount, hideBreadcrumb = false }: WishlistHeaderProps) {
   return (
     <div className="mb-6">
-      {/* 1. Breadcrumb điều hướng */}
-      <nav aria-label="Đường dẫn" className="mb-3 flex items-center gap-1.5 text-xs text-slate-500">
-        <Link href="/" className="hover:text-blue-600 transition-colors">
-          Trang chủ
-        </Link>
-        <ChevronRight className="size-3.5 text-slate-400" />
-        <span className="font-medium text-slate-800">Danh sách yêu thích</span>
-      </nav>
+      {/* 1. Breadcrumb điều hướng (ẩn nếu đã có breadcrumb của trang cha) */}
+      {!hideBreadcrumb && (
+        <nav aria-label="Đường dẫn" className="mb-3 flex items-center gap-1.5 text-xs text-slate-500">
+          <Link href="/" className="hover:text-blue-600 transition-colors">
+            Trang chủ
+          </Link>
+          <ChevronRight className="size-3.5 text-slate-400" />
+          <span className="font-medium text-slate-800">Danh sách yêu thích</span>
+        </nav>
+      )}
 
       {/* 2. Tiêu đề chính + Badge số lượng */}
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -49,4 +52,3 @@ export function WishlistHeader({ totalCount }: WishlistHeaderProps) {
     </div>
   );
 }
-
