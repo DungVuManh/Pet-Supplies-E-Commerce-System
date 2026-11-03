@@ -22,6 +22,15 @@ const promotionSchema = new mongoose.Schema(
    validate: { validator(value) { return value > this.startAt; }, message: "End must follow start" },
   },
   isActive: { type: Boolean, default: true },
+  name: { type: String, trim: true, maxlength: 100 },
+  // Upper limit of a percent discount, in whole VND. Empty means no cap.
+  maxDiscount: { ...nonNegativeInteger, min: 1 },
+  // Total uses allowed. Empty means unlimited.
+  usageLimit: { ...nonNegativeInteger, min: 1 },
+  usedCount: { ...nonNegativeInteger, default: 0 },
+  oncePerCustomer: { type: Boolean, default: true },
+  // Listed on the storefront. A hidden voucher still works for anyone who has its code.
+  isPublic: { type: Boolean, default: false },
   // Eligibility rules are not defined by the SRS; application logic must validate them.
   eligibility: mongoose.Schema.Types.Mixed,
  },

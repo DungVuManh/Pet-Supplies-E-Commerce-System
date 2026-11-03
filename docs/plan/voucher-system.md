@@ -64,22 +64,22 @@ Cancel: flip the redemption from active to released with a conditional update.
 
 ## 0. Preparation
 
-- [ ] Merge `origin/dev` into the working branch. A trial merge on 03/11/2026 showed no conflicts, but `order.controller.js` and `order.router.js` differ, and those are the files this feature changes.
-- [ ] Tell the owners of the order and checkout code (Vũ Mạnh Dũng and quangoku) that steps 5 and 6 change `createOrder`, `cancelOrder`, the cart page, and the checkout page. Record who agreed here.
-- [ ] Decide with them what shipping is meant to do. The cart displays 30.000 ₫, but checkout sends none and orders store 0. This plan keeps what is charged today, 0, and stops trusting the client. Record the answer here.
-- [ ] Confirm whether `updateStaffOrderStatus` can move an order to `cancelled`, and list every path that can. Step 5 must release the voucher on all of them.
+- [x] Merge `origin/dev` into the working branch. A trial merge on 03/11/2026 showed no conflicts, but `order.controller.js` and `order.router.js` differ, and those are the files this feature changes. Merged on 03/11/2026 at `5128cc4`, with no conflicts. Baseline after the merge: backend fails only `app.test.js` (`seed.test.js` passes alone, `order-status.test.js` now passes), and all 95 frontend tests pass. `tsc --noEmit` must run from `frontend/`, and currently reports one error, in the generated `.next/dev/types/validator.ts`.
+- [x] Tell the owners of the order and checkout code (Vũ Mạnh Dũng and quangoku) that steps 5 and 6 change `createOrder`, `cancelOrder`, the cart page, and the checkout page. Record who agreed here. The working-branch owner approved all shared steps on 03/11/2026 and will tell Dũng and quangoku. Their own agreement is not recorded yet. Nothing is pushed until the owner chooses to.
+- [x] Decide with them what shipping is meant to do. The cart displays 30.000 ₫, but checkout sends none and orders store 0. This plan keeps what is charged today, 0, and stops trusting the client. Record the answer here. Answer from the working-branch owner on 03/11/2026: keep charging 0. The cart's 30.000 ₫ display stays as it is and is reported to the owners in step 7.
+- [x] Confirm whether `updateStaffOrderStatus` can move an order to `cancelled`, and list every path that can. Step 5 must release the voucher on all of them. It can, from `pending` or `confirmed`. The two paths are `cancelOrder` (`PATCH /orders/:id/cancel` and `DELETE /orders/:id`, which has no status check, so it can also cancel a shipping or completed order) and `updateStaffOrderStatus` in `order-status.controller.js`. Admin's approve-cancellation is not built yet (see step 5).
 
 ## 1. Data ⚠️
 
-Changes `models/promotion.model.js`, `models/index.js`, `scripts/seed.js`, `tests/seed.test.js`, and `tests/models.test.js`.
+Changes `models/promotion.model.js`, `models/index.js`, `scripts/migrate-admin.js`, `scripts/seed-admin.js`, `tests/seed.test.js`, `tests/models.test.js`, and `tests/admin-scripts.test.js`. `scripts/seed.js` did not need a change.
 
-- [ ] `Promotion`: add `name` (≤ 100), `maxDiscount` (optional, integer ≥ 1), `usageLimit` (optional, integer ≥ 1, empty means unlimited), `usedCount` (integer ≥ 0, default 0), `oncePerCustomer` (default true), and `isPublic` (default false). Every new field is optional or defaulted, so seeded and existing documents stay valid.
-- [ ] Add `PromotionRedemption` (`promotionRedemptions`): `promotionId`, `code`, `orderId`, `customerKey` (`user:<id>` or `guest:<phone>`), `discount`, `status` (`active` or `released`), `oncePerCustomer`, `releasedAt`.
-- [ ] Indexes: unique `{ orderId: 1 }`; unique partial `{ promotionId: 1, customerKey: 1 }` where `status: "active"` and `oncePerCustomer: true`; `{ promotionId: 1, status: 1 }`. Register the model.
-- [ ] Add a `promotions.usage` step to `migrate-admin.js` that sets a missing `usedCount` to 0, with `timestamps: false`. It must change nothing on a second run.
-- [ ] Add a `vouchers` step to `seed-admin.js` with public samples: a percent voucher with a cap, a fixed voucher with a minimum order, and one with a usage limit of 1. Do not change the 4 shared seed codes.
-- [ ] Update `models/README.md`.
-- [ ] Tests: new field rules, and both unique indexes declared. Exclude `PromotionRedemption` from the base seed test, like the other Admin-only models.
+- [x] `Promotion`: add `name` (≤ 100), `maxDiscount` (optional, integer ≥ 1), `usageLimit` (optional, integer ≥ 1, empty means unlimited), `usedCount` (integer ≥ 0, default 0), `oncePerCustomer` (default true), and `isPublic` (default false). Every new field is optional or defaulted, so seeded and existing documents stay valid.
+- [x] Add `PromotionRedemption` (`promotionRedemptions`): `promotionId`, `code`, `orderId`, `customerKey` (`user:<id>` or `guest:<phone>`), `discount`, `status` (`active` or `released`), `oncePerCustomer`, `releasedAt`.
+- [x] Indexes: unique `{ orderId: 1 }`; unique partial `{ promotionId: 1, customerKey: 1 }` where `status: "active"` and `oncePerCustomer: true`; `{ promotionId: 1, status: 1 }`. Register the model.
+- [x] Add a `promotions.usage` step to `migrate-admin.js` that sets a missing `usedCount` to 0, with `timestamps: false`. It must change nothing on a second run.
+- [x] Add a `vouchers` step to `seed-admin.js` with public samples: a percent voucher with a cap, a fixed voucher with a minimum order, and one with a usage limit of 1. Do not change the 4 shared seed codes.
+- [x] Update `models/README.md`.
+- [x] Tests: new field rules, and both unique indexes declared. Exclude `PromotionRedemption` from the base seed test, like the other Admin-only models.
 
 ## 2. Voucher rules
 
@@ -127,7 +127,7 @@ Only touches `features/admin`, `app/(workspace)/admin`, and `admin-shell.tsx`. R
 
 ## 5. Backend purchase flow ⚠️
 
-**This is the main purchase flow.** Changes `order.controller.js`, `order.router.js`, `app.js`, and `tests/orders.test.js`. Get the user's agreement first. Keep the edits small, and put new logic in new files, so merges stay simple.
+**This is the main purchase flow.** Changes `order.controller.js`, `order-status.controller.js` (Staff cancellation, found in step 0), `order.router.js`, `app.js`, and `tests/orders.test.js`. Get the user's agreement first. Keep the edits small, and put new logic in new files, so merges stay simple.
 
 ### Close the hole first, as its own commit
 
@@ -176,6 +176,7 @@ Changes `features/cart`, `features/checkout`, `features/orders`, and the homepag
 - [ ] A guest's phone number reaches the quote once entered, so once-per-customer is checked before they press order. If they change it later, the order step still catches it.
 - [ ] Order result page and order history: show the discount and code. `order-summary-sidebar.tsx` already has the field, so confirm it renders. Confirm Staff and Admin order details too.
 - [ ] Homepage voucher bar: read `GET /vouchers/public`, remove the hard-coded list, and hide the bar when there are none. The homepage must still load if the request fails.
+- [ ] `/voucher` page (added on `dev` on 03/11/2026, after this plan was written): read `GET /vouchers/public` and remove `features/vouchers/mock-data.ts`, so every code shown can be redeemed. The 6-item limit applies only to the homepage bar. Keep the existing layout. Agreed with the working-branch owner on 03/11/2026.
 - [ ] Browser check as a guest and as a Customer, at 1440 and 320 px:
   - [ ] Cart to order: apply, remove, invalid code, below minimum, percent with a cap, and fixed.
   - [ ] Buy Now to order.

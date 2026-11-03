@@ -3,6 +3,7 @@ import { pathToFileURL } from "node:url";
 import { connectDatabase, disconnectDatabase } from "../config/database.js";
 import { loadEnvironment } from "../config/env.js";
 import { Category } from "../models/category.model.js";
+import { Promotion } from "../models/promotion.model.js";
 import { User } from "../models/user.model.js";
 
 /**
@@ -41,6 +42,14 @@ export const migrations = [
 
    for (const [_id, $set] of updates) await Category.updateOne({ _id }, { $set }, { timestamps: false });
    return updates.size;
+  },
+ },
+ {
+  name: "promotions.usage",
+  // Voucher code treats a missing count as 0, but filling it in lets reports rely on it.
+  async run() {
+   const result = await Promotion.updateMany({ usedCount: { $exists: false } }, { $set: { usedCount: 0 } }, { timestamps: false });
+   return result.modifiedCount;
   },
  },
 ];
