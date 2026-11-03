@@ -172,7 +172,7 @@ export async function createOrder(request, response, next) {
         name: product.name,
         unitPrice,
         qty,
-        image: variant?.image || prod?.images?.[0] || item.image || "",
+        image: variant?.image || product?.images?.[0] || item.image || "",
       });
 
       subtotal += unitPrice * qty;

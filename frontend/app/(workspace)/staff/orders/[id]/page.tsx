@@ -215,20 +215,6 @@ export default async function OrderDetailPage({
         </>
        )}
       </div>
-
-      {order.shipping && (
-       <div className="mt-4 border-t border-line pt-4">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
-         Đơn vị vận chuyển
-        </h3>
-        <p className="mt-1 text-sm font-medium">
-         {order.shipping.carrier || "Chưa cung cấp"}
-        </p>
-        <p className="mt-1 text-xs text-muted">
-         Mã vận đơn: {order.shipping.trackingNumber || "Chưa cung cấp"}
-        </p>
-       </div>
-      )}
      </section>
 
      {/* Payment */}
