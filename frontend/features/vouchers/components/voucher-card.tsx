@@ -164,35 +164,17 @@ export function VoucherCard({
 
         {/* Dưới cùng: Pill chứa mã và Nút Lưu */}
         <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-200/50">
-          {/* Pill chứa mã (bấm vào mã thì copy vào clipboard) */}
-          <button
-            type="button"
-            onClick={handleCopyCode}
-            title="Bấm để sao chép mã"
-            className="group relative flex items-center gap-1.5 rounded-full bg-[#E8EAFB] px-3.5 py-1.5 text-xs font-bold text-[#0B4DFF] hover:bg-[#DCE0F9] active:scale-95 transition-all cursor-pointer"
-          >
-            {copied ? (
-              <>
-                <Check className="size-3 text-emerald-600" />
-                <span className="text-emerald-700">Đã chép</span>
-              </>
-            ) : (
-              <>
-                <span>{voucher.code}</span>
-                <Copy className="size-2.5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </>
-            )}
-          </button>
-
+          <div className="flex item-center justify-center rounded-[30px] border-radius-[30px]  font-bold  border border-indigo bg-purple-500 px-5 py-1.5">
+            <span>{voucher.code}</span>
+          </div>
           {/* Nút Lưu xanh dương bo tròn (bấm đổi thành Đã lưu) */}
           <button
             type="button"
             onClick={handleSave}
-            className={`inline-flex items-center justify-center rounded-full px-4 py-1.5 text-xs font-bold transition-all active:scale-95 ${
-              isSaved
-                ? "bg-[#E2E8F0] text-[#64748B] cursor-default shadow-none"
-                : "bg-[#0B4DFF] text-white shadow-xs hover:bg-blue-700 cursor-pointer"
-            }`}
+            className={`inline-flex items-center justify-center rounded-full px-4 py-1.5 text-xs font-bold transition-all active:scale-95 ${isSaved
+              ? "bg-[#E2E8F0] text-[#64748B] cursor-default shadow-none"
+              : "bg-[#0B4DFF] text-white shadow-xs hover:bg-blue-700 cursor-pointer"
+              }`}
           >
             {isSaved ? "Đã lưu" : "Lưu"}
           </button>
