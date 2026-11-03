@@ -85,30 +85,30 @@ Changes `models/promotion.model.js`, `models/index.js`, `scripts/migrate-admin.j
 
 Plain functions with no database access, so every rule can be tested directly.
 
-- [ ] `voucher-rules.js`: `voucherState(voucher, now)` returns `active`, `scheduled`, `expired`, `disabled`, or `exhausted`, treating a missing `usedCount` as 0.
-- [ ] `calculateDiscount(voucher, subtotal)`: the percent and fixed formulas from the spec, with the cap and subtotal limits.
-- [ ] `evaluateVoucher(voucher, { subtotal, now })` returns `{ applies, discount, reason }`. `reason` stays server-side, except a `below_minimum` reason with the minimum amount.
-- [ ] `customerKey({ userId, phone })`, reusing the phone normalization in the account validator, so `0912 345 678` and `0912345678` match.
-- [ ] Tests, in `tests/voucher-rules.test.js`:
-  - [ ] Percent rounding down (10% of 99.999 is 9.999), the cap, and fixed larger than subtotal.
-  - [ ] Exact boundaries: `now == startAt` applies, `now == endAt` does not, `subtotal == minOrderAmount` applies.
-  - [ ] Every state, and a document with no `usedCount`.
-  - [ ] Over random subtotals, the discount is always a whole number from 0 to the subtotal.
+- [x] `voucher-rules.js`: `voucherState(voucher, now)` returns `active`, `scheduled`, `expired`, `disabled`, or `exhausted`, treating a missing `usedCount` as 0. The list's "Đã kết thúc" tab joins `expired` and `exhausted`.
+- [x] `calculateDiscount(voucher, subtotal)`: the percent and fixed formulas from the spec, with the cap and subtotal limits.
+- [x] `evaluateVoucher(voucher, { subtotal, now })` returns `{ applies, discount, reason }`. `reason` stays server-side, except a `below_minimum` reason with the minimum amount. A discount that rounds to 0 is refused as `no_discount`, so it cannot spend a use.
+- [x] `customerKey({ userId, phone })`, using the same rule as the account validator, so `0912 345 678` and `0912345678` match. The account validator keeps its inline rule, because that file is shared; `voucher-rules.js` also maps `+84` to `0`, so those two spellings are one guest.
+- [x] Tests, in `tests/voucher-rules.test.js`:
+  - [x] Percent rounding down (10% of 99.999 is 9.999), the cap, and fixed larger than subtotal.
+  - [x] Exact boundaries: `now == startAt` applies, `now == endAt` does not, `subtotal == minOrderAmount` applies.
+  - [x] Every state, and a document with no `usedCount`.
+  - [x] Over random subtotals, the discount is always a whole number from 0 to the subtotal.
 
 ## 3. Admin API
 
 Only touches `admin.router.js` and new files.
 
-- [ ] `validators/admin/voucher.validator.js`: list query, plus create and update with per-field messages using `common/field-errors.js`. Code is `^[A-Z0-9-]{3,30}$` after trimming and uppercasing. Percent is 1–100, fixed is ≥ 1, `maxDiscount` only with percent, `endAt` after `startAt`.
-- [ ] `GET /vouchers`: tabs by derived state, `q` on code and name (accent-insensitive), paging, tab counts, and rows with total discount given, summed from active redemptions.
-- [ ] `GET /vouchers/:code`: the form's data, plus `used` and `lockedFields`. 404 when unknown.
-- [ ] `POST /vouchers`: create. A duplicate code is 409 `DUPLICATE_VALUE` (MSG32), including a race caught by the unique index.
-- [ ] `PATCH /vouchers/:code`: `expectedUpdatedAt` required (409 `STALE_VOUCHER`). Changing a locked field after first use is 400 on that field. `usageLimit` below `usedCount` is 400. A no-op writes nothing.
-- [ ] `POST /vouchers/:code/enable` and `/disable`: conditional on the current value, with 409 on a repeat.
-- [ ] `DELETE /vouchers/:code`: 409 `VOUCHER_IN_USE` when any redemption or order references it, otherwise delete.
-- [ ] Every mutation uses `protectMutation` and `recordAudit` (`voucher.create`, `.update`, `.enable`, `.disable`, `.delete`), with before and after showing only what changed.
-- [ ] Add a "Quản lý voucher" row to `common/permissions.js`, Admin only, and update the row count in `tests/admin-permissions.test.js`.
-- [ ] Tests, in `tests/admin-vouchers.test.js`: each validation message, duplicate code, locked fields, stale edit, usage limit below used, both delete outcomes, enable/disable repeats, and audit entries. `tests/admin-access.test.js` covers guest, Customer, Staff, and CSRF automatically, because it walks the router.
+- [x] `validators/admin/voucher.validator.js`: list query, plus create and update with per-field messages using `common/field-errors.js`. Code is `^[A-Z0-9-]{3,30}$` after trimming and uppercasing. Percent is 1–100, fixed is ≥ 1, `maxDiscount` only with percent, `endAt` after `startAt`.
+- [x] `GET /vouchers`: tabs by derived state, `q` on code and name (accent-insensitive), paging, tab counts, and rows with total discount given, summed from active redemptions.
+- [x] `GET /vouchers/:code`: the form's data, plus `used` and `lockedFields`. 404 when unknown.
+- [x] `POST /vouchers`: create. A duplicate code is 409 `DUPLICATE_VALUE` (MSG32), including a race caught by the unique index.
+- [x] `PATCH /vouchers/:code`: `expectedUpdatedAt` required (409 `STALE_VOUCHER`). Changing a locked field after first use is 400 on that field. `usageLimit` below `usedCount` is 400. A no-op writes nothing.
+- [x] `POST /vouchers/:code/enable` and `/disable`: conditional on the current value, with 409 on a repeat.
+- [x] `DELETE /vouchers/:code`: 409 `VOUCHER_IN_USE` when any redemption or order references it, otherwise delete.
+- [x] Every mutation uses `protectMutation` and `recordAudit` (`voucher.create`, `.update`, `.enable`, `.disable`, `.delete`), with before and after showing only what changed.
+- [x] Add a "Quản lý voucher" row to `common/permissions.js`, Admin only, and update the row count in `tests/admin-permissions.test.js`.
+- [x] Tests, in `tests/admin-vouchers.test.js`: each validation message, duplicate code, locked fields, stale edit, usage limit below used, both delete outcomes, enable/disable repeats, and audit entries. `tests/admin-access.test.js` covers guest, Customer, Staff, and CSRF automatically, because it walks the router.
 
 ## 4. Admin page: Quản Lí Voucher
 

@@ -14,10 +14,10 @@ beforeEach(() => { admin = createAdminTestApp(); });
 afterEach(() => vi.restoreAllMocks());
 
 describe("GET /api/v1/admin/permissions", () => {
- it("returns the 9 rows and the account count per role", async () => {
+ it("returns the 10 rows and the account count per role", async () => {
   vi.spyOn(User, "countDocuments").mockImplementation(async ({ role }) => ({ customer: 12, staff: 3, admin: 1 })[role]);
   const { body } = await admin.send("GET", "/api/v1/admin/permissions").expect(200);
-  expect(body.data.items).toHaveLength(9);
+  expect(body.data.items).toHaveLength(10);
   expect(body.data.counts).toEqual({ customer: 12, staff: 3, admin: 1 });
   expect(body.data.items[0]).toEqual({ id: "profile", label: "Xem và sửa hồ sơ cá nhân", roles: { customer: true, staff: true, admin: true } });
   expect(JSON.stringify(body)).not.toContain("staffRoutes");
