@@ -24,6 +24,16 @@ const VOUCHER_THEMES = {
     tagBg: "#FFE600", // Vàng
     tagText: "#000000",
   },
+  "PHÍ SHIP": {
+    headerBg: "#0B4DFF", // Xanh dương
+    tagBg: "#FFE600", // Vàng
+    tagText: "#000000",
+  },
+  "SẢN PHẨM": {
+    headerBg: "#FF8A14", // Cam
+    tagBg: "#0B4DFF", // Xanh dương
+    tagText: "#FFFFFF",
+  },
 };
 
 export function VoucherCard({
@@ -98,7 +108,7 @@ export function VoucherCard({
 
           {/* Logo paddy góc trên phải */}
           <span className="font-extrabold text-[17px] tracking-tight text-white lowercase">
-            paddy
+            petjoy
           </span>
         </div>
 
@@ -154,9 +164,10 @@ export function VoucherCard({
 
         {/* Dưới cùng: Pill chứa mã và Nút Lưu */}
         <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-200/50">
-          <div className="flex item-center justify-center rounded-[30px] border-radius-[30px]  font-bold  border border-indigo bg-purple-500 px-5 py-1.5">
+          <div className="flex rounded-[30px] border-radius-[30px]  font-bold  border border-indigo bg-purple-500 px-5 py-1.5">
             <span>{voucher.code}</span>
           </div>
+
           {/* Nút Lưu xanh dương bo tròn (bấm đổi thành Đã lưu) */}
           <button
             type="button"
@@ -174,3 +185,4 @@ export function VoucherCard({
   );
 }
 
+export default VoucherCard;

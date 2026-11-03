@@ -39,6 +39,7 @@ const router = Router();
 router.use(readCookies);
 
 router.get("/public", listPublicVouchers);
+router.get("/", listPublicVouchers);
 router.post("/quote", quoteLimiter, optionalAuth, protectMutation, quoteVoucher);
 
 export default router;

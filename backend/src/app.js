@@ -75,6 +75,7 @@ export function createApp(config) {
  app.use("/api/v1/wishlist", wishlistRouter);
  app.use("/api/v1/reviews", reviewRouter);
  app.use("/api/v1/vouchers", voucherRouter);
+ app.use("/api/v1/promotions", voucherRouter);
  app.use("/api/v1/admin", adminRouter);
  app.use("/api/v1", workspaceRouter);
  app.use(notFoundMiddleware);
