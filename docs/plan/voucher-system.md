@@ -131,9 +131,9 @@ Only touches `features/admin`, `app/(workspace)/admin`, and `admin-shell.tsx`. R
 
 ### Close the hole first, as its own commit
 
-- [ ] `createOrder`: stop reading `discount` and `shippingFee` from the body. `discount` is 0 without a voucher, and `shippingFee` follows the answer from step 0.
-- [ ] Add a regression test: a forged `discount` and `shippingFee` do not reach the order.
-- [ ] **🛑 Commit checkpoint: Server-side order totals.** Worth merging early, because it fixes a live hole regardless of vouchers.
+- [x] `createOrder`: stop reading `discount` and `shippingFee` from the body. `discount` is 0 without a voucher, and `shippingFee` follows the answer from step 0.
+- [x] Add a regression test: a forged `discount` and `shippingFee` do not reach the order.
+- [x] **🛑 Commit checkpoint: Server-side order totals.** Worth merging early, because it fixes a live hole regardless of vouchers.
 
 ### Public APIs
 

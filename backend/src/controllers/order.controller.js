@@ -178,8 +178,9 @@ export async function createOrder(request, response, next) {
       subtotal += unitPrice * qty;
     }
 
-    const shippingFee = Number(request.body.shippingFee) || 0;
-    const discount = Number(request.body.discount) || 0;
+    // Tiền phải do server tính (BR-11); không đọc discount hay shippingFee từ body.
+    const shippingFee = 0;
+    const discount = 0;
     const total = subtotal - discount + shippingFee;
 
     // Chỉ lấy customerId từ hồ sơ đã xác thực; không tin ID do client gửi.
