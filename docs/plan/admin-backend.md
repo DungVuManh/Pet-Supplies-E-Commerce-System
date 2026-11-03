@@ -261,6 +261,8 @@ UI it serves: `docs/specs/admin-workspace-ui.md` (complete on mock data in `fron
 
 ## 6. Cancellation requests: `/admin/cancellations`
 
+> **Voucher note:** approving a cancellation must also call `releaseVoucher(orderId)` from `common/voucher-redemption.js`, or the order's voucher use is never returned. See `docs/plan/voucher-system.md`.
+
 - [ ] `Order`: add the `cancellationRequest` subdocument (see the spec) and an index `{ "cancellationRequest.status": 1, "cancellationRequest.requestedAt": -1 }`
 - [ ] `GET /cancellations`: tabs (pending, approved, rejected), `q` (order code, customer), and status. Rows `{ orderCode, customer, requesterRole, reason, value, requestedAt, status, note }`.
 - [ ] `POST /cancellations/:orderCode/approve`: a conditional update on `cancellationRequest.status: "pending"`, then the order is set to `cancelled` with `statusHistory`, the order's stock is given back (release reserved or add back deducted), `StockMovement` rows are recorded (source `cancellation`), and the action is audited. A paid order gets `refundStatus: "pending"` for follow-up. 409 `ALREADY_DECIDED` on a repeat.

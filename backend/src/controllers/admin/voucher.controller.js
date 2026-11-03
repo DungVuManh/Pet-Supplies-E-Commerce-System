@@ -232,7 +232,7 @@ export async function updateVoucher(request, response) {
 async function setEnabled(request, response, enabled) {
  const voucher = await findVoucher(request.params.code);
  const filter = enabled ? { _id: voucher._id, isActive: false } : { _id: voucher._id, isActive: { $ne: false } };
- const updated = await Promotion.findOneAndUpdate(filter, { $set: { isActive: enabled } }, { new: true }).lean();
+ const updated = await Promotion.findOneAndUpdate(filter, { $set: { isActive: enabled } }, { returnDocument: "after" }).lean();
  if (!updated) {
   throw enabled
    ? new AppError("Voucher đang được bật.", 409, "VOUCHER_ALREADY_ENABLED")

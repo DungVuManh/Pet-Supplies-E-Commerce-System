@@ -137,31 +137,31 @@ Only touches `features/admin`, `app/(workspace)/admin`, and `admin-shell.tsx`. R
 
 ### Public APIs
 
-- [ ] Extract `priceOrderItems(items)` from `createOrder`'s existing loop, with no behavior change, so the quote and the order share one calculation. Existing order tests must pass unchanged.
-- [ ] `POST /api/v1/vouchers/quote`: `{ code, items, phone? }` with `optionalAuth` and `protectMutation`. Returns `{ code, name, subtotal, discount, total }`, or 422 `VOUCHER_INVALID` with MSG16, and a minimum amount only for `below_minimum`. It reserves nothing.
-- [ ] Give the quote its own rate limit, about 20 requests per minute per IP, because the global limiter is commented out in `app.js` and codes must not be guessable.
-- [ ] `GET /api/v1/vouchers/public`: active vouchers with `isPublic`, newest first, at most 6. Returns only code, name, type, value, cap, minimum, and end date, never usage figures.
-- [ ] Mount `voucher.router.js` in `app.js` before the 404 handler, and add `vouchers` to the rewrite list in `frontend/next.config.ts`.
+- [x] Extract `priceOrderItems(items)` from `createOrder`'s existing loop, with no behavior change, so the quote and the order share one calculation. Existing order tests must pass unchanged.
+- [x] `POST /api/v1/vouchers/quote`: `{ code, items, phone? }` with `optionalAuth` and `protectMutation`. Returns `{ code, name, subtotal, discount, total }`, or 422 `VOUCHER_INVALID` with MSG16, and a minimum amount only for `below_minimum`. It reserves nothing.
+- [x] Give the quote its own rate limit, about 20 requests per minute per IP, because the global limiter is commented out in `app.js` and codes must not be guessable. The app does not set `trust proxy`, so behind the Next.js rewrite `request.ip` is the proxy for every customer. The key is therefore the last `X-Forwarded-For` entry when the socket is loopback, and the socket address otherwise. If Next.js and Express ever run on different hosts, this needs revisiting.
+- [x] `GET /api/v1/vouchers/public`: active vouchers with `isPublic`, newest first, at most 6. Returns only code, name, type, value, cap, minimum, and end date, never usage figures. Takes an optional `limit` up to 50, for the `/voucher` page.
+- [x] Mount `voucher.router.js` in `app.js` before the 404 handler, and add `vouchers` to the rewrite list in `frontend/next.config.ts`.
 
 ### Redeem and release
 
-- [ ] `voucher-redemption.js`, `reserveVoucher()`: the conditional `$inc` (state still valid, and `$expr` comparing `$ifNull: ["$usedCount", 0]` with `usageLimit`), then the redemption insert. On a duplicate key it undoes the `$inc` and reports `already_used`.
-- [ ] `releaseVoucher(orderId)`: a conditional flip from `active` to `released`, and only the caller that flips it decrements `usedCount`. Errors are logged and never block the cancellation.
-- [ ] `createOrder`: accept `promotionCode` and `expectedDiscount`, evaluate and reserve as in the design summary, store `discount` and `promotionCode`, and undo the reservation if `Order.create` fails. Refusals are 409 `VOUCHER_INVALID` or `VOUCHER_CHANGED`, returning the current amount.
-- [ ] Call `releaseVoucher` from `cancelOrder`, only when this request really moved the order to `cancelled`, and from every other path listed in step 0.
-- [ ] Leave a note in `docs/plan/admin-backend.md` phase 6 that approving a cancellation must also call `releaseVoucher`.
+- [x] `voucher-redemption.js`, `reserveVoucher()`: the conditional `$inc` (state still valid, and `$expr` comparing `$ifNull: ["$usedCount", 0]` with `usageLimit`), then the redemption insert. On a duplicate key it undoes the `$inc` and reports `already_used`.
+- [x] `releaseVoucher(orderId)`: a conditional flip from `active` to `released`, and only the caller that flips it decrements `usedCount`. Errors are logged and never block the cancellation.
+- [x] `createOrder`: accept `promotionCode` and `expectedDiscount`, evaluate and reserve as in the design summary, store `discount` and `promotionCode`, and undo the reservation if `Order.create` fails. Refusals are 409 `VOUCHER_INVALID` or `VOUCHER_CHANGED`, returning the current amount.
+- [x] Call `releaseVoucher` from `cancelOrder`, only when this request really moved the order to `cancelled`, and from every other path listed in step 0.
+- [x] Leave a note in `docs/plan/admin-backend.md` phase 6 that approving a cancellation must also call `releaseVoucher`.
 
 ### Tests, in `tests/voucher-order.test.js`
 
-- [ ] No voucher: the order is unchanged from today.
-- [ ] Each voucher type: correct `subtotal`, `discount`, `total`, and `promotionCode`, passing the Order validator.
-- [ ] Each refusal: expired, scheduled, off, used up, below minimum, amount changed. No order, no reservation.
-- [ ] Once per customer, for an account and for a guest with a differently formatted phone.
-- [ ] `Order.create` fails: `usedCount` and the redemption are both restored.
-- [ ] Cancel twice: `usedCount` goes down exactly once, and the use can be redeemed again.
-- [ ] Voucher edited or deleted later: the placed order is unchanged.
-- [ ] **Real MongoDB, in a throwaway database:** 20 concurrent orders on a voucher with one use left produce exactly 1 discounted order, and `usedCount` is exactly 1. The in-memory stand-ins cannot prove this. Record the result here.
-- [ ] **🛑 Commit checkpoint: Vouchers in the order API.**
+- [x] No voucher: the order is unchanged from today.
+- [x] Each voucher type: correct `subtotal`, `discount`, `total`, and `promotionCode`, passing the Order validator.
+- [x] Each refusal: expired, scheduled, off, used up, below minimum, amount changed. No order, no reservation.
+- [x] Once per customer, for an account and for a guest with a differently formatted phone.
+- [x] `Order.create` fails: `usedCount` and the redemption are both restored.
+- [x] Cancel twice: `usedCount` goes down exactly once, and the use can be redeemed again.
+- [x] Voucher edited or deleted later: the placed order is unchanged.
+- [x] **Real MongoDB, in a throwaway database:** 20 concurrent orders on a voucher with one use left produce exactly 1 discounted order, and `usedCount` is exactly 1. The in-memory stand-ins cannot prove this. Record the result here. Result on 03/11/2026, from `node tests/voucher-integration.mjs`: 1 created and 19 refused, 1 discounted order, `usedCount` exactly at the limit. The same held for a document with no `usedCount`, and for 20 orders from one guest using two spellings of a phone. 5 concurrent cancels returned the use once, and an Admin edit mid-order refused the reservation.
+- [x] **🛑 Commit checkpoint: Vouchers in the order API.**
 
 ## 6. Customer checkout ⚠️
 

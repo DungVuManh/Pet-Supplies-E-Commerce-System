@@ -15,6 +15,7 @@ import cartRouter from "./routers/cart.router.js";
 import orderRouter from "./routers/order.router.js";
 import wishlistRouter from "./routers/wishlist.router.js";
 import reviewRouter from "./routers/review.router.js";
+import voucherRouter from "./routers/voucher.router.js";
 
 export function createApp(config) {
  const app = express();
@@ -73,6 +74,7 @@ export function createApp(config) {
  app.use("/api/v1/orders", orderRouter);
  app.use("/api/v1/wishlist", wishlistRouter);
  app.use("/api/v1/reviews", reviewRouter);
+ app.use("/api/v1/vouchers", voucherRouter);
  app.use("/api/v1/admin", adminRouter);
  app.use("/api/v1", workspaceRouter);
  app.use(notFoundMiddleware);
