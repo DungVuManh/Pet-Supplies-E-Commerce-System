@@ -222,19 +222,36 @@ describe("Customer Account & Pet Endpoints", () => {
     });
 
     it("creates a new pet profile", async () => {
-      vi.spyOn(PetProfile, "create").mockResolvedValue(mockPet);
+      vi.spyOn(PetProfile, "create").mockImplementation(async (data) => ({
+        _id: mockPet._id,
+        ...data,
+      }));
 
       const { call } = await authenticatedAgent();
       const response = await call("post", "/pets", {
-        name: "Milo",
+        name: "Milu",
         species: "Chó",
-        breed: "Poodle",
+        breed: "Husky",
         dob: "2023-01-01",
+        weight: 5.5,
+        gender: "Đực",
+        isSterilized: true,
+        healthIssues: ["Tiết niệu", "Viêm da"],
+        identification: "Lông trắng, có đốm đen ở tai trái",
+        personality: "Hiền lành, thích chơi bóng",
       });
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
-      expect(response.body.data.pet.name).toBe("Milo");
+      expect(response.body.data.pet.name).toBe("Milu");
+      expect(response.body.data.pet.species).toBe("dog");
+      expect(response.body.data.pet.breed).toBe("Husky");
+      expect(response.body.data.pet.weight).toBe(5.5);
+      expect(response.body.data.pet.gender).toBe("Đực");
+      expect(response.body.data.pet.isSterilized).toBe(true);
+      expect(response.body.data.pet.healthIssues).toEqual(["Tiết niệu", "Viêm da"]);
+      expect(response.body.data.pet.identification).toBe("Lông trắng, có đốm đen ở tai trái");
+      expect(response.body.data.pet.personality).toBe("Hiền lành, thích chơi bóng");
     });
 
     it("deletes a pet profile", async () => {

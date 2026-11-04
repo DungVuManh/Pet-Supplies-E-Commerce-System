@@ -78,14 +78,14 @@ export const petSchema = z
       .trim()
       .min(1, "Vui lòng chọn loại thú cưng.")
       .refine(
-        (val) => ["dog", "cat", "chó", "mèo", "other"].includes(val.toLowerCase()),
+        (val) => ["dog", "cat", "chó", "mèo", "other", "khác"].includes(val.toLowerCase()),
         "Loại thú cưng phải là chó, mèo hoặc loại khác.",
       )
       .transform((val) => {
         const lower = val.toLowerCase();
         if (lower === "chó" || lower === "dog") return "dog";
         if (lower === "mèo" || lower === "cat") return "cat";
-        return val;
+        return "other";
       }),
     breed: z.string().trim().max(100).optional().default(""),
     dob: z
@@ -111,6 +111,27 @@ export const petSchema = z
         const n = Number(val);
         return isNaN(n) ? undefined : n;
       }),
+    gender: z.string().trim().max(50).optional().default(""),
+    isSterilized: z
+      .union([z.boolean(), z.string()])
+      .optional()
+      .nullable()
+      .transform((val) => {
+        if (val === true || val === "true" || val === "rồi" || val === "yes") return true;
+        if (val === false || val === "false" || val === "chưa" || val === "no") return false;
+        return Boolean(val);
+      }),
+    healthIssues: z
+      .union([z.array(z.string().trim()), z.string()])
+      .optional()
+      .nullable()
+      .transform((val) => {
+        if (!val) return [];
+        if (Array.isArray(val)) return val.filter(Boolean);
+        return [val].filter(Boolean);
+      }),
+    identification: z.string().trim().max(500).optional().default(""),
+    personality: z.string().trim().max(500).optional().default(""),
     notes: z.string().trim().max(500).optional().default(""),
     avatarUrl: z.string().optional().nullable(),
   })

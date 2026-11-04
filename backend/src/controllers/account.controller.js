@@ -249,6 +249,11 @@ export async function createPet(request, response) {
     dob: input.dob || null,
     age: input.age || null,
     weight: input.weight !== undefined ? input.weight : null,
+    gender: input.gender || "",
+    isSterilized: input.isSterilized ?? false,
+    healthIssues: input.healthIssues || [],
+    identification: input.identification || "",
+    personality: input.personality || "",
     notes: input.notes || "",
     avatarUrl: input.avatarUrl || null,
   });
@@ -275,6 +280,11 @@ export async function updatePet(request, response) {
   pet.dob = input.dob || null;
   if (input.age !== undefined) pet.age = input.age;
   if (input.weight !== undefined) pet.weight = input.weight;
+  if (input.gender !== undefined) pet.gender = input.gender;
+  if (input.isSterilized !== undefined) pet.isSterilized = input.isSterilized;
+  if (input.healthIssues !== undefined) pet.healthIssues = input.healthIssues;
+  if (input.identification !== undefined) pet.identification = input.identification;
+  if (input.personality !== undefined) pet.personality = input.personality;
   if (input.notes !== undefined) pet.notes = input.notes;
   if (input.avatarUrl !== undefined) pet.avatarUrl = input.avatarUrl;
 
