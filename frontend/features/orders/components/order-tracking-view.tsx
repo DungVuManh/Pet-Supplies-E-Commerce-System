@@ -48,7 +48,6 @@ type LookupOrderData = {
   carrier: string;
   trackingNumber: string;
   subtotal: number;
-  shippingFee: number;
   discount: number;
   promotionCode?: string | null;
   total: number;

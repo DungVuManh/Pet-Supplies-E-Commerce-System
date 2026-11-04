@@ -37,7 +37,7 @@ const DEFAULT_SUMMARY: CartSummary = {
   distinctCount: 0,
   totalQuantity: 0,
   subtotal: 0,
-  shippingFee: 0,
+
   discount: 0,
   total: 0,
 };
@@ -159,7 +159,7 @@ export function useCartPage() {
   const summaryWithVoucher: CartSummary = {
     ...summary,
     discount,
-    total: Math.max(0, summary.subtotal + summary.shippingFee - discount),
+    total: Math.max(0, summary.subtotal - discount),
   };
 
   return {

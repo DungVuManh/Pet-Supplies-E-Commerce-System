@@ -32,7 +32,6 @@ async function formatCartResponse(cart) {
         distinctCount: 0,
         totalQuantity: 0,
         subtotal: 0,
-        shippingFee: 0,
         discount: 0,
         total: 0,
       },
@@ -85,8 +84,7 @@ async function formatCartResponse(cart) {
     });
   }
 
-  const shippingFee = formattedItems.length > 0 ? 30000 : 0;
-  const total = subtotal + shippingFee;
+  const total = subtotal;
 
   return {
     _id: cart._id,
@@ -97,7 +95,6 @@ async function formatCartResponse(cart) {
       distinctCount: formattedItems.length,
       totalQuantity,
       subtotal,
-      shippingFee,
       discount: 0,
       total,
     },

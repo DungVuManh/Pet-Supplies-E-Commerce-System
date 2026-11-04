@@ -35,7 +35,7 @@ const DEFAULT_SUMMARY: CheckoutSummary = {
   totalQuantity: 0,
   subtotal: 0,
   // shippingFee: 30000,
-  // discount: 0,
+  // discount: 0,z``
   total: 0,
 };
 

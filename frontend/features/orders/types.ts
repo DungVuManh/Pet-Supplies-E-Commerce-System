@@ -49,7 +49,6 @@ export type OrderDetail = {
   timeline: OrderTimelineStep[];
   items: OrderDetailProductItem[];
   subtotal: number;
-  shippingFee: number;
   discount: number;
   promotionCode?: string | null;
   totalAmount: number;
