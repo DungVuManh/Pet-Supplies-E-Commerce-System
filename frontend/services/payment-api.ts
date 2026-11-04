@@ -3,8 +3,14 @@
 // Các hàm gọi API dịch vụ thanh toán SePay và VietQR
 // =============================================================
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+function getPaymentsApiBase(): string {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (envUrl) {
+    const clean = envUrl.replace(/\/+$/, "");
+    return clean.endsWith("/api/v1") ? `${clean}/payments` : `${clean}/api/v1/payments`;
+  }
+  return "/api/v1/payments";
+}
 
 export type SepayPaymentInfo = {
   orderCode: string;
@@ -40,7 +46,7 @@ export type SepayPaymentStatus = {
  * Lấy chi tiết thông tin thanh toán VietQR động cho đơn hàng
  */
 export async function getSepayPaymentInfo(orderCode: string): Promise<SepayPaymentInfo> {
-  const response = await fetch(`${API_BASE_URL}/payments/sepay/info/${encodeURIComponent(orderCode)}`, {
+  const response = await fetch(`${getPaymentsApiBase()}/sepay/info/${encodeURIComponent(orderCode)}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -60,7 +66,7 @@ export async function getSepayPaymentInfo(orderCode: string): Promise<SepayPayme
  * Truy vấn trạng thái thanh toán thời gian thực (Polling endpoint)
  */
 export async function getSepayPaymentStatus(orderCode: string): Promise<SepayPaymentStatus> {
-  const response = await fetch(`${API_BASE_URL}/payments/status/${encodeURIComponent(orderCode)}`, {
+  const response = await fetch(`${getPaymentsApiBase()}/status/${encodeURIComponent(orderCode)}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -80,7 +86,7 @@ export async function getSepayPaymentStatus(orderCode: string): Promise<SepayPay
  * Gia hạn phiên thanh toán VietQR thêm 15 phút
  */
 export async function renewSepaySession(orderCode: string): Promise<{ paymentExpiredAt: string; secondsLeft: number }> {
-  const response = await fetch(`${API_BASE_URL}/payments/renew-session/${encodeURIComponent(orderCode)}`, {
+  const response = await fetch(`${getPaymentsApiBase()}/renew-session/${encodeURIComponent(orderCode)}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -99,7 +105,7 @@ export async function renewSepaySession(orderCode: string): Promise<{ paymentExp
  * Chuyển đổi phương thức thanh toán sang COD khi mã QR hết hạn
  */
 export async function convertOrderToCod(orderCode: string): Promise<{ orderCode: string; paymentMethod: string }> {
-  const response = await fetch(`${API_BASE_URL}/payments/convert-to-cod/${encodeURIComponent(orderCode)}`, {
+  const response = await fetch(`${getPaymentsApiBase()}/convert-to-cod/${encodeURIComponent(orderCode)}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -113,4 +119,3 @@ export async function convertOrderToCod(orderCode: string): Promise<{ orderCode:
 
   return json.data;
 }
-
