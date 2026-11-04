@@ -347,7 +347,7 @@ export function CancellationsView() {
         {forcedState === "loading" ? (
           "Đang tải yêu cầu mới nhất. Các thao tác duyệt sẽ sẵn sàng sau khi hoàn tất."
         ) : forcedState === "error" ? (
-          "Chưa có yêu cầu nào bị thay đổi. Liên hệ support@petly.vn nếu lỗi tiếp tục xảy ra."
+          "Chưa có yêu cầu nào bị thay đổi. Liên hệ support@petjoy.vn nếu lỗi tiếp tục xảy ra."
         ) : (
           "Yêu cầu đã duyệt được lưu trong lịch sử. Tồn kho chỉ hoàn lại sau khi chấp nhận hủy."
         )}

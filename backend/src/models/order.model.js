@@ -52,6 +52,9 @@ const orderSchema = new mongoose.Schema(
         subtotal: { ...nonNegativeInteger, required: true },
         discount: { ...nonNegativeInteger, default: 0 },
         total: { ...nonNegativeInteger, required: true },
+        paidAmount: { ...nonNegativeInteger, default: 0 },
+        needsReview: { type: Boolean, default: false },
+        paymentExpiredAt: { type: Date },
         promotionCode: { type: String, trim: true, uppercase: true },
         paymentMethod: { type: String, enum: paymentMethods, required: true },
         paymentStatus: {

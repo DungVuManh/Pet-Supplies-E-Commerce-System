@@ -571,6 +571,8 @@ export async function listStaffOrders(request, response, next) {
           paymentMethod: order.paymentMethod,
           paymentStatus: order.paymentStatus,
           channel: order.channel,
+          paidAmount: order.paidAmount || 0,
+          needsReview: Boolean(order.needsReview),
         };
       });
     } catch {
@@ -750,6 +752,8 @@ export async function getStaffOrderDetail(request, response, next) {
       items,
       statusHistory,
       allowedNextStatuses: order.channel === "online" ? staffOrderTransitions[order.orderStatus] || [] : [],
+      paidAmount: order.paidAmount || 0,
+      needsReview: Boolean(order.needsReview),
     };
 
     response.set("Cache-Control", "no-store");

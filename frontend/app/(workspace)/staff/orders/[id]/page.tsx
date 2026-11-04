@@ -72,9 +72,7 @@ export default async function OrderDetailPage({
   throw error;
  }
 
- const totalQty = order.items.reduce((sum, item) => sum + item.qty, 0);
-
- return (
+  return (
   <>
    <PageHeader
     title={`Đơn hàng #${order.orderCode}`}
@@ -220,17 +218,36 @@ export default async function OrderDetailPage({
      {/* Payment */}
      <section className={`${card} p-6`}>
       <h2 className="text-xl font-semibold">Thanh toán</h2>
-      <div className="mt-4">
+      <div className="mt-4 flex flex-wrap items-center gap-2">
        <Badge tone={paymentStatusTones[order.paymentStatus]}>
         {paymentStatusLabels[order.paymentStatus]}
        </Badge>
+       {order.needsReview && (
+        <Badge tone="warning">⚠️ Cần đối soát</Badge>
+       )}
       </div>
+
+      {order.needsReview && (
+       <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800 font-medium">
+        Đơn hàng có chênh lệch tiền hoặc chuyển khoản sau khi đổi phương thức. Vui lòng đối soát giao dịch ngân hàng.
+       </div>
+      )}
 
       <dl className="mt-5 grid grid-cols-2 gap-4 text-sm">
        <dt className="text-muted">Phương thức</dt>
        <dd className="text-right font-medium">
-        {paymentMethodLabels[order.paymentMethod] || order.paymentMethod}
+        {order.paymentMethod === "ONLINE"
+         ? "Chuyển khoản VietQR (SePay)"
+         : paymentMethodLabels[order.paymentMethod] || order.paymentMethod}
        </dd>
+       {Boolean(order.paidAmount && order.paidAmount > 0) && (
+        <>
+         <dt className="text-muted">Đã thanh toán</dt>
+         <dd className="text-right font-bold text-emerald-600">
+          {money(order.paidAmount)}
+         </dd>
+        </>
+       )}
        {order.paymentMethod === "COD" && order.paymentStatus === "unpaid" && (
         <>
          <dt className="text-muted">Cần thu khi giao</dt>

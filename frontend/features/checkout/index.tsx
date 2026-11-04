@@ -152,7 +152,7 @@ export function CheckoutView() {
             onSelectMethod={setPaymentMethod}
           />
           <p className="text-xs text-muted leading-relaxed">
-            Bằng việc đặt hàng, bạn đồng ý với Điều khoản mua hàng và Chính sách bảo mật của Petly.
+            Bằng việc đặt hàng, bạn đồng ý với Điều khoản mua hàng và Chính sách bảo mật của Petjoy.
           </p>
         </div>
 

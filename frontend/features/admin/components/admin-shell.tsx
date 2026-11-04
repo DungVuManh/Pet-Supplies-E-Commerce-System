@@ -77,7 +77,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <GlobalSearch />
           <div className="ml-auto flex shrink-0 items-center gap-4 sm:gap-8">
             <Link href="/admin/notifications" className="hidden text-brand hover:underline sm:inline">Thông báo</Link>
-            <a href="mailto:support@petly.vn" className="hidden hover:text-brand sm:inline">Hỗ trợ</a>
+            <a href="mailto:support@petjoy.vn" className="hidden hover:text-brand sm:inline">Hỗ trợ</a>
             <AccountMenu roleLabel="Admin" />
           </div>
         </div>

@@ -1,6 +1,3 @@
-
-
-
 export type ShippingMethod = {
   id: string;
   name: string;
@@ -14,7 +11,7 @@ export type ShippingAddress = {
   address: string;
 };
 
-export type PaymentMethodType = "vnpay" | "cod";
+export type PaymentMethodType = "vnpay" | "cod" | "sepay";
 
 export type CheckoutOrderItem = {
   id: string;

@@ -142,7 +142,7 @@ export function ProfileEdit({
           Chỉnh sửa thông tin cá nhân
         </h1>
         <p className="mt-1 text-sm text-muted">
-          Cập nhật thông tin để Petly phục vụ bạn tốt hơn
+          Cập nhật thông tin để Petjoy phục vụ bạn tốt hơn
         </p>
 
         {/* 2 Columns: Form & Avatar */}
