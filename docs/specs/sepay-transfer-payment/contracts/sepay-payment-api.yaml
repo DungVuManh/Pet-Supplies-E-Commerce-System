@@ -1,0 +1,356 @@
+openapi: 3.0.3
+info:
+  title: Pet Supplies - SePay Payment & VietQR API Contract
+  description: API hợp đồng phục vụ tiếp nhận Webhook SePay, cung cấp thông tin thanh toán VietQR động và kiểm tra trạng thái thời gian thực.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Local Development / Ngrok Server
+paths:
+  /payments/sepay/webhook:
+    post:
+      summary: Điểm tiếp nhận thông báo biến động số dư từ SePay
+      description: Nhận thông báo giao dịch chuyển khoản ngân hàng thành công từ SePay Webhook. Yêu cầu xác thực API Key qua header.
+      tags:
+        - SePay Webhook
+      parameters:
+        - in: header
+          name: Authorization
+          required: false
+          schema:
+            type: string
+            example: "Apikey YOUR_SEPAY_API_KEY"
+          description: Mã xác thực API Key do SePay cung cấp (hoặc cấu hình Webhook Token)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SepayWebhookPayload'
+      responses:
+        '200':
+          description: Xử lý thông báo thành công hoặc giao dịch đã được ghi nhận trước đó (Idempotent)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+                example:
+                  success: true
+                  message: "Webhook processed successfully"
+        '400':
+          description: Dữ liệu giao dịch không hợp lệ hoặc thiếu thông tin cần thiết
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Chữ ký hoặc API Key không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /payments/sepay/info/{orderCode}:
+    get:
+      summary: Lấy thông tin thanh toán VietQR động cho đơn hàng
+      description: Trả về thông tin tài khoản thụ hưởng, mã VietQR động, số tiền cần chuyển (hoặc số tiền còn thiếu) và thời gian đếm ngược.
+      tags:
+        - Customer Payment
+      parameters:
+        - in: path
+          name: orderCode
+          required: true
+          schema:
+            type: string
+            example: "ORD173000123"
+      responses:
+        '200':
+          description: Lấy thông tin thanh toán thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/PaymentInfoResponse'
+        '404':
+          description: Không tìm thấy đơn hàng
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /payments/status/{orderCode}:
+    get:
+      summary: Truy vấn trạng thái thanh toán thời gian thực (Polling endpoint)
+      description: Endpoint nhẹ dùng cho Client Polling mỗi 3 giây hoặc người mua bấm nút kiểm tra chủ động.
+      tags:
+        - Customer Payment
+      parameters:
+        - in: path
+          name: orderCode
+          required: true
+          schema:
+            type: string
+            example: "ORD173000123"
+      responses:
+        '200':
+          description: Trả về trạng thái thanh toán đơn hàng
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/PaymentStatusResponse'
+
+  /payments/renew-session/{orderCode}:
+    post:
+      summary: Tạo lại mã thanh toán (Gia hạn thêm 15 phút)
+      description: Kéo dài thời gian hiệu lực của phiên quét mã VietQR thêm 15 phút nếu đơn hàng chưa thanh toán và phiên cũ đã hết hạn.
+      tags:
+        - Customer Payment
+      parameters:
+        - in: path
+          name: orderCode
+          required: true
+          schema:
+            type: string
+            example: "ORD173000123"
+      responses:
+        '200':
+          description: Gia hạn thành công và trả về phiên QR mới
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      orderCode:
+                        type: string
+                      paymentExpiredAt:
+                        type: string
+                        format: date-time
+                      secondsLeft:
+                        type: integer
+                        example: 900
+                      qrUrl:
+                        type: string
+
+  /payments/convert-to-cod/{orderCode}:
+    post:
+      summary: Chuyển đổi phương thức thanh toán sang COD khi mã QR hết hạn
+      description: Cập nhật đơn hàng từ chuyển khoản sang thanh toán tiền mặt khi nhận hàng (COD), bảo lưu các voucher và khuyến mãi.
+      tags:
+        - Customer Payment
+      parameters:
+        - in: path
+          name: orderCode
+          required: true
+          schema:
+            type: string
+            example: "ORD173000123"
+      responses:
+        '200':
+          description: Chuyển đổi phương thức sang COD thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      orderCode:
+                        type: string
+                      paymentMethod:
+                        type: string
+                        example: "COD"
+                      paymentStatus:
+                        type: string
+                        example: "unpaid"
+
+components:
+  schemas:
+    SepayWebhookPayload:
+      type: object
+      required:
+        - id
+        - gateway
+        - transactionDate
+        - accountNumber
+        - content
+        - transferType
+        - transferAmount
+      properties:
+        id:
+          type: integer
+          description: Mã định danh giao dịch duy nhất từ SePay
+          example: 92704
+        gateway:
+          type: string
+          description: Tên ngân hàng nhận (VD MBBank, Vietcombank)
+          example: "MBBank"
+        transactionDate:
+          type: string
+          description: Thời điểm giao dịch tại ngân hàng
+          example: "2026-11-04 11:45:00"
+        accountNumber:
+          type: string
+          description: Số tài khoản ngân hàng thụ hưởng
+          example: "0377041280"
+        subAccount:
+          type: string
+          nullable: true
+        code:
+          type: string
+          nullable: true
+          description: Mã đơn hàng trích xuất tự động bởi SePay nếu có
+        content:
+          type: string
+          description: Toàn bộ nội dung chuyển khoản từ tin nhắn ngân hàng
+          example: "PETLY ORD173000123 chuyen tien mua hang"
+        transferType:
+          type: string
+          enum: ["in", "out"]
+          description: Chiều biến động (chỉ xử lý 'in' - tiền vào)
+          example: "in"
+        transferAmount:
+          type: integer
+          description: Số tiền chuyển khoản thực tế (VND)
+          example: 350000
+        accumulated:
+          type: integer
+          description: Số dư tài khoản lũy kế sau giao dịch
+          example: 15000000
+        referenceCode:
+          type: string
+          nullable: true
+          description: Mã tham chiếu của ngân hàng
+          example: "MBVCB.12345678"
+        description:
+          type: string
+          nullable: true
+
+    PaymentInfoResponse:
+      type: object
+      properties:
+        orderCode:
+          type: string
+          example: "ORD173000123"
+        total:
+          type: integer
+          example: 350000
+        paidAmount:
+          type: integer
+          example: 0
+        remainingAmount:
+          type: integer
+          example: 350000
+        bankName:
+          type: string
+          example: "MBBank (Ngân hàng Quân Đội)"
+        bankCode:
+          type: string
+          example: "MB"
+        accountNumber:
+          type: string
+          example: "0377041280"
+        accountHolder:
+          type: string
+          example: "NGUYEN VAN A"
+        memo:
+          type: string
+          example: "PETLY ORD173000123"
+        qrUrl:
+          type: string
+          example: "https://qr.sepay.vn/img?acc=0377041280&bank=MB&amount=350000&des=PETLY%20ORD173000123"
+        qrPayload:
+          type: string
+          example: "00020101021238540010A00000072701240006970422011003770412800208QRIBFTTA530370454063500005802VN62230819PETLY ORD1730001236304ABCD"
+        paymentExpiredAt:
+          type: string
+          format: date-time
+        secondsLeft:
+          type: integer
+          example: 890
+        isExpired:
+          type: boolean
+          example: false
+
+    PaymentStatusResponse:
+      type: object
+      properties:
+        orderCode:
+          type: string
+          example: "ORD173000123"
+        paymentMethod:
+          type: string
+          example: "ONLINE"
+        paymentStatus:
+          type: string
+          enum: ["unpaid", "pending", "paid", "failed"]
+          example: "paid"
+        orderStatus:
+          type: string
+          example: "pending"
+        total:
+          type: integer
+          example: 350000
+        paidAmount:
+          type: integer
+          example: 350000
+        remainingAmount:
+          type: integer
+          example: 0
+        isPaid:
+          type: boolean
+          example: true
+        isExpired:
+          type: boolean
+          example: false
+        needsReview:
+          type: boolean
+          example: false
+
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+        data:
+          type: object
+
+    ApiErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Mã giao dịch hoặc dữ liệu thanh toán không hợp lệ"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "INVALID_WEBHOOK_PAYLOAD"
+

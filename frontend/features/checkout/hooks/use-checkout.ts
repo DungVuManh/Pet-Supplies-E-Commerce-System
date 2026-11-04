@@ -359,7 +359,10 @@ export function useCheckout() {
           email: address.email?.trim() || undefined,
         },
         email: address.email?.trim() || undefined,
-        paymentMethod: paymentMethod === "vnpay" ? ("ONLINE" as const) : ("COD" as const),
+        paymentMethod:
+          paymentMethod === "vnpay" || paymentMethod === "sepay"
+            ? ("ONLINE" as const)
+            : ("COD" as const),
         isBuyNow,
         ...(appliedVoucher ? { promotionCode: appliedVoucher.code, expectedDiscount: appliedVoucher.discount } : {}),
       };
@@ -391,8 +394,9 @@ export function useCheckout() {
       const queryParams = new URLSearchParams({
         orderCode: order?.orderCode || "",
         total: String(order?.total ?? summary.total),
-        paymentMethod: order?.paymentMethod || (paymentMethod === "vnpay" ? "ONLINE" : "COD"),
+        paymentMethod: order?.paymentMethod || (paymentMethod === "cod" ? "COD" : "ONLINE"),
         createdAt: order?.createdAt || new Date().toISOString(),
+        paymentProvider: paymentMethod,
       });
       if (order?.promotionCode) {
         queryParams.set("promotionCode", order.promotionCode);
