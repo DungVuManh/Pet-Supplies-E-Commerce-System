@@ -6,7 +6,7 @@ export function listCategories(query: CategoryFilter & { page: number; pageSize:
 }
 
 /** The changed fields, plus the `updatedAt` the form was loaded with. */
-export type CategoryEdit = Partial<Pick<AdminCategoryDetail, "name" | "slug" | "parentCode" | "description">> & {
+export type CategoryEdit = Partial<Pick<AdminCategoryDetail, "name" | "slug" | "description">> & {
   expectedUpdatedAt: string;
   displayOrder?: number;
   isActive?: boolean;

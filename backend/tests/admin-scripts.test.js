@@ -18,7 +18,6 @@ beforeEach(() => {
  vi.spyOn(database, "disconnectDatabase").mockResolvedValue();
  vi.spyOn(User, "updateMany").mockResolvedValue({ modifiedCount: 0 });
  vi.spyOn(Category, "find").mockImplementation(() => ({ select: () => ({ sort: () => ({ lean: async () => [] }) }) }));
- vi.spyOn(Category, "findOne").mockImplementation(() => ({ select: () => ({ lean: async () => null }) }));
  vi.spyOn(Product, "distinct").mockResolvedValue([]);
  vi.spyOn(MasterData, "updateOne").mockResolvedValue({});
  vi.spyOn(Promotion, "updateMany").mockResolvedValue({ modifiedCount: 0 });
@@ -37,7 +36,7 @@ describe("Admin migration and seed scripts", () => {
 
  it("connect, run, and always disconnect", async () => {
   await expect(migrateAdmin()).resolves.toEqual({ "users.status": 0, "categories.tree": 0, "promotions.usage": 0 });
-  await expect(seedAdmin()).resolves.toEqual({ "categories.tree": 0, masterData: 38, vouchers: 3 });
+  await expect(seedAdmin()).resolves.toEqual({ masterData: 38, vouchers: 3 });
   expect(database.connectDatabase).toHaveBeenCalledWith("mongodb://localhost/admin-test");
   expect(database.disconnectDatabase).toHaveBeenCalledTimes(2);
  });
@@ -78,14 +77,5 @@ describe("Admin migration and seed scripts", () => {
    expect(update.$setOnInsert).toMatchObject({ isPublic: true, usedCount: 0 });
    expect(options).toEqual({ upsert: true });
   }
- });
-
- it("nests the sample categories, skipping parents an older seed does not have", async () => {
-  const parent = { _id: "dog-food" };
-  Category.findOne.mockImplementation(({ slug }) => ({ select: () => ({ lean: async () => (slug === "thuc-an-cho-cho" ? parent : null) }) }));
-  const updateMany = vi.spyOn(Category, "updateMany").mockResolvedValue({ matchedCount: 2 });
-  await expect(seedAdmin()).resolves.toEqual({ "categories.tree": 2, masterData: 38, vouchers: 3 });
-  expect(updateMany).toHaveBeenCalledTimes(1);
-  expect(updateMany).toHaveBeenCalledWith({ slug: { $in: ["hat-cho-cho", "pate-cho"] } }, { $set: { parentId: "dog-food" } });
  });
 });

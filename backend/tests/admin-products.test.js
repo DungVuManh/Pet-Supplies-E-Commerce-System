@@ -6,10 +6,10 @@ import { Setting } from "../src/models/setting.model.js";
 import { createAdminTestApp } from "./helpers/admin-app.js";
 
 const id = (suffix) => new mongoose.Types.ObjectId(`d0000000000000000000${suffix}`);
-const dog = { _id: id("0001"), code: "DM001", name: "Chó", parentId: null };
-const food = { _id: id("0002"), code: "DM002", name: "Thức ăn", parentId: dog._id };
-const cat = { _id: id("0003"), code: "DM003", name: "Mèo", parentId: null };
-const noCode = { _id: id("0004"), name: "Chưa có mã", parentId: null };
+const dog = { _id: id("0001"), code: "DM001", name: "Chó" };
+const food = { _id: id("0002"), code: "DM002", name: "Thức ăn" };
+const cat = { _id: id("0003"), code: "DM003", name: "Mèo" };
+const noCode = { _id: id("0004"), name: "Chưa có mã" };
 
 const variant = (sku, fields = {}) => ({ sku, label: sku, price: 100000, stock: 50, reservedStock: 0, ...fields });
 const royal = {
@@ -49,7 +49,7 @@ describe("GET /api/v1/admin/products", () => {
   expect(skus(data)).toEqual(["RC-1", "RC-2", "WK-1", "KG-1", "OLD-1"]);
   expect(row(data, "RC-1")).toEqual({
    sku: "RC-1", code: "SP00A001", name: "Royal Canin Mini", brand: "Royal Canin", unit: "Túi", price: 450000, available: 50, threshold: 5,
-   status: "active", categories: [{ ref: "DM002", name: "Thức ăn", path: "Chó / Thức ăn" }, { ref: "DM003", name: "Mèo", path: "Mèo" }],
+   status: "active", categories: [{ ref: "DM002", name: "Thức ăn", path: "Thức ăn" }, { ref: "DM003", name: "Mèo", path: "Mèo" }],
   });
  });
 
@@ -112,8 +112,8 @@ describe("GET /api/v1/admin/products", () => {
    expect(skus(await list({ tab: "hidden", status: "low" }))).toEqual([]);
   });
 
-  it("scopes a parent category to include its children", async () => {
-   expect(skus(await list({ category: "DM001" }))).toEqual(["RC-1", "RC-2", "KG-1"]);
+  it("filters products by category", async () => {
+   expect(skus(await list({ category: "DM001" }))).toEqual(["KG-1"]);
    expect(skus(await list({ category: "DM002" }))).toEqual(["RC-1", "RC-2"]);
   });
 

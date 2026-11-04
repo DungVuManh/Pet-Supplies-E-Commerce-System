@@ -7,10 +7,10 @@ import { migrations } from "../src/scripts/migrate-admin.js";
 import { createAdminTestApp } from "./helpers/admin-app.js";
 
 const id = (suffix) => new mongoose.Types.ObjectId(`c0000000000000000000${suffix}`);
-const dog = { _id: id("0001"), code: "DM001", name: "Chó", parentId: null, displayOrder: 2, isActive: true };
-const cat = { _id: id("0002"), code: "DM002", name: "Mèo", parentId: null, displayOrder: 1, isActive: true };
-const dogFood = { _id: id("0003"), code: "DM003", name: "Thức ăn cho chó", parentId: dog._id, displayOrder: 2, isActive: true };
-const dogToys = { _id: id("0004"), code: "DM004", name: "Đồ chơi", parentId: dog._id, displayOrder: 1, isActive: false };
+const cat = { _id: id("0002"), code: "DM002", name: "Mèo", displayOrder: 1, isActive: true };
+const dog = { _id: id("0001"), code: "DM001", name: "Chó", displayOrder: 2, isActive: true };
+const dogToys = { _id: id("0004"), code: "DM004", name: "Đồ chơi", displayOrder: 3, isActive: false };
+const dogFood = { _id: id("0003"), code: "DM003", name: "Thức ăn cho chó", displayOrder: 4, isActive: true };
 const health = { _id: id("0005"), name: "Sức khỏe", isActive: true };
 
 let categories;
@@ -25,9 +25,9 @@ beforeEach(() => {
  categories = [dog, cat, dogFood, dogToys, health];
  products = [
   { categoryIds: [dogFood._id] },
-  { categoryIds: [dogFood._id, dogToys._id] }, // Two children of one parent: the parent counts it once.
+  { categoryIds: [dogFood._id, dogToys._id] },
   { categoryIds: [dogFood._id, cat._id] },
-  { categoryId: health._id }, // Written before `categoryIds` existed.
+  { categoryId: health._id },
  ];
  admin = createAdminTestApp();
  vi.spyOn(Category, "find").mockImplementation(() => ({ lean: async () => categories }));
@@ -35,7 +35,6 @@ beforeEach(() => {
  vi.spyOn(Category, "findOne").mockImplementation((filter) => ({
   lean: async () => categories.find((item) => (filter.code ? item.code === filter.code : String(item._id) === String(filter._id))) ?? null,
  }));
- vi.spyOn(Category, "countDocuments").mockImplementation(async ({ parentId }) => categories.filter((item) => String(item.parentId) === String(parentId)).length);
  vi.spyOn(Product, "countDocuments").mockImplementation(async ({ $or: [{ categoryIds: target }] }) => products
   .filter((item) => (item.categoryIds ?? [item.categoryId]).some((value) => String(value) === String(target))).length);
  vi.spyOn(Category, "deleteOne").mockImplementation(async ({ _id }) => {
@@ -47,7 +46,7 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe("GET /api/v1/admin/categories", () => {
- it("returns the tree in display order, with unordered categories last", async () => {
+ it("returns categories in display order, with unordered categories last", async () => {
   const data = await list();
   expect(rows(data)).toEqual(["Mèo", "Chó", "Đồ chơi", "Thức ăn cho chó", "Sức khỏe"]);
   expect(data.pagination).toEqual({ page: 1, pageSize: 5, total: 5, totalPages: 1 });
@@ -57,54 +56,38 @@ describe("GET /api/v1/admin/categories", () => {
  it("returns the row fields", async () => {
   const data = await list();
   expect(row(data, "Thức ăn cho chó")).toEqual({
-   id: String(dogFood._id), ref: "DM003", code: "DM003", name: "Thức ăn cho chó", parentCode: "DM001", isChild: true,
-   status: "active", productCount: 3, context: false,
+   id: String(dogFood._id), ref: "DM003", code: "DM003", name: "Thức ăn cho chó",
+   status: "active", productCount: 3,
   });
   expect(row(data, "Đồ chơi").status).toBe("hidden");
  });
 
  it("falls back to the id for a category without a code", async () => {
   const data = await list();
-  expect(row(data, "Sức khỏe")).toMatchObject({ code: null, ref: String(health._id), isChild: false });
+  expect(row(data, "Sức khỏe")).toMatchObject({ code: null, ref: String(health._id) });
  });
 
- it("counts a parent's own and its children's products, each product once", async () => {
+ it("counts each category's products", async () => {
   const data = await list();
-  expect(row(data, "Chó").productCount).toBe(3);
+  expect(row(data, "Chó").productCount).toBe(0);
   expect(row(data, "Đồ chơi").productCount).toBe(1);
   expect(row(data, "Mèo").productCount).toBe(1);
+  expect(row(data, "Thức ăn cho chó").productCount).toBe(3);
  });
 
  it("counts a product that still has the older categoryId", async () => {
   expect(row(await list(), "Sức khỏe").productCount).toBe(1);
  });
 
- it("keeps the parent of a matching child, flagged as context", async () => {
+ it("searches by query and filters by status", async () => {
   const data = await list({ q: "thuc an" });
-  expect(rows(data)).toEqual(["Chó", "Thức ăn cho chó"]);
-  expect(row(data, "Chó").context).toBe(true);
-  expect(row(data, "Thức ăn cho chó").context).toBe(false);
+  expect(rows(data)).toEqual(["Thức ăn cho chó"]);
   expect(data.counts.all).toBe(5);
- });
 
- it("does not bring in children when a parent matches", async () => {
-  expect(rows(await list({ q: "cho" }))).toEqual(["Chó", "Đồ chơi", "Thức ăn cho chó"].filter(Boolean));
-  expect(rows(await list({ q: "meo" }))).toEqual(["Mèo"]);
- });
-
- it("searches by code and filters by status", async () => {
   expect(rows(await list({ q: "dm002" }))).toEqual(["Mèo"]);
   const hidden = await list({ status: "hidden" });
-  expect(rows(hidden)).toEqual(["Chó", "Đồ chơi"]);
-  expect(row(hidden, "Chó").context).toBe(true);
+  expect(rows(hidden)).toEqual(["Đồ chơi"]);
   expect(rows(await list({ status: "active", q: "do choi" }))).toEqual([]);
- });
-
- it("shows a child whose parent no longer exists as a root", async () => {
-  categories = [{ ...dogFood, parentId: id("ffff") }];
-  const data = await list();
-  expect(rows(data)).toEqual(["Thức ăn cho chó"]);
-  expect(data.items[0]).toMatchObject({ isChild: false, parentCode: null });
  });
 
  it("handles an empty database", async () => {
@@ -121,13 +104,6 @@ describe("GET /api/v1/admin/categories", () => {
 
 describe("DELETE /api/v1/admin/categories/:code", () => {
  const remove = (ref) => admin.send("DELETE", `/api/v1/admin/categories/${ref}`);
-
- it("refuses while child categories are linked", async () => {
-  const { body } = await remove("DM001").expect(409);
-  expect(body).toMatchObject({ message: "Không thể xóa “Chó”: còn 2 danh mục con.", error: { code: "CATEGORY_IN_USE" } });
-  expect(Category.deleteOne).not.toHaveBeenCalled();
-  expect(AuditLog.create).not.toHaveBeenCalled();
- });
 
  it("refuses while products are linked", async () => {
   const { body } = await remove("DM003").expect(409);

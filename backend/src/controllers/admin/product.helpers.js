@@ -18,20 +18,18 @@ export function variantStatus(product, variant, threshold) {
  return availableStock(variant) <= (variant.lowStockThreshold ?? threshold) ? "low" : "active";
 }
 
-/** Every category by id, with its reference and "Parent / Child" path. */
+/** Every category by id, with its reference and name. */
 export async function categoryIndex() {
- const categories = await Category.find().select("name code parentId").lean();
- const byId = new Map(categories.map((category) => [String(category._id), category]));
- return new Map(categories.map((category) => {
-  const parent = category.parentId ? byId.get(String(category.parentId)) : null;
-  return [String(category._id), {
+ const categories = await Category.find().select("name code").lean();
+ return new Map(categories.map((category) => [
+  String(category._id),
+  {
    id: String(category._id),
    ref: category.code ?? String(category._id),
    name: category.name,
-   path: parent ? `${parent.name} / ${category.name}` : category.name,
-   parentId: parent ? String(parent._id) : null,
-  }];
- }));
+   path: category.name,
+  },
+ ]));
 }
 
 export function productCategories(product, index) {

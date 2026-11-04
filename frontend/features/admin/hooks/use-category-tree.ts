@@ -8,7 +8,7 @@ import { useAdminList } from "./use-admin-list";
 
 const initial: CategoryFilter = { q: "", status: "all" };
 
-/** The filtered category tree, and the confirmation that deletes a category. */
+/** The filtered categories, and the confirmation that deletes a category. */
 export function useCategoryTree() {
   const list = useAdminList(listCategories, initial);
   const [deleting, setDeleting] = useState<AdminCategoryRow | null>(null);
@@ -38,7 +38,7 @@ export function useCategoryTree() {
     } catch (error) {
       if (error instanceof ApiError && error.code === "CATEGORY_IN_USE") {
         // The server's reason belongs on the page: nothing in the dialog can fix it.
-        setNotice(`${error.message} Chuyển sản phẩm hoặc danh mục con sang nơi khác trước khi xóa.`);
+        setNotice(`${error.message} Chuyển sản phẩm sang nơi khác trước khi xóa.`);
         setDeleting(null);
       } else if (error instanceof ApiError && error.status === 404) {
         setNotice("Danh mục này đã được xóa trước đó.");

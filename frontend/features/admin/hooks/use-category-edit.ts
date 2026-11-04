@@ -7,17 +7,17 @@ import { deleteCategory, updateCategory, type CategoryEdit } from "../services/c
 import type { AdminCategoryDetail, CategoryStatus } from "../types";
 import { validateCategory } from "../validation";
 
-export type CategoryEditValues = { name: string; slug: string; order: string; parent: string; description: string; status: CategoryStatus };
+export type CategoryEditValues = { name: string; slug: string; order: string; description: string; status: CategoryStatus };
 type FieldName = keyof CategoryEditValues;
 type FieldErrors = Partial<Record<FieldName, string>>;
 
-const fieldOrder: FieldName[] = ["name", "parent", "slug", "description", "order", "status"];
+const fieldOrder: FieldName[] = ["name", "slug", "description", "order", "status"];
 /** The form's field for each request field. */
-const formField: Record<string, FieldName> = { name: "name", slug: "slug", parentCode: "parent", description: "description", displayOrder: "order", isActive: "status" };
+const formField: Record<string, FieldName> = { name: "name", slug: "slug", description: "description", displayOrder: "order", isActive: "status" };
 
 const formValues = (category: AdminCategoryDetail): CategoryEditValues => ({
   name: category.name, slug: category.slug, order: category.displayOrder === null ? "" : String(category.displayOrder),
-  parent: category.parentCode ?? "", description: category.description, status: category.status,
+  description: category.description, status: category.status,
 });
 
 /** The fields that differ from the loaded category, in the shape the API takes. */
@@ -27,7 +27,6 @@ function changedFields(values: CategoryEditValues, category: AdminCategoryDetail
     ...(values.name !== loaded.name && { name: values.name.trim() }),
     ...(values.slug !== loaded.slug && { slug: values.slug.trim() }),
     ...(values.order !== loaded.order && { displayOrder: Number(values.order) }),
-    ...(values.parent !== loaded.parent && { parentCode: values.parent || null }),
     ...(values.description !== loaded.description && { description: values.description.trim() }),
     ...(values.status !== loaded.status && { isActive: values.status === "active" }),
   };
@@ -131,7 +130,5 @@ export function useCategoryEdit(initialCategory: AdminCategoryDetail) {
     }
   }
 
-  const parentName = category.parentOptions.find((option) => option.ref === values.parent)?.name ?? category.parentName;
-
-  return { category, values, errors, notice, formError, pending, parentName, set, submit, deleteOpen, deletePending, deleteError, askDelete, cancelDelete, confirmDelete };
+  return { category, values, errors, notice, formError, pending, set, submit, deleteOpen, deletePending, deleteError, askDelete, cancelDelete, confirmDelete };
 }

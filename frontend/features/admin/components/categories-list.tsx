@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CircleX, CornerDownRight, FolderOpen, Package, Pencil, Trash2 } from "lucide-react";
+import { CircleX, FolderOpen, Package, Pencil, Trash2 } from "lucide-react";
 import { Field, ListState, control, primaryLink, secondaryButton } from "@/components/workspace/workspace-ui";
 import { useCategoryTree } from "../hooks/use-category-tree";
 import { categoryStatusLabels } from "../status";
@@ -24,20 +24,19 @@ export function CategoriesList() {
     </form>
     {notice && <p role="status" className="rounded-lg bg-brand-subtle px-4 py-3 text-sm text-brand">{notice}</p>}
 
-    <DataTable caption="Cây danh mục sản phẩm"
+    <DataTable caption="Danh sách danh mục sản phẩm"
       head={<><Th className="text-sm text-ink">Tên danh mục</Th><Th className="w-40 text-sm text-ink">Mã</Th><Th className="w-36 text-sm text-ink">Sản phẩm</Th><Th className="w-40 text-sm text-ink">Trạng thái</Th><Th className="w-32 text-sm text-ink">Thao tác</Th></>}>
       {state ? <tr><td colSpan={5} className="border-t border-line px-6">
         {state === "empty" && <ListState kind="empty" icon={<Package className="h-8 w-8" strokeWidth={1.5} />} title="Không tìm thấy danh mục"
-          description="Không có danh mục khớp với bộ lọc hiện tại. Thử đổi từ khóa hoặc bỏ bộ lọc để xem toàn bộ cây danh mục."
+          description="Không có danh mục khớp với bộ lọc hiện tại. Thử đổi từ khóa hoặc bỏ bộ lọc để xem toàn bộ danh mục."
           action={<button type="button" className={`${primaryLink} min-h-10`} onClick={reset}>Xóa bộ lọc</button>} />}
-        {state === "loading" && <ListState kind="loading" title="Đang tải cây danh mục..." />}
+        {state === "loading" && <ListState kind="loading" title="Đang tải danh mục..." />}
         {state === "error" && <ListState kind="error" icon={<CircleX className="h-9 w-9" strokeWidth={1.5} />} title="Không thể tải danh mục"
           description={error?.message ?? "Kết nối đến hệ thống bị gián đoạn. Bộ lọc của bạn được giữ lại. Kiểm tra kết nối và thử tải lại."}
           action={<button type="button" className={`${primaryLink} min-h-10`} onClick={reload}>Thử lại</button>} />}
-      </td></tr> : items.map((category) => <tr key={category.id} className={category.context ? "text-muted" : ""}>
-        <Td>{category.isChild
-          ? <span className="flex items-center gap-4 whitespace-nowrap pl-8"><CornerDownRight className="h-5 w-5 shrink-0 text-muted" strokeWidth={1.5} aria-hidden="true" />{category.name}</span>
-          : <span className="flex items-center gap-4 whitespace-nowrap font-semibold"><FolderOpen className="h-5 w-5 shrink-0 text-muted" strokeWidth={1.5} aria-hidden="true" />{category.name}</span>}
+      </td></tr> : items.map((category) => <tr key={category.id}>
+        <Td>
+          <span className="flex items-center gap-4 whitespace-nowrap font-medium"><FolderOpen className="h-5 w-5 shrink-0 text-muted" strokeWidth={1.5} aria-hidden="true" />{category.name}</span>
         </Td>
         <Td className="text-muted">{category.code ?? "—"}</Td>
         <Td className="tabular-nums">{category.productCount.toLocaleString("vi-VN")}</Td>
@@ -52,6 +51,6 @@ export function CategoriesList() {
 
     <AdminConfirmDialog open={Boolean(deleting)} danger pending={pending} error={deleteError} onConfirm={confirmDelete} onClose={cancelDelete}
       title="Xóa danh mục?" confirmLabel="Xóa danh mục"
-      description={`“${deleting?.name ?? ""}” sẽ bị xóa vĩnh viễn. Danh mục còn sản phẩm hoặc danh mục con sẽ không thể xóa.`} />
+      description={`“${deleting?.name ?? ""}” sẽ bị xóa vĩnh viễn. Danh mục còn sản phẩm sẽ không thể xóa.`} />
   </>;
 }
