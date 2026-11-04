@@ -160,7 +160,7 @@ export function PetFormView({
           {petToEdit ? `Chỉnh sửa hồ sơ ${petToEdit.name}` : "Thêm thú cưng mới"}
         </h1>
         <p className="mt-1 text-sm text-muted">
-          Thông tin giúp Petly gợi ý sản phẩm và dịch vụ phù hợp nhất
+          Thông tin giúp Petjoy gợi ý sản phẩm và dịch vụ phù hợp nhất
         </p>
 
         {apiError && (
@@ -330,7 +330,7 @@ export function PetFormView({
                     className="mt-1.5 block w-full rounded-xl border border-line bg-surface p-3.5 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
                   />
                   <p className="mt-1 text-xs text-muted">
-                    Thông tin giúp Petly gợi ý khẩu phần ăn và phụ kiện an toàn
+                    Thông tin giúp Petjoy gợi ý khẩu phần ăn và phụ kiện an toàn
                   </p>
                 </div>
 

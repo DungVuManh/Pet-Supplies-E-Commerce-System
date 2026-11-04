@@ -113,7 +113,7 @@ export function PaymentResultView() {
             <p className="mt-2 text-sm text-muted max-w-md mx-auto leading-relaxed">
               {isPaid
                 ? "Cảm ơn bạn đã mua hàng. Đơn hàng của bạn đã được xác nhận thanh toán và đang được chuẩn bị đóng gói."
-                : "Cảm ơn bạn đã mua hàng tại Petly. Đơn hàng của bạn đã được ghi nhận vào hệ thống và đang được chuẩn bị."}
+                : "Cảm ơn bạn đã mua hàng tại Petjoy. Đơn hàng của bạn đã được ghi nhận vào hệ thống và đang được chuẩn bị."}
             </p>
           </div>
 

@@ -266,7 +266,7 @@ export function ProfileView({ profile, stats, onEdit }: ProfileViewProps) {
         </svg>
         <p className="text-muted text-xs sm:text-sm">
           <strong className="text-brand">Ghi chú:</strong> Lần cập nhật thông tin gần nhất:{" "}
-          <span className="font-semibold text-ink">22 Tháng 10, 2026</span>. Để thay đổi Email hoặc CCCD, vui lòng liên hệ bộ phận Chăm sóc khách hàng của Petly.
+          <span className="font-semibold text-ink">22 Tháng 10, 2026</span>. Để thay đổi Email hoặc CCCD, vui lòng liên hệ bộ phận Chăm sóc khách hàng của Petjoy.
         </p>
       </div>
     </div>

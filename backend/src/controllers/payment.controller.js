@@ -46,7 +46,7 @@ async function getEffectiveBankConfig(config) {
     setting?.accountHolder ||
     config?.SEPAY_ACCOUNT_HOLDER ||
     process.env.SEPAY_ACCOUNT_HOLDER ||
-    "PETLY STORE";
+    "PETJOY STORE";
 
   return { bankCode, accountNumber, accountHolder };
 }

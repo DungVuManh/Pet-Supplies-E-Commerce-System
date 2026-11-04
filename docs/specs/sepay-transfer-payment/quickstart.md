@@ -26,7 +26,7 @@ Thêm các biến môi trường cấu hình SePay vào tập tin `backend/.env`
 SEPAY_API_KEY=sepay_dev_secret_key_9999
 SEPAY_BANK_CODE=MB
 SEPAY_ACCOUNT_NUMBER=0377041280
-SEPAY_ACCOUNT_HOLDER=CONG TY TNHH PETLY VIET NAM
+SEPAY_ACCOUNT_HOLDER=CONG TY TNHH PETJOY VIET NAM
 ```
 
 ---
@@ -73,7 +73,7 @@ Forwarding   https://abc1-234-56-78.ngrok-free.app -> http://localhost:3001
 5. Giao diện chuyển sang màn hình hiển thị mã VietQR.
 6. Xác minh:
    - Mã đơn hàng hiển thị (VD: `ORD173000123`).
-   - Nội dung chuyển khoản hiển thị đúng chuẩn: `PETLY ORD173000123`.
+   - Nội dung chuyển khoản hiển thị đúng chuẩn: `PETJOY ORD173000123`.
    - Ảnh mã QR hiển thị rõ nét, quét thử bằng điện thoại để kiểm tra số tiền và nội dung đã tự điền chính xác.
    - Đồng hồ đếm ngược 15:00 bắt đầu chạy lùi.
 
@@ -91,7 +91,7 @@ curl -X POST "http://localhost:3001/api/v1/payments/sepay/webhook" `
     "gateway": "MBBank",
     "transactionDate": "2026-11-04 11:50:00",
     "accountNumber": "0377041280",
-    "content": "PETLY ORD173000123 chuyen tien",
+    "content": "PETJOY ORD173000123 chuyen tien",
     "transferType": "in",
     "transferAmount": 350000,
     "accumulated": 10500000,
@@ -127,7 +127,7 @@ curl -X POST "http://localhost:3001/api/v1/payments/sepay/webhook" `
     "gateway": "MBBank",
     "transactionDate": "2026-11-04 11:52:00",
     "accountNumber": "0377041280",
-    "content": "PETLY ORD173000123 chuyen lan 1",
+    "content": "PETJOY ORD173000123 chuyen lan 1",
     "transferType": "in",
     "transferAmount": 200000,
     "accumulated": 10700000,

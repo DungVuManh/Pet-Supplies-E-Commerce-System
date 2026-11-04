@@ -15,14 +15,14 @@
 - Q: Hệ thống nên xử lý trạng thái đơn hàng như thế nào khi phiên thanh toán chuyển khoản hết thời gian đếm ngược (15 phút) mà chưa nhận được tiền? → A: Giữ đơn hàng ở trạng thái chờ (pending), cho phép khách hàng bấm "Tạo lại mã thanh toán" (gia hạn thêm 15 phút) hoặc chuyển đổi sang phương thức thanh toán COD.
 - Q: Hệ thống nên xử lý như thế nào khi khách hàng chuyển khoản thiếu tiền so với tổng giá trị đơn hàng? → A: Ghi nhận số tiền đã nhận vào đơn hàng, hiển thị số tiền còn thiếu và tạo mã VietQR bù tiền để khách hàng tiếp tục chuyển khoản; khi tổng tiền nhận được đủ, đơn hàng tự động chuyển sang "Đã thanh toán".
 - Q: Giao diện thanh toán của khách hàng nên sử dụng cơ chế nào để nhận biết và hiển thị trạng thái "Đã thanh toán" ngay khi tiền về tài khoản? → A: Cơ chế kết hợp: Polling tự động mỗi 3 giây kèm nút bấm "Tôi đã chuyển tiền / Kiểm tra trạng thái" để người mua có thể kích hoạt kiểm tra tức thì.
-- Q: Cú pháp nội dung chuyển khoản (Transfer Memo) nên được chuẩn hóa theo định dạng nào để đảm bảo ứng dụng ngân hàng không bị cắt ngắn ký tự và SePay nhận diện mã đơn hàng chính xác nhất? → A: Tiền tố thương hiệu kèm mã đơn hàng: PETLY <orderCode> (Ví dụ: PETLY ORD173000123).
+- Q: Cú pháp nội dung chuyển khoản (Transfer Memo) nên được chuẩn hóa theo định dạng nào để đảm bảo ứng dụng ngân hàng không bị cắt ngắn ký tự và SePay nhận diện mã đơn hàng chính xác nhất? → A: Tiền tố thương hiệu kèm mã đơn hàng: PETJOY <orderCode> (Ví dụ: PETJOY ORD173000123).
 - Q: Khi phát sinh giao dịch ngoại lệ như khách hàng chuyển thừa tiền hoặc chuyển tiền sau khi đơn hàng đã chuyển đổi sang COD, hệ thống nên gắn cờ và thông báo cho nhân viên như thế nào? → A: Đánh dấu cờ cảnh báo "Cần đối soát" (needs_review) trên đơn hàng và danh sách giao dịch để nhân viên liên hệ khách hàng đối soát hoặc hoàn tiền thủ công.
 
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Khách hàng chọn thanh toán chuyển khoản và quét mã VietQR tự động (Priority: P1)
 
-Khách hàng (người dùng đã đăng nhập hoặc khách mua nhanh không đăng nhập) tại màn hình Thanh toán (Checkout) lựa chọn phương thức "Chuyển khoản ngân hàng (VietQR qua SePay)". Sau khi xác nhận đặt hàng, hệ thống tạo đơn hàng và hiển thị ngay màn hình hướng dẫn thanh toán. Màn hình cung cấp mã VietQR động được cấu hình sẵn số tiền chính xác, số tài khoản ngân hàng của cửa hàng và nội dung chuyển khoản chuẩn hóa theo cú pháp `PETLY <orderCode>` (Ví dụ: `PETLY ORD173000123`). Khách hàng sử dụng ứng dụng ngân hàng di động bất kỳ để quét mã QR và xác nhận chuyển tiền mà không cần nhập thủ công các thông tin giao dịch.
+Khách hàng (người dùng đã đăng nhập hoặc khách mua nhanh không đăng nhập) tại màn hình Thanh toán (Checkout) lựa chọn phương thức "Chuyển khoản ngân hàng (VietQR qua SePay)". Sau khi xác nhận đặt hàng, hệ thống tạo đơn hàng và hiển thị ngay màn hình hướng dẫn thanh toán. Màn hình cung cấp mã VietQR động được cấu hình sẵn số tiền chính xác, số tài khoản ngân hàng của cửa hàng và nội dung chuyển khoản chuẩn hóa theo cú pháp `PETJOY <orderCode>` (Ví dụ: `PETJOY ORD173000123`). Khách hàng sử dụng ứng dụng ngân hàng di động bất kỳ để quét mã QR và xác nhận chuyển tiền mà không cần nhập thủ công các thông tin giao dịch.
 
 **Why this priority**: Đây là luồng thanh toán chính, cung cấp phương thức thanh toán không tiền mặt tiện lợi, chuẩn hóa và giảm thiểu tối đa sai sót khi chuyển khoản cho người mua hàng.
 
@@ -30,14 +30,14 @@ Khách hàng (người dùng đã đăng nhập hoặc khách mua nhanh không �
 
 **Acceptance Scenarios**:
 
-1. **Given** người mua có giỏ hàng hợp lệ và đã điền đầy đủ thông tin giao hàng, **When** người mua chọn phương thức "Chuyển khoản ngân hàng (VietQR qua SePay)" và nhấn "Đặt hàng", **Then** hệ thống ghi nhận đơn hàng ở trạng thái chờ thanh toán và chuyển tiếp đến màn hình chi tiết thanh toán hiển thị mã VietQR động, tên ngân hàng, số tài khoản, tên chủ tài khoản, số tiền cần chuyển và nội dung chuyển khoản chuẩn `PETLY <orderCode>`.
+1. **Given** người mua có giỏ hàng hợp lệ và đã điền đầy đủ thông tin giao hàng, **When** người mua chọn phương thức "Chuyển khoản ngân hàng (VietQR qua SePay)" và nhấn "Đặt hàng", **Then** hệ thống ghi nhận đơn hàng ở trạng thái chờ thanh toán và chuyển tiếp đến màn hình chi tiết thanh toán hiển thị mã VietQR động, tên ngân hàng, số tài khoản, tên chủ tài khoản, số tiền cần chuyển và nội dung chuyển khoản chuẩn `PETJOY <orderCode>`.
 2. **Given** người mua đang ở màn hình thanh toán chuyển khoản, **When** người mua nhấn nút sao chép bên cạnh Số tài khoản, Số tiền hoặc Nội dung chuyển khoản, **Then** hệ thống sao chép chính xác thông tin đó vào bộ nhớ đệm và hiển thị thông báo phản hồi thao tác thành công.
 
 ---
 
 ### User Story 2 - Tự động ghi nhận thanh toán thành công qua SePay Webhook và cập nhật giao diện (Priority: P1)
 
-Khi khách hàng thực hiện chuyển khoản thành công từ tài khoản ngân hàng của họ, cổng thanh toán SePay tự động phát hiện biến động số dư và gửi thông báo kết quả giao dịch (Webhook) tới hệ thống. Hệ thống tiếp nhận thông báo (thông qua đường dẫn tunnel ngrok trong môi trường thử nghiệm), kiểm tra tính hợp lệ của nguồn gửi, đối chiếu mã đơn hàng (trích xuất từ nội dung giao dịch theo mẫu `PETLY <orderCode>`) và số tiền thực nhận. Khi thông tin khớp hoàn toàn, hệ thống tự động cập nhật trạng thái thanh toán của đơn hàng thành "Đã thanh toán".
+Khi khách hàng thực hiện chuyển khoản thành công từ tài khoản ngân hàng của họ, cổng thanh toán SePay tự động phát hiện biến động số dư và gửi thông báo kết quả giao dịch (Webhook) tới hệ thống. Hệ thống tiếp nhận thông báo (thông qua đường dẫn tunnel ngrok trong môi trường thử nghiệm), kiểm tra tính hợp lệ của nguồn gửi, đối chiếu mã đơn hàng (trích xuất từ nội dung giao dịch theo mẫu `PETJOY <orderCode>`) và số tiền thực nhận. Khi thông tin khớp hoàn toàn, hệ thống tự động cập nhật trạng thái thanh toán của đơn hàng thành "Đã thanh toán".
 
 Màn hình thanh toán của khách hàng liên tục đồng bộ trạng thái ngầm qua cơ chế thăm dò tự động (polling) mỗi 3 giây trong suốt thời gian đếm ngược, đồng thời cung cấp nút bấm "Tôi đã chuyển tiền / Kiểm tra trạng thái". Ngay khi thanh toán được ghi nhận, màn hình tự động chuyển sang thông báo "Thanh toán thành công" mà không yêu cầu khách hàng phải tải lại trang hay gửi ảnh chụp biên lai đối soát.
 
@@ -47,7 +47,7 @@ Màn hình thanh toán của khách hàng liên tục đồng bộ trạng thái
 
 **Acceptance Scenarios**:
 
-1. **Given** một đơn hàng đang ở trạng thái chờ thanh toán với tổng tiền X và mã đơn hàng Z, **When** hệ thống nhận được thông báo giao dịch hợp lệ từ cổng thanh toán với số tiền bằng hoặc lớn hơn X và nội dung giao dịch chứa cú pháp `PETLY Z` (không phân biệt chữ hoa/thường), **Then** hệ thống ghi nhận giao dịch thành công, cập nhật trạng thái thanh toán của đơn hàng thành "Đã thanh toán" và phản hồi xác nhận thành công cho cổng thanh toán.
+1. **Given** một đơn hàng đang ở trạng thái chờ thanh toán với tổng tiền X và mã đơn hàng Z, **When** hệ thống nhận được thông báo giao dịch hợp lệ từ cổng thanh toán với số tiền bằng hoặc lớn hơn X và nội dung giao dịch chứa cú pháp `PETJOY Z` (không phân biệt chữ hoa/thường), **Then** hệ thống ghi nhận giao dịch thành công, cập nhật trạng thái thanh toán của đơn hàng thành "Đã thanh toán" và phản hồi xác nhận thành công cho cổng thanh toán.
 2. **Given** người mua đang quan sát màn hình chờ thanh toán, **When** hệ thống xác nhận thanh toán thành công (thông qua lần polling định kỳ 3 giây hoặc khi người mua nhấn "Kiểm tra trạng thái"), **Then** giao diện người mua lập tức cập nhật thành thông báo "Đặt hàng và Thanh toán thành công", hiển thị mã tham chiếu thanh toán và hướng dẫn xem chi tiết đơn hàng.
 
 ---
@@ -102,13 +102,13 @@ Nhân viên bán hàng và Quản trị viên tại trang quản lý đơn hàng
 
 - **FR-001**: Hệ thống PHẢI cung cấp tùy chọn phương thức thanh toán "Chuyển khoản ngân hàng (VietQR qua SePay)" tại bước thanh toán của khách hàng (cả khách đăng nhập và khách vãng lai).
 - **FR-002**: Khi khách hàng đặt hàng bằng phương thức chuyển khoản, hệ thống PHẢI tạo đơn hàng với trạng thái đơn hàng ban đầu là "Chờ xử lý" (pending) và trạng thái thanh toán ban đầu là "Chờ thanh toán" (unpaid/pending).
-- **FR-003**: Hệ thống PHẢI chuẩn hóa cú pháp nội dung chuyển khoản theo cấu trúc chuẩn: `PETLY <orderCode>` (chữ hoa, không dấu, ngăn cách bằng khoảng trắng, ví dụ: `PETLY ORD173000123`) để tối ưu khả năng nhận diện tự động từ SePay và thuận tiện cho việc kiểm tra đối soát thủ công.
-- **FR-004**: Hệ thống PHẢI hiển thị giao diện thanh toán bao gồm: Mã VietQR động theo chuẩn thanh toán ngân hàng, Tên ngân hàng, Số tài khoản thụ hưởng, Tên chủ tài khoản, Số tiền chính xác cần chuyển, Nội dung chuyển khoản bắt buộc theo chuẩn `PETLY <orderCode>`, và các nút thao tác sao chép nhanh dữ liệu.
+- **FR-003**: Hệ thống PHẢI chuẩn hóa cú pháp nội dung chuyển khoản theo cấu trúc chuẩn: `PETJOY <orderCode>` (chữ hoa, không dấu, ngăn cách bằng khoảng trắng, ví dụ: `PETJOY ORD173000123`) để tối ưu khả năng nhận diện tự động từ SePay và thuận tiện cho việc kiểm tra đối soát thủ công.
+- **FR-004**: Hệ thống PHẢI hiển thị giao diện thanh toán bao gồm: Mã VietQR động theo chuẩn thanh toán ngân hàng, Tên ngân hàng, Số tài khoản thụ hưởng, Tên chủ tài khoản, Số tiền chính xác cần chuyển, Nội dung chuyển khoản bắt buộc theo chuẩn `PETJOY <orderCode>`, và các nút thao tác sao chép nhanh dữ liệu.
 - **FR-005**: Giao diện thanh toán PHẢI hiển thị đồng hồ đếm ngược thời gian giữ đơn (mặc định 15 phút) và trạng thái hiển thị đang chờ nhận tiền từ ngân hàng.
 - **FR-006**: Giao diện người mua PHẢI tự động cập nhật và chuyển sang thông báo thanh toán thành công thông qua cơ chế kết hợp: tự động thăm dò (polling) trạng thái đơn hàng định kỳ mỗi 3 giây trong suốt thời gian hiệu lực của phiên, đồng thời cung cấp nút bấm "Tôi đã chuyển tiền / Kiểm tra trạng thái" để người mua có thể kích hoạt kiểm tra ngay lập tức mà không cần nộp chứng từ.
 - **FR-007**: Hệ thống PHẢI cung cấp điểm tiếp nhận thông báo thanh toán (Webhook endpoint) có khả năng tiếp nhận yêu cầu từ SePay qua tunnel công khai (ngrok) trong môi trường kiểm thử và qua tên miền chính thức trong môi trường vận hành.
 - **FR-008**: Điểm tiếp nhận thông báo thanh toán PHẢI thực hiện xác thực tính hợp lệ của yêu cầu (chữ ký số, mã khóa bảo mật hoặc mã thông báo xác thực) trước khi tiếp nhận xử lý dữ liệu.
-- **FR-009**: Hệ thống PHẢI đối soát tự động mã đơn hàng (theo mẫu `PETLY <orderCode>`) và số tiền giao dịch: chỉ đánh dấu đơn hàng là "Đã thanh toán" (paid) khi số tiền chuyển khoản thực tế bằng hoặc lớn hơn tổng tiền của đơn hàng (tuân thủ BR-15).
+- **FR-009**: Hệ thống PHẢI đối soát tự động mã đơn hàng (theo mẫu `PETJOY <orderCode>`) và số tiền giao dịch: chỉ đánh dấu đơn hàng là "Đã thanh toán" (paid) khi số tiền chuyển khoản thực tế bằng hoặc lớn hơn tổng tiền của đơn hàng (tuân thủ BR-15).
 - **FR-010**: Hệ thống PHẢI đảm bảo tính bất biến khi nhận thông báo lặp lại (Idempotency - tuân thủ BR-16), đảm bảo không ghi nhận lặp giao dịch và không làm sai lệch số liệu doanh thu khi cùng một giao dịch được gửi nhiều lần.
 - **FR-011**: Hệ thống PHẢI lưu trữ trạng thái thanh toán và bản ghi giao dịch thanh toán độc lập với trạng thái đơn hàng (tuân thủ CR-06), bao gồm mã đơn liên kết, số tiền, trạng thái giao dịch, mã tham chiếu từ ngân hàng/SePay và thời điểm giao dịch.
 - **FR-012**: Hệ thống PHẢI ngăn chặn nhân viên xác nhận đơn hàng (Confirm Order) đối với các đơn hàng chuyển khoản trực tuyến nếu trạng thái thanh toán chưa được xác nhận là "Đã thanh toán" (tuân thủ BR-18).

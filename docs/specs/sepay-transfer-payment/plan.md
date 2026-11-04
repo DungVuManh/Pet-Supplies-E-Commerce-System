@@ -7,7 +7,7 @@
 ## Summary
 
 Xây dựng và tích hợp hoàn chỉnh phương thức thanh toán **Chuyển khoản ngân hàng (VietQR qua SePay)** vào hệ thống Pet Supplies E-Commerce:
-1. **Phía Khách hàng (Storefront Checkout)**: Bổ sung tùy chọn chuyển khoản SePay tại bước thanh toán; tạo màn hình hiển thị mã VietQR động theo chuẩn Napas với đầy đủ thông tin tài khoản, số tiền và nội dung chuyển khoản `PETLY <orderCode>`; cơ chế đồng bộ trạng thái thanh toán thời gian thực theo mô hình kết hợp (Polling 3s + nút kiểm tra chủ động); hỗ trợ chuyển bù khi thiếu tiền và xử lý khi phiên 15 phút hết hạn (gia hạn hoặc đổi sang COD).
+1. **Phía Khách hàng (Storefront Checkout)**: Bổ sung tùy chọn chuyển khoản SePay tại bước thanh toán; tạo màn hình hiển thị mã VietQR động theo chuẩn Napas với đầy đủ thông tin tài khoản, số tiền và nội dung chuyển khoản `PETJOY <orderCode>`; cơ chế đồng bộ trạng thái thanh toán thời gian thực theo mô hình kết hợp (Polling 3s + nút kiểm tra chủ động); hỗ trợ chuyển bù khi thiếu tiền và xử lý khi phiên 15 phút hết hạn (gia hạn hoặc đổi sang COD).
 2. **Phía Cổng thanh toán & Webhook (Backend Integration)**: Cung cấp Webhook endpoint an toàn tiếp nhận thông báo từ SePay (chạy qua ngrok tunnel trong môi trường kiểm thử); đối soát tự động mã đơn và số tiền; đảm bảo tính bất biến (Idempotency - BR-16); ghi nhận giao dịch vào `Payment` và cập nhật `Order.paymentStatus = "paid"` (BR-15); hỗ trợ gắn cờ cảnh báo `needs_review` cho nhân viên khi phát sinh ngoại lệ.
 3. **Phía Quản trị & Nhân viên (Workspace UI)**: Hiển thị chi tiết phương thức thanh toán, mã tham chiếu ngân hàng, trạng thái thanh toán và ngăn chặn nhân viên xác nhận đơn hàng khi chưa hoàn tất thanh toán (BR-18).
 

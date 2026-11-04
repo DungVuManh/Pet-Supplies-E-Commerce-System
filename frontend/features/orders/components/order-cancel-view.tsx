@@ -142,7 +142,7 @@ export function OrderCancelView({ orderId }: OrderCancelViewProps) {
                   Vì sao bạn muốn hủy đơn?
                 </h2>
                 <p className="text-xs text-muted mt-1 mb-5">
-                  Chọn một lý do để Petly phục vụ bạn tốt hơn.
+                  Chọn một lý do để Petjoy phục vụ bạn tốt hơn.
                 </p>
 
                 {/* Danh sách các radio lý do */}

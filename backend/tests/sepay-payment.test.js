@@ -70,7 +70,7 @@ describe("SePay VietQR Payment Integration", () => {
       SEPAY_API_KEY: TEST_API_KEY,
       SEPAY_BANK_CODE: "MB",
       SEPAY_ACCOUNT_NUMBER: "0345678999",
-      SEPAY_ACCOUNT_HOLDER: "PETLY TEST STORE",
+      SEPAY_ACCOUNT_HOLDER: "PETJOY TEST STORE",
     });
     app = createApp(config);
 
@@ -79,7 +79,7 @@ describe("SePay VietQR Payment Integration", () => {
       lean: async () => ({
         bankCode: "MB",
         accountNumber: "0345678999",
-        accountHolder: "PETLY TEST STORE",
+        accountHolder: "PETJOY TEST STORE",
       }),
     });
 
@@ -150,7 +150,7 @@ describe("SePay VietQR Payment Integration", () => {
           gateway: "MBBank",
           transactionDate: "2026-11-04 10:00:00",
           accountNumber: "0345678999",
-          content: "PETLY ORD173000999",
+          content: "PETJOY ORD173000999",
           transferType: "in",
           transferAmount: 200000,
         });
@@ -168,7 +168,7 @@ describe("SePay VietQR Payment Integration", () => {
           gateway: "MBBank",
           transactionDate: "2026-11-04 10:00:00",
           accountNumber: "0345678999",
-          content: "PETLY ORD173000999",
+          content: "PETJOY ORD173000999",
           transferType: "in",
           transferAmount: 200000,
         });
@@ -186,7 +186,7 @@ describe("SePay VietQR Payment Integration", () => {
           gateway: "MBBank",
           transactionDate: "2026-11-04 10:00:00",
           accountNumber: "0345678999",
-          content: "PETLY ORD173000999",
+          content: "PETJOY ORD173000999",
           transferType: "in",
           transferAmount: 200000,
         });
@@ -210,7 +210,7 @@ describe("SePay VietQR Payment Integration", () => {
           gateway: "MBBank",
           transactionDate: "2026-11-04 10:00:00",
           accountNumber: "0345678999",
-          content: "Rút tiền PETLY ORD173000999",
+          content: "Rút tiền PETJOY ORD173000999",
           transferType: "out",
           transferAmount: 50000,
         });
@@ -239,13 +239,31 @@ describe("SePay VietQR Payment Integration", () => {
       expect(paymentStore).toHaveLength(0);
     });
 
+    it("accepts legacy memo with PETLY prefix for backward compatibility", async () => {
+      const response = await request(app)
+        .post("/api/v1/payments/sepay/webhook")
+        .set("Authorization", `Apikey ${TEST_API_KEY}`)
+        .send({
+          id: 106,
+          gateway: "MBBank",
+          transactionDate: "2026-11-04 10:00:00",
+          accountNumber: "0345678999",
+          content: "PETLY ORD173000999 cu",
+          transferType: "in",
+          transferAmount: 200000,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.isPaid).toBe(true);
+    });
+
     it("verifies idempotency: duplicate webhook with same id is not reprocessed (BR-16)", async () => {
       const payload = {
         id: 2001,
         gateway: "MBBank",
         transactionDate: "2026-11-04 10:00:00",
         accountNumber: "0345678999",
-        content: "PETLY ORD173000999",
+        content: "PETJOY ORD173000999",
         transferType: "in",
         transferAmount: 200000,
       };
@@ -283,7 +301,7 @@ describe("SePay VietQR Payment Integration", () => {
           gateway: "MBBank",
           transactionDate: "2026-11-04 10:00:00",
           accountNumber: "0345678999",
-          content: "PETLY ORD173000999 dot 1",
+          content: "PETJOY ORD173000999 dot 1",
           transferType: "in",
           transferAmount: 100000,
         });
@@ -301,7 +319,7 @@ describe("SePay VietQR Payment Integration", () => {
           gateway: "MBBank",
           transactionDate: "2026-11-04 10:05:00",
           accountNumber: "0345678999",
-          content: "PETLY ORD173000999 dot 2",
+          content: "PETJOY ORD173000999 dot 2",
           transferType: "in",
           transferAmount: 100000,
         });
@@ -325,7 +343,7 @@ describe("SePay VietQR Payment Integration", () => {
           gateway: "MBBank",
           transactionDate: "2026-11-04 10:00:00",
           accountNumber: "0345678999",
-          content: "PETLY ORD173000999",
+          content: "PETJOY ORD173000999",
           transferType: "in",
           transferAmount: 300000, // Total is 200,000
         });
@@ -348,7 +366,7 @@ describe("SePay VietQR Payment Integration", () => {
           gateway: "MBBank",
           transactionDate: "2026-11-04 10:00:00",
           accountNumber: "0345678999",
-          content: "PETLY ORD173000999",
+          content: "PETJOY ORD173000999",
           transferType: "in",
           transferAmount: 200000,
         });
@@ -374,6 +392,7 @@ describe("SePay VietQR Payment Integration", () => {
       expect(response.body.data.paidAmount).toBe(50000);
       expect(response.body.data.remainingAmount).toBe(150000);
       expect(response.body.data.bankCode).toBe("MB");
+      expect(response.body.data.memo).toBe("PETJOY ORD173000999");
       expect(response.body.data.qrUrl).toContain("qr.sepay.vn");
       expect(response.body.data.qrPayload).toContain("vietqr://");
       expect(response.body.data.isPaid).toBe(false);

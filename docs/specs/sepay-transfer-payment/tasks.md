@@ -33,7 +33,7 @@
 
 - [X] T003 Update Order schema in `backend/src/models/order.model.js` adding `paidAmount` (type Number, `nonNegativeInteger`, default 0), `needsReview` (type Boolean, default false), and `paymentExpiredAt` (type Date)
 - [X] T004 [P] Update Setting schema in `backend/src/models/setting.model.js` ensuring `bankTransfer` (Boolean, default true), `bankCode` (String, default 'MB'), `accountNumber` (String), and `accountHolder` (String)
-- [X] T005 [P] Create SePay helper service in `backend/src/common/sepay-service.js` with functions to generate VietQR URLs (`https://qr.sepay.vn/img?acc=...&bank=...&amount=...&des=...`), format transfer memos as `PETLY <orderCode>`, and parse order codes from transaction content using regex `/PETLY\s+(ORD\d+)/i`
+- [X] T005 [P] Create SePay helper service in `backend/src/common/sepay-service.js` with functions to generate VietQR URLs (`https://qr.sepay.vn/img?acc=...&bank=...&amount=...&des=...`), format transfer memos as `PETJOY <orderCode>`, and parse order codes from transaction content using regex `/PETJOY\s+(ORD\d+)/i`
 - [X] T006 [P] Create SePay Webhook authentication middleware in `backend/src/common/middlewares/sepay-auth.js` validating the `Authorization: Apikey <SEPAY_API_KEY>` header and returning 401 `UNAUTHORIZED` on mismatch
 - [X] T007 Create payment router in `backend/src/routers/payment.router.js` and mount it at `/api/v1/payments` in `backend/src/app.js`
 
@@ -43,7 +43,7 @@
 
 ## Phase 3: User Story 1 - Khách hàng chọn thanh toán chuyển khoản và quét mã VietQR tự động (Priority: P1) 🎯 MVP
 
-**Goal**: Khách hàng chọn Chuyển khoản ngân hàng tại checkout, tạo đơn hàng thành công, hiển thị modal/thẻ VietQR động chính xác số tiền, số tài khoản và nội dung `PETLY <orderCode>` kèm nút sao chép nhanh.
+**Goal**: Khách hàng chọn Chuyển khoản ngân hàng tại checkout, tạo đơn hàng thành công, hiển thị modal/thẻ VietQR động chính xác số tiền, số tài khoản và nội dung `PETJOY <orderCode>` kèm nút sao chép nhanh.
 
 **Independent Test**: Đặt một đơn hàng chọn phương thức thanh toán chuyển khoản SePay và xác minh màn hình hiển thị đầy đủ mã VietQR hợp lệ, thông tin chuyển khoản và nút sao chép hoạt động trơn tru.
 

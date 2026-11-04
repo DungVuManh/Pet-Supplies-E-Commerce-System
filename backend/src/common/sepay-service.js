@@ -4,29 +4,30 @@
 // =============================================================
 
 /**
- * Định dạng cú pháp nội dung chuyển khoản chuẩn theo nhận diện thương hiệu Petly
- * Ví dụ: formatTransferMemo("ORD173000123") -> "PETLY ORD173000123"
+ * Định dạng cú pháp nội dung chuyển khoản chuẩn theo nhận diện thương hiệu Petjoy
+ * Ví dụ: formatTransferMemo("ORD173000123") -> "PETJOY ORD173000123"
  */
 export function formatTransferMemo(orderCode) {
-  if (!orderCode) return "PETLY";
+  if (!orderCode) return "PETJOY";
   const cleanCode = String(orderCode).trim().toUpperCase();
-  return `PETLY ${cleanCode}`;
+  return `PETJOY ${cleanCode}`;
 }
 
 /**
  * Trích xuất mã đơn hàng từ chuỗi nội dung chuyển khoản của SePay
- * Ví dụ: "PETLY ORD173000123 chuyen tien" -> "ORD173000123"
+ * Hỗ trợ cú pháp chuẩn PETJOY và tương thích ngược với PETLY
+ * Ví dụ: "PETJOY ORD173000123 chuyen tien" -> "ORD173000123"
  */
 export function extractOrderCodeFromMemo(content) {
   if (!content || typeof content !== "string") return null;
 
-  // Khớp cú pháp chuẩn PETLY <orderCode> (VD: PETLY ORD123456)
-  const petlyMatch = content.match(/PETLY\s*[:\-_]?\s*(ORD\d+)/i);
-  if (petlyMatch && petlyMatch[1]) {
-    return petlyMatch[1].toUpperCase();
+  // Khớp cú pháp chuẩn PETJOY <orderCode> hoặc PETLY <orderCode> (VD: PETJOY ORD123456 hoặc PETLY ORD123456)
+  const memoMatch = content.match(/(?:PETJOY|PETLY)\s*[:\-_]?\s*(ORD\d+)/i);
+  if (memoMatch && memoMatch[1]) {
+    return memoMatch[1].toUpperCase();
   }
 
-  // Khớp dự phòng nếu người chuyển chỉ ghi mã ORD123456 mà bỏ sót chữ PETLY
+  // Khớp dự phòng nếu người chuyển chỉ ghi mã ORD123456 mà bỏ sót tiền tố
   const fallbackMatch = content.match(/(ORD\d+)/i);
   if (fallbackMatch && fallbackMatch[1]) {
     return fallbackMatch[1].toUpperCase();
@@ -49,19 +50,24 @@ export function generateVietQrUrl({ bankCode, accountNumber, amount, memo, accou
   const safeBank = encodeURIComponent(String(bankCode || "MB").trim());
   const safeAcc = encodeURIComponent(String(accountNumber || "").trim());
   const safeAmount = Math.max(0, Math.floor(Number(amount) || 0));
-  const safeMemo = encodeURIComponent(String(memo || "").trim());
+  const safeDes = encodeURIComponent(String(memo || "").trim());
 
-  // Link SePay QR Generator chuẩn
-  const sepayQrUrl = `https://qr.sepay.vn/img?acc=${safeAcc}&bank=${safeBank}&amount=${safeAmount}&des=${safeMemo}`;
+  let url = `https://qr.sepay.vn/img?acc=${safeAcc}&bank=${safeBank}&amount=${safeAmount}&des=${safeDes}`;
+  if (accountHolder && String(accountHolder).trim() !== "") {
+    url += `&name=${encodeURIComponent(String(accountHolder).trim())}`;
+  }
 
-  return sepayQrUrl;
+  return url;
 }
 
 /**
- * Sinh chuỗi payload text thô VietQR theo quy chuẩn Napas (nếu cần render canvas nội bộ)
+ * Tạo chuỗi payload deep-link chuẩn VietQR
  */
 export function generateVietQrPayload({ bankCode, accountNumber, amount, memo }) {
-  // Chuỗi mô tả cơ bản định dạng VietQR Quicklink
-  return `vietqr://${bankCode}/${accountNumber}?amount=${amount}&memo=${encodeURIComponent(memo)}`;
-}
+  const safeBank = String(bankCode || "MB").trim().toUpperCase();
+  const safeAcc = String(accountNumber || "").trim();
+  const safeAmount = Math.max(0, Math.floor(Number(amount) || 0));
+  const safeMemo = String(memo || "").trim();
 
+  return `vietqr://transfer?bank=${safeBank}&acc=${safeAcc}&amount=${safeAmount}&memo=${encodeURIComponent(safeMemo)}`;
+}

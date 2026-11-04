@@ -223,7 +223,7 @@ components:
         content:
           type: string
           description: Toàn bộ nội dung chuyển khoản từ tin nhắn ngân hàng
-          example: "PETLY ORD173000123 chuyen tien mua hang"
+          example: "PETJOY ORD173000123 chuyen tien mua hang"
         transferType:
           type: string
           enum: ["in", "out"]
@@ -275,13 +275,13 @@ components:
           example: "NGUYEN VAN A"
         memo:
           type: string
-          example: "PETLY ORD173000123"
+          example: "PETJOY ORD173000123"
         qrUrl:
           type: string
-          example: "https://qr.sepay.vn/img?acc=0377041280&bank=MB&amount=350000&des=PETLY%20ORD173000123"
+          example: "https://qr.sepay.vn/img?acc=0377041280&bank=MB&amount=350000&des=PETJOY%20ORD173000123"
         qrPayload:
           type: string
-          example: "00020101021238540010A00000072701240006970422011003770412800208QRIBFTTA530370454063500005802VN62230819PETLY ORD1730001236304ABCD"
+          example: "00020101021238540010A00000072701240006970422011003770412800208QRIBFTTA530370454063500005802VN62230819PETJOY ORD1730001236304ABCD"
         paymentExpiredAt:
           type: string
           format: date-time

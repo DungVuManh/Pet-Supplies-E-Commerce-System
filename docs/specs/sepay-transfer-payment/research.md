@@ -43,7 +43,7 @@ Trong môi trường phát triển (development/testing), máy chủ backend ch�
   - `ACCOUNT_NUMBER`: Số tài khoản của cửa hàng.
   - `ACCOUNT_NAME`: Tên chủ tài khoản.
   - `AMOUNT`: Số tiền chính xác cần thanh toán (hoặc số tiền còn thiếu nếu chuyển bù).
-  - `DES`: Cú pháp nội dung chuyển khoản bắt buộc: `PETLY <orderCode>` (Ví dụ: `PETLY ORD173000123`).
+  - `DES`: Cú pháp nội dung chuyển khoản bắt buộc: `PETJOY <orderCode>` (Ví dụ: `PETJOY ORD173000123`).
 - Phía backend tính toán và trả về cả hai định dạng:
   - `qrUrl`: Đường dẫn ảnh QR để giao diện render trực tiếp trong thẻ `<img>`.
   - `qrPayload`: Chuỗi text thô VietQR EMVCo (phục vụ người dùng tải mã hoặc vẽ bằng thư viện mã vạch canvas nếu mất kết nối mạng ngoài).
@@ -66,7 +66,7 @@ Trong môi trường phát triển (development/testing), máy chủ backend ch�
   - Trường `transactionRef` đã có Unique Index trong `payment.model.js` với `partialFilterExpression`.
   - Trước khi xử lý, hệ thống kiểm tra: Nếu `Payment.findOne({ transactionRef })` đã tồn tại, lập tức bỏ qua việc cập nhật lại và trả về HTTP 200 `{ success: true, message: "Transaction already processed" }`.
 - **Trích xuất mã đơn hàng**:
-  - Phân tích chuỗi `content` từ webhook bằng biểu thức chính quy (Regex): `/PETLY\s+(ORD\d+)/i`.
+  - Phân tích chuỗi `content` từ webhook bằng biểu thức chính quy (Regex): `/PETJOY\s+(ORD\d+)/i`.
   - Tìm kiếm đơn hàng theo `orderCode`.
 - **Cơ chế thanh toán cộng dồn (Partial Payment Accumulation)**:
   - Mỗi lần webhook hợp lệ gửi đến, một bản ghi `Payment` mới được lưu với số tiền thực chuyển `amount`.
