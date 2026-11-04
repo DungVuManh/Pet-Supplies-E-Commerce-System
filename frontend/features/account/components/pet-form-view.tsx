@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import Image from "next/image";
 import type { PetProfile, PetFormValues } from "../types";
 
@@ -11,6 +11,66 @@ interface PetFormViewProps {
   onCancel: () => void;
 }
 
+export const DOG_BREEDS = [
+  "Poodle",
+  "Corgi",
+  "Golden Retriever",
+  "Labrador",
+  "Husky",
+  "Shiba Inu",
+  "Phốc Sóc",
+  "Chihuahua",
+  "Beagle",
+  "Bulldog",
+  "Chó ta",
+  "Khác (nhập tên giống)",
+];
+
+export const CAT_BREEDS = [
+  "Mèo Anh lông ngắn",
+  "Mèo Anh lông dài",
+  "Mèo Ba Tư",
+  "Mèo Munchkin",
+  "Mèo Scottish Fold",
+  "Mèo Bengal",
+  "Mèo Ragdoll",
+  "Mèo Siamese",
+  "Mèo Maine Coon",
+  "Mèo ta",
+  "Khác (nhập tên giống)",
+];
+
+export const COMMON_HEALTH_ISSUES = [
+  "Tiết niệu",
+  "Viêm da",
+  "Dị ứng thức ăn",
+  "Tiêu hoá",
+  "Béo phì",
+  "Khớp xương",
+  "Răng miệng",
+  "Mắt",
+  "Tim mạch",
+  "Hô hấp",
+];
+
+function calculateAgeFromDob(dobStr: string): string {
+  if (!dobStr) return "";
+  const birth = new Date(dobStr);
+  if (isNaN(birth.getTime())) return "";
+  const now = new Date();
+  const diffMonths =
+    (now.getFullYear() - birth.getFullYear()) * 12 +
+    (now.getMonth() - birth.getMonth());
+
+  if (diffMonths < 1) return "Dưới 1 tháng tuổi";
+  if (diffMonths < 12) return `${diffMonths} tháng tuổi`;
+
+  const years = Math.floor(diffMonths / 12);
+  const remainingMonths = diffMonths % 12;
+  if (remainingMonths === 0) return `${years} tuổi`;
+  return `${years} tuổi ${remainingMonths} tháng`;
+}
+
 export function PetFormView({
   petToEdit,
   isSaving,
@@ -18,15 +78,65 @@ export function PetFormView({
   onCancel,
 }: PetFormViewProps) {
   const [name, setName] = useState(petToEdit?.name ?? "");
-  const [species, setSpecies] = useState<string>(
-    petToEdit?.species === "cat" || petToEdit?.species === "mèo" ? "cat" : "dog",
-  );
-  const [breed, setBreed] = useState(petToEdit?.breed ?? "");
+  const [species, setSpecies] = useState<string>(() => {
+    if (!petToEdit?.species) return "dog";
+    const s = petToEdit.species.toLowerCase();
+    if (s === "cat" || s === "mèo") return "cat";
+    if (s === "other" || s === "khác") return "other";
+    return "dog";
+  });
+
+  const availableBreeds = useMemo(() => {
+    if (species === "cat") return CAT_BREEDS;
+    if (species === "dog") return DOG_BREEDS;
+    return ["Khác (nhập tên giống)"];
+  }, [species]);
+
+  const [selectedBreed, setSelectedBreed] = useState<string>(() => {
+    if (!petToEdit?.breed) return "";
+    const list =
+      petToEdit.species === "cat" || petToEdit.species === "mèo"
+        ? CAT_BREEDS
+        : DOG_BREEDS;
+    if (list.includes(petToEdit.breed)) {
+      return petToEdit.breed;
+    }
+    return "Khác (nhập tên giống)";
+  });
+
+  const [customBreed, setCustomBreed] = useState<string>(() => {
+    if (!petToEdit?.breed) return "";
+    const list =
+      petToEdit.species === "cat" || petToEdit.species === "mèo"
+        ? CAT_BREEDS
+        : DOG_BREEDS;
+    return list.includes(petToEdit.breed) ? "" : petToEdit.breed;
+  });
+
+  const [dob, setDob] = useState(() => {
+    if (!petToEdit?.dob) return "";
+    const d = new Date(petToEdit.dob);
+    return isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10);
+  });
+
   const [age, setAge] = useState(petToEdit?.age ?? "");
   const [weight, setWeight] = useState<string>(
     petToEdit?.weight !== undefined && petToEdit?.weight !== null
       ? String(petToEdit.weight)
       : "",
+  );
+  const [gender, setGender] = useState<string>(petToEdit?.gender ?? "");
+  const [isSterilized, setIsSterilized] = useState<boolean>(
+    petToEdit?.isSterilized ?? false,
+  );
+  const [healthIssues, setHealthIssues] = useState<string[]>(
+    petToEdit?.healthIssues ?? [],
+  );
+  const [identification, setIdentification] = useState(
+    petToEdit?.identification ?? "",
+  );
+  const [personality, setPersonality] = useState(
+    petToEdit?.personality ?? "",
   );
   const [notes, setNotes] = useState(petToEdit?.notes ?? "");
 
@@ -42,18 +152,36 @@ export function PetFormView({
 
   const [errors, setErrors] = useState<{
     name?: string;
-    species?: string;
     weight?: string;
   }>({});
   const [apiError, setApiError] = useState("");
 
+  function handleSpeciesChange(newSpecies: string) {
+    setSpecies(newSpecies);
+    setSelectedBreed("");
+    setCustomBreed("");
+    if (!petToEdit && !isNewAvatar) {
+      setAvatarUrl(
+        newSpecies === "cat" ? "/images/pets/luna.jpg" : "/images/pets/milo.jpg",
+      );
+    }
+  }
+
+  function toggleHealthIssue(issue: string) {
+    setHealthIssues((prev) =>
+      prev.includes(issue)
+        ? prev.filter((item) => item !== issue)
+        : [...prev, issue],
+    );
+  }
+
   function validate(): boolean {
-    const nextErrors: { name?: string; species?: string; weight?: string } = {};
+    const nextErrors: { name?: string; weight?: string } = {};
 
     if (!name.trim()) {
-      nextErrors.name = "Vui lòng nhập tên thú cưng.";
+      nextErrors.name = "Vui lòng nhập tên Boss.";
     } else if (name.trim().length > 50) {
-      nextErrors.name = "Tên thú cưng tối đa 50 ký tự.";
+      nextErrors.name = "Tên Boss tối đa 50 ký tự.";
     }
 
     if (weight.trim()) {
@@ -133,13 +261,30 @@ export function PetFormView({
       ? Number(weight.trim().replace(",", "."))
       : undefined;
 
+    let finalBreed = "";
+    if (species === "other") {
+      finalBreed = customBreed.trim() || selectedBreed.trim();
+    } else if (selectedBreed === "Khác (nhập tên giống)") {
+      finalBreed = customBreed.trim();
+    } else {
+      finalBreed = selectedBreed.trim();
+    }
+
+    const calculatedAge = dob ? calculateAgeFromDob(dob) : age.trim();
+
     try {
       await onSave({
         name: name.trim(),
         species,
-        breed: breed.trim(),
-        age: age.trim(),
+        breed: finalBreed,
+        dob: dob || undefined,
+        age: calculatedAge || undefined,
         weight: numWeight,
+        gender: gender.trim(),
+        isSterilized,
+        healthIssues,
+        identification: identification.trim(),
+        personality: personality.trim(),
         notes: notes.trim(),
         avatarUrl,
       });
@@ -156,12 +301,21 @@ export function PetFormView({
     <div className="space-y-6">
       {/* Header */}
       <div className="rounded-2xl border border-line bg-surface p-6 sm:p-8 shadow-xs">
-        <h1 className="text-xl font-bold text-ink sm:text-2xl">
-          {petToEdit ? `Chỉnh sửa hồ sơ ${petToEdit.name}` : "Thêm thú cưng mới"}
-        </h1>
-        <p className="mt-1 text-sm text-muted">
-          Thông tin giúp Petly gợi ý sản phẩm và dịch vụ phù hợp nhất
-        </p>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-ink sm:text-2xl">Boss</h1>
+            <p className="mt-1 text-sm text-muted">
+              Quản lý thông tin thú cưng của bạn
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="inline-flex min-h-10 items-center justify-center gap-1.5 self-start rounded-xl border border-line bg-surface px-4 text-xs font-semibold text-ink shadow-xs transition-colors hover:bg-canvas sm:self-auto"
+          >
+            ← Quay lại danh sách
+          </button>
+        </div>
 
         {apiError && (
           <div
@@ -178,111 +332,171 @@ export function PetFormView({
           <div className="lg:col-span-7 xl:col-span-8">
             <div className="rounded-2xl border border-line bg-surface p-6 shadow-xs">
               <h2 className="text-base font-bold text-ink mb-6">
-                Thông tin thú cưng
+                {petToEdit ? `Chỉnh sửa thông tin ${petToEdit.name}` : "Thông tin Boss"}
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-5">
-                {/* Pet Name */}
-                <div>
-                  <label
-                    htmlFor="pet-name"
-                    className="block text-xs font-semibold text-ink"
-                  >
-                    Tên thú cưng <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    id="pet-name"
-                    type="text"
-                    required
-                    disabled={isSaving}
-                    value={name}
-                    onChange={(e) => {
-                      setName(e.target.value);
-                      if (errors.name) {
-                        setErrors((prev) => ({ ...prev, name: undefined }));
-                      }
-                    }}
-                    placeholder="Nhập tên thú cưng"
-                    className="mt-1.5 block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
-                  />
-                  {errors.name && (
-                    <p className="mt-1 text-xs text-danger font-medium">
-                      {errors.name}
-                    </p>
-                  )}
-                </div>
-
-                {/* Species & Breed */}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {/* Row 1: Tên Boss & Loại thú cưng */}
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <div>
                     <label
-                      htmlFor="pet-species"
+                      htmlFor="pet-name"
                       className="block text-xs font-semibold text-ink"
                     >
-                      Loài <span className="text-danger">*</span>
+                      Tên Boss <span className="text-danger">*</span>
                     </label>
-                    <select
-                      id="pet-species"
+                    <input
+                      id="pet-name"
+                      type="text"
+                      required
                       disabled={isSaving}
-                      value={species}
+                      value={name}
                       onChange={(e) => {
-                        const val = e.target.value;
-                        setSpecies(val);
-                        if (!petToEdit && !isNewAvatar) {
-                          setAvatarUrl(
-                            val === "cat"
-                              ? "/images/pets/luna.jpg"
-                              : "/images/pets/milo.jpg",
-                          );
+                        setName(e.target.value);
+                        if (errors.name) {
+                          setErrors((prev) => ({ ...prev, name: undefined }));
                         }
                       }}
-                      className="mt-1.5 block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
-                    >
-                      <option value="dog">Chó</option>
-                      <option value="cat">Mèo</option>
-                      <option value="other">Khác</option>
-                    </select>
+                      placeholder="Milu"
+                      className="mt-1.5 block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
+                    />
+                    {errors.name && (
+                      <p className="mt-1 text-xs text-danger font-medium">
+                        {errors.name}
+                      </p>
+                    )}
                   </div>
 
+                  <div>
+                    <label className="block text-xs font-semibold text-ink">
+                      Loại thú cưng <span className="text-danger">*</span>
+                    </label>
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={isSaving}
+                        onClick={() => handleSpeciesChange("dog")}
+                        className={`inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-semibold transition-all ${
+                          species === "dog"
+                            ? "bg-brand text-white shadow-xs"
+                            : "border border-line bg-surface text-ink hover:bg-canvas"
+                        }`}
+                      >
+                        <span className="text-base">🐕</span>
+                        <span>Chó</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isSaving}
+                        onClick={() => handleSpeciesChange("cat")}
+                        className={`inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-semibold transition-all ${
+                          species === "cat"
+                            ? "bg-brand text-white shadow-xs"
+                            : "border border-line bg-surface text-ink hover:bg-canvas"
+                        }`}
+                      >
+                        <span className="text-base">🐱</span>
+                        <span>Mèo</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isSaving}
+                        onClick={() => handleSpeciesChange("other")}
+                        className={`inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-semibold transition-all ${
+                          species === "other"
+                            ? "bg-brand text-white shadow-xs"
+                            : "border border-line bg-surface text-ink hover:bg-canvas"
+                        }`}
+                      >
+                        <span className="text-base">🐾</span>
+                        <span>Khác</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Row 2: Giống & Ngày sinh */}
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <div>
                     <label
                       htmlFor="pet-breed"
                       className="block text-xs font-semibold text-ink"
                     >
-                      Giống loài
+                      Giống
                     </label>
-                    <input
-                      id="pet-breed"
-                      type="text"
-                      disabled={isSaving}
-                      value={breed}
-                      onChange={(e) => setBreed(e.target.value)}
-                      placeholder="Nhập giống loài (ví dụ: Poodle, Corgi, Mèo Mướp...)"
-                      className="mt-1.5 block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
-                    />
+                    <div className="relative mt-1.5">
+                      <select
+                        id="pet-breed"
+                        disabled={isSaving}
+                        value={selectedBreed}
+                        onChange={(e) => setSelectedBreed(e.target.value)}
+                        className="block w-full appearance-none min-h-11 rounded-xl border border-line bg-surface px-4 pr-10 text-sm text-ink focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
+                      >
+                        <option value="">Chọn giống...</option>
+                        {availableBreeds.map((b) => (
+                          <option key={b} value={b}>
+                            {b}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-muted">
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+
+                    {(selectedBreed === "Khác (nhập tên giống)" ||
+                      species === "other") && (
+                      <input
+                        type="text"
+                        disabled={isSaving}
+                        value={customBreed}
+                        onChange={(e) => setCustomBreed(e.target.value)}
+                        placeholder="Nhập tên giống..."
+                        className="mt-2 block w-full min-h-10 rounded-xl border border-line bg-surface px-4 text-xs text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="pet-dob"
+                      className="block text-xs font-semibold text-ink"
+                    >
+                      Ngày sinh
+                    </label>
+                    <div className="relative mt-1.5">
+                      <input
+                        id="pet-dob"
+                        type="date"
+                        disabled={isSaving}
+                        value={dob}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setDob(val);
+                          if (val) {
+                            setAge(calculateAgeFromDob(val));
+                          }
+                        }}
+                        className="block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                {/* Age & Weight */}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label
-                      htmlFor="pet-age"
-                      className="block text-xs font-semibold text-ink"
-                    >
-                      Tuổi
-                    </label>
-                    <input
-                      id="pet-age"
-                      type="text"
-                      disabled={isSaving}
-                      value={age}
-                      onChange={(e) => setAge(e.target.value)}
-                      placeholder="Nhập tuổi (ví dụ: 2 tuổi, 8 tháng...)"
-                      className="mt-1.5 block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
-                    />
-                  </div>
-
+                {/* Row 3: Cân nặng & Giới tính */}
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <div>
                     <label
                       htmlFor="pet-weight"
@@ -301,7 +515,7 @@ export function PetFormView({
                           setErrors((prev) => ({ ...prev, weight: undefined }));
                         }
                       }}
-                      placeholder="Nhập cân nặng (ví dụ: 5.5)"
+                      placeholder="5.5"
                       className="mt-1.5 block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
                     />
                     {errors.weight && (
@@ -310,31 +524,164 @@ export function PetFormView({
                       </p>
                     )}
                   </div>
+
+                  <div>
+                    <label
+                      htmlFor="pet-gender"
+                      className="block text-xs font-semibold text-ink"
+                    >
+                      Giới tính
+                    </label>
+                    <div className="relative mt-1.5">
+                      <select
+                        id="pet-gender"
+                        disabled={isSaving}
+                        value={gender}
+                        onChange={(e) => setGender(e.target.value)}
+                        className="block w-full appearance-none min-h-11 rounded-xl border border-line bg-surface px-4 pr-10 text-sm text-ink focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
+                      >
+                        <option value="">Chọn giới tính...</option>
+                        <option value="Đực">Đực</option>
+                        <option value="Cái">Cái</option>
+                        <option value="Không rõ">Không rõ</option>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-muted">
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Notes */}
+                {/* Row 4: Triệt sản */}
+                <div>
+                  <label className="block text-xs font-semibold text-ink mb-2">
+                    Triệt sản
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      disabled={isSaving}
+                      onClick={() => setIsSterilized(false)}
+                      className={`inline-flex min-h-9 items-center justify-center rounded-xl border px-5 text-xs font-semibold transition-all ${
+                        isSterilized === false
+                          ? "border-brand bg-brand-subtle text-brand ring-1 ring-brand"
+                          : "border-line bg-surface text-ink hover:bg-canvas"
+                      }`}
+                    >
+                      Chưa
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isSaving}
+                      onClick={() => setIsSterilized(true)}
+                      className={`inline-flex min-h-9 items-center justify-center rounded-xl border px-5 text-xs font-semibold transition-all ${
+                        isSterilized === true
+                          ? "border-brand bg-brand-subtle text-brand ring-1 ring-brand"
+                          : "border-line bg-surface text-ink hover:bg-canvas"
+                      }`}
+                    >
+                      Rồi
+                    </button>
+                  </div>
+                </div>
+
+                {/* Row 5: Vấn đề sức khoẻ */}
+                <div>
+                  <label className="block text-xs font-semibold text-ink mb-2">
+                    Vấn đề sức khoẻ
+                  </label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {COMMON_HEALTH_ISSUES.map((issue) => {
+                      const selected = healthIssues.includes(issue);
+                      return (
+                        <button
+                          key={issue}
+                          type="button"
+                          disabled={isSaving}
+                          onClick={() => toggleHealthIssue(issue)}
+                          className={`inline-flex items-center rounded-full border px-3.5 py-1.5 text-xs transition-all ${
+                            selected
+                              ? "border-brand bg-brand-subtle font-semibold text-brand ring-1 ring-brand shadow-2xs"
+                              : "border-line bg-surface font-medium text-ink/80 hover:bg-canvas"
+                          }`}
+                        >
+                          {issue}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Row 6: Đặc điểm nhận dạng */}
+                <div>
+                  <label
+                    htmlFor="pet-identification"
+                    className="block text-xs font-semibold text-ink"
+                  >
+                    Đặc điểm nhận dạng
+                  </label>
+                  <textarea
+                    id="pet-identification"
+                    rows={3}
+                    disabled={isSaving}
+                    value={identification}
+                    onChange={(e) => setIdentification(e.target.value)}
+                    placeholder="VD: Lông trắng, có đốm đen ở tai trái..."
+                    className="mt-1.5 block w-full rounded-xl border border-line bg-surface p-3.5 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
+                  />
+                </div>
+
+                {/* Row 7: Tính cách */}
+                <div>
+                  <label
+                    htmlFor="pet-personality"
+                    className="block text-xs font-semibold text-ink"
+                  >
+                    Tính cách
+                  </label>
+                  <textarea
+                    id="pet-personality"
+                    rows={3}
+                    disabled={isSaving}
+                    value={personality}
+                    onChange={(e) => setPersonality(e.target.value)}
+                    placeholder="VD: Hiền lành, thích chơi bóng..."
+                    className="mt-1.5 block w-full rounded-xl border border-line bg-surface p-3.5 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
+                  />
+                </div>
+
+                {/* Optional Notes */}
                 <div>
                   <label
                     htmlFor="pet-notes"
                     className="block text-xs font-semibold text-ink"
                   >
-                    Ghi chú
+                    Ghi chú thêm
                   </label>
                   <textarea
                     id="pet-notes"
-                    rows={3}
+                    rows={2}
                     disabled={isSaving}
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Thói quen ăn uống, dị ứng hoặc lưu ý đặc biệt của bé..."
+                    placeholder="Thói quen ăn uống, dị ứng khác hoặc lưu ý đặc biệt..."
                     className="mt-1.5 block w-full rounded-xl border border-line bg-surface p-3.5 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
                   />
-                  <p className="mt-1 text-xs text-muted">
-                    Thông tin giúp Petly gợi ý khẩu phần ăn và phụ kiện an toàn
-                  </p>
                 </div>
 
-                {/* Buttons */}
+                {/* Submit / Cancel Buttons */}
                 <div className="flex items-center gap-3 pt-4 border-t border-line/60">
                   <button
                     type="submit"
@@ -345,7 +692,7 @@ export function PetFormView({
                       ? "Đang lưu…"
                       : petToEdit
                       ? "Lưu thay đổi"
-                      : "Thêm thú cưng"}
+                      : "Thêm Boss"}
                   </button>
                   <button
                     type="button"
@@ -365,7 +712,7 @@ export function PetFormView({
             {/* Image Card */}
             <div className="rounded-2xl border border-line bg-surface p-6 shadow-xs">
               <h2 className="text-base font-bold text-ink mb-4">
-                Ảnh của {name || "bé cưng"}
+                Ảnh của {name || "bé Boss"}
               </h2>
 
               <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border-2 border-brand/20 bg-canvas shadow-sm">
@@ -432,7 +779,7 @@ export function PetFormView({
                 )}
 
                 <p className="mt-2 text-[11px] text-muted">
-                  Định dạng: JPG, PNG · Tối đa 2MB
+                  Định dạng: JPG, PNG · Tối đa 5MB
                 </p>
               </div>
             </div>
@@ -454,10 +801,12 @@ export function PetFormView({
               </svg>
               <div>
                 <strong className="block font-semibold text-brand mb-1">
-                  Mẹo chụp ảnh thú cưng
+                  Mẹo thông tin Boss
                 </strong>
                 <p className="text-muted text-xs leading-relaxed">
-                  Nên chụp ở nơi đủ sáng, ngang tầm mắt của bé để có bức ảnh đẹp và nhận diện tốt nhất.
+                  Cập nhật đầy đủ cân nặng, giống loài và tình trạng sức khỏe giúp
+                  Petly cá nhân hóa đề xuất khẩu phần dinh dưỡng và sản phẩm chăm
+                  sóc tốt nhất cho bé.
                 </p>
               </div>
             </div>

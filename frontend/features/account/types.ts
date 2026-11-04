@@ -34,11 +34,16 @@ export interface PetProfile {
   _id: string;
   userId?: string;
   name: string;
-  species: "dog" | "cat" | string;
+  species: "dog" | "cat" | "other" | string;
   breed?: string;
   dob?: string | null;
   age?: string;
   weight?: number | null;
+  gender?: string;
+  isSterilized?: boolean;
+  healthIssues?: string[];
+  identification?: string;
+  personality?: string;
   notes?: string;
   avatarUrl?: string;
   createdAt?: string;
@@ -65,11 +70,16 @@ export interface AddressFormValues {
 
 export interface PetFormValues {
   name: string;
-  species: "dog" | "cat" | string;
+  species: "dog" | "cat" | "other" | string;
   breed?: string;
   dob?: string;
   age?: string;
   weight?: number;
+  gender?: string;
+  isSterilized?: boolean;
+  healthIssues?: string[];
+  identification?: string;
+  personality?: string;
   notes?: string;
   avatarUrl?: string;
 }

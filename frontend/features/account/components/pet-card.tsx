@@ -35,7 +35,8 @@ function getPetAgeText(pet: PetProfile): string {
 
 export function PetCard({ pet, onEdit, onDelete }: PetCardProps) {
   const isDog = pet.species === "dog" || pet.species === "chó";
-  const speciesLabel = isDog ? "Chó cưng" : "Mèo cưng";
+  const isCat = pet.species === "cat" || pet.species === "mèo";
+  const speciesLabel = isDog ? "Chó cưng" : isCat ? "Mèo cưng" : "Thú cưng khác";
   const defaultImage = isDog
     ? "/images/pets/milo.jpg"
     : "/images/pets/luna.jpg";
@@ -46,6 +47,13 @@ export function PetCard({ pet, onEdit, onDelete }: PetCardProps) {
     pet.weight !== undefined && pet.weight !== null
       ? `${pet.weight} kg`
       : "Chưa rõ";
+
+  const sterilizationLabel =
+    pet.isSterilized !== undefined
+      ? pet.isSterilized
+        ? "Đã triệt sản"
+        : "Chưa triệt sản"
+      : null;
 
   return (
     <div className="flex flex-col justify-between overflow-hidden rounded-2xl border border-line bg-surface shadow-xs transition-all hover:border-line/80 hover:shadow-sm">
@@ -76,11 +84,11 @@ export function PetCard({ pet, onEdit, onDelete }: PetCardProps) {
 
           {/* Breed */}
           <p className="mt-1 text-xs font-medium text-muted">
-            {pet.breed || (isDog ? "Golden Retriever" : "Mèo Anh lông ngắn")}
+            {pet.breed || (isDog ? "Chưa rõ giống" : isCat ? "Chưa rõ giống" : "Khác")}
           </p>
 
-          {/* Age & Weight Stats Row */}
-          <div className="mt-3.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
+          {/* Age & Weight & Gender & Triệt sản Row */}
+          <div className="mt-3.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">
             <span className="text-muted">
               Tuổi: <strong className="font-semibold text-ink">{ageDisplay}</strong>
             </span>
@@ -88,18 +96,54 @@ export function PetCard({ pet, onEdit, onDelete }: PetCardProps) {
             <span className="text-muted">
               Cân nặng: <strong className="font-semibold text-ink">{weightDisplay}</strong>
             </span>
+            {pet.gender && (
+              <>
+                <span className="text-muted/60">·</span>
+                <span className="text-muted">
+                  Giới tính: <strong className="font-semibold text-ink">{pet.gender}</strong>
+                </span>
+              </>
+            )}
+            {sterilizationLabel && (
+              <>
+                <span className="text-muted/60">·</span>
+                <span className="text-muted">
+                  <strong className="font-semibold text-ink">{sterilizationLabel}</strong>
+                </span>
+              </>
+            )}
           </div>
 
-          {/* Notes / Description */}
-          {pet.notes ? (
-            <p className="mt-3 text-xs text-muted leading-relaxed line-clamp-2">
-              {pet.notes}
+          {/* Health Issues Badges */}
+          {pet.healthIssues && pet.healthIssues.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {pet.healthIssues.map((issue) => (
+                <span
+                  key={issue}
+                  className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-medium text-amber-800 border border-amber-200/60"
+                >
+                  {issue}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Identification or Personality or Notes */}
+          {pet.identification && (
+            <p className="mt-2.5 text-xs text-muted leading-relaxed line-clamp-1">
+              <span className="font-medium text-ink/80">Đặc điểm:</span> {pet.identification}
             </p>
-          ) : (
-            <p className="mt-3 text-xs text-muted/80 italic">
-              {isDog
-                ? "Thích gặm xương, chạy nhảy ngoài công viên..."
-                : "Thích ăn hạt và nằm sưởi nắng bên cửa sổ..."}
+          )}
+
+          {pet.personality && (
+            <p className="mt-1 text-xs text-muted leading-relaxed line-clamp-1">
+              <span className="font-medium text-ink/80">Tính cách:</span> {pet.personality}
+            </p>
+          )}
+
+          {pet.notes && !pet.identification && !pet.personality && (
+            <p className="mt-2.5 text-xs text-muted leading-relaxed line-clamp-2">
+              {pet.notes}
             </p>
           )}
         </div>
