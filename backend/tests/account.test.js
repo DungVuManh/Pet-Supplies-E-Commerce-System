@@ -254,6 +254,18 @@ describe("Customer Account & Pet Endpoints", () => {
       expect(response.body.data.pet.personality).toBe("Hiền lành, thích chơi bóng");
     });
 
+    it("rejects pet profile creation when required fields are missing", async () => {
+      const { call } = await authenticatedAgent();
+      const response = await call("post", "/pets", {
+        name: "Milu",
+        species: "Chó",
+        // breed, weight, gender are missing
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error.code).toBe("VALIDATION_ERROR");
+    });
+
     it("deletes a pet profile", async () => {
       vi.spyOn(PetProfile, "findOneAndDelete").mockResolvedValue(mockPet);
 

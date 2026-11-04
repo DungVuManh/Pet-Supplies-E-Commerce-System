@@ -87,7 +87,11 @@ export const petSchema = z
         if (lower === "mèo" || lower === "cat") return "cat";
         return "other";
       }),
-    breed: z.string().trim().max(100).optional().default(""),
+    breed: z
+      .string({ required_error: "Vui lòng nhập hoặc chọn giống thú cưng." })
+      .trim()
+      .min(1, "Vui lòng nhập hoặc chọn giống thú cưng.")
+      .max(100, "Giống thú cưng tối đa 100 ký tự."),
     dob: z
       .union([z.string(), z.date()])
       .optional()
@@ -103,15 +107,23 @@ export const petSchema = z
       .nullable()
       .transform((val) => (val !== undefined && val !== null && String(val).trim() ? String(val).trim() : undefined)),
     weight: z
-      .union([z.number(), z.string()])
-      .optional()
-      .nullable()
-      .transform((val) => {
-        if (val === undefined || val === null || val === "") return undefined;
-        const n = Number(val);
-        return isNaN(n) ? undefined : n;
-      }),
-    gender: z.string().trim().max(50).optional().default(""),
+      .union([z.number(), z.string()], {
+        required_error: "Vui lòng nhập cân nặng của thú cưng.",
+      })
+      .refine(
+        (val) => {
+          if (val === undefined || val === null || val === "") return false;
+          const n = Number(String(val).replace(",", "."));
+          return !isNaN(n) && n > 0;
+        },
+        "Cân nặng phải là số dương hợp lệ.",
+      )
+      .transform((val) => Number(String(val).replace(",", "."))),
+    gender: z
+      .string({ required_error: "Vui lòng chọn giới tính cho thú cưng." })
+      .trim()
+      .min(1, "Vui lòng chọn giới tính cho thú cưng.")
+      .max(50),
     isSterilized: z
       .union([z.boolean(), z.string()])
       .optional()

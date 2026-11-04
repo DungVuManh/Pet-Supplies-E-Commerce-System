@@ -152,7 +152,10 @@ export function PetFormView({
 
   const [errors, setErrors] = useState<{
     name?: string;
+    species?: string;
+    breed?: string;
     weight?: string;
+    gender?: string;
   }>({});
   const [apiError, setApiError] = useState("");
 
@@ -160,6 +163,12 @@ export function PetFormView({
     setSpecies(newSpecies);
     setSelectedBreed("");
     setCustomBreed("");
+    if (errors.species) {
+      setErrors((prev) => ({ ...prev, species: undefined }));
+    }
+    if (errors.breed) {
+      setErrors((prev) => ({ ...prev, breed: undefined }));
+    }
     if (!petToEdit && !isNewAvatar) {
       setAvatarUrl(
         newSpecies === "cat" ? "/images/pets/luna.jpg" : "/images/pets/milo.jpg",
@@ -176,7 +185,13 @@ export function PetFormView({
   }
 
   function validate(): boolean {
-    const nextErrors: { name?: string; weight?: string } = {};
+    const nextErrors: {
+      name?: string;
+      species?: string;
+      breed?: string;
+      weight?: string;
+      gender?: string;
+    } = {};
 
     if (!name.trim()) {
       nextErrors.name = "Vui lòng nhập tên Boss.";
@@ -184,11 +199,37 @@ export function PetFormView({
       nextErrors.name = "Tên Boss tối đa 50 ký tự.";
     }
 
-    if (weight.trim()) {
+    if (!species.trim()) {
+      nextErrors.species = "Vui lòng chọn loại thú cưng.";
+    }
+
+    let finalBreed = "";
+    if (species === "other") {
+      finalBreed = customBreed.trim();
+    } else if (selectedBreed === "Khác (nhập tên giống)") {
+      finalBreed = customBreed.trim();
+    } else {
+      finalBreed = selectedBreed.trim();
+    }
+
+    if (!finalBreed) {
+      nextErrors.breed =
+        selectedBreed === "Khác (nhập tên giống)" || species === "other"
+          ? "Vui lòng nhập tên giống thú cưng."
+          : "Vui lòng chọn hoặc nhập giống thú cưng.";
+    }
+
+    if (!weight.trim()) {
+      nextErrors.weight = "Vui lòng nhập cân nặng của Boss.";
+    } else {
       const numWeight = Number(weight.trim().replace(",", "."));
       if (isNaN(numWeight) || numWeight <= 0) {
         nextErrors.weight = "Cân nặng phải là số dương hợp lệ.";
       }
+    }
+
+    if (!gender.trim()) {
+      nextErrors.gender = "Vui lòng chọn giới tính cho Boss.";
     }
 
     setErrors(nextErrors);
@@ -422,14 +463,19 @@ export function PetFormView({
                       htmlFor="pet-breed"
                       className="block text-xs font-semibold text-ink"
                     >
-                      Giống
+                      Giống <span className="text-danger">*</span>
                     </label>
                     <div className="relative mt-1.5">
                       <select
                         id="pet-breed"
                         disabled={isSaving}
                         value={selectedBreed}
-                        onChange={(e) => setSelectedBreed(e.target.value)}
+                        onChange={(e) => {
+                          setSelectedBreed(e.target.value);
+                          if (errors.breed) {
+                            setErrors((prev) => ({ ...prev, breed: undefined }));
+                          }
+                        }}
                         className="block w-full appearance-none min-h-11 rounded-xl border border-line bg-surface px-4 pr-10 text-sm text-ink focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
                       >
                         <option value="">Chọn giống...</option>
@@ -462,10 +508,20 @@ export function PetFormView({
                         type="text"
                         disabled={isSaving}
                         value={customBreed}
-                        onChange={(e) => setCustomBreed(e.target.value)}
+                        onChange={(e) => {
+                          setCustomBreed(e.target.value);
+                          if (errors.breed) {
+                            setErrors((prev) => ({ ...prev, breed: undefined }));
+                          }
+                        }}
                         placeholder="Nhập tên giống..."
                         className="mt-2 block w-full min-h-10 rounded-xl border border-line bg-surface px-4 text-xs text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
                       />
+                    )}
+                    {errors.breed && (
+                      <p className="mt-1 text-xs text-danger font-medium">
+                        {errors.breed}
+                      </p>
                     )}
                   </div>
 
@@ -502,7 +558,7 @@ export function PetFormView({
                       htmlFor="pet-weight"
                       className="block text-xs font-semibold text-ink"
                     >
-                      Cân nặng (kg)
+                      Cân nặng (kg) <span className="text-danger">*</span>
                     </label>
                     <input
                       id="pet-weight"
@@ -530,14 +586,19 @@ export function PetFormView({
                       htmlFor="pet-gender"
                       className="block text-xs font-semibold text-ink"
                     >
-                      Giới tính
+                      Giới tính <span className="text-danger">*</span>
                     </label>
                     <div className="relative mt-1.5">
                       <select
                         id="pet-gender"
                         disabled={isSaving}
                         value={gender}
-                        onChange={(e) => setGender(e.target.value)}
+                        onChange={(e) => {
+                          setGender(e.target.value);
+                          if (errors.gender) {
+                            setErrors((prev) => ({ ...prev, gender: undefined }));
+                          }
+                        }}
                         className="block w-full appearance-none min-h-11 rounded-xl border border-line bg-surface px-4 pr-10 text-sm text-ink focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
                       >
                         <option value="">Chọn giới tính...</option>
@@ -561,6 +622,11 @@ export function PetFormView({
                         </svg>
                       </div>
                     </div>
+                    {errors.gender && (
+                      <p className="mt-1 text-xs text-danger font-medium">
+                        {errors.gender}
+                      </p>
+                    )}
                   </div>
                 </div>
 
