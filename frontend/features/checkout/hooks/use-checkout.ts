@@ -95,27 +95,45 @@ async function getCheckoutCartData(): Promise<CheckoutCartData> {
     return { items: [], summary: null };
   }
 
-  return {
-    items: (cart.items || []).map((item) => ({
-      id: item.id || item.sku,
-      productId: item.productId,
-      name: item.name,
-      description:
-        item.description || (item.label ? `Phân loại: ${item.label}` : ""),
-      sku: item.sku,
-      price: item.price,
-      quantity: item.quantity,
-      image: item.image || "/images/products/royal-canin-mini-adult.png",
-    })),
-    summary: cart.summary
-      ? {
-        totalQuantity: cart.summary.totalQuantity,
-        subtotal: cart.summary.subtotal,
-        // shippingFee: cart.summary.shippingFee || 30000,
-        // discount: cart.summary.discount || 0,
-        total: cart.summary.subtotal,
+  let cartItems = cart.items || [];
+
+  // Chỉ lấy những sản phẩm đã được tick chọn từ giỏ hàng
+  if (typeof window !== "undefined") {
+    try {
+      const stored = sessionStorage.getItem("petly_selected_cart_items");
+      const selectedIds: string[] = stored ? JSON.parse(stored) : [];
+      if (Array.isArray(selectedIds)) {
+        cartItems = cartItems.filter((item) =>
+          selectedIds.includes(item.id) || selectedIds.includes(item.sku)
+        );
       }
-      : null,
+    } catch {
+      // ignore
+    }
+  }
+
+  const items = cartItems.map((item) => ({
+    id: item.id || item.sku,
+    productId: item.productId,
+    name: item.name,
+    description:
+      item.description || (item.label ? `Phân loại: ${item.label}` : ""),
+    sku: item.sku,
+    price: item.price,
+    quantity: item.quantity,
+    image: item.image || "/images/products/royal-canin-mini-adult.png",
+  }));
+
+  const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  return {
+    items,
+    summary: {
+      totalQuantity,
+      subtotal,
+      total: subtotal,
+    },
   };
 }
 
@@ -376,15 +394,12 @@ export function useCheckout() {
         clearBuyNowSession();
       } else {
         forgetVoucherCode();
-        // Xóa giỏ hàng thông thường
-        if (isGuest) {
-          clearGuestCart();
-        } else {
-          await Promise.allSettled(
-            items.map((item) => removeCartItemApi(item.sku))
-          );
-        }
+        // Xóa những sản phẩm đã đặt khỏi giỏ hàng (giữ lại các sản phẩm chưa tick mua)
+        await Promise.allSettled(
+          items.map((item) => removeCartItemApi(item.sku))
+        );
         if (typeof window !== "undefined") {
+          sessionStorage.removeItem("petly_selected_cart_items");
           window.dispatchEvent(new Event("cart-updated"));
         }
       }
