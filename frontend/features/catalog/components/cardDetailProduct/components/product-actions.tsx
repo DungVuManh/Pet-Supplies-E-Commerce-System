@@ -119,11 +119,10 @@ export function ProductActions({
         <button
           type="button"
           aria-label={isLove ? "Bỏ lưu sản phẩm" : "Lưu sản phẩm"}
-          className={`flex items-center gap-2 rounded-lg border px-4 font-medium transition-colors cursor-pointer ${
-            isLove
+          className={`flex items-center gap-2 rounded-lg border px-4 font-medium transition-colors cursor-pointer ${isLove
               ? "border-rose-200 bg-rose-50/60 text-rose-600 hover:bg-rose-100/60"
               : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-          }`}
+            }`}
           onClick={onToggleLove}
         >
           <Heart
@@ -139,11 +138,10 @@ export function ProductActions({
       {/* Thông báo kết quả thêm giỏ hàng (thành công hoặc lỗi tồn kho) */}
       {cartFeedback && (
         <div
-          className={`rounded-xl p-3.5 text-xs font-semibold flex items-center gap-2.5 transition-all animate-in fade-in slide-in-from-top-1 ${
-            cartFeedback.type === "success"
+          className={`rounded-xl p-3.5 text-xs font-semibold flex items-center gap-2.5 transition-all animate-in fade-in slide-in-from-top-1 ${cartFeedback.type === "success"
               ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
               : "bg-rose-50 text-rose-800 border border-rose-200"
-          }`}
+            }`}
         >
           <span>{cartFeedback.type === "success" ? "✅" : "⚠️"}</span>
           <span>{cartFeedback.message}</span>

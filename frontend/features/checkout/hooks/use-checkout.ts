@@ -400,8 +400,11 @@ export function useCheckout() {
         );
         if (typeof window !== "undefined") {
           sessionStorage.removeItem("petly_selected_cart_items");
-          window.dispatchEvent(new Event("cart-updated"));
         }
+      }
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("cart-updated"));
       }
 
       setItems([]);

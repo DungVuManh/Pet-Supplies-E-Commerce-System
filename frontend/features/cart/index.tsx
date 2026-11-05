@@ -72,8 +72,8 @@ export function CartView() {
                 <h1 className="text-3xl font-bold text-ink tracking-tight">
                     Giỏ hàng của bạn
                 </h1>
-                <p className="mt-2 text-sm text-muted">
-                    {summary.distinctCount} sản phẩm khác nhau · {summary.totalQuantity} món đồ
+                <p className="mt-2 text-sm text-muted font-bold">
+                    Có {summary.totalQuantity} món đồ
                     dành cho các bé.
                 </p>
             </div>

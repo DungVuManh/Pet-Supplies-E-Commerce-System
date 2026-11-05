@@ -190,19 +190,36 @@ export async function createOrder(request, response, next) {
       throw orderError;
     });
 
-    // Cập nhật tăng số lượt bán (soldCount) cho các sản phẩm trong đơn hàng
+    // Trừ số lượng tồn kho (stock) và tăng số lượt bán (soldCount) cho các sản phẩm trong đơn hàng
     if (mongoose.connection?.readyState === 1 || Boolean(Product.updateOne?.mock)) {
       try {
         for (const item of orderItems) {
           if (item.productId && typeof Product?.updateOne === "function") {
-            await Product.updateOne(
-              { _id: item.productId },
-              { $inc: { soldCount: item.qty } }
+            const updateResult = await Product.updateOne(
+              {
+                _id: item.productId,
+                "variants.sku": item.variantSku,
+                "variants.stock": { $gte: item.qty },
+              },
+              {
+                $inc: {
+                  "variants.$.stock": -item.qty,
+                  soldCount: item.qty,
+                },
+              }
             );
+
+            // Fallback nếu không khớp SKU biến thể
+            if (updateResult.modifiedCount === 0) {
+              await Product.updateOne(
+                { _id: item.productId },
+                { $inc: { soldCount: item.qty } }
+              );
+            }
           }
         }
       } catch {
-        // bỏ qua lỗi nếu không cập nhật được soldCount
+        // bỏ qua lỗi nếu không cập nhật được tồn kho
       }
     }
 
@@ -281,18 +298,23 @@ export async function cancelOrder(request, response, next) {
 
     await releaseVoucher(order._id);
 
-    // Giảm soldCount tương ứng khi đơn hàng bị hủy
+    // Hoàn lại tồn kho và giảm soldCount tương ứng khi đơn hàng bị hủy
     try {
       for (const item of order.items || []) {
         if (item.productId && typeof Product?.updateOne === "function") {
           await Product.updateOne(
-            { _id: item.productId, soldCount: { $gte: item.qty } },
-            { $inc: { soldCount: -item.qty } }
+            { _id: item.productId, "variants.sku": item.variantSku },
+            {
+              $inc: {
+                "variants.$.stock": item.qty,
+                soldCount: -item.qty,
+              },
+            }
           );
         }
       }
     } catch (cancelErr) {
-      console.error("Lỗi cập nhật soldCount khi hủy đơn hàng:", cancelErr);
+      console.error("Lỗi cập nhật tồn kho khi hủy đơn hàng:", cancelErr);
     }
 
     response.status(200).json({
