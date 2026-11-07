@@ -1,5 +1,5 @@
 import type { BadgeTone } from "@/components/workspace/workspace-ui";
-import type { CategoryStatus, MasterDataStatus, OrderStatus, PaymentMethod, ProductStatus, UserActivityStatus, UserRole, UserStatus, VoucherState } from "./types";
+import type { CategoryPetType, CategoryStatus, MasterDataStatus, OrderStatus, PaymentMethod, ProductStatus, UserActivityStatus, UserRole, UserStatus, VoucherState } from "./types";
 
 /** Every status label shown in the Admin workspace and its badge tone; screens never pick tones themselves. */
 export const adminStatusTones = {
@@ -52,6 +52,8 @@ export const productStatusLabels: Record<ProductStatus, AdminStatus> = { active:
 
 /** The values `Product.petType` stores; the Customer catalog filters on them. */
 export const petTypeLabels: Record<string, string> = { dog: "Chó", cat: "Mèo", all: "Tất cả" };
+
+export const categoryPetTypeLabels: Record<CategoryPetType, string> = { both: "Chó và mèo", dog: "Chó", cat: "Mèo" };
 
 /** "Đang đóng gói" is still part of the "Chờ xử lý" tab. */
 export const orderStatusLabels: Record<OrderStatus, AdminStatus> = {

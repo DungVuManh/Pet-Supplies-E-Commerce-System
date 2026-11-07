@@ -79,20 +79,25 @@ Browser → Firebase sendPasswordResetEmail          Failure → account stays; 
 
 **Backend**
 
-- [ ] Add `categoryCreateSchema` to `validators/admin/category.validator.js`, sharing field rules with `categoryPatchSchema`. Add `petType` (`dog`, `cat`, `both`) to both schemas.
-- [ ] Add `createCategory` to `controllers/admin/category.controller.js`: next `DM###` code, retry on a code clash up to 3 times, default display order, reuse of the duplicate check, and audit `category.create`.
-- [ ] Add `POST /categories` to the router, and `petType` to `categoryDetail` and the edit PATCH.
-- [ ] Test in `backend/tests/admin-category-create.test.js`: success, field errors, duplicate name and slug, code clash retry, audit entry, and 401/403/CSRF.
+- [x] Add `categoryCreateSchema` to `validators/admin/category.validator.js`, sharing field rules with `categoryPatchSchema`. Add `petType` (`dog`, `cat`, `both`) to both schemas.
+- [x] Add `createCategory` to `controllers/admin/category.controller.js`: next `DM###` code, retry on a code clash up to 3 times, default display order, reuse of the duplicate check, and audit `category.create`.
+- [x] Add `POST /categories` to the router, and `petType` to `categoryDetail` and the edit PATCH.
+- [x] Test in `backend/tests/admin-category-create.test.js`: success, field errors, duplicate name and slug, code clash retry, audit entry, and 401/403/CSRF.
+  - Note: `admin-category-edit.test.js` also changed, because the detail now returns `petType`.
 
 **Frontend**
 
-- [ ] Add `createCategory` to `services/categories.ts`, and a `slugFromName` helper with `đ → d` and accent removal to `validation.ts`, with a test in `frontend/tests/admin-create-forms.test.mjs`.
-- [ ] Split the shared fields out of `category-edit-form.tsx` into `category-form-fields.tsx`, adding the pet type select. The edit page must look the same apart from that select.
-- [ ] Add `hooks/use-category-create.ts`, `components/category-create-form.tsx`, and `app/(workspace)/admin/categories/new/page.tsx`. The slug follows the name until the Admin edits it. Success returns to the list with the new row visible.
-- [ ] Replace the `DemoNotice` in `admin/categories/page.tsx` with a link, and change the subtitle to "Tổ chức sản phẩm theo danh mục."
-- [ ] Make the temporary database copy, and run `npm --prefix backend run seed:admin` against it, so Dữ liệu nền has rows (moved from Part 0). Do not run `npm run seed`, which fails since the merge.
-- [ ] Browser check: create a category, see it in the list and audit log, try a duplicate, and pick it in the product edit form.
-- [ ] 🛑 **Commit checkpoint:** `admin - create categories`
+- [x] Add `createCategory` to `services/categories.ts`, and a `slugFromName` helper with `đ → d` and accent removal to `validation.ts`, with a test in `frontend/tests/admin-create-forms.test.mjs`.
+- [x] Split the shared fields out of `category-edit-form.tsx` into `category-form-fields.tsx`, adding the pet type select. The edit page must look the same apart from that select.
+- [x] Add `hooks/use-category-create.ts`, `components/category-create-form.tsx`, and `app/(workspace)/admin/categories/new/page.tsx`. The slug follows the name until the Admin edits it. Success returns to the list with the new row visible.
+- [x] Replace the `DemoNotice` in `admin/categories/page.tsx` with a link, and change the subtitle to "Tổ chức sản phẩm theo danh mục."
+- [x] Make the temporary database copy, and run `npm --prefix backend run seed:admin` against it, so Dữ liệu nền has rows (moved from Part 0). Do not run `npm run seed`, which fails since the merge.
+  - Note (2026-11-08): copied to `pet_supplies_admin_check`, which now has 43 master data rows. The local `pet_supplies` was not changed.
+- [x] Browser check: create a category, see it in the list and audit log, try a duplicate, and pick it in the product edit form.
+  - Result: 17 checks passed at 1440 and 320 px. They covered client and server errors, the slug following the name, the confirmation and new row, the pet type on the edit page, and the new category in the product form. The audit log page is the teammate's, so the `category.create` entries were checked in the database instead. Console: only the login page's expected 401 from `/auth/me`.
+  - Found: the local database was never migrated, so its 5 older categories have no code or display order. A new category gets order 1 and sorts before them. `npm --prefix backend run migrate:admin` fixes this.
+- [x] 🛑 **Commit checkpoint:** `admin - create categories`
+  - Checks: backend 861 passed, with the same 24 baseline failures. Frontend tests 113/113. Lint and build show the same baseline problems, and none are in changed files.
 
 ## Part 2: Dữ liệu nền modal
 

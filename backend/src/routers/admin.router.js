@@ -3,7 +3,7 @@ import { readCookies, requireAuth, requireRole } from "../common/middlewares/aut
 import { protectMutation } from "../controllers/auth.controller.js";
 import { dashboard } from "../controllers/dashboard.controller.js";
 import { listInventory } from "../controllers/inventory.controller.js";
-import { deleteCategory, getCategory, listCategories, updateCategory } from "../controllers/admin/category.controller.js";
+import { createCategory, deleteCategory, getCategory, listCategories, updateCategory } from "../controllers/admin/category.controller.js";
 import { listMasterData, listMasterDataOptions } from "../controllers/admin/master-data.controller.js";
 import { deleteProduct, getProduct, hideProduct, listProducts, showProduct, updateProduct } from "../controllers/admin/product.controller.js";
 import { listOrders } from "../controllers/admin/order.controller.js";
@@ -26,6 +26,7 @@ router.get("/dashboard", dashboard);
 router.get("/overview", getOverview);
 router.get("/inventory", listInventory);
 router.get("/categories", listCategories);
+router.post("/categories", protectMutation, createCategory);
 router.get("/categories/:code", getCategory);
 router.patch("/categories/:code", protectMutation, updateCategory);
 router.delete("/categories/:code", protectMutation, deleteCategory);

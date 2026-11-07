@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { ApiError } from "@/lib/api-client";
 import { deleteCategory, listCategories } from "../services/categories";
@@ -52,5 +53,9 @@ export function useCategoryTree() {
     }
   }
 
-  return { ...list, deleting, pending, deleteError, notice, askDelete, cancelDelete, confirmDelete };
+  // The new category page returns here with `?created=<code>`. A later action's notice replaces it.
+  const created = useSearchParams().get("created");
+  const shownNotice = notice || (created ? `Đã tạo danh mục ${created}.` : "");
+
+  return { ...list, deleting, pending, deleteError, notice: shownNotice, askDelete, cancelDelete, confirmDelete };
 }

@@ -4,7 +4,7 @@ import { sendFieldErrors, zodFieldErrors } from "../../common/field-errors.js";
 import { accentInsensitiveRegex, searchTokens } from "../../common/search.js";
 import { Category } from "../../models/category.model.js";
 import { Product } from "../../models/product.model.js";
-import { categoryListQuerySchema, categoryPatchSchema } from "../../validators/admin/category.validator.js";
+import { categoryCreateSchema, categoryListQuerySchema, categoryPatchSchema } from "../../validators/admin/category.validator.js";
 import { parseQuery } from "../../validators/admin/list-query.js";
 
 /** Addresses a category in URLs; a category the migration has not reached falls back to its id. */
@@ -91,6 +91,7 @@ async function categoryDetail(category) {
   code: category.code ?? null,
   name: category.name,
   slug: category.slug,
+  petType: category.petType ?? "both",
   description: category.description ?? "",
   displayOrder: category.displayOrder ?? null,
   status: category.isActive === false ? "hidden" : "active",
@@ -105,9 +106,10 @@ export async function getCategory(request, response) {
  response.json({ success: true, data: await categoryDetail(category) });
 }
 
-const CATEGORY_LABELS = { name: "tên", slug: "đường dẫn", description: "mô tả", displayOrder: "thứ tự", isActive: "trạng thái" };
+const CATEGORY_LABELS = { name: "tên", slug: "đường dẫn", petType: "loài", description: "mô tả", displayOrder: "thứ tự", isActive: "trạng thái" };
 
 const currentCategoryValue = (category, field) => {
+ if (field === "petType") return category.petType ?? "both";
  if (field === "description") return category.description ?? "";
  if (field === "isActive") return category.isActive !== false;
  return category[field];
@@ -117,13 +119,26 @@ function duplicateFields(fields) {
  return { status: 409, code: "DUPLICATE_VALUE", message: "Dữ liệu đã tồn tại.", fields };
 }
 
-/** Name and slug are unique. The unique indexes catch a race the check misses. */
-async function findDuplicate(category, after) {
+const DUPLICATE_MESSAGES = { name: "Tên danh mục đã tồn tại.", slug: "Đường dẫn đã tồn tại." };
+
+/**
+ * Name and slug are unique. The unique indexes catch a race the check misses.
+ * `excludeId` is the category being edited, or null for a new one.
+ */
+async function findDuplicate(excludeId, values) {
  const fields = {};
- for (const [field, message] of [["name", "Tên danh mục đã tồn tại."], ["slug", "Đường dẫn đã tồn tại."]]) {
-  if (after[field] && await Category.exists({ [field]: after[field], _id: { $ne: category._id } })) fields[field] = message;
+ for (const [field, message] of Object.entries(DUPLICATE_MESSAGES)) {
+  const filter = { [field]: values[field], ...(excludeId && { _id: { $ne: excludeId } }) };
+  if (values[field] && await Category.exists(filter)) fields[field] = message;
  }
  return Object.keys(fields).length ? duplicateFields(fields) : null;
+}
+
+/** A duplicate-key error on name or slug as a field error; null for anything else, such as the code. */
+function duplicateKeyFields(error) {
+ const field = ["slug", "name"].find((key) => error.keyPattern?.[key]);
+ if (!field) return null;
+ return duplicateFields({ [field]: DUPLICATE_MESSAGES[field] });
 }
 
 /** Edits a category; the write is conditional on the `updatedAt` the form was loaded with. */
@@ -150,7 +165,7 @@ export async function updateCategory(request, response) {
   return response.json({ success: true, data: { ...(await categoryDetail(category)), changed: false } });
  }
 
- const duplicate = await findDuplicate(category, after);
+ const duplicate = await findDuplicate(category._id, after);
  if (duplicate) return sendFieldErrors(response, duplicate.fields, duplicate);
 
  let result;
@@ -158,8 +173,7 @@ export async function updateCategory(request, response) {
   result = await Category.updateOne({ _id: category._id, updatedAt: category.updatedAt }, { $set: after }, { runValidators: true });
  } catch (error) {
   if (error?.code !== 11000) throw error;
-  const field = error.keyPattern?.slug ? "slug" : "name";
-  const { fields, ...options } = duplicateFields({ [field]: field === "slug" ? "Đường dẫn đã tồn tại." : "Tên danh mục đã tồn tại." });
+  const { fields, ...options } = duplicateKeyFields(error) ?? duplicateFields({ name: DUPLICATE_MESSAGES.name });
   return sendFieldErrors(response, fields, options);
  }
  if (result.matchedCount === 0) throw stale();
@@ -173,6 +187,55 @@ export async function updateCategory(request, response) {
  });
  const updated = await Category.findById(category._id).lean();
  response.json({ success: true, data: { ...(await categoryDetail(updated)), changed: true } });
+}
+
+const CODE_ATTEMPTS = 3;
+
+/** The next `DM###` after the highest code in use, the same rule as the migration. */
+async function nextCategoryCode() {
+ const categories = await Category.find({ code: { $exists: true } }).select("code").lean();
+ const highest = Math.max(0, ...categories.map((category) => Number(category.code?.slice(2)) || 0));
+ return `DM${String(highest + 1).padStart(3, "0")}`;
+}
+
+/** After the last category, so a new one does not jump ahead of existing ones. */
+async function nextDisplayOrder() {
+ const [last] = await Category.find({ displayOrder: { $exists: true } }).sort({ displayOrder: -1 }).limit(1).select("displayOrder").lean();
+ return (last?.displayOrder ?? 0) + 1;
+}
+
+/**
+ * Creates a category with the next free code. Two Admins creating at once can
+ * pick the same code; the unique index refuses the second, which then retries.
+ */
+export async function createCategory(request, response) {
+ const parsed = categoryCreateSchema.safeParse(request.body);
+ if (!parsed.success) return sendFieldErrors(response, zodFieldErrors(parsed.error.issues));
+ const input = parsed.data;
+
+ const duplicate = await findDuplicate(null, input);
+ if (duplicate) return sendFieldErrors(response, duplicate.fields, duplicate);
+
+ const values = { ...input, displayOrder: input.displayOrder ?? await nextDisplayOrder() };
+ let created = null;
+ for (let attempt = 1; !created; attempt += 1) {
+  try {
+   created = (await Category.create({ ...values, code: await nextCategoryCode() })).toObject();
+  } catch (error) {
+   if (error?.code !== 11000) throw error;
+   const clash = duplicateKeyFields(error);
+   if (clash) return sendFieldErrors(response, clash.fields, clash);
+   if (attempt >= CODE_ATTEMPTS) throw new AppError("Chưa thể cấp mã danh mục. Vui lòng thử lại.", 409, "CODE_CONFLICT");
+  }
+ }
+
+ await recordAudit(request, {
+  action: "category.create",
+  target: { collectionName: "categories", id: created._id },
+  after: { code: created.code, ...values },
+  summary: `Tạo danh mục ${created.code} ${created.name}`,
+ });
+ response.status(201).json({ success: true, data: await categoryDetail(created) });
 }
 
 /** Refused while products are linked. */

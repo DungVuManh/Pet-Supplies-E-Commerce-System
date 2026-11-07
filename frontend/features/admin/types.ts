@@ -86,6 +86,8 @@ export type AdminUserDetail = AdminUserRow & {
 export type UserLockResult = Pick<AdminUserDetail, "id" | "status" | "lockedAt" | "lockReason">;
 
 export type CategoryStatus = "active" | "hidden";
+/** `Category.petType`: the storefront shows a category for that pet and for `both`. */
+export type CategoryPetType = "dog" | "cat" | "both";
 export type CategoryFilter = { q: string; status: CategoryStatus | "all" };
 
 /**
@@ -109,6 +111,7 @@ export type AdminCategoryDetail = {
   code: string | null;
   name: string;
   slug: string;
+  petType: CategoryPetType;
   description: string;
   displayOrder: number | null;
   status: CategoryStatus;

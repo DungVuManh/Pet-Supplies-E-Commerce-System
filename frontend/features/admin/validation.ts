@@ -31,14 +31,22 @@ export function validateProduct(values: ProductFormValues): FormErrors<ProductFo
   return errors;
 }
 
-export type CategoryFormValues = { name: string; slug: string; order: string; description?: string };
+/** A slug suggested from a Vietnamese name: "Đồ chơi cho mèo" gives "do-choi-cho-meo". */
+export function slugFromName(name: string) {
+  return name.toLowerCase().replace(/đ/g, "d").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 120).replace(/-+$/, "");
+}
+
+/** `orderOptional`: a new category may leave the order empty, and the server puts it last. */
+export type CategoryFormValues = { name: string; slug: string; order: string; description?: string; orderOptional?: boolean };
 
 export function validateCategory(values: CategoryFormValues): FormErrors<CategoryFormValues> {
   const errors: FormErrors<CategoryFormValues> = {};
   const name = values.name.trim();
   if (name.length < 2 || name.length > 100) errors.name = "Nhập tên danh mục, từ 2 đến 100 ký tự.";
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(values.slug.trim())) errors.slug = "Đường dẫn gồm chữ thường không dấu, số và dấu gạch ngang, ví dụ thuc-an-cho-cho.";
-  if (!/^[1-9]\d*$/.test(values.order.trim())) errors.order = "Thứ tự hiển thị là số nguyên từ 1.";
+  const order = values.order.trim();
+  if (!(values.orderOptional && !order) && !/^[1-9]\d*$/.test(order)) errors.order = "Thứ tự hiển thị là số nguyên từ 1.";
   if ((values.description?.trim().length ?? 0) > 500) errors.description = "Mô tả tối đa 500 ký tự.";
   return errors;
 }
