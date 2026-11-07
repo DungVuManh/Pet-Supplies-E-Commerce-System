@@ -62,11 +62,18 @@ Browser → Firebase sendPasswordResetEmail          Failure → account stays; 
 
 ## Part 0: Prepare
 
-- [ ] ⚠️ Merge `origin/dev` into `adminQT`. It brings the flat categories (no `parentId`), the SePay payment work, and the removal of `Order.shippingFee` from the total check. `git merge-tree` reported no file conflicts on 2026-11-05. Check that vouchers still work, because `common/order-pricing.js` and `createOrder` were written before that total check changed.
-- [ ] Run the four test, lint, and build commands, and record every existing failure here as the baseline.
-- [ ] Mark `docs/specs/admin-backend.md` (Non-goals) and `docs/plan/admin-backend.md` (Decisions 7 and 10) as replaced by this plan for these actions.
-- [ ] Run `npm --prefix backend run seed:admin` against the temporary database, so Dữ liệu nền has rows. The local database shows 0 on every tab because it has not been seeded.
-- [ ] 🛑 **Commit checkpoint:** baseline recorded, merge committed. `chore - merge dev and record admin actions baseline`
+- [x] ⚠️ Merge `origin/dev` into `adminQT`. It brings the flat categories (no `parentId`), the SePay payment work, and the removal of `Order.shippingFee` from the total check. `git merge-tree` reported no file conflicts on 2026-11-05. Check that vouchers still work, because `common/order-pricing.js` and `createOrder` were written before that total check changed.
+  - Note (2026-11-07): merged as `31b0450` with no conflicts, including Dũng's `a91bec0` and `ab12271` from 2026-11-05. Voucher ordering still works. 7 voucher tests fail only because they still expect a `shippingFee` field, which `dev` removed. The other 3 failures are a real change: Dũng's `684c266` made `GET /vouchers/public` list every active voucher, including private, expired, and used-up ones, and also return `_id`. This waits for the user and Dũng to decide. It is not fixed in this plan.
+- [x] Run the four test, lint, and build commands, and record every existing failure here as the baseline.
+  - **Baseline after the merge (2026-11-07):**
+  - Backend: `app.test.js` (1 test, 429 rate limit; the limiter in `app.js` was already commented out before the merge). `seed.test.js` fails 13 tests even when run alone, because `scripts/seed.js` adds a 30.000 ₫ shipping fee to the order total, which the new total check in `order.model.js` from `dev` refuses. So `npm run seed` is broken on `dev`, but `seed:admin` is a separate script. `voucher-order.test.js` fails 10 tests, explained in the note above.
+  - Frontend tests: 110 of 110 pass.
+  - Lint: 40 errors and 34 warnings, none in the six screens of this plan. The Admin files with errors are the teammate's (`finance-report-view`, `sales-report-view`, `inventory-report-view`, `inventory-view`, `notifications-view`, `store-settings-view`).
+  - Build: fails type checking with 3 errors, none in Admin code: `app/(workspace)/staff/orders/[id]/page.tsx:247`, `features/cart/services/cart.service.ts:100` (`shippingFee`), and `features/checkout/index.tsx:174` (`sepay`). Next stops at the first failing file, so check later builds for type errors in our own files with `npx tsc --noEmit`.
+- [x] Mark `docs/specs/admin-backend.md` (Non-goals) and `docs/plan/admin-backend.md` (Decisions 7 and 10) as replaced by this plan for these actions.
+- [x] Run `npm --prefix backend run seed:admin` against the temporary database, so Dữ liệu nền has rows. The local database shows 0 on every tab because it has not been seeded.
+  - Note: moved to the start of Part 1's browser check, because the temporary database is created there. It is ticked here only to show that it was moved.
+- [x] 🛑 **Commit checkpoint:** baseline recorded, merge committed. `chore - merge dev and record admin actions baseline`
 
 ## Part 1: Thêm danh mục
 
@@ -83,6 +90,7 @@ Browser → Firebase sendPasswordResetEmail          Failure → account stays; 
 - [ ] Split the shared fields out of `category-edit-form.tsx` into `category-form-fields.tsx`, adding the pet type select. The edit page must look the same apart from that select.
 - [ ] Add `hooks/use-category-create.ts`, `components/category-create-form.tsx`, and `app/(workspace)/admin/categories/new/page.tsx`. The slug follows the name until the Admin edits it. Success returns to the list with the new row visible.
 - [ ] Replace the `DemoNotice` in `admin/categories/page.tsx` with a link, and change the subtitle to "Tổ chức sản phẩm theo danh mục."
+- [ ] Make the temporary database copy, and run `npm --prefix backend run seed:admin` against it, so Dữ liệu nền has rows (moved from Part 0). Do not run `npm run seed`, which fails since the merge.
 - [ ] Browser check: create a category, see it in the list and audit log, try a duplicate, and pick it in the product edit form.
 - [ ] 🛑 **Commit checkpoint:** `admin - create categories`
 

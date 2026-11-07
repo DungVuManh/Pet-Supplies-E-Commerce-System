@@ -134,9 +134,9 @@ Every Admin screen in `docs/specs/admin-workspace-ui.md` is built, but it reads 
 
 ## Non-goals
 
-- Creating users, creating products, image uploads, CSV/Excel exports, email sending (including "Gửi đặt lại mật khẩu"), and the policy preview. Their buttons keep the demo notice.
+- Creating users, creating products, image uploads, CSV/Excel exports, email sending (including "Gửi đặt lại mật khẩu"), and the policy preview. Their buttons keep the demo notice. Replaced on 2026-11-07 by `docs/specs/admin-create-export-actions.md` for the first six Admin screens, except image upload.
 - Dynamic, database-driven permissions.
-- Create and edit forms for master data (no design).
+- Create and edit forms for master data (no design). Replaced on 2026-11-07 by `docs/specs/admin-create-export-actions.md` for the first six Admin screens, except image upload.
 - Changing checkout, catalog, or Staff behavior beyond the coordinated hooks listed in the plan.
 - Promotions (UC39) are specified separately, in `docs/specs/voucher-system.md`.
 - Real refunds and payment-provider reconciliation.
