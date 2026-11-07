@@ -25,12 +25,7 @@ export function CartSummary({ summary }: CartSummaryProps) {
           </span>
         </div>
 
-        <div className="flex justify-between text-muted">
-          <span>Phí vận chuyển:</span>
-          <span className="font-semibold text-ink">
-            {formatVND(summary.shippingFee)}
-          </span>
-        </div>
+
 
         <div className="flex justify-between text-muted">
           <span>Giảm giá:</span>

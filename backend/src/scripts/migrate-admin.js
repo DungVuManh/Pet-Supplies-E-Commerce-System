@@ -22,9 +22,9 @@ export const migrations = [
  },
  {
   name: "categories.tree",
-  // Existing categories stay roots. Codes follow creation order and display order follows the name.
+  // Codes follow creation order and display order follows the name.
   async run() {
-   const categories = await Category.find().select("name code parentId displayOrder createdAt").sort({ createdAt: 1, _id: 1 }).lean();
+   const categories = await Category.find().select("name code displayOrder createdAt").sort({ createdAt: 1, _id: 1 }).lean();
    const updates = new Map();
    const change = (category, field, value) => updates.set(category._id, { ...updates.get(category._id), [field]: value });
 
@@ -33,12 +33,9 @@ export const migrations = [
     if (!category.code) change(category, "code", `DM${String(++lastCode).padStart(3, "0")}`);
    }
 
-   const siblings = Map.groupBy(categories, (category) => String(category.parentId ?? "root"));
-   for (const group of siblings.values()) {
-    let lastOrder = Math.max(0, ...group.map((category) => category.displayOrder ?? 0));
-    const unordered = group.filter((category) => !category.displayOrder).sort((a, b) => a.name.localeCompare(b.name, "vi"));
-    for (const category of unordered) change(category, "displayOrder", ++lastOrder);
-   }
+   let lastOrder = Math.max(0, ...categories.map((category) => category.displayOrder ?? 0));
+   const unordered = categories.filter((category) => !category.displayOrder).sort((a, b) => a.name.localeCompare(b.name, "vi"));
+   for (const category of unordered) change(category, "displayOrder", ++lastOrder);
 
    for (const [_id, $set] of updates) await Category.updateOne({ _id }, { $set }, { timestamps: false });
    return updates.size;

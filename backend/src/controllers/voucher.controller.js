@@ -25,29 +25,31 @@ export async function quoteVoucher(request, response) {
 /** Vouchers the storefront may advertise. Never includes usage figures. */
 export async function listPublicVouchers(request, response) {
  const parsed = publicVouchersQuerySchema.safeParse(request.query);
- if (!parsed.success) throw new AppError("Yêu cầu không hợp lệ.", 400, "VALIDATION_ERROR");
+ const limit = parsed.success ? parsed.data.limit : 100;
 
- const now = new Date();
+ // Chỉ lấy tất cả mã giảm giá có isActive: true trong MongoDB
  const vouchers = await Promotion.find({
-  isPublic: true,
-  isActive: { $ne: false },
-  startAt: { $lte: now },
-  endAt: { $gt: now },
-  $expr: { $or: [{ $eq: [{ $ifNull: ["$usageLimit", null] }, null] }, { $lt: [{ $ifNull: ["$usedCount", 0] }, "$usageLimit"] }] },
- }).sort({ createdAt: -1, _id: -1 }).limit(parsed.data.limit).select("code name type value maxDiscount minOrderAmount endAt").lean();
+  isActive: true,
+ }).sort({ createdAt: -1, _id: -1 }).limit(limit).lean();
 
  response.set("Cache-Control", "no-store");
  response.json({
   success: true,
   data: {
    items: vouchers.map((voucher) => ({
+    _id: voucher._id,
     code: voucher.code,
     name: voucher.name ?? "",
     type: voucher.type,
     value: voucher.value,
     maxDiscount: voucher.maxDiscount ?? null,
     minOrderAmount: voucher.minOrderAmount ?? 0,
-    endDate: vietnamLastDate(voucher.endAt),
+    startAt: voucher.startAt,
+    endAt: voucher.endAt,
+    isActive: voucher.isActive,
+    endDate: voucher.endAt ? vietnamLastDate(voucher.endAt) : "Không giới hạn",
+    createdAt: voucher.createdAt,
+    updatedAt: voucher.updatedAt,
    })),
   },
  });

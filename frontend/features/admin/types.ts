@@ -98,11 +98,8 @@ export type AdminCategoryRow = {
   ref: string;
   code: string | null;
   name: string;
-  parentCode: string | null;
-  isChild: boolean;
   status: CategoryStatus;
   productCount: number;
-  context: boolean;
 };
 
 /** `GET /api/v1/admin/categories/:code`. `blocker` is the reason it cannot be deleted, or null. */
@@ -112,16 +109,12 @@ export type AdminCategoryDetail = {
   code: string | null;
   name: string;
   slug: string;
-  parentCode: string | null;
-  parentName: string | null;
   description: string;
   displayOrder: number | null;
   status: CategoryStatus;
   updatedAt: string;
   productCount: number;
-  hasChildren: boolean;
   blocker: string | null;
-  parentOptions: { ref: string; name: string }[];
 };
 
 export type MasterDataKind = "petType" | "breed" | "brand" | "unit" | "shippingMethod";

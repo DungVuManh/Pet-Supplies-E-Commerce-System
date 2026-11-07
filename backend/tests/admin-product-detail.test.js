@@ -10,7 +10,7 @@ import { StockMovement } from "../src/models/stock-movement.model.js";
 import { createAdminTestApp } from "./helpers/admin-app.js";
 
 const id = (suffix) => new mongoose.Types.ObjectId(`d0000000000000000000${suffix}`);
-const food = { _id: id("0002"), code: "DM002", name: "Thức ăn", parentId: null };
+const food = { _id: id("0002"), code: "DM002", name: "Thức ăn" };
 
 let product;
 let audits;

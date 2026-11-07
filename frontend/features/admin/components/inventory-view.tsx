@@ -484,7 +484,7 @@ export function InventoryView() {
         {showInitialLoading
           ? "Đang đối chiếu dữ liệu nhập – xuất – tồn. Vui lòng không đóng trang."
           : isCurrentError
-            ? "Không có thay đổi số lượng tồn kho. Liên hệ support@petly.vn nếu lỗi tiếp tục xảy ra."
+            ? "Không có thay đổi số lượng tồn kho. Liên hệ support@petjoy.vn nếu lỗi tiếp tục xảy ra."
             : isEmpty
               ? "Không có kết quả cho bộ lọc hiện tại. Dữ liệu tồn kho vẫn được giữ nguyên."
               : "Kho TP. Hồ Chí Minh · Cập nhật theo thời gian thực mỗi khi có đơn xuất hoặc phiếu nhập."}

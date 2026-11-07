@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { TextField } from "@/components/ui/text-field";
-import { Badge, DetailList, InfoCallout, card, control, dangerButton, primaryLink, secondaryButton } from "@/components/workspace/workspace-ui";
+import { DetailList, InfoCallout, card, control, dangerButton, primaryLink, secondaryButton } from "@/components/workspace/workspace-ui";
 import { formatDate } from "@/lib/format";
 import { useCategoryEdit } from "../hooks/use-category-edit";
 import { categoryStatusLabels } from "../status";
@@ -14,8 +14,7 @@ import { AdminPageHeader } from "./admin-ui";
 const textarea = `${control} h-auto min-h-28 py-3 leading-relaxed`;
 
 export function CategoryEditForm({ category: initialCategory }: { category: AdminCategoryDetail }) {
-  const { category, values, errors, notice, formError, pending, parentName, set, submit, deleteOpen, deletePending, deleteError, askDelete, cancelDelete, confirmDelete } = useCategoryEdit(initialCategory);
-  const describedParent = category.hasChildren ? "category-parent-hint" : errors.parent ? "category-parent-error" : undefined;
+  const { category, values, errors, notice, formError, pending, set, submit, deleteOpen, deletePending, deleteError, askDelete, cancelDelete, confirmDelete } = useCategoryEdit(initialCategory);
 
   return <>
     <AdminPageHeader breadcrumbs={["Danh mục", "Chỉnh sửa danh mục"]} title="Chỉnh sửa danh mục" subtitle={`${category.code ?? "Chưa có mã"} · ${category.name}`}
@@ -32,16 +31,6 @@ export function CategoryEditForm({ category: initialCategory }: { category: Admi
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <TextField id="category-name" label="Tên danh mục" required maxLength={100} value={values.name} error={errors.name} onChange={(e) => set("name", e.target.value)} />
           <TextField id="category-code" label="Mã danh mục" value={category.code ?? "Chưa có mã"} disabled readOnly />
-          <div className="flex min-w-0 flex-col gap-2 sm:col-span-2">
-            <label htmlFor="category-parent" className="text-sm font-medium">Danh mục cha</label>
-            <select id="category-parent" className={control} value={values.parent} disabled={category.hasChildren} aria-invalid={Boolean(errors.parent)} aria-describedby={describedParent}
-              onChange={(e) => set("parent", e.target.value)}>
-              <option value="">Không có (danh mục gốc)</option>
-              {category.parentOptions.map((option) => <option key={option.ref} value={option.ref}>{option.name}</option>)}
-            </select>
-            {category.hasChildren && <p id="category-parent-hint" className="text-xs text-muted">Danh mục đang có danh mục con nên phải là danh mục gốc.</p>}
-            {errors.parent && <p id="category-parent-error" role="alert" className="text-xs text-danger">{errors.parent}</p>}
-          </div>
           <div className="sm:col-span-2"><TextField id="category-slug" label="Đường dẫn" maxLength={120} value={values.slug} error={errors.slug} hint="Đổi đường dẫn sẽ đổi liên kết công khai của danh mục." onChange={(e) => set("slug", e.target.value)} /></div>
           <div className="flex min-w-0 flex-col gap-2 sm:col-span-2">
             <label htmlFor="category-description" className="text-sm font-medium">Mô tả</label>
@@ -62,15 +51,13 @@ export function CategoryEditForm({ category: initialCategory }: { category: Admi
       <aside className="min-w-0 space-y-6" aria-label="Thông tin liên kết và xóa danh mục">
         <section aria-labelledby="category-links" className={`${card} p-6`}>
           <h2 id="category-links" className="text-xl font-semibold">Thông tin liên kết</h2>
-          <div className="mt-4"><Badge>{values.parent ? "Danh mục con" : "Danh mục gốc"}</Badge></div>
-          <div className="mt-2"><DetailList items={[
-            { label: "Danh mục cha", value: values.parent ? parentName : "—" },
+          <div className="mt-4"><DetailList items={[
             { label: "Sản phẩm liên kết", value: `${category.productCount.toLocaleString("vi-VN")} sản phẩm` },
             { label: "Cập nhật gần nhất", value: formatDate(category.updatedAt) },
           ]} /></div>
         </section>
         {category.blocker && <InfoCallout icon={<Star className="h-5 w-5" strokeWidth={1.7} />} title="Không thể xóa danh mục">
-          Danh mục {category.blocker}. {category.hasChildren ? "Xóa hoặc chuyển các danh mục con trước." : "Chuyển sản phẩm sang danh mục khác trước khi xóa."}
+          Danh mục {category.blocker}. Chuyển sản phẩm sang danh mục khác trước khi xóa.
         </InfoCallout>}
         <button type="button" className={`${dangerButton} min-h-12 w-full`} onClick={askDelete}>Xóa danh mục</button>
       </aside>
@@ -78,6 +65,6 @@ export function CategoryEditForm({ category: initialCategory }: { category: Admi
 
     <AdminConfirmDialog open={deleteOpen} danger pending={deletePending} error={deleteError} onConfirm={confirmDelete} onClose={cancelDelete}
       title="Xóa danh mục?" confirmLabel="Xóa danh mục"
-      description={`“${category.name}” sẽ bị xóa vĩnh viễn. Danh mục còn sản phẩm hoặc danh mục con sẽ không thể xóa.`} />
+      description={`“${category.name}” sẽ bị xóa vĩnh viễn. Danh mục còn sản phẩm sẽ không thể xóa.`} />
   </>;
 }

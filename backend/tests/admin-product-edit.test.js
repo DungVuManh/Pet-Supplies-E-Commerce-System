@@ -10,9 +10,9 @@ import { StockMovement } from "../src/models/stock-movement.model.js";
 import { createAdminTestApp } from "./helpers/admin-app.js";
 
 const id = (suffix) => new mongoose.Types.ObjectId(`d0000000000000000000${suffix}`);
-const dog = { _id: id("0001"), code: "DM001", name: "Chó", parentId: null };
-const cat = { _id: id("0002"), code: "DM002", name: "Mèo", parentId: null };
-const noCode = { _id: id("0003"), name: "Chưa có mã", parentId: null };
+const dog = { _id: id("0001"), code: "DM001", name: "Chó" };
+const cat = { _id: id("0002"), code: "DM002", name: "Mèo" };
+const noCode = { _id: id("0003"), name: "Chưa có mã" };
 
 let product;
 let admin;
