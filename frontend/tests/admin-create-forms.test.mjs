@@ -77,3 +77,12 @@ test("the product export has the agreed columns and no cost", async () => {
   assert.deepEqual(section.rows[0], ["RC-1", "SP00A001", "Royal", "RC", "Mèo; Thức ăn", "Túi", 450000, 8, 5, "Sắp hết hàng"]);
   assert.match(fileDate(new Date("2026-11-07T18:30:00Z")), /^2026-11-08$/);
 });
+
+test("a new Staff account needs a name, a valid email, and a Vietnamese phone", async () => {
+  const { validateUserCreate } = await import("../features/admin/validation.ts");
+  const valid = { fullName: "Trần Thu Hà", email: "thuha@petjoy.vn", phone: "0912 345 678", adminNote: "" };
+  assert.deepEqual(validateUserCreate(valid), {});
+  assert.deepEqual(Object.keys(validateUserCreate({ ...valid, email: "thuha@" })), ["email"]);
+  assert.deepEqual(Object.keys(validateUserCreate({ ...valid, email: " " })), ["email"]);
+  assert.deepEqual(Object.keys(validateUserCreate({ ...valid, fullName: "A", phone: "123" })).sort(), ["fullName", "phone"]);
+});

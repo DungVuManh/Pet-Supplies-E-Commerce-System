@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { TextField } from "@/components/ui/text-field";
-import { DemoNotice } from "@/components/workspace/demo-notice";
 import { Badge, InfoCallout, card, control, primaryLink, secondaryButton } from "@/components/workspace/workspace-ui";
+import { usePasswordReset } from "../hooks/use-password-reset";
 import { useUserEdit } from "../hooks/use-user-edit";
 import { userRoleLabels, userStatusLabels } from "../status";
 import type { AdminUserDetail, UserRole, UserStatus } from "../types";
 import { AdminPageHeader } from "./admin-ui";
+import { PasswordResetButton } from "./password-reset-button";
 
 const textarea = `${control} h-auto min-h-28 py-3 leading-relaxed`;
 
@@ -25,6 +26,7 @@ function addressText({ defaultAddress: address }: AdminUserDetail) {
 export function UserEditForm({ user: initialUser }: { user: AdminUserDetail }) {
   const { user, values, errors, notice, formError, pending, locking, set, submit } = useUserEdit(initialUser);
   const permissions = rolePermissions[values.role];
+  const reset = usePasswordReset(user.email);
 
   return <>
     <AdminPageHeader breadcrumbs={["Người dùng", "Chỉnh sửa người dùng"]} title="Chỉnh sửa người dùng"
@@ -83,7 +85,7 @@ export function UserEditForm({ user: initialUser }: { user: AdminUserDetail }) {
         <InfoCallout icon={<Star className="h-5 w-5" strokeWidth={1.7} />} title="Bảo mật tài khoản">
           Khi tạo mới, hệ thống gửi liên kết đặt mật khẩu qua email. Không chia sẻ mật khẩu qua ghi chú.
         </InfoCallout>
-        <DemoNotice label="Gửi đặt lại mật khẩu" className="[&>button]:w-full" message={`Liên kết đặt lại mật khẩu cho ${user.email} chưa được gửi: chức năng chưa kết nối backend.`} />
+        <PasswordResetButton reset={reset} disabledReason={user.status === "locked" ? "Mở khóa tài khoản trước khi gửi email đặt lại mật khẩu." : undefined} />
       </aside>
     </div>
   </>;

@@ -9,7 +9,7 @@ import { createProduct, deleteProduct, exportProducts, getProduct, hideProduct, 
 import { listOrders } from "../controllers/admin/order.controller.js";
 import { getOverview } from "../controllers/admin/overview.controller.js";
 import { listPermissions } from "../controllers/admin/permission.controller.js";
-import { getUser, listUsers, lockUser, unlockUser, updateUser } from "../controllers/admin/user.controller.js";
+import { createUser, getUser, listUsers, lockUser, unlockUser, updateUser } from "../controllers/admin/user.controller.js";
 import { createVoucher, deleteVoucher, disableVoucher, enableVoucher, getVoucher, listVouchers, updateVoucher } from "../controllers/admin/voucher.controller.js";
 import {
   getStoreSettings,
@@ -48,6 +48,7 @@ router.delete("/products/:sku", protectMutation, deleteProduct);
 router.post("/products/:sku/hide", protectMutation, hideProduct);
 router.post("/products/:sku/show", protectMutation, showProduct);
 router.get("/users", listUsers);
+router.post("/users", protectMutation, createUser);
 router.get("/users/:id", getUser);
 router.patch("/users/:id", protectMutation, updateUser);
 router.post("/users/:id/lock", protectMutation, lockUser);

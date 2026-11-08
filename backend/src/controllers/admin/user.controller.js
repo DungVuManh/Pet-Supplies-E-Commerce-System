@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { recordAudit } from "../../common/audit.js";
 import { AppError } from "../../common/errors/app-error.js";
 import { sendFieldErrors, zodFieldErrors } from "../../common/field-errors.js";
@@ -9,7 +10,7 @@ import { AuditLog } from "../../models/audit-log.model.js";
 import { Order } from "../../models/order.model.js";
 import { User } from "../../models/user.model.js";
 import { parseQuery } from "../../validators/admin/list-query.js";
-import { parseLockBody, userListQuerySchema, userPatchSchema } from "../../validators/admin/user.validator.js";
+import { parseLockBody, userCreateSchema, userListQuerySchema, userPatchSchema } from "../../validators/admin/user.validator.js";
 import { visibleOrders } from "../staff-analytics.helpers.js";
 
 const MANAGED_ROLES = ["customer", "staff"];
@@ -315,4 +316,66 @@ export async function updateUser(request, response) {
  });
  const updated = await User.findById(user._id).lean();
  response.json({ success: true, data: { ...(await userDetail(request, updated)), changed: true } });
+}
+
+const emailTaken = () => ({ email: "Email này đã có tài khoản." });
+
+/**
+ * A password nobody knows: the new Staff member sets their own from the reset
+ * email. The suffix meets a password policy that requires each character class.
+ */
+const unusablePassword = () => `${randomBytes(24).toString("base64url")}aA1!`;
+
+/** Removes a Firebase account whose profile could not be saved, so a retry can start clean. */
+async function removeFirebaseAccount(auth, uid) {
+ try {
+  await auth.deleteUser(uid);
+ } catch (error) {
+  // No personal data in the log: the uid is enough to find the account by hand.
+  console.error("[admin] Could not remove a Firebase account after a failed profile insert", { uid, code: typeof error?.code === "string" ? error.code : "unknown" });
+ }
+}
+
+/**
+ * Creates a Staff account: the Firebase account first, then the MongoDB profile.
+ * If the profile insert fails, the Firebase account is removed again. An email
+ * already in use is refused and that account is never changed.
+ */
+export async function createUser(request, response) {
+ const parsed = userCreateSchema.safeParse(request.body);
+ if (!parsed.success) return sendFieldErrors(response, zodFieldErrors(parsed.error.issues));
+ const { email, fullName, phone, adminNote } = parsed.data;
+ const conflict = (fields) => sendFieldErrors(response, fields, { status: 409, code: "DUPLICATE_VALUE", message: Object.values(fields)[0] });
+
+ if (await User.exists({ email })) return conflict(emailTaken());
+
+ const auth = getFirebaseAuth(request.app.locals.config);
+ let firebaseUser;
+ try {
+  firebaseUser = await auth.createUser({ email, password: unusablePassword(), displayName: fullName, emailVerified: false });
+ } catch (error) {
+  if (error?.code === "auth/email-already-exists") return conflict(emailTaken());
+  if (error?.code === "auth/invalid-email") return sendFieldErrors(response, { email: "Email không hợp lệ." });
+  console.warn("[admin] Could not create a Firebase account", { code: typeof error?.code === "string" ? error.code : "unknown" });
+  throw new AppError("Chưa thể tạo tài khoản đăng nhập. Vui lòng thử lại.", 503, "AUTH_UNAVAILABLE");
+ }
+
+ let user;
+ try {
+  user = (await User.create({
+   firebaseUid: firebaseUser.uid, email, fullName, phone, role: "staff", termsAcceptedAt: new Date(),
+   ...(adminNote && { adminNote }),
+  })).toObject();
+ } catch {
+  await removeFirebaseAccount(auth, firebaseUser.uid);
+  throw new AppError("Chưa thể lưu tài khoản. Vui lòng thử lại.", 503, "DATABASE_UNAVAILABLE");
+ }
+
+ await recordAudit(request, {
+  action: "user.create",
+  target: { collectionName: "users", id: user._id },
+  after: { email, fullName, phone, role: "staff", ...(adminNote && { adminNote }) },
+  summary: `Tạo tài khoản nhân viên ${accountCode(user)}: ${fullName}`,
+ });
+ response.status(201).json({ success: true, data: await userDetail(request, user) });
 }

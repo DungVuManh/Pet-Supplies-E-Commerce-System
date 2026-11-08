@@ -165,16 +165,23 @@ Browser → Firebase sendPasswordResetEmail          Failure → account stays; 
 
 ## Part 4: Người dùng
 
-- [ ] ⚠️ Move `features/auth/firebase-client.ts` to `lib/`, and add `lib/password-reset.ts` holding `sendPasswordReset`. Update the imports in `features/auth`, which keeps exporting it. This keeps `features/admin` from importing another feature. `frontend/tests/auth-api.test.mjs` must pass unchanged.
-- [ ] Add `userCreateSchema` to `validators/admin/user.validator.js`, sharing the name, phone, and note rules with `userPatchSchema`, plus a lowercase email. Unknown keys such as `role` are refused.
-- [ ] Add `createUser` to `controllers/admin/user.controller.js`, following the flow in the design summary. Map `auth/email-already-exists` to 409 on `email`, `auth/invalid-email` to a field error, and anything else to 503 `AUTH_UNAVAILABLE`. Set `termsAcceptedAt` to the creation time, because the schema requires it. Audit `user.create`, with no password.
-- [ ] Add `POST /users` to the router.
-- [ ] Test in `backend/tests/admin-user-create.test.js`, with Firebase mocked: success with role `staff` whatever the body says, the password absent from the response and audit entry, a duplicate email, the Firebase account deleted when the insert fails, Firebase unavailable, and 401/403/CSRF.
-- [ ] Add `createUser` to `services/users.ts`, `validateUserCreate`, `hooks/use-user-create.ts`, `components/user-create-form.tsx`, and `app/(workspace)/admin/users/new/page.tsx`. After creation, show a panel with the account code, whether the email was sent, "Gửi lại", and a link to the account.
-- [ ] Replace the "Thêm người dùng" `DemoNotice` in `admin/users/page.tsx` with a link.
-- [ ] Wire "Gửi đặt lại mật khẩu" in `user-edit-form.tsx` to `lib/password-reset.ts`, with pending and error states, disabled while the account is locked.
-- [ ] Browser check, which creates a real Firebase account: use an address at `example.com`, confirm the screen states, a duplicate email, and the 320 px layout, then delete the account from Firebase and the temporary database. Ask the user for a real inbox to confirm the password email and Staff sign-in (acceptance criterion 4).
-- [ ] 🛑 **Commit checkpoint:** `admin - create staff accounts and send password reset`
+- [x] ⚠️ Move `features/auth/firebase-client.ts` to `lib/`, and add `lib/password-reset.ts` holding `sendPasswordReset`. Update the imports in `features/auth`, which keeps exporting it. This keeps `features/admin` from importing another feature. `frontend/tests/auth-api.test.mjs` must pass unchanged.
+  - Approved by the user on 2026-11-08. `features/auth/auth-actions.ts` re-exports `sendPasswordReset`, so `forgot-password-form.tsx` is unchanged.
+- [x] Add `userCreateSchema` to `validators/admin/user.validator.js`, sharing the name, phone, and note rules with `userPatchSchema`, plus a lowercase email. Unknown keys such as `role` are refused.
+- [x] Add `createUser` to `controllers/admin/user.controller.js`, following the flow in the design summary. Map `auth/email-already-exists` to 409 on `email`, `auth/invalid-email` to a field error, and anything else to 503 `AUTH_UNAVAILABLE`. Set `termsAcceptedAt` to the creation time, because the schema requires it. Audit `user.create`, with no password.
+  - Note: an email that an existing MongoDB profile already uses is refused too, before Firebase is called.
+- [x] Add `POST /users` to the router.
+- [x] Test in `backend/tests/admin-user-create.test.js`, with Firebase mocked: success with role `staff` whatever the body says, the password absent from the response and audit entry, a duplicate email, the Firebase account deleted when the insert fails, Firebase unavailable, and 401/403/CSRF.
+- [x] Add `createUser` to `services/users.ts`, `validateUserCreate`, `hooks/use-user-create.ts`, `components/user-create-form.tsx`, and `app/(workspace)/admin/users/new/page.tsx`. After creation, show a panel with the account code, whether the email was sent, "Gửi lại", and a link to the account.
+  - Note: the email is sent straight after the account is created; the panel shows the result and "Gửi lại". The button keeps the design's label "Thêm người dùng", and the page says only Staff accounts are made there.
+- [x] Replace the "Thêm người dùng" `DemoNotice` in `admin/users/page.tsx` with a link.
+- [x] Wire "Gửi đặt lại mật khẩu" in `user-edit-form.tsx` to `lib/password-reset.ts`, with pending and error states, disabled while the account is locked.
+  - Note: a shared `PasswordResetButton` and `use-password-reset.ts` serve both pages.
+- [x] Browser check, which creates a real Firebase account: use an address at `example.com`, confirm the screen states, a duplicate email, and the 320 px layout, then delete the account from Firebase and the temporary database. Ask the user for a real inbox to confirm the password email and Staff sign-in (acceptance criterion 4).
+  - Result (2026-11-08): 12 checks passed with `admin-check-14510@example.com`. They covered client errors, the role fixed to Staff, an email already in use refused with the values kept, the created panel with its NV code and "Đã gửi liên kết…", the Staff detail page, the reset button on the edit page, and 320 px. The account was then removed from Firebase and the temporary database.
+  - Still open: acceptance criterion 4 (a new Staff member sets a password from a real email, signs in, and reaches `/staff/dashboard`). It needs a real inbox from the user.
+- [x] 🛑 **Commit checkpoint:** `admin - create staff accounts and send password reset`
+  - Checks: backend 986 passed, with the same 24 baseline failures. Frontend tests 118/118. Lint and build show only the baseline problems.
 
 ## Part 5: Đơn hàng
 

@@ -138,3 +138,12 @@ export function validateProductCreate(values: { name: string; categoryCodes: str
   });
   return { errors, variants, valid: Object.keys(errors).length === 0 && variants.every((found) => Object.keys(found).length === 0) };
 }
+
+export type UserCreateValues = { fullName: string; email: string; phone: string; adminNote: string };
+
+/** The edit form's rules, plus an email, which only a new account has. */
+export function validateUserCreate(values: UserCreateValues): FormErrors<UserCreateValues> {
+  const errors: FormErrors<UserCreateValues> = validateUser(values);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim()) || values.email.trim().length > 254) errors.email = "Nhập email hợp lệ, ví dụ ten@petjoy.vn.";
+  return errors;
+}
