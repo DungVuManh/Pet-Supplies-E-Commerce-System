@@ -1,34 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { type ReactNode } from "react";
 import { Upload } from "lucide-react";
 import { TextField } from "@/components/ui/text-field";
 import { DemoNotice } from "@/components/workspace/demo-notice";
-import { card, control, dangerButton, primaryLink, secondaryButton } from "@/components/workspace/workspace-ui";
+import { card, dangerButton, primaryLink, secondaryButton } from "@/components/workspace/workspace-ui";
 import { useProductEdit } from "../hooks/use-product-edit";
-import { petTypeLabels, productStatusLabels } from "../status";
+import { productStatusLabels } from "../status";
 import type { AdminProductDetail } from "../types";
 import { AdminConfirmDialog } from "./admin-confirm-dialog";
 import { AdminPageHeader } from "./admin-ui";
+import { ProductBasicSection, SelectField, UnitSelect } from "./product-form-fields";
 import { ProductImage } from "./product-image";
-
-const textarea = `${control} h-auto min-h-28 py-3 leading-relaxed`;
-const petTypes = ["dog", "cat", "all"];
-
-function SelectField({ id, label, required, error, value, onChange, children }: { id: string; label: string; required?: boolean; error?: string; value: string; onChange: (value: string) => void; children: ReactNode }) {
-  return <div className="flex min-w-0 flex-col gap-2">
-    <label htmlFor={id} className="text-sm font-medium">{label}{required && <span aria-hidden="true"> *</span>}</label>
-    <select id={id} required={required} aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-error` : undefined}
-      className={`${control} ${error ? "border-danger" : ""}`} value={value} onChange={(e) => onChange(e.target.value)}>{children}</select>
-    {error && <p id={`${id}-error`} role="alert" className="text-xs text-danger">{error}</p>}
-  </div>;
-}
-
-/** The current value stays selectable when it is not in the master data list, such as before `seed:admin` runs. */
-function optionNames(names: string[], current: string) {
-  return current && !names.includes(current) ? [current, ...names] : names;
-}
 
 export function ProductEditForm({ product: initialProduct }: { product: AdminProductDetail }) {
   const { product, values, errors, notice, formError, pending, options, categories, set, toggleCategory, formatOnBlur, submit, deleteOpen, deletePending, deleteError, askDelete, cancelDelete, confirmDelete } = useProductEdit(initialProduct);
@@ -45,41 +28,9 @@ export function ProductEditForm({ product: initialProduct }: { product: AdminPro
 
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <form id="product-edit-form" noValidate onSubmit={submit} aria-busy={pending} className="min-w-0 space-y-6" aria-label="Chỉnh sửa sản phẩm">
-        <section aria-labelledby="basic-info" className={`${card} p-6`}>
-          <h2 id="basic-info" className="text-xl font-semibold">Thông tin cơ bản</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2"><TextField id="product-name" label="Tên sản phẩm" required maxLength={200} value={values.name} error={errors.name} onChange={(e) => set("name", e.target.value)} /></div>
-            <TextField id="product-sku" label="SKU" required autoCapitalize="characters" maxLength={100} value={values.sku} error={errors.sku} hint={product.hasOrders ? "Sản phẩm đã có đơn hàng nên không thể đổi SKU." : undefined} disabled={product.hasOrders} onChange={(e) => set("sku", e.target.value.toUpperCase())} />
-            <SelectField id="product-brand" label="Thương hiệu" error={errors.brand} value={values.brand} onChange={(v) => set("brand", v)}>
-              <option value="">Chưa chọn</option>
-              {optionNames(options.brands.map((item) => item.name), product.brand).map((brand) => <option key={brand} value={brand}>{brand}</option>)}
-            </SelectField>
-            <fieldset id="product-categoryCodes" tabIndex={-1} className="min-w-0 sm:col-span-2" aria-describedby={errors.categoryCodes ? "product-categoryCodes-error" : undefined}>
-              <legend className="text-sm font-medium">Danh mục<span aria-hidden="true"> *</span></legend>
-              {/* Ticked boxes can be scrolled out of view, so the choice is also spelled out. */}
-              {categories.length > 0 && <p className="mt-2 text-sm text-muted">Đã chọn: {categories.filter((category) => values.categoryCodes.includes(category.ref)).map((category) => category.name).join(", ") || "chưa có"}</p>}
-              <div className={`mt-2 max-h-60 overflow-y-auto rounded-lg border p-3 ${errors.categoryCodes ? "border-danger" : "border-line"}`}>
-                {categories.length === 0 && <p className="text-sm text-muted">Đang tải danh mục…</p>}
-                <ul className="grid gap-1 sm:grid-cols-2">{categories.map((category) => <li key={category.id}>
-                  <label className="flex min-h-10 items-center gap-3 text-sm font-medium">
-                    <input type="checkbox" className="size-5 shrink-0 accent-brand" checked={values.categoryCodes.includes(category.ref)} onChange={() => toggleCategory(category.ref)} />
-                    <span className="min-w-0">{category.name}</span>
-                  </label>
-                </li>)}</ul>
-              </div>
-              {errors.categoryCodes && <p id="product-categoryCodes-error" role="alert" className="mt-2 text-xs text-danger">{errors.categoryCodes}</p>}
-            </fieldset>
-            <SelectField id="product-petType" label="Loài thú cưng" error={errors.petType} value={values.petType} onChange={(v) => set("petType", v)}>
-              {optionNames(petTypes, product.petType).map((pet) => <option key={pet} value={pet}>{petTypeLabels[pet] ?? pet}</option>)}
-            </SelectField>
-            <div className="flex min-w-0 flex-col gap-2 sm:col-span-2">
-              <label htmlFor="product-description" className="text-sm font-medium">Mô tả sản phẩm</label>
-              <textarea id="product-description" maxLength={20000} className={textarea} value={values.description} onChange={(e) => set("description", e.target.value)}
-                aria-invalid={Boolean(errors.description)} aria-describedby={errors.description ? "product-description-error" : undefined} />
-              {errors.description && <p id="product-description-error" role="alert" className="text-xs text-danger">{errors.description}</p>}
-            </div>
-          </div>
-        </section>
+        <ProductBasicSection values={values} errors={errors} set={set} toggleCategory={toggleCategory} options={options} categories={categories}
+          saved={{ brand: product.brand, petType: product.petType }}
+          skuField={<TextField id="product-sku" label="SKU" required autoCapitalize="characters" maxLength={100} value={values.sku} error={errors.sku} hint={product.hasOrders ? "Sản phẩm đã có đơn hàng nên không thể đổi SKU." : undefined} disabled={product.hasOrders} onChange={(e) => set("sku", e.target.value.toUpperCase())} />} />
         <section aria-labelledby="price-stock" className={`${card} p-6`}>
           <h2 id="price-stock" className="text-xl font-semibold">Giá bán &amp; tồn kho</h2>
           <p className="mt-2 text-sm text-muted">Áp dụng cho phân loại {product.label} (SKU {product.sku}). Các thông tin khác áp dụng cho mọi phân loại của sản phẩm.</p>
@@ -90,10 +41,7 @@ export function ProductEditForm({ product: initialProduct }: { product: AdminPro
               hint={product.reservedStock > 0 ? `Đang giữ cho đơn hàng: ${product.reservedStock.toLocaleString("vi-VN")}` : undefined} onChange={(e) => set("stock", e.target.value)} />
           </div>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <SelectField id="product-unit" label="Đơn vị" error={errors.unit} value={values.unit} onChange={(v) => set("unit", v)}>
-              <option value="">Chưa chọn</option>
-              {optionNames(options.units.map((item) => item.name), product.unit).map((option) => <option key={option} value={option}>{option}</option>)}
-            </SelectField>
+            <UnitSelect value={values.unit} error={errors.unit} units={options.units} saved={product.unit} onChange={(v) => set("unit", v)} />
             <TextField id="product-threshold" label="Ngưỡng cảnh báo" inputMode="numeric" value={values.threshold} error={errors.threshold}
               hint={`Để trống để dùng mặc định của hệ thống${product.ownThreshold === null ? ` (${product.threshold})` : ""}.`} onChange={(e) => set("threshold", e.target.value)} />
           </div>

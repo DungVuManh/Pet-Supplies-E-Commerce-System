@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { slugFromName, validateCategory, validateMasterData } from "../features/admin/validation.ts";
+import { slugFromName, validateCategory, validateMasterData, validateProductCreate } from "../features/admin/validation.ts";
 
 test("a slug is suggested from a Vietnamese name", () => {
   assert.equal(slugFromName("Đồ chơi cho mèo"), "do-choi-cho-meo");
@@ -37,4 +37,18 @@ test("master data needs a name, a pet type for a breed, and a fee for shipping",
   for (const fee of ["", "-1", "1,5", "abc"]) assert.deepEqual(keys({ kind: "shippingMethod", fee }), ["fee"], fee);
   for (const fee of ["0", "30.000", "45000"]) assert.deepEqual(keys({ kind: "shippingMethod", fee }), [], fee);
   assert.deepEqual(keys({ fee: "abc" }), [], "a fee is ignored outside shipping");
+});
+
+test("a new product checks each variant row and reports a repeated SKU on its later row", () => {
+  const row = (patch = {}) => ({ label: "Túi 2 kg", sku: "RC-2KG", price: "450.000", cost: "", stock: "10", threshold: "", ...patch });
+  const check = (variants, base = {}) => validateProductCreate({ name: "Royal Canin", categoryCodes: ["DM001"], variants, ...base });
+  assert.equal(check([row()]).valid, true);
+  assert.deepEqual(check([row()], { name: "ab", categoryCodes: [] }).errors, { name: "Nhập tên sản phẩm (ít nhất 3 ký tự).", categoryCodes: "Chọn ít nhất một danh mục." });
+  assert.deepEqual(check([]).errors, { variants: "Thêm ít nhất một phân loại." });
+  const result = check([row(), row({ sku: "RC-5KG" }), row()]);
+  assert.equal(result.valid, false);
+  assert.deepEqual(result.variants, [{}, {}, { sku: "SKU bị trùng với phân loại khác." }]);
+  assert.deepEqual(Object.keys(check([row({ label: " ", sku: "rc 2", price: "0", cost: "x", stock: "-1", threshold: "a" })]).variants[0]),
+    ["label", "sku", "price", "cost", "stock", "threshold"]);
+  assert.equal(check([row({ stock: "", cost: "300.000", threshold: "5" })]).valid, true);
 });

@@ -108,3 +108,33 @@ export function validateMasterData(values: MasterDataFormValues): FormErrors<Mas
   if (values.kind === "shippingMethod" && Number.isNaN(parseAmount(values.fee))) errors.fee = "Phí là số nguyên từ 0.";
   return errors;
 }
+
+/** One variant row of the new product form, as typed. */
+export type ProductVariantValues = { label: string; sku: string; price: string; cost: string; stock: string; threshold: string };
+export type ProductVariantErrors = Partial<Record<keyof ProductVariantValues, string>>;
+
+/**
+ * The same rules as the server's create schema. Variant errors are per row, and
+ * a SKU repeated in the form is reported on its later row, as the server does.
+ */
+export function validateProductCreate(values: { name: string; categoryCodes: string[]; variants: ProductVariantValues[] }) {
+  const errors: { name?: string; categoryCodes?: string; variants?: string } = {};
+  if (values.name.trim().length < 3) errors.name = "Nhập tên sản phẩm (ít nhất 3 ký tự).";
+  if (values.categoryCodes.length === 0) errors.categoryCodes = "Chọn ít nhất một danh mục.";
+  if (values.variants.length === 0) errors.variants = "Thêm ít nhất một phân loại.";
+  const seen = new Set<string>();
+  const variants = values.variants.map((variant) => {
+    const found: ProductVariantErrors = {};
+    const sku = variant.sku.trim();
+    if (!variant.label.trim()) found.label = "Nhập tên phân loại, ví dụ Túi 2 kg.";
+    if (!/^[A-Z0-9]+(-[A-Z0-9]+)*$/.test(sku)) found.sku = "SKU gồm chữ in hoa, số và dấu gạch ngang, ví dụ RC-MA-2KG.";
+    else if (seen.has(sku)) found.sku = "SKU bị trùng với phân loại khác.";
+    seen.add(sku);
+    if (!(parseAmount(variant.price) > 0)) found.price = "Giá bán phải là số lớn hơn 0.";
+    if (variant.cost.trim() && Number.isNaN(parseAmount(variant.cost))) found.cost = "Giá vốn phải là số không âm.";
+    if (variant.stock.trim() && Number.isNaN(parseAmount(variant.stock))) found.stock = "Tồn kho phải là số nguyên không âm.";
+    if (variant.threshold.trim() && Number.isNaN(parseAmount(variant.threshold))) found.threshold = "Ngưỡng cảnh báo phải là số nguyên không âm.";
+    return found;
+  });
+  return { errors, variants, valid: Object.keys(errors).length === 0 && variants.every((found) => Object.keys(found).length === 0) };
+}

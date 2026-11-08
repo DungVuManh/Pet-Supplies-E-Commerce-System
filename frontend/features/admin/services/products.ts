@@ -30,3 +30,17 @@ export function hideProduct(sku: string) {
 export function showProduct(sku: string) {
   return apiSend<ProductVisibilityResult>("POST", `/api/v1/admin/products/${encodeURIComponent(sku)}/show`);
 }
+
+/** One variant of a new product. Empty cost and threshold are left out, so the global threshold applies. */
+export type ProductVariantCreate = { label: string; sku: string; price: number; cost?: number; stock: number; lowStockThreshold?: number };
+
+/** A new product; it starts without images. */
+export type ProductCreate = {
+  name: string; brand: string; petType: string; categoryCodes: string[]; description: string; unit: string; isActive: boolean;
+  variants: ProductVariantCreate[];
+};
+
+/** Returns the first variant's detail, which is where the new page goes next. */
+export function createProduct(product: ProductCreate) {
+  return apiSend<AdminProductDetail>("POST", "/api/v1/admin/products", product);
+}

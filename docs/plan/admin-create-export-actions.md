@@ -132,17 +132,23 @@ Browser → Firebase sendPasswordResetEmail          Failure → account stays; 
 
 ### 3a. Thêm sản phẩm
 
-- [ ] Add `productCreateSchema` to `validators/admin/product.validator.js`, sharing field rules with `productPatchSchema`: 1–20 variants, and distinct SKUs reported on the repeated row, as `variants.<index>.sku`.
-- [ ] Add `createProduct` to `controllers/admin/product.controller.js`: resolve categories, check SKUs, map a duplicate-key error to the right SKU, record an `adjust` movement per variant with stock above 0, and audit `product.create`. A failed movement is logged and does not undo the product, as in `recordMovement`.
-- [ ] Add `POST /products` to the router.
-- [ ] Test in `backend/tests/admin-product-create.test.js`: one and several variants, duplicates in the request and in the database, an unknown category, the movements, the audit entry, and 401/403/CSRF.
-- [ ] Check with `npm --prefix backend test -- tests/admin-inventory-report.test.js`, and add a case showing starting stock keeps closing = opening + in − out.
-- [ ] Split the shared sections out of `product-edit-form.tsx` into `product-form-fields.tsx`, leaving its image section and "Tải ảnh lên" notice in place. The edit page must look the same.
-- [ ] Add `validateProductCreate`, `hooks/use-product-create.ts`, `components/product-create-form.tsx`, `components/product-variants-field.tsx` (add and remove rows, stacked at 320 px), and `app/(workspace)/admin/products/new/page.tsx`. The new page has no image section. Success opens the first variant's detail page.
-- [ ] ⚠️ Fix the storefront fallback for a product with no images. `controllers/catalog.controller.js` uses `/images/products/default.png` on lists, and that file does not exist, so the image breaks. On the product page it falls back to the Royal Canin photo, showing the wrong product. Add a neutral `default.png`, and use it on the product page too (lines 265 and 269).
-- [ ] Replace the "Thêm sản phẩm" `DemoNotice` in `admin/products/page.tsx` with a link.
-- [ ] Browser check: create a product with 2 variants, then see 2 list rows, its storefront page with no broken image, and its stock in the inventory report. Then repeat a SKU.
-- [ ] 🛑 **Commit checkpoint:** `admin - create products`
+- [x] Add `productCreateSchema` to `validators/admin/product.validator.js`, sharing field rules with `productPatchSchema`: 1–20 variants, and distinct SKUs reported on the repeated row, as `variants.<index>.sku`.
+- [x] Add `createProduct` to `controllers/admin/product.controller.js`: resolve categories, check SKUs, map a duplicate-key error to the right SKU, record an `adjust` movement per variant with stock above 0, and audit `product.create`. A failed movement is logged and does not undo the product, as in `recordMovement`.
+  - Note: `common/field-errors.js` now reports an unknown key inside a nested object under its full path, such as `variants.0.reservedStock`. Top-level keys are reported as before.
+- [x] Add `POST /products` to the router.
+- [x] Test in `backend/tests/admin-product-create.test.js`: one and several variants, duplicates in the request and in the database, an unknown category, the movements, the audit entry, and 401/403/CSRF.
+- [x] Check with `npm --prefix backend test -- tests/admin-inventory-report.test.js`, and add a case showing starting stock keeps closing = opening + in − out.
+  - Note: no new case was added. The teammate's report (`admin-inventory-report.controller.js`) does not read stock movements: "Nhập" is always 0, and opening stock is derived from current stock. So starting stock shows as opening and closing stock, and the formula holds by construction. The report's tests still pass. Recording the movement still matters for the Admin product history and for a future report that reads movements.
+- [x] Split the shared sections out of `product-edit-form.tsx` into `product-form-fields.tsx`, leaving its image section and "Tải ảnh lên" notice in place. The edit page must look the same.
+- [x] Add `validateProductCreate`, `hooks/use-product-create.ts`, `components/product-create-form.tsx`, `components/product-variants-field.tsx` (add and remove rows, stacked at 320 px), and `app/(workspace)/admin/products/new/page.tsx`. The new page has no image section. Success opens the first variant's detail page.
+  - Note: success opens the first variant's detail page. Unit sits above the variants on the new page, because stock is per variant.
+- [x] ⚠️ Fix the storefront fallback for a product with no images. `controllers/catalog.controller.js` uses `/images/products/default.png` on lists, and that file does not exist, so the image breaks. On the product page it falls back to the Royal Canin photo, showing the wrong product. Add a neutral `default.png`, and use it on the product page too (lines 265 and 269).
+  - Approved by the user on 2026-11-08. `frontend/public/images/products/default.png` is a neutral box icon with no text. Other teammate files still fall back to the Royal Canin photo or to files that do not exist: `cart.controller.js:81`, `order.controller.js:100` and `:914` (`/images/placeholder.svg`), `product.controller.js:102` and `:158`, `wishlist.controller.js:57`, and `review.controller.js` (`/images/placeholder.png`). They were left for their owners.
+- [x] Replace the "Thêm sản phẩm" `DemoNotice` in `admin/products/page.tsx` with a link.
+- [x] Browser check: create a product with 2 variants, then see 2 list rows, its storefront page with no broken image, and its stock in the inventory report. Then repeat a SKU.
+  - Result (2026-11-08): 16 checks passed. A 2-variant product appeared as 2 list rows, opened its first variant, showed the placeholder on the storefront page (not another product's photo), and its starting stock appeared as closing stock in the inventory report. A repeated SKU was reported on the right row with the values kept, the edit page was unchanged, and 320 px had no page-level scroll. The only console error is the duplicate test's 409.
+- [x] 🛑 **Commit checkpoint:** `admin - create products`
+  - Checks: backend 955 passed, with the same 24 baseline failures. Frontend tests 115/115. Lint and build show only the baseline problems.
 
 ### 3b. Xuất danh sách
 

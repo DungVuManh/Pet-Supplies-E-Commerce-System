@@ -1,11 +1,11 @@
 // Per-field failures for Admin forms. The shared error middleware sends only a
 // code and message, so these responses are written directly.
 
-/** First message per field. Unknown keys are reported under their own name. */
+/** First message per field, keyed by its dotted path. Unknown keys are reported under their own path. */
 export function zodFieldErrors(issues) {
  const fields = {};
  for (const issue of issues) {
-  const paths = issue.code === "unrecognized_keys" ? issue.keys : [issue.path.join(".")];
+  const paths = issue.code === "unrecognized_keys" ? issue.keys.map((key) => [...issue.path, key].join(".")) : [issue.path.join(".")];
   for (const path of paths) {
    fields[path] ??= issue.code === "unrecognized_keys" ? "Không được phép thay đổi trường này." : issue.message;
   }
