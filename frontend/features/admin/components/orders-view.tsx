@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import { CircleX, Download, Package } from "lucide-react";
-import { DemoNotice } from "@/components/workspace/demo-notice";
-import { Badge, ListState, Pagination, TabNav, card, control, listStatePill, primaryLink } from "@/components/workspace/workspace-ui";
+import { Badge, ListState, Pagination, TabNav, card, control, listStatePill, primaryLink, secondaryButton } from "@/components/workspace/workspace-ui";
 import { formatDateTime, formatPhone, formatVnd } from "@/lib/format";
+import { useExport } from "../hooks/use-export";
 import { useOrdersList } from "../hooks/use-orders-list";
+import { exportOrders } from "../services/orders";
+import { downloadExcelCsv } from "../utils/export-excel";
+import { fileDate, orderSection } from "../utils/export-rows";
 import { orderStatusLabels, paymentMethodLabels } from "../status";
 import type { OrderStatusFilter, OrderTab } from "../types";
 import { AdminPageHeader, StatusBadge, Stack, Td, Th } from "./admin-ui";
@@ -23,13 +26,20 @@ export function OrdersView() {
   const { filter, query, setQuery, selectTab, selectStatus, clearFilters, items, counts, state, error, reload, page, setPage, pagination, from, to } = useOrdersList();
   const [notice, setNotice] = useState("");
   const loading = state === "loading";
+  // Exports the applied filter: typing in the search box applies after a short pause.
+  const exporter = useExport(() => exportOrders(filter), (rows) => downloadExcelCsv({
+    filename: `Don_hang_${fileDate()}`, title: "DANH SÁCH ĐƠN HÀNG", sections: [orderSection(rows)],
+  }), "đơn hàng");
   const footnote = { empty: "Bộ lọc được giữ để bạn tiếp tục tìm kiếm.", loading: "Đang đồng bộ dữ liệu mới nhất.", error: "Liên hệ support@petjoy.vn nếu lỗi tiếp tục xảy ra." };
 
   return <>
     <AdminPageHeader breadcrumbs={["Đơn hàng", "Danh sách đơn hàng"]} title="Danh sách đơn hàng" subtitle="Theo dõi và xử lý các đơn hàng của cửa hàng."
-      actions={loading
-        ? <button type="button" disabled className={`${primaryLink} min-h-12 gap-2 opacity-40`}><Download className="h-4 w-4" aria-hidden="true" />Xuất đơn hàng</button>
-        : <DemoNotice label="Xuất đơn hàng" icon={<Download className="h-4 w-4" aria-hidden="true" />} message="Xuất danh sách đơn hàng chưa kết nối backend; bản demo không tạo tệp." />} />
+      actions={<div className="flex flex-col items-end gap-2">
+        <button type="button" className={`${secondaryButton} min-h-12 gap-2 disabled:opacity-40`} disabled={loading || exporter.exporting} onClick={() => void exporter.run()}>
+          <Download className="h-4 w-4" aria-hidden="true" />{exporter.exporting ? "Đang xuất…" : "Xuất đơn hàng"}
+        </button>
+        {exporter.notice && <span role="status" className="max-w-72 text-right text-xs text-brand">{exporter.notice}</span>}
+      </div>} />
 
     <TabNav label="Nhóm đơn hàng" items={tabs.map((tab) => ({ label: counts ? `${tab.label} (${counts[tab.value].toLocaleString("vi-VN")})` : tab.label, active: filter.tab === tab.value, onSelect: () => { setNotice(""); selectTab(tab.value); } }))} />
 

@@ -1,5 +1,5 @@
 import type { BadgeTone } from "@/components/workspace/workspace-ui";
-import type { CategoryPetType, CategoryStatus, MasterDataStatus, OrderStatus, PaymentMethod, ProductStatus, UserActivityStatus, UserRole, UserStatus, VoucherState } from "./types";
+import type { CategoryPetType, CategoryStatus, MasterDataStatus, OrderStatus, PaymentMethod, PaymentStatus, ProductStatus, UserActivityStatus, UserRole, UserStatus, VoucherState } from "./types";
 
 /** Every status label shown in the Admin workspace and its badge tone; screens never pick tones themselves. */
 export const adminStatusTones = {
@@ -61,6 +61,8 @@ export const orderStatusLabels: Record<OrderStatus, AdminStatus> = {
 };
 
 export const paymentMethodLabels: Record<PaymentMethod, string> = { COD: "COD", ONLINE: "VNPay/QR", CASH: "Tiền mặt" };
+
+export const paymentStatusLabels: Record<PaymentStatus, string> = { unpaid: "Chưa thanh toán", pending: "Chờ thanh toán", paid: "Đã thanh toán", failed: "Thanh toán lỗi" };
 
 export const userRoleLabels: Record<UserRole, string> = { customer: "Customer", staff: "Staff" };
 

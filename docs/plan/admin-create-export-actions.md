@@ -187,11 +187,15 @@ Browser → Firebase sendPasswordResetEmail          Failure → account stays; 
 
 ### 5a. Xuất đơn hàng
 
-- [ ] Move the filter building out of `listOrders` into a shared function, and add `exportOrders` plus `GET /orders/export`, with the columns in the spec, the 5,000 limit, `truncated`, and audit `order.export`, because the file holds customer data.
-- [ ] Add cases to `backend/tests/admin-exports.test.js`: tab, status, and search apply, orders still being created are left out, customer names resolve as in the list, and 401/403.
-- [ ] Add `exportOrders` to `services/orders.ts`, and replace the "Xuất đơn hàng" `DemoNotice` in `orders-view.tsx` using `use-export.ts`.
-- [ ] Browser check: export a filtered tab, and confirm the Vietnamese text and formula guard in the file.
-- [ ] 🛑 **Commit checkpoint:** `admin - export orders`
+- [x] Move the filter building out of `listOrders` into a shared function, and add `exportOrders` plus `GET /orders/export`, with the columns in the spec, the 5,000 limit, `truncated`, and audit `order.export`, because the file holds customer data.
+- [x] Add cases to `backend/tests/admin-exports.test.js`: tab, status, and search apply, orders still being created are left out, customer names resolve as in the list, and 401/403.
+  - Note: the cases went into `admin-orders.test.js`, which already has the order fixtures (guest, account, walk-in, still being created).
+- [x] Add `exportOrders` to `services/orders.ts`, and replace the "Xuất đơn hàng" `DemoNotice` in `orders-view.tsx` using `use-export.ts`.
+  - Note: added `paymentStatusLabels`. The payment method label still says "VNPay/QR" for `ONLINE`, although `dev` now pays online with SePay; that label is shared with other screens and was left alone.
+- [x] Browser check: export a filtered tab, and confirm the Vietnamese text and formula guard in the file.
+  - Result (2026-11-08): 8 checks passed. The file has all 11 orders, beyond the first page, with a BOM and Vietnamese headers. The cancelled tab exports only cancelled orders, a search with no match creates no file, and a customer name planted in the temporary database as `=HYPERLINK(...)` came out as `'=HYPERLINK(...)`.
+- [x] 🛑 **Commit checkpoint:** `admin - export orders`
+  - Checks: backend 996 passed, with the same 24 baseline failures. Frontend tests 119/119. Lint and build show only the baseline problems.
 
 ### 5b. Order detail page
 

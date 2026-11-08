@@ -225,6 +225,17 @@ export type AdminOrderRow = {
   status: OrderStatus;
 };
 
+export type PaymentStatus = "unpaid" | "pending" | "paid" | "failed";
+
+/** A row of `GET /api/v1/admin/orders/export`: the list row plus the amounts and payment state. */
+export type AdminOrderExportRow = AdminOrderRow & {
+  channel: "online" | "offline";
+  paymentStatus: PaymentStatus | null;
+  subtotal: number;
+  discount: number;
+  promotionCode: string | null;
+};
+
 export type PermissionRole = "customer" | "staff" | "admin";
 
 /** `GET /api/v1/admin/permissions`: fixed in code, so read-only here. */

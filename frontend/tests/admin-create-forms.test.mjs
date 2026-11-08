@@ -86,3 +86,12 @@ test("a new Staff account needs a name, a valid email, and a Vietnamese phone", 
   assert.deepEqual(Object.keys(validateUserCreate({ ...valid, email: " " })), ["email"]);
   assert.deepEqual(Object.keys(validateUserCreate({ ...valid, fullName: "A", phone: "123" })).sort(), ["fullName", "phone"]);
 });
+
+test("the order export has the agreed columns, in Vietnam time", async () => {
+  const { orderSection, exportDateTime } = await import("../features/admin/utils/export-rows.ts");
+  assert.equal(exportDateTime("2026-11-07T18:05:00Z"), "08/11/2026 01:05");
+  const section = orderSection([{ orderCode: "PA-1", createdAt: "2026-11-07T18:05:00Z", channel: "offline", customerName: "=Khách", phone: "0912 345 678",
+    paymentMethod: "CASH", paymentStatus: "paid", subtotal: 150000, discount: 50000, total: 100000, promotionCode: null, status: "completed" }]);
+  assert.equal(section.headers.length, 12);
+  assert.deepEqual(section.rows[0], ["PA-1", "08/11/2026 01:05", "Tại cửa hàng", "=Khách", "0912 345 678", "Tiền mặt", "Đã thanh toán", 150000, 50000, 100000, "", "Hoàn thành"]);
+});
