@@ -212,11 +212,21 @@ Browser → Firebase sendPasswordResetEmail          Failure → account stays; 
 
 ## Part 6: Finish
 
-- [ ] Confirm that `DemoNotice` no longer appears in the in-scope screens: `users`, `products`, `categories`, `master-data-view`, `orders-view`, and `user-edit-form`. The only one left in `product-edit-form` is "Tải ảnh lên".
-- [ ] Add the new routes to `CLAUDE.md`'s description of the Admin domain.
-- [ ] Walk through acceptance criteria 1–8 in the browser, and record the results here.
-- [ ] Check merges with `git merge-tree --write-tree --name-only HEAD origin/dev` and against `origin/adminQT`, and report any conflict.
-- [ ] 🛑 **Commit checkpoint:** `docs - admin create and export actions results`
+- [x] Confirm that `DemoNotice` no longer appears in the in-scope screens: `users`, `products`, `categories`, `master-data-view`, `orders-view`, and `user-edit-form`. The only one left in `product-edit-form` is "Tải ảnh lên".
+- [x] Add the new routes to `CLAUDE.md`'s description of the Admin domain.
+- [x] Walk through acceptance criteria 1–8 in the browser, and record the results here.
+  - **Results (2026-11-08):**
+  1. Met. The only demo notice left on these screens is "Tải ảnh lên", which is out of scope.
+  2. Met. New categories, master data, products, and users show without a reload. `category.create` was read from the database, and the other audit entries are covered by backend tests.
+  3. Met in the browser for a category name, a master data name, a variant SKU on its own row, and a Staff email.
+  4. **Open.** The password email went out (Firebase accepted it), but no real inbox was available to set a password and sign in.
+  5. Met. `admin-access.test.js` checks every Admin route, the new ones included, for 401, 403, and CSRF, and each new test file repeats this.
+  6. Met. A new product appears on the storefront with the placeholder image, and its starting stock shows in the inventory report.
+  7. Met by checking the file bytes: UTF-8 BOM, Vietnamese headers, all rows, and the formula guard. Not opened in Excel itself.
+  8. Met. Backend 1008 passed with the same 24 baseline failures, frontend tests 119/119, and lint and build show only the baseline problems.
+- [x] Check merges with `git merge-tree --write-tree --name-only HEAD origin/dev` and against `origin/adminQT`, and report any conflict.
+  - 2026-11-08: no new commits on `origin/dev` or `origin/adminQT` since Part 0, and no conflicts.
+- [x] 🛑 **Commit checkpoint:** `docs - admin create and export actions results`
 
 ## Compatibility
 
