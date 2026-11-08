@@ -52,3 +52,28 @@ test("a new product checks each variant row and reports a repeated SKU on its la
     ["label", "sku", "price", "cost", "stock", "threshold"]);
   assert.equal(check([row({ stock: "", cost: "300.000", threshold: "5" })]).valid, true);
 });
+
+test("CSV cells neutralize formulas but keep numbers, amounts, and phones readable", async () => {
+  const { escapeCsvCell, buildCsv } = await import("../features/admin/utils/export-excel.ts");
+  for (const text of ["=1+1", "+cmd", "-2+3", "@SUM(A1)", "\tx", "\rx", "=HYPERLINK(\"http://x\")"]) {
+    assert.equal(escapeCsvCell(text)[1], "'", text);
+  }
+  assert.equal(escapeCsvCell("=A1"), `"'=A1"`);
+  assert.equal(escapeCsvCell('Nói "xin chào"'), `"Nói ""xin chào"""`);
+  for (const text of ["-5", "+84912345678", "-1.000.000 ₫", "12,5%", "0912 345 678", "Bình thường"]) {
+    assert.equal(escapeCsvCell(text), `"${text}"`, text);
+  }
+  assert.equal(escapeCsvCell(-5), `"-5"`);
+  assert.equal(escapeCsvCell(null), `""`);
+  assert.equal(buildCsv({ title: "T", sections: [{ headers: ["A"], rows: [[1]] }] }), `"T"\r\n\r\n"A"\r\n"1"\r\n`);
+  assert.equal(buildCsv({ title: "T", period: "Tháng 11", sections: [] }), `"T"\r\n"Kỳ báo cáo:","Tháng 11"\r\n`);
+});
+
+test("the product export has the agreed columns and no cost", async () => {
+  const { productSection, fileDate } = await import("../features/admin/utils/export-rows.ts");
+  const section = productSection([{ sku: "RC-1", code: "SP00A001", name: "Royal", brand: "RC", unit: "Túi", price: 450000, available: 8, threshold: 5, status: "low",
+    categories: [{ ref: "DM1", name: "Mèo", path: "Mèo" }, { ref: "DM2", name: "Thức ăn", path: "Thức ăn" }], cost: 1 }]);
+  assert.equal(section.headers.length, 10);
+  assert.deepEqual(section.rows[0], ["RC-1", "SP00A001", "Royal", "RC", "Mèo; Thức ăn", "Túi", 450000, 8, 5, "Sắp hết hàng"]);
+  assert.match(fileDate(new Date("2026-11-07T18:30:00Z")), /^2026-11-08$/);
+});

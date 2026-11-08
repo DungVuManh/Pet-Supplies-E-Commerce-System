@@ -4,20 +4,47 @@
  * bảng mã UTF-8 tiếng Việt có dấu, triệt tiêu hoàn toàn lỗi vỡ font / Mojibake.
  */
 
+export type CsvCell = string | number | undefined | null;
+
 export interface ExportSection {
   title?: string;
   headers?: string[];
-  rows: (string | number | undefined | null)[][];
+  rows: CsvCell[][];
 }
 
-function escapeCsvCell(cell: string | number | undefined | null): string {
+/** Text that a spreadsheet would run as a formula: it starts with =, +, -, @, a tab, or a carriage return. */
+const FORMULA_START = /^[=+\-@\t\r]/;
+/** A plain amount such as "-5", "+84", or "-1.000 ₫" is safe to leave as it is. */
+const PLAIN_NUMBER = /^[+-]?[\d.,\s]+(?:\s?[₫%])?$/;
+
+/**
+ * One quoted CSV cell. Customer-entered text such as a name could otherwise run
+ * as a formula when the file is opened, so such text gets a leading apostrophe.
+ */
+export function escapeCsvCell(cell: CsvCell): string {
   if (cell === null || cell === undefined) return '""';
-  const str = String(cell);
-  // Nếu có dấu phẩy, dấu ngoặc kép hoặc xuống dòng -> bọc trong ngoặc kép và escape dấu ngoặc kép đôi
-  if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
-    return `"${str.replace(/"/g, '""')}"`;
+  let text = String(cell);
+  if (typeof cell === "string" && FORMULA_START.test(text) && !PLAIN_NUMBER.test(text)) text = `'${text}`;
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+/** The file's text, without the BOM. `period` is left out when there is none, as in a list export. */
+export function buildCsv({ title, period, sections }: { title: string; period?: string; sections: ExportSection[] }) {
+  const lines: string[] = [];
+
+  // Tiêu đề báo cáo và khoảng thời gian
+  lines.push(escapeCsvCell(title));
+  if (period) lines.push(`${escapeCsvCell("Kỳ báo cáo:")},${escapeCsvCell(period)}`);
+  lines.push("");
+
+  for (const section of sections) {
+    if (section.title) lines.push(escapeCsvCell(section.title));
+    if (section.headers && section.headers.length > 0) lines.push(section.headers.map(escapeCsvCell).join(","));
+    for (const row of section.rows) lines.push(row.map(escapeCsvCell).join(","));
+    lines.push(""); // Dòng trống ngăn cách các bảng
   }
-  return `"${str}"`;
+
+  return lines.join("\r\n");
 }
 
 export function downloadExcelCsv({
@@ -28,30 +55,10 @@ export function downloadExcelCsv({
 }: {
   filename: string;
   title: string;
-  period: string;
+  period?: string;
   sections: ExportSection[];
 }) {
-  const lines: string[] = [];
-
-  // Tiêu đề báo cáo và khoảng thời gian
-  lines.push(escapeCsvCell(title));
-  lines.push(`${escapeCsvCell("Kỳ báo cáo:")},${escapeCsvCell(period)}`);
-  lines.push("");
-
-  for (const section of sections) {
-    if (section.title) {
-      lines.push(escapeCsvCell(section.title));
-    }
-    if (section.headers && section.headers.length > 0) {
-      lines.push(section.headers.map(escapeCsvCell).join(","));
-    }
-    for (const row of section.rows) {
-      lines.push(row.map(escapeCsvCell).join(","));
-    }
-    lines.push(""); // Dòng trống ngăn cách các bảng
-  }
-
-  const csvContent = lines.join("\r\n");
+  const csvContent = buildCsv({ title, period, sections });
 
   // Chèn mã BOM UTF-8 (\xEF\xBB\xBF) trực tiếp ở đầu binary stream
   // Giúp Microsoft Excel tự động mở bằng bảng mã Unicode UTF-8 thay vì ANSI/Windows-1252

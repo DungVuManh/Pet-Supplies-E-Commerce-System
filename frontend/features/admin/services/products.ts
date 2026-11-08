@@ -1,5 +1,5 @@
 import { apiGet, apiSend } from "@/lib/api-client";
-import type { AdminProductDetail, AdminProductRow, Page, ProductCounts, ProductFilter, ProductOptions, ProductVisibilityResult } from "../types";
+import type { AdminProductDetail, AdminProductRow, ExportPage, Page, ProductCounts, ProductFilter, ProductOptions, ProductVisibilityResult } from "../types";
 
 export function listProducts(query: ProductFilter & { page: number; pageSize: number }, signal: AbortSignal) {
   return apiGet<Page<AdminProductRow, ProductCounts>>("/api/v1/admin/products", query, { signal });
@@ -43,4 +43,9 @@ export type ProductCreate = {
 /** Returns the first variant's detail, which is where the new page goes next. */
 export function createProduct(product: ProductCreate) {
   return apiSend<AdminProductDetail>("POST", "/api/v1/admin/products", product);
+}
+
+/** Every row the list would show for this filter, across pages, up to the server's limit. */
+export function exportProducts(filter: ProductFilter) {
+  return apiGet<ExportPage<AdminProductRow>>("/api/v1/admin/products/export", filter);
 }

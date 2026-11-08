@@ -12,6 +12,9 @@ export type Page<T, C extends ListCounts = ListCounts> = {
   counts?: C;
 };
 
+/** An export: every matching row up to the server's limit. `truncated` means `total` is larger than `items`. */
+export type ExportPage<T> = { items: T[]; total: number; truncated: boolean };
+
 export type UserRole = "customer" | "staff";
 export type UserStatus = "active" | "locked";
 

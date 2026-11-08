@@ -152,12 +152,16 @@ Browser → Firebase sendPasswordResetEmail          Failure → account stays; 
 
 ### 3b. Xuất danh sách
 
-- [ ] ⚠️ In `features/admin/utils/export-excel.ts`, used by the teammate's reports, extract a pure `buildCsv`, add the formula guard for text cells only, and make `period` optional. Test in `frontend/tests/admin-create-forms.test.mjs`, including that numbers and a `+84` phone formatted by `formatPhone` stay readable.
-- [ ] Move the filtering out of `listProducts` into a shared function, and add `exportProducts` plus `GET /products/export` before `/products/:sku`, with the 5,000 limit, `truncated`, and audit `product.export`.
-- [ ] Test in `backend/tests/admin-exports.test.js`: filters apply, all pages are included, the limit, no `cost` in the response, the route is not taken for a SKU, and 401/403.
-- [ ] Move the page header's actions into `ProductsList`, because the filter state lives in that client component. Add `hooks/use-export.ts`, with the pending state and the empty and truncated notices, and replace the "Xuất danh sách" `DemoNotice`.
-- [ ] Browser check: export with a filter, then open the file and compare it with the list.
-- [ ] 🛑 **Commit checkpoint:** `admin - export products`
+- [x] ⚠️ In `features/admin/utils/export-excel.ts`, used by the teammate's reports, extract a pure `buildCsv`, add the formula guard for text cells only, and make `period` optional. Test in `frontend/tests/admin-create-forms.test.mjs`, including that numbers and a `+84` phone formatted by `formatPhone` stay readable.
+  - Approved by the user on 2026-11-08. Apart from the guard, existing report files come out the same: every cell is still quoted, and the period line is skipped only when no period is given. Text such as "-5", "+84…", or "-1.000 ₫" is left alone, because it is a plain number, not a formula.
+- [x] Move the filtering out of `listProducts` into a shared function, and add `exportProducts` plus `GET /products/export` before `/products/:sku`, with the 5,000 limit, `truncated`, and audit `product.export`.
+- [x] Test in `backend/tests/admin-exports.test.js`: filters apply, all pages are included, the limit, no `cost` in the response, the route is not taken for a SKU, and 401/403.
+- [x] Move the page header's actions into `ProductsList`, because the filter state lives in that client component. Add `hooks/use-export.ts`, with the pending state and the empty and truncated notices, and replace the "Xuất danh sách" `DemoNotice`.
+  - Note: the whole page header moved into `ProductsList`. The columns are built in `utils/export-rows.ts`, which is tested without a browser.
+- [x] Browser check: export with a filter, then open the file and compare it with the list.
+  - Result (2026-11-08): 12 checks passed. The file has a UTF-8 BOM, Vietnamese headers, no cost, and all 13 rows, not only the first page of 6. The hidden tab exports only hidden rows, and a filter with no match shows a notice without creating a file. The teammate's sales report export still writes its period line.
+- [x] 🛑 **Commit checkpoint:** `admin - export products`
+  - Checks: backend 967 passed, with the same 24 baseline failures. Frontend tests 117/117. Lint and build show only the baseline problems.
 
 ## Part 4: Người dùng
 

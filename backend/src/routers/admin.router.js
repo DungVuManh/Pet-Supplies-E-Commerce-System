@@ -5,7 +5,7 @@ import { dashboard } from "../controllers/dashboard.controller.js";
 import { listInventory } from "../controllers/inventory.controller.js";
 import { createCategory, deleteCategory, getCategory, listCategories, updateCategory } from "../controllers/admin/category.controller.js";
 import { createMasterData, deleteMasterData, getMasterData, listMasterData, listMasterDataOptions, updateMasterData } from "../controllers/admin/master-data.controller.js";
-import { createProduct, deleteProduct, getProduct, hideProduct, listProducts, showProduct, updateProduct } from "../controllers/admin/product.controller.js";
+import { createProduct, deleteProduct, exportProducts, getProduct, hideProduct, listProducts, showProduct, updateProduct } from "../controllers/admin/product.controller.js";
 import { listOrders } from "../controllers/admin/order.controller.js";
 import { getOverview } from "../controllers/admin/overview.controller.js";
 import { listPermissions } from "../controllers/admin/permission.controller.js";
@@ -40,6 +40,8 @@ router.get("/orders", listOrders);
 router.get("/permissions", listPermissions);
 router.get("/products", listProducts);
 router.post("/products", protectMutation, createProduct);
+// Before `/products/:sku`, so "export" is never read as a SKU.
+router.get("/products/export", exportProducts);
 router.get("/products/:sku", getProduct);
 router.patch("/products/:sku", protectMutation, updateProduct);
 router.delete("/products/:sku", protectMutation, deleteProduct);

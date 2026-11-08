@@ -38,11 +38,11 @@ function categoryScope(ref, index) {
 }
 
 /**
- * The list is built in code, not in a pipeline, so the threshold and status rules
- * exist once and are shared with the detail screen. `counts` ignores the filters.
+ * Every variant row, and the rows the tab, filters, and search keep. The list is
+ * built in code, not in a pipeline, so the threshold and status rules exist once
+ * and are shared with the detail screen and the export.
  */
-export async function listProducts(request, response) {
- const query = parseQuery(productListQuerySchema, request.query);
+async function filteredProductRows(query) {
  const [products, threshold, index] = await Promise.all([
   Product.find().select("name brand unit isActive categoryIds categoryId variants createdAt").sort({ createdAt: -1, _id: -1 }).lean(),
   globalLowStockThreshold(),
@@ -60,7 +60,14 @@ export async function listProducts(request, response) {
  const rows = all
   .filter(({ row, product }) => inScope(product) && inTab(row) && hasStatus(row) && matchesText(row))
   .map(({ row }) => row);
- const hidden = all.filter(({ row }) => row.status === "hidden").length;
+ return { all: all.map(({ row }) => row), rows };
+}
+
+/** `counts` ignores the filters. */
+export async function listProducts(request, response) {
+ const query = parseQuery(productListQuerySchema, request.query);
+ const { all, rows } = await filteredProductRows(query);
+ const hidden = all.filter((row) => row.status === "hidden").length;
  const start = (query.page - 1) * query.pageSize;
 
  response.json({
@@ -400,4 +407,23 @@ export async function createProduct(request, response) {
   summary: `Tạo sản phẩm ${skus.join(", ")} · ${product.name}`,
  });
  response.status(201).json({ success: true, data: await productDetail(product, product.variants[0]) });
+}
+
+export const EXPORT_LIMIT = 5000;
+
+/**
+ * Every row the list would show for these filters, across all pages, up to
+ * `EXPORT_LIMIT`. The browser writes the file. Rows never include cost.
+ */
+export async function exportProducts(request, response) {
+ const query = parseQuery(productListQuerySchema, request.query);
+ const { rows } = await filteredProductRows(query);
+ const truncated = rows.length > EXPORT_LIMIT;
+ await recordAudit(request, {
+  action: "product.export",
+  target: { collectionName: "products", id: "export" },
+  after: { tab: query.tab, category: query.category, status: query.status, q: query.q, rows: Math.min(rows.length, EXPORT_LIMIT) },
+  summary: `Xuất danh sách sản phẩm: ${Math.min(rows.length, EXPORT_LIMIT)} dòng`,
+ });
+ response.json({ success: true, data: { items: rows.slice(0, EXPORT_LIMIT), total: rows.length, truncated } });
 }
