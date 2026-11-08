@@ -117,7 +117,7 @@ function orderActivity(order) {
   detail: `${first.name} · Số lượng ${first.qty}${others.length ? ` và ${others.length} sản phẩm khác` : ""}`,
   amount: order.total,
   status: FINISHED_ORDER_STATUSES.includes(order.orderStatus) ? "completed" : order.orderStatus,
-  href: `/admin/orders?q=${encodeURIComponent(order.orderCode)}`,
+  href: `/admin/orders/${encodeURIComponent(order.orderCode)}`,
  };
 }
 

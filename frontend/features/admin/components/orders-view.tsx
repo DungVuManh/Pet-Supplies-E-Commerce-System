@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { CircleX, Download, Package } from "lucide-react";
 import { Badge, ListState, Pagination, TabNav, card, control, listStatePill, primaryLink, secondaryButton } from "@/components/workspace/workspace-ui";
 import { formatDateTime, formatPhone, formatVnd } from "@/lib/format";
@@ -24,7 +24,6 @@ const statusOptions: { value: Exclude<OrderStatusFilter, "all">; label: string }
 
 export function OrdersView() {
   const { filter, query, setQuery, selectTab, selectStatus, clearFilters, items, counts, state, error, reload, page, setPage, pagination, from, to } = useOrdersList();
-  const [notice, setNotice] = useState("");
   const loading = state === "loading";
   // Exports the applied filter: typing in the search box applies after a short pause.
   const exporter = useExport(() => exportOrders(filter), (rows) => downloadExcelCsv({
@@ -41,7 +40,7 @@ export function OrdersView() {
         {exporter.notice && <span role="status" className="max-w-72 text-right text-xs text-brand">{exporter.notice}</span>}
       </div>} />
 
-    <TabNav label="Nhóm đơn hàng" items={tabs.map((tab) => ({ label: counts ? `${tab.label} (${counts[tab.value].toLocaleString("vi-VN")})` : tab.label, active: filter.tab === tab.value, onSelect: () => { setNotice(""); selectTab(tab.value); } }))} />
+    <TabNav label="Nhóm đơn hàng" items={tabs.map((tab) => ({ label: counts ? `${tab.label} (${counts[tab.value].toLocaleString("vi-VN")})` : tab.label, active: filter.tab === tab.value, onSelect: () => selectTab(tab.value) }))} />
 
     <section aria-labelledby="orders-card" className={`${card} min-w-0 p-6`}>
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -50,14 +49,13 @@ export function OrdersView() {
       </div>
       <div className="mt-6 grid gap-4 md:grid-cols-[minmax(0,1fr)_192px]">
         <div className="flex min-w-0 flex-col gap-2"><label htmlFor="order-query" className="text-xs font-semibold">Tìm kiếm</label>
-          <input id="order-query" type="search" className={control} placeholder="Mã đơn, khách hàng hoặc số điện thoại" value={query} onChange={(e) => { setNotice(""); setQuery(e.target.value); }} /></div>
+          <input id="order-query" type="search" className={control} placeholder="Mã đơn, khách hàng hoặc số điện thoại" value={query} onChange={(e) => setQuery(e.target.value)} /></div>
         <div className="flex min-w-0 flex-col gap-2"><label htmlFor="order-status" className="text-xs font-semibold">Trạng thái</label>
-          <select id="order-status" className={control} value={filter.status} onChange={(e) => { setNotice(""); selectStatus(e.target.value as OrderStatusFilter); }}>
+          <select id="order-status" className={control} value={filter.status} onChange={(e) => selectStatus(e.target.value as OrderStatusFilter)}>
             <option value="all">Tất cả</option>
             {statusOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
           </select></div>
       </div>
-      {notice && <p role="status" className="mt-4 rounded-lg bg-brand-subtle px-4 py-3 text-sm text-brand">{notice}</p>}
 
       <div className="mt-6 min-w-0 overflow-hidden rounded-lg border border-line">
         <div className="overflow-x-auto"><table className="w-full min-w-[880px] border-collapse text-left">
@@ -70,8 +68,8 @@ export function OrdersView() {
             <Td><Stack primary={order.customerName} secondary={[formatPhone(order.phone), paymentMethodLabels[order.paymentMethod]].filter(Boolean).join(" · ")} /></Td>
             <Td className="font-semibold tabular-nums">{formatVnd(order.total)}</Td>
             <Td><StatusBadge status={orderStatusLabels[order.status]} /></Td>
-            <Td><button type="button" className="inline-flex min-h-10 items-center font-semibold text-brand hover:underline"
-              onClick={() => setNotice(`Chi tiết đơn #${order.orderCode} chưa có màn hình quản trị; Staff xử lý đơn tại không gian vận hành.`)}>Chi tiết →</button></Td>
+            <Td><Link href={`/admin/orders/${encodeURIComponent(order.orderCode)}`} aria-label={`Chi tiết đơn #${order.orderCode}`}
+              className="inline-flex min-h-10 items-center font-semibold text-brand hover:underline">Chi tiết →</Link></Td>
           </tr>)}</tbody>}
         </table></div>
         {!state && <Pagination from={from} to={to} total={pagination.total} page={page} pages={pagination.totalPages} onPage={setPage} />}

@@ -236,6 +236,32 @@ export type AdminOrderExportRow = AdminOrderRow & {
   promotionCode: string | null;
 };
 
+/**
+ * `GET /api/v1/admin/orders/:orderCode`, read-only. `shippingFee` is set only on older
+ * orders. `customer.accountId` links a Customer account; `productExists` says the SKU still exists.
+ */
+export type AdminOrderDetail = {
+  orderCode: string;
+  createdAt: string;
+  channel: "online" | "offline";
+  status: OrderStatus;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus | null;
+  paidAmount: number | null;
+  needsReview: boolean;
+  subtotal: number;
+  discount: number;
+  shippingFee: number | null;
+  total: number;
+  promotionCode: string | null;
+  customer: { name: string; phone: string; email: string | null; accountId: string | null; isGuest: boolean };
+  shippingAddress: { recipientName: string | null; phone: string | null; street: string | null; ward: string | null; district: string | null; province: string | null } | null;
+  shipping: { carrier: string; trackingNumber: string } | null;
+  createdByStaff: string | null;
+  items: { sku: string; name: string; unitPrice: number; qty: number; lineTotal: number; image: string | null; productExists: boolean }[];
+  statusHistory: { from: OrderStatus | null; to: OrderStatus; at: string; actorName: string | null }[];
+};
+
 export type PermissionRole = "customer" | "staff" | "admin";
 
 /** `GET /api/v1/admin/permissions`: fixed in code, so read-only here. */

@@ -199,12 +199,16 @@ Browser → Firebase sendPasswordResetEmail          Failure → account stays; 
 
 ### 5b. Order detail page
 
-- [ ] Add a code validator to `validators/admin/order.validator.js`, and `getOrder` plus `GET /orders/:orderCode` to `controllers/admin/order.controller.js`, after the export route. Include the fields in the spec, with `paidAmount` and `needsReview` from the merged SePay work. Do not reuse `getStaffOrderDetail`, because it returns live stock and next statuses.
-- [ ] Test in `backend/tests/admin-order-detail.test.js`: online, offline, and guest orders, an older order with a shipping fee, unknown and still-being-created orders giving 404, no raw payment data or `firebaseUid`, and 401/403.
-- [ ] Add `services/orders.server.ts`, `components/order-detail-view.tsx`, and `app/(workspace)/admin/orders/[orderCode]/page.tsx`, calling `notFound()` for an unknown code. Link the customer to `/admin/users/:id` when the order has an account.
-- [ ] Change "Chi tiết →" in `orders-view.tsx` to a link, and remove the `notice` state it was the last user of. Point `orderActivity.href` in `user.controller.js` at the new page, and update `tests/admin-user-detail.test.js`.
-- [ ] Browser check: open an online and an offline order at both widths, and an unknown code.
-- [ ] 🛑 **Commit checkpoint:** `admin - order detail page`
+- [x] Add a code validator to `validators/admin/order.validator.js`, and `getOrder` plus `GET /orders/:orderCode` to `controllers/admin/order.controller.js`, after the export route. Include the fields in the spec, with `paidAmount` and `needsReview` from the merged SePay work. Do not reuse `getStaffOrderDetail`, because it returns live stock and next statuses.
+  - Note: items whose SKU no longer exists are flagged with `productExists: false`, so the page does not link to a missing product.
+- [x] Test in `backend/tests/admin-order-detail.test.js`: online, offline, and guest orders, an older order with a shipping fee, unknown and still-being-created orders giving 404, no raw payment data or `firebaseUid`, and 401/403.
+- [x] Add `services/orders.server.ts`, `components/order-detail-view.tsx`, and `app/(workspace)/admin/orders/[orderCode]/page.tsx`, calling `notFound()` for an unknown code. Link the customer to `/admin/users/:id` when the order has an account.
+- [x] Change "Chi tiết →" in `orders-view.tsx` to a link, and remove the `notice` state it was the last user of. Point `orderActivity.href` in `user.controller.js` at the new page, and update `tests/admin-user-detail.test.js`.
+  - Note: the dashboard's recent activity (`overview.controller.js`) linked orders by search too, so it now opens the detail page as well, and `admin-overview.test.js` changed with it. The teammate's cancellation and notification screens still link by search.
+- [x] Browser check: open an online and an offline order at both widths, and an unknown code.
+  - Result (2026-11-08): "Chi tiết →" opens the page, and online and offline orders render with items, status, amounts, customer, and delivery. A user's activity links to the order page, and 320 px has no page-level scroll. One check failed only because its selector "Trạng thái" also matched "Lịch sử trạng thái"; the screenshot shows the card. An unknown code shows the not-found page, with status 200 because the page streams, as the existing detail pages do.
+- [x] 🛑 **Commit checkpoint:** `admin - order detail page`
+  - Checks: backend 1008 passed, with the same 24 baseline failures. Frontend tests 119/119. Lint and build show only the baseline problems.
 
 ## Part 6: Finish
 
