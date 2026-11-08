@@ -93,3 +93,18 @@ export function validateVoucher(values: VoucherFormValues): FormErrors<VoucherFo
   else if (values.startDate && values.endDate < values.startDate) errors.endDate = "Ngày kết thúc phải từ ngày bắt đầu trở đi.";
   return errors;
 }
+
+/** The master data modal's text inputs. `petTypeCode` is checked only for breeds and `fee` only for shipping methods. */
+export type MasterDataFormValues = { kind: "petType" | "breed" | "brand" | "unit" | "shippingMethod"; name: string; description: string; petTypeCode: string; fee: string };
+
+/** The same rules as the server's master data validator. */
+export function validateMasterData(values: MasterDataFormValues): FormErrors<MasterDataFormValues> {
+  const errors: FormErrors<MasterDataFormValues> = {};
+  const name = values.name.trim();
+  if (!name) errors.name = "Nhập tên.";
+  else if (name.length > 100) errors.name = "Tên tối đa 100 ký tự.";
+  if (values.description.trim().length > 300) errors.description = "Mô tả tối đa 300 ký tự.";
+  if (values.kind === "breed" && !values.petTypeCode) errors.petTypeCode = "Chọn loài thú cưng.";
+  if (values.kind === "shippingMethod" && Number.isNaN(parseAmount(values.fee))) errors.fee = "Phí là số nguyên từ 0.";
+  return errors;
+}

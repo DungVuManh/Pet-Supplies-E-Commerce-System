@@ -21,6 +21,10 @@ export function useMasterData() {
       list.apply({ ...initial, kind });
       setNotice("");
     },
+    /** Searches the current tab for one code, so a new row is on screen whatever page it falls on. */
+    showCode(code: string) {
+      list.apply({ ...initial, kind: list.filter.kind, q: code });
+    },
     /** Clears the filters but stays on the current tab. */
     clearFilters() {
       list.apply({ ...initial, kind: list.filter.kind });

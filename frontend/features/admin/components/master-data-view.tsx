@@ -1,13 +1,14 @@
 "use client";
 
 import { CircleX, Package, Plus } from "lucide-react";
-import { DemoNotice } from "@/components/workspace/demo-notice";
 import { Field, ListState, Pagination, TabNav, card, control, primaryLink, secondaryButton } from "@/components/workspace/workspace-ui";
 import { formatDate, formatVnd } from "@/lib/format";
 import { useMasterData } from "../hooks/use-master-data";
+import { useMasterDataForm } from "../hooks/use-master-data-form";
 import { masterDataStatusLabels } from "../status";
 import type { MasterDataKind, MasterDataStatus } from "../types";
 import { AdminPageHeader, DataTable, StatusBadge, Stack, Td, Th } from "./admin-ui";
+import { MasterDataDialog } from "./master-data-dialog";
 
 type Tab = { kind: MasterDataKind; label: string; add: string; search: string; codeHeader: string; nameHeader: string; metricHeader: string; metric: (value: number | string) => string };
 
@@ -22,14 +23,20 @@ const tabs: Tab[] = [
 ];
 
 export function MasterDataView() {
-  const { kind, draft, setDraft, submit, items, counts, state, error, reload, page, setPage, pagination, from, to, notice, setNotice, selectKind, clearFilters } = useMasterData();
+  const { kind, draft, setDraft, submit, items, counts, state, error, reload, page, setPage, pagination, from, to, notice, setNotice, selectKind, clearFilters, showCode } = useMasterData();
   const tab = tabs.find((item) => item.kind === kind) ?? tabs[0];
   const count = (value: MasterDataKind) => (counts?.[value] ?? 0).toLocaleString("vi-VN");
+  const form = useMasterDataForm(kind, (message, createdCode) => {
+    if (createdCode) showCode(createdCode);
+    else reload();
+    setNotice(message);
+  });
 
   return <>
     <AdminPageHeader breadcrumbs={["Dữ liệu nền", "Dữ liệu nền"]} title="Dữ liệu nền" subtitle="Chuẩn hóa dữ liệu dùng chung cho sản phẩm và vận hành."
-      actions={<DemoNotice key={kind} variant="primary" label={tab.add} icon={<Plus className="h-4 w-4" aria-hidden="true" />}
-        message={`“${tab.add}” chưa có màn hình thiết kế và chưa kết nối backend.`} />} />
+      actions={<button type="button" className={`${primaryLink} min-h-12 gap-2`} onClick={() => { setNotice(""); form.openCreate(); }}>
+        <Plus className="h-4 w-4" aria-hidden="true" />{tab.add}
+      </button>} />
 
     <TabNav label="Loại dữ liệu nền" items={tabs.map((item) => ({ label: `${item.label} (${count(item.kind)})`, active: item.kind === kind, onSelect: () => selectKind(item.kind) }))} />
 
@@ -59,7 +66,7 @@ export function MasterDataView() {
         <Td className="font-semibold tabular-nums">{tab.metric(row.metric)}</Td>
         <Td><StatusBadge status={masterDataStatusLabels[row.status]} /></Td>
         <Td><button type="button" className="inline-flex min-h-10 items-center font-semibold text-brand hover:underline"
-          onClick={() => setNotice(`Chi tiết ${row.code} · ${row.name} chưa có màn hình thiết kế; dữ liệu hiện chỉ xem được trong bảng.`)}>Chi tiết →</button></Td>
+          aria-label={`Chi tiết ${row.code} · ${row.name}`} onClick={() => { setNotice(""); form.openEdit(row.code); }}>Chi tiết →</button></Td>
       </tr>)}
     </DataTable>
 
@@ -73,5 +80,6 @@ export function MasterDataView() {
         <p className="mt-4 leading-relaxed text-muted">Đơn vị: {count("unit")} · Phương thức vận chuyển: {count("shippingMethod")}.</p>
       </section>
     </div>
+    <MasterDataDialog kind={kind} form={form} />
   </>;
 }

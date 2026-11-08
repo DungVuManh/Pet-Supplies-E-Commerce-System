@@ -103,23 +103,30 @@ Browser → Firebase sendPasswordResetEmail          Failure → account stays; 
 
 **Backend**
 
-- [ ] Add create and patch schemas to `validators/admin/master-data.validator.js`. `petTypeCode` is only for breeds and `fee` only for shipping methods. Each is required there and refused elsewhere.
-- [ ] Add code generation to `controllers/admin/master-data.controller.js`, matching the seed's format, and move `codeFrom` from `scripts/seed-admin.js` to a shared helper. Retry on a clash.
-- [ ] Add `createMasterData`: name check per kind (and per pet type for breeds), active pet type check, and audit `masterData.create`.
-- [ ] Add `getMasterData`, returning the row plus `blocker` and `renameBlocked`, and return `petTypeCode` and `fee` in list rows.
-- [ ] Add `updateMasterData`, conditional on `updatedAt` (409 `STALE_MASTER_DATA`), refusing changes to `code` and renames of a brand or unit in use (409 `MASTER_DATA_IN_USE`).
-- [ ] Add `deleteMasterData`, refused for a brand or unit with products and a pet type with breeds.
-- [ ] Add the 4 routes, with `/master-data/options` staying before `/:kind/:code`.
-- [ ] Test in `backend/tests/admin-master-data-edit.test.js`: all 5 kinds, generated codes, duplicates, in-use refusals, a stale edit, a deactivated value leaving `/options`, the audit entries, and 401/403/CSRF.
+- [x] Add create and patch schemas to `validators/admin/master-data.validator.js`. `petTypeCode` is only for breeds and `fee` only for shipping methods. Each is required there and refused elsewhere.
+- [x] Add code generation to `controllers/admin/master-data.controller.js`, matching the seed's format, and move `codeFrom` from `scripts/seed-admin.js` to a shared helper. Retry on a clash.
+  - Note: the generator lives in `common/master-data-code.js` with `codeFrom`, so the seed and the API share it.
+- [x] Add `createMasterData`: name check per kind (and per pet type for breeds), active pet type check, and audit `masterData.create`.
+- [x] Add `getMasterData`, returning the row plus `blocker` and `renameBlocked`, and return `petTypeCode` and `fee` in list rows.
+  - Note: list rows were left unchanged. The modal loads the row from `GET /master-data/:kind/:code`, which already returns `petTypeCode` and `fee`, and the existing list test checks the exact row shape.
+- [x] Add `updateMasterData`, conditional on `updatedAt` (409 `STALE_MASTER_DATA`), refusing changes to `code` and renames of a brand or unit in use (409 `MASTER_DATA_IN_USE`).
+- [x] Add `deleteMasterData`, refused for a brand or unit with products and a pet type with breeds.
+- [x] Add the 4 routes, with `/master-data/options` staying before `/:kind/:code`.
+- [x] Test in `backend/tests/admin-master-data-edit.test.js`: all 5 kinds, generated codes, duplicates, in-use refusals, a stale edit, a deactivated value leaving `/options`, the audit entries, and 401/403/CSRF.
+  - Note: the test for a deactivated value leaving `/options` already existed in `admin-master-data.test.js`, so it was not repeated.
 
 **Frontend**
 
-- [ ] Add create, get, update, and delete calls to `services/master-data.ts`, and `validateMasterData` to `validation.ts`, with tests.
-- [ ] Add `hooks/use-master-data-form.ts`, for values, per-kind validation, submit, delete, and server field errors.
-- [ ] Add `components/master-data-dialog.tsx`, built on `AdminConfirmDialog` with its fields as `children`. Use the labels in the spec's table, the pet type select from `/master-data/options`, and the "not applied yet" note on the pet type and shipping tabs.
-- [ ] Wire `master-data-view.tsx`: each tab's add button opens the modal for that kind, and "Chi tiết →" opens it filled in, showing the read-only code and a delete button with a second confirmation. Remove the `DemoNotice` and `setNotice` placeholder. Save and delete reload the list and tab counts.
-- [ ] Browser check: all 5 tabs, keyboard focus and Esc, a 320 px modal, an in-use rename refused, and a new brand and unit appearing in the product form.
-- [ ] 🛑 **Commit checkpoint:** `admin - add, edit and delete master data`
+- [x] Add create, get, update, and delete calls to `services/master-data.ts`, and `validateMasterData` to `validation.ts`, with tests.
+- [x] Add `hooks/use-master-data-form.ts`, for values, per-kind validation, submit, delete, and server field errors.
+- [x] Add `components/master-data-dialog.tsx`, built on `AdminConfirmDialog` with its fields as `children`. Use the labels in the spec's table, the pet type select from `/master-data/options`, and the "not applied yet" note on the pet type and shipping tabs.
+  - Note: the delete confirmation is a second `AdminConfirmDialog` that replaces the form, rather than a nested dialog. A brand or unit in use shows its name field disabled with the reason.
+- [x] Wire `master-data-view.tsx`: each tab's add button opens the modal for that kind, and "Chi tiết →" opens it filled in, showing the read-only code and a delete button with a second confirmation. Remove the `DemoNotice` and `setNotice` placeholder. Save and delete reload the list and tab counts.
+- [x] Browser check: all 5 tabs, keyboard focus and Esc, a 320 px modal, an in-use rename refused, and a new brand and unit appearing in the product form.
+  - Result (2026-11-08): 28 checks passed. They covered creating on all 5 tabs, focus on the first error, Esc, edit and delete with confirmation, a brand in use with rename and delete disabled, the duplicate name error, the new brand in the product form, and the modal at 320 px. The only console error is the 409 that the duplicate test triggers on purpose.
+  - Changed: the list shows 6 rows per page and puts new rows last, so a new row was off screen. After a create, the list now searches for the new code and the notice explains how to see all rows again.
+- [x] 🛑 **Commit checkpoint:** `admin - add, edit and delete master data`
+  - Checks: backend 930 passed, with the same 24 baseline failures. Frontend tests 114/114. Lint and build show only the baseline problems.
 
 ## Part 3: Sản phẩm
 

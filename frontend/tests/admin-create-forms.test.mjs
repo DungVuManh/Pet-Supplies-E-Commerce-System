@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { slugFromName, validateCategory } from "../features/admin/validation.ts";
+import { slugFromName, validateCategory, validateMasterData } from "../features/admin/validation.ts";
 
 test("a slug is suggested from a Vietnamese name", () => {
   assert.equal(slugFromName("Đồ chơi cho mèo"), "do-choi-cho-meo");
@@ -23,4 +23,18 @@ test("a new category may leave the order empty, an edited one may not", () => {
   assert.deepEqual(Object.keys(validateCategory(values)), ["order"]);
   assert.deepEqual(Object.keys(validateCategory({ ...values, order: "0", orderOptional: true })), ["order"]);
   assert.deepEqual(validateCategory({ ...values, order: "3", orderOptional: true }), {});
+});
+
+test("master data needs a name, a pet type for a breed, and a fee for shipping", () => {
+  const values = { kind: "unit", name: "Hộp", description: "", petTypeCode: "", fee: "" };
+  const keys = (patch) => Object.keys(validateMasterData({ ...values, ...patch }));
+  assert.deepEqual(keys({}), []);
+  assert.deepEqual(keys({ name: "  " }), ["name"]);
+  assert.deepEqual(keys({ name: "x".repeat(101) }), ["name"]);
+  assert.deepEqual(keys({ description: "x".repeat(301) }), ["description"]);
+  assert.deepEqual(keys({ kind: "breed" }), ["petTypeCode"]);
+  assert.deepEqual(keys({ kind: "breed", petTypeCode: "PET-DOG" }), []);
+  for (const fee of ["", "-1", "1,5", "abc"]) assert.deepEqual(keys({ kind: "shippingMethod", fee }), ["fee"], fee);
+  for (const fee of ["0", "30.000", "45000"]) assert.deepEqual(keys({ kind: "shippingMethod", fee }), [], fee);
+  assert.deepEqual(keys({ fee: "abc" }), [], "a fee is ignored outside shipping");
 });
