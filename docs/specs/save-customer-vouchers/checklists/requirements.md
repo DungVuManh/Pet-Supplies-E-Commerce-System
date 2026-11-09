@@ -1,7 +1,7 @@
 # Specification Quality Checklist: Quản Lý và Lưu Mã Giảm Giá Khách Hàng (Customer Voucher Wallet)
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
-**Created**: 2026-11-09
+**Created**: 2026-11-09 (Updated: Quy tắc Lưu mã 1 lần duy nhất)
 **Feature**: [spec.md](../spec.md)
 
 ## Content Quality
@@ -31,7 +31,6 @@
 
 ## Notes
 
-- Đặc tả kỹ thuật đã giải quyết rõ ràng trải nghiệm người dùng cả khi đã đăng nhập và khi còn là khách vãng lai (Guest).
-- Đã xác định rõ các vị trí hiển thị trên giao diện người dùng: trang danh sách voucher (`/voucher`), khu vực tài khoản cá nhân (`/account/vouchers`), và bước chọn mã nhanh tại Giỏ hàng / Thanh toán.
-- Sẵn sàng chuyển tiếp sang giai đoạn lập kế hoạch chi tiết (`/speckit.plan`) hoặc tạo danh sách công việc (`/speckit.tasks`).
-
+- Đặc tả kỹ thuật đã cập nhật quy tắc nghiệp vụ: Thao tác lưu mã là một chiều (One-way) và chỉ được lưu đúng 1 lần duy nhất cho mỗi mã. Nút "Lưu" sau khi bấm sẽ chuyển sang trạng thái "Đã lưu" cố định (disabled) và không cho phép người dùng click để hủy lưu rồi lưu lại.
+- Thẻ voucher trong ví cá nhân (`/account/vouchers`) không cung cấp nút xóa/hủy lưu chủ động cho người dùng; hệ thống chỉ tự động dọn dẹp các mã đã sử dụng hoặc hết hạn quá 30 ngày (FR-016).
+- 16/16 tiêu chí đánh giá chất lượng đặc tả đều đạt (PASS).

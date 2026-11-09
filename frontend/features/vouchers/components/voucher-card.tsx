@@ -75,9 +75,10 @@ export function VoucherCard({
     }
   };
 
-  // Bấm lưu mã giảm giá
+  // Bấm lưu mã giảm giá (Lưu 1 chiều, không thể hủy lưu)
   const handleSave = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isSaved) return;
     if (onToggleSave) {
       onToggleSave(voucher.code);
     }
@@ -183,15 +184,16 @@ export function VoucherCard({
             <span>{voucher.code}</span>
           </div>
 
-          {/* Nút Lưu xanh dương bo tròn (bấm đổi thành Đã lưu) */}
+          {/* Nút Lưu xanh dương bo tròn (chỉ lưu 1 lần, khi đã lưu sẽ khóa cố định) */}
           <button
             type="button"
+            disabled={isSaved}
             onClick={handleSave}
-            title={isSaved ? "Nhấn để bỏ lưu mã" : "Nhấn để lưu mã vào ví"}
-            className={`inline-flex items-center justify-center rounded-full px-4 py-1.5 text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer ${
+            title={isSaved ? "Mã giảm giá đã có trong ví của bạn" : "Nhấn để lưu mã vào ví"}
+            className={`inline-flex items-center justify-center rounded-full px-4 py-1.5 text-xs font-bold transition-all duration-200 ${
               isSaved
-                ? "bg-[#E2E8F0] text-[#64748B] hover:bg-slate-300 shadow-none"
-                : "bg-[#0B4DFF] text-white shadow-xs hover:bg-blue-700"
+                ? "bg-[#E2E8F0] text-[#64748B] cursor-default opacity-90 shadow-none pointer-events-none select-none"
+                : "bg-[#0B4DFF] text-white shadow-xs hover:bg-blue-700 active:scale-95 cursor-pointer"
             }`}
           >
             {isSaved ? "Đã lưu" : "Lưu"}

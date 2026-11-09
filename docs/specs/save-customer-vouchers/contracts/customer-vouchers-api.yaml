@@ -121,17 +121,18 @@ paths:
 
   /customer/vouchers/{code}:
     delete:
-      summary: Bỏ lưu mã giảm giá khỏi ví cá nhân
+      summary: Thao tác hủy lưu mã giảm giá (Không cho phép)
+      description: Thao tác lưu mã là một chiều (One-way). Request gửi tới endpoint này sẽ bị từ chối với mã lỗi 400 VOUCHER_CANNOT_BE_UNSAVED.
       parameters:
         - name: code
           in: path
           required: true
           schema:
             type: string
-          description: Mã voucher cần bỏ lưu.
+          description: Mã voucher cố ý hủy lưu.
       responses:
-        '200':
-          description: Bỏ lưu thành công
+        '400':
+          description: Thao tác không được phép thực hiện
           content:
             application/json:
               schema:
@@ -139,10 +140,16 @@ paths:
                 properties:
                   success:
                     type: boolean
-                    example: true
-                  message:
-                    type: string
-                    example: "Đã bỏ lưu mã giảm giá khỏi ví."
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VOUCHER_CANNOT_BE_UNSAVED"
+                      message:
+                        type: string
+                        example: "Mã giảm giá đã lưu không thể hủy bỏ."
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 

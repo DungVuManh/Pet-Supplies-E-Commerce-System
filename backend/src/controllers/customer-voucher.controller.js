@@ -117,21 +117,15 @@ export async function saveCustomerVoucher(request, response) {
 
 /**
  * DELETE /api/v1/customer/vouchers/:code
- * Remove a voucher from the customer's wallet.
+ * Remove a voucher from the customer's wallet (Disallowed: one-way save rule).
  */
 export async function removeCustomerVoucher(request, response) {
-  const parsed = removeCustomerVoucherParamsSchema.safeParse(request.params);
-  if (!parsed.success) {
-    throw new AppError("Mã giảm giá không hợp lệ.", 400, "VALIDATION_ERROR");
-  }
-  const { code } = parsed.data;
-  const userId = request.user._id;
-
-  await CustomerVoucher.findOneAndDelete({ userId, code });
-
-  return response.status(200).json({
-    success: true,
-    message: "Đã bỏ lưu mã giảm giá khỏi ví.",
+  return response.status(400).json({
+    success: false,
+    message: "Mã giảm giá đã lưu không thể hủy bỏ. Thao tác lưu chỉ được thực hiện 1 lần duy nhất.",
+    error: {
+      code: "VOUCHER_CANNOT_BE_UNSAVED",
+    },
   });
 }
 

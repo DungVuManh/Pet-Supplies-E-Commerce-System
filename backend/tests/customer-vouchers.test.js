@@ -69,7 +69,7 @@ async function authenticatedAgent(target = app) {
   const call = (method, path, body = undefined) => {
     const req = agent[method](`/api/v1/customer/vouchers${path}`)
       .set("Origin", "http://localhost:3000");
-    if (method !== "get") {
+    if (method !== "get" && method !== "delete") {
       req.set("Content-Type", "application/json").send(body ?? {});
     }
     return req;
@@ -180,18 +180,13 @@ describe("Customer Voucher Wallet API (/api/v1/customer/vouchers)", () => {
     });
   });
 
-  describe("DELETE /api/v1/customer/vouchers/:code (Remove Voucher)", () => {
-    it("removes a voucher from wallet (200)", async () => {
-      vi.spyOn(CustomerVoucher, "findOneAndDelete").mockResolvedValue({
-        _id: new mongoose.Types.ObjectId(),
-        code: "PETJOY10",
-      });
-
+  describe("DELETE /api/v1/customer/vouchers/:code (Disallowed Unsave)", () => {
+    it("rejects unsave requests with 400 VOUCHER_CANNOT_BE_UNSAVED", async () => {
       const { call } = await authenticatedAgent();
       const res = await call("delete", "/PETJOY10");
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.message).toBe("Đã bỏ lưu mã giảm giá khỏi ví.");
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe("VOUCHER_CANNOT_BE_UNSAVED");
+      expect(res.body.message).toContain("không thể hủy bỏ");
     });
   });
 

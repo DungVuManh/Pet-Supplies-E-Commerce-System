@@ -90,14 +90,16 @@ export function VoucherView() {
       .finally(() => setIsLoading(false));
   };
 
-  // Xử lý bật/tắt lưu voucher
+  // Xử lý lưu voucher (1 chiều, chỉ lưu 1 lần)
   const handleToggleSave = async (code: string) => {
+    if (isSaved(code)) {
+      showToast(`Mã "${code}" đã có trong ví của bạn.`);
+      return;
+    }
     try {
       const nowSaved = await toggleSaveVoucher(code);
       if (nowSaved) {
         showToast(`Đã lưu mã ${code} vào ví!`);
-      } else {
-        showToast(`Đã bỏ lưu mã ${code} khỏi ví.`);
       }
     } catch (err: any) {
       showToast(err.message || "Không thể cập nhật ví voucher.");

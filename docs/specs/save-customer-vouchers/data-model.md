@@ -92,7 +92,11 @@ erDiagram
    ```javascript
    customerVoucherSchema.index({ userId: 1, code: 1 });
    ```
-   *Mục đích*: Phục vụ thao tác kiểm tra hoặc hủy lưu nhanh theo mã code mà khách hàng gửi lên từ giao diện.
+   *Mục đích*: Phục vụ thao tác kiểm tra nhanh sự tồn tại của mã đã lưu trong ví của người dùng.
+
+> [!IMPORTANT]
+> **Quy tắc Lưu 1 chiều (Immutable One-Way Lifecycle)**:
+> Bản ghi `CustomerVoucher` một khi đã được tạo cho cặp `{ userId, voucherId }` là vĩnh viễn và không bị xóa bỏ bởi thao tác thủ công của người dùng. Hệ thống chỉ tự động dọn dẹp (cleanup) các bản ghi có trạng thái `used` hoặc `expired` quá 30 ngày (FR-016). Thao tác yêu cầu hủy lưu (`DELETE`) từ phía người dùng sẽ bị từ chối với lỗi 400 `VOUCHER_CANNOT_BE_UNSAVED`.
 
 ---
 

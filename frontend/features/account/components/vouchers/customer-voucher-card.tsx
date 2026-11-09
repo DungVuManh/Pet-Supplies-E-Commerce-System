@@ -7,19 +7,17 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Check, Copy, Trash2, ArrowRight, Clock, AlertTriangle } from "lucide-react";
+import { Check, Copy, ArrowRight, Clock, AlertTriangle } from "lucide-react";
 import type { CustomerVoucherItem } from "@/features/vouchers/types/customer-voucher";
 import { formatVND } from "@/features/vouchers/services/voucher.service";
 
 interface CustomerVoucherCardProps {
   voucher: CustomerVoucherItem;
-  onRemove?: (code: string) => void;
   onCopySuccess?: (code: string) => void;
 }
 
 export function CustomerVoucherCard({
   voucher,
-  onRemove,
   onCopySuccess,
 }: CustomerVoucherCardProps) {
   const [copied, setCopied] = useState(false);
@@ -166,18 +164,6 @@ export function CustomerVoucherCard({
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Delete / Remove Action */}
-            {onRemove && (
-              <button
-                type="button"
-                onClick={() => onRemove(voucher.code)}
-                title="Bỏ lưu khỏi ví"
-                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-              >
-                <Trash2 className="size-4" />
-              </button>
-            )}
-
             {/* Smart Navigation "Dùng ngay" Button */}
             {voucher.state === "ready" && (
               <Link

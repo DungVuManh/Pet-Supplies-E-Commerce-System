@@ -22,10 +22,7 @@ import type {
   CustomerVoucherCounts,
   CustomerVoucherTab,
 } from "@/features/vouchers/types/customer-voucher";
-import {
-  listCustomerVouchersApi,
-  removeVoucherApi,
-} from "@/features/vouchers/services/customer-voucher.service";
+import { listCustomerVouchersApi } from "@/features/vouchers/services/customer-voucher.service";
 
 type ActiveTab = "ready" | "used" | "expired";
 
@@ -67,21 +64,6 @@ export function CustomerVouchersView() {
     setTimeout(() => {
       setToastMessage((cur) => (cur === message ? null : cur));
     }, 2500);
-  };
-
-  const handleRemove = async (code: string) => {
-    try {
-      await removeVoucherApi(code);
-      setItems((prev) => prev.filter((i) => i.code !== code));
-      setCounts((prev) => ({
-        ...prev,
-        all: Math.max(0, prev.all - 1),
-        [activeTab]: Math.max(0, prev[activeTab] - 1),
-      }));
-      showToast(`Đã bỏ lưu mã "${code}" khỏi ví.`);
-    } catch (err: any) {
-      showToast(err.message || "Lỗi khi xóa mã giảm giá.");
-    }
   };
 
   const handleCopySuccess = (code: string) => {
@@ -287,7 +269,6 @@ export function CustomerVouchersView() {
             <CustomerVoucherCard
               key={voucher._id || voucher.code}
               voucher={voucher}
-              onRemove={handleRemove}
               onCopySuccess={handleCopySuccess}
             />
           ))}

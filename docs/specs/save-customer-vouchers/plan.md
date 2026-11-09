@@ -8,8 +8,8 @@
 
 Xây dựng và tích hợp hoàn chỉnh tính năng **Lưu mã giảm giá và Ví voucher cá nhân (Customer Voucher Wallet)** vào hệ thống Petjoy:
 1. **Phía Khách hàng (Storefront Discovery & UI Wallet)**:
-   - Cho phép người dùng bấm nút "Lưu" / "Đã lưu" trên từng thẻ voucher tại trang `/voucher`, trang chủ và banner.
-   - Cung cấp trang chuyên biệt "Ví voucher của tôi" (`/account/vouchers`) với 3 tab: Có hiệu lực, Đã sử dụng, Hết hiệu lực.
+   - Cho phép người dùng bấm nút "Lưu" trên từng thẻ voucher tại trang `/voucher`, trang chủ và banner. Thao tác lưu là **1 chiều và chỉ được lưu đúng 1 lần duy nhất**; sau khi lưu nút chuyển sang "Đã lưu" (disabled/cố định, không cho phép hủy lưu rồi lưu lại).
+   - Cung cấp trang chuyên biệt "Ví voucher của tôi" (`/account/vouchers`) với 3 tab: Có hiệu lực, Đã sử dụng, Hết hiệu lực. Không có nút xóa/hủy lưu chủ động (chỉ tự động dọn dẹp mã sau 30 ngày theo FR-016).
    - Bổ sung bộ lọc / tab "Mã đã lưu" trên trang khuyến mãi công khai `/voucher`.
    - Cung cấp modal chọn nhanh mã từ ví tại bước Giỏ hàng (`/cart`) và Thanh toán (`/checkout`), đối chiếu tức thì với giá trị đơn hàng.
 2. **Cơ chế cho Khách vãng lai & Đồng bộ (Guest Persistence & Cloud Sync)**:

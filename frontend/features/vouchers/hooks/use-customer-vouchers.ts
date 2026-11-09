@@ -69,40 +69,30 @@ export function useCustomerVouchers() {
       const normalized = code.trim().toUpperCase();
       const alreadySaved = savedCodes.includes(normalized);
 
+      // Quy tắc nghiệp vụ: Chỉ lưu 1 lần duy nhất, không cho phép hủy lưu
+      if (alreadySaved) {
+        return true;
+      }
+
       // Optimistic update
-      const nextSaved = !alreadySaved;
-      setSavedCodes((prev) =>
-        nextSaved ? [...prev, normalized] : prev.filter((c) => c !== normalized)
-      );
+      setSavedCodes((prev) => [...prev, normalized]);
 
       if (user) {
         try {
-          if (nextSaved) {
-            await saveVoucherApi(normalized);
-          } else {
-            await removeVoucherApi(normalized);
-          }
-          return nextSaved;
+          await saveVoucherApi(normalized);
+          return true;
         } catch (error) {
           // Rollback on error
-          setSavedCodes((prev) =>
-            alreadySaved ? [...prev, normalized] : prev.filter((c) => c !== normalized)
-          );
+          setSavedCodes((prev) => prev.filter((c) => c !== normalized));
           throw error;
         }
       } else {
         // Guest mode LocalStorage
         try {
-          if (nextSaved) {
-            saveGuestVoucher(normalized);
-          } else {
-            removeGuestVoucher(normalized);
-          }
-          return nextSaved;
+          saveGuestVoucher(normalized);
+          return true;
         } catch (error) {
-          setSavedCodes((prev) =>
-            alreadySaved ? [...prev, normalized] : prev.filter((c) => c !== normalized)
-          );
+          setSavedCodes((prev) => prev.filter((c) => c !== normalized));
           throw error;
         }
       }

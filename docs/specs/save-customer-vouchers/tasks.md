@@ -40,37 +40,37 @@
 
 ---
 
-## Phase 3: User Story 1 - Khách hàng lưu và bỏ lưu mã giảm giá từ giao diện khám phá (Priority: P1) 🎯 MVP
+## Phase 3: User Story 1 - Khách hàng lưu mã giảm giá 1 lần duy nhất từ giao diện khám phá (Priority: P1) 🎯 MVP
 
-**Goal**: Khách hàng (đăng nhập hoặc vãng lai) có thể bấm "Lưu" / "Đã lưu" trên bất kỳ thẻ voucher nào trên giao diện, cập nhật trạng thái tức thì và tự động đồng bộ khi đăng nhập.
+**Goal**: Khách hàng (đăng nhập hoặc vãng lai) có thể bấm "Lưu" mã giảm giá vào ví. Thao tác lưu là một chiều (One-way) và chỉ được lưu đúng 1 lần duy nhất; nút chuyển sang "Đã lưu" (disabled/cố định, không cho phép hủy lưu rồi lưu lại).
 
-**Independent Test**: Mở trang `/voucher`, nhấn nút "Lưu" trên một mã bất kỳ; kiểm tra nút đổi thành "Đã lưu", hiển thị Toast xác nhận, dữ liệu được ghi nhận vào DB (với user) hoặc LocalStorage (với guest), và tự động đồng bộ lên DB sau khi đăng nhập.
+**Independent Test**: Mở trang `/voucher`, nhấn nút "Lưu" trên một mã bất kỳ; kiểm tra nút đổi thành "Đã lưu", hiển thị Toast xác nhận, nút bị khóa tương tác không thể bấm lại để hủy lưu, dữ liệu được ghi nhận vào DB (với user) hoặc LocalStorage (với guest), và tự động đồng bộ lên DB sau khi đăng nhập.
 
 ### Implementation for User Story 1
 
-- [x] T007 [P] [US1] Implement `saveCustomerVoucher` (POST `/api/v1/customer/vouchers`) and `removeCustomerVoucher` (DELETE `/api/v1/customer/vouchers/:code`) in `backend/src/controllers/customer-voucher.controller.js` with idempotent handling on duplicate saves, enforcing maximum 50 active vouchers per user (FR-017), auto-filtering out vouchers expired/used > 30 days (FR-016), and verifying valid promotion code
+- [x] T007 [P] [US1] Implement `saveCustomerVoucher` (POST `/api/v1/customer/vouchers`) and disallow unsaving in `removeCustomerVoucher` (DELETE `/api/v1/customer/vouchers/:code` returning 400 `VOUCHER_CANNOT_BE_UNSAVED`) in `backend/src/controllers/customer-voucher.controller.js` with idempotent handling on duplicate saves, enforcing maximum 50 active vouchers per user (FR-017), auto-filtering out vouchers expired/used > 30 days (FR-016), and verifying valid promotion code
 - [x] T008 [P] [US1] Implement `getSavedVoucherCodes` (GET `/api/v1/customer/vouchers/ids`) in `backend/src/controllers/customer-voucher.controller.js` returning an array of saved codes/IDs for fast storefront status rendering
-- [x] T009 [P] [US1] Implement API client methods in `frontend/features/vouchers/services/customer-voucher.service.ts` (`saveVoucherApi`, `removeVoucherApi`, `getSavedVoucherCodesApi`, `syncVouchersApi`)
-- [x] T010 [P] [US1] Create guest voucher storage helper in `frontend/lib/voucher-storage.ts` managing `petjoy_saved_vouchers` in browser LocalStorage with error-safe parsing and writing
-- [x] T011 [US1] Create custom hook `frontend/features/vouchers/hooks/use-customer-vouchers.ts` managing saved codes state, optimistic toggle save/unsave, and syncing with backend when authenticated or LocalStorage when guest
-- [x] T012 [US1] Update `frontend/features/vouchers/components/voucher-card.tsx` to connect `isSaved` and `onToggleSave` to `use-customer-vouchers` with animated "Lưu" -> "Đã lưu" button, active scaling, and toast feedback
+- [x] T009 [P] [US1] Implement API client methods in `frontend/features/vouchers/services/customer-voucher.service.ts` (`saveVoucherApi`, `getSavedVoucherCodesApi`, `syncVouchersApi`)
+- [x] T010 [P] [US1] Create guest voucher storage helper in `frontend/lib/voucher-storage.ts` managing `petjoy_saved_vouchers` in browser LocalStorage with error-safe parsing and writing (one-way save only)
+- [x] T011 [US1] Create custom hook `frontend/features/vouchers/hooks/use-customer-vouchers.ts` managing saved codes state, one-way save operation, and syncing with backend when authenticated or LocalStorage when guest
+- [x] T012 [US1] Update `frontend/features/vouchers/components/voucher-card.tsx` to connect `isSaved` and `onToggleSave` to `use-customer-vouchers` with static/locked "Đã lưu" button (disabled, no hover unsave) and toast feedback
 - [x] T013 [P] [US1] Implement automatic guest voucher sync utility `frontend/lib/voucher-sync.ts` and integrate into `frontend/features/auth/auth-provider.tsx` to call `syncVouchersApi` immediately upon successful user login
-- [x] T014 [P] [US1] Add Vitest integration tests in `backend/tests/customer-vouchers.test.js` verifying saving voucher, idempotent duplicate save, removing voucher, and guest sync bulk upsert
+- [x] T014 [P] [US1] Add Vitest integration tests in `backend/tests/customer-vouchers.test.js` verifying saving voucher, idempotent duplicate save, disallow unsave (400), and guest sync bulk upsert
 
-**Checkpoint**: User Story 1 hoàn thành - Khách hàng có thể lưu/bỏ lưu voucher trên toàn bộ storefront và tự động đồng bộ khi đăng nhập (MVP hoàn tất).
+**Checkpoint**: User Story 1 hoàn thành - Khách hàng có thể lưu voucher 1 lần duy nhất trên toàn bộ storefront và tự động đồng bộ khi đăng nhập (MVP hoàn tất).
 
 ---
 
 ## Phase 4: User Story 2 - Xem và quản lý danh sách mã đã lưu tại trang Ví Voucher cá nhân (Priority: P1)
 
-**Goal**: Người dùng truy cập trang `/account/vouchers` hoặc tab "Mã đã lưu" trên `/voucher` để xem lại đầy đủ các voucher đã lưu với 3 nhóm trạng thái: Có hiệu lực, Đã sử dụng, Hết hiệu lực.
+**Goal**: Người dùng truy cập trang `/account/vouchers` hoặc tab "Mã đã lưu" trên `/voucher` để xem lại đầy đủ các voucher đã lưu với 3 nhóm trạng thái: Có hiệu lực, Đã sử dụng, Hết hiệu lực (không có nút xóa/hủy lưu thủ công).
 
-**Independent Test**: Đăng nhập tài khoản, truy cập `/account/vouchers`, kiểm tra danh sách hiển thị đầy đủ các mã đã lưu, phân nhóm tab chuẩn xác, thông tin chi tiết (mức giảm, đơn tối thiểu, hạn dùng) và các nút "Sao chép mã", "Dùng ngay" hoạt động đúng.
+**Independent Test**: Đăng nhập tài khoản, truy cập `/account/vouchers`, kiểm tra danh sách hiển thị đầy đủ các mã đã lưu, phân nhóm tab chuẩn xác, thông tin chi tiết (mức giảm, đơn tối thiểu, hạn dùng), không có nút xóa/bỏ lưu, và các nút "Sao chép mã", "Dùng ngay" hoạt động đúng.
 
 ### Implementation for User Story 2
 
 - [x] T015 [P] [US2] Implement `listCustomerVouchers` (GET `/api/v1/customer/vouchers`) in `backend/src/controllers/customer-voucher.controller.js` supporting filtering by status (`all`, `ready`, `used`, `expired`), sorting by `savedAt` descending, and returning summary counts for all tabs
-- [x] T016 [P] [US2] Create customer voucher wallet card component in `frontend/features/account/components/vouchers/customer-voucher-card.tsx` displaying voucher discount, code pill, min order, expiry date, status badge, "Sao chép mã" button, and "Dùng ngay" button with smart navigation to `/products` or applicable category (FR-008)
+- [x] T016 [P] [US2] Create customer voucher wallet card component in `frontend/features/account/components/vouchers/customer-voucher-card.tsx` displaying voucher discount, code pill, min order, expiry date, status badge, "Sao chép mã" button, and "Dùng ngay" button with smart navigation to `/products` or applicable category (FR-008, không hiển thị nút xóa/bỏ lưu)
 - [x] T017 [US2] Create customer voucher wallet view component in `frontend/features/account/components/vouchers/customer-vouchers-view.tsx` with 3 tabs ("Có hiệu lực", "Đã sử dụng", "Hết hiệu lực"), tab count badges, empty state illustrations, and search/filter
 - [x] T018 [P] [US2] Create wallet page route in `frontend/app/(customer)/account/vouchers/page.tsx` rendering `CustomerVouchersView` with proper metadata
 - [x] T019 [P] [US2] Update account navigation sidebar in `frontend/features/account/components/account-nav.tsx` adding "Ví voucher" menu item with Ticket/Tag icon and active link highlight
