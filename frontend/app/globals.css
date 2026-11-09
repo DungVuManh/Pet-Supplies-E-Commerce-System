@@ -54,5 +54,11 @@ input[type="checkbox"]:not(:disabled) {
 }
 
 ::selection {
-  background: var(--brand-subtle);
+  background: var(--brand);
+  color: #ffffff;
+}
+
+::-moz-selection {
+  background: var(--brand);
+  color: #ffffff;
 }
