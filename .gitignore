@@ -158,3 +158,5 @@ firebase-admin.json
 /handoff.md
 
 graphify-out/*
+
+.specify/*
