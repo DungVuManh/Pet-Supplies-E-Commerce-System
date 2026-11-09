@@ -244,7 +244,7 @@ export default async function OrderDetailPage({
         <>
          <dt className="text-muted">Đã thanh toán</dt>
          <dd className="text-right font-bold text-emerald-600">
-          {money(order.paidAmount)}
+          {money(order.paidAmount || 0)}
          </dd>
         </>
        )}

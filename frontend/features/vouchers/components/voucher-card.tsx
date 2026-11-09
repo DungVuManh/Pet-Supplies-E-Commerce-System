@@ -13,7 +13,7 @@ import type { VoucherItem } from "../types";
 type VoucherCardProps = {
   voucher: VoucherItem;
   isSaved?: boolean;
-  onToggleSave?: (id: string) => void;
+  onToggleSave?: (code: string) => void;
   onCopySuccess?: (code: string) => void;
 };
 
@@ -45,6 +45,14 @@ export function VoucherCard({
   const [copied, setCopied] = useState(false);
   const theme = VOUCHER_THEMES[voucher.type] || VOUCHER_THEMES["TOÀN SÀN"];
 
+  const isExpiringSoon = React.useMemo(() => {
+    if (!voucher.raw?.endAt) return false;
+    const end = new Date(voucher.raw.endAt).getTime();
+    const now = Date.now();
+    const diff = end - now;
+    return diff > 0 && diff < 24 * 60 * 60 * 1000;
+  }, [voucher.raw?.endAt]);
+
   // Sao chép mã vào clipboard
   const handleCopyCode = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -71,7 +79,7 @@ export function VoucherCard({
   const handleSave = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onToggleSave) {
-      onToggleSave(voucher.id);
+      onToggleSave(voucher.code);
     }
   };
 
@@ -96,15 +104,22 @@ export function VoucherCard({
         {/* Hàng trên: Tag loại mã & Logo paddy */}
         <div className="flex items-center justify-between">
           {/* Tag nhỏ góc trên trái */}
-          <span
-            className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-widest shadow-xs"
-            style={{
-              backgroundColor: theme.tagBg,
-              color: theme.tagText,
-            }}
-          >
-            {voucher.type}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span
+              className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-widest shadow-xs"
+              style={{
+                backgroundColor: theme.tagBg,
+                color: theme.tagText,
+              }}
+            >
+              {voucher.type}
+            </span>
+            {isExpiringSoon && (
+              <span className="inline-flex items-center rounded-full bg-rose-500 text-white px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider shadow-xs animate-pulse">
+                Sắp hết hạn
+              </span>
+            )}
+          </div>
 
           {/* Logo paddy góc trên phải */}
           <span className="font-extrabold text-[17px] tracking-tight text-white lowercase">
@@ -172,10 +187,12 @@ export function VoucherCard({
           <button
             type="button"
             onClick={handleSave}
-            className={`inline-flex items-center justify-center rounded-full px-4 py-1.5 text-xs font-bold transition-all active:scale-95 ${isSaved
-              ? "bg-[#E2E8F0] text-[#64748B] cursor-default shadow-none"
-              : "bg-[#0B4DFF] text-white shadow-xs hover:bg-blue-700 cursor-pointer"
-              }`}
+            title={isSaved ? "Nhấn để bỏ lưu mã" : "Nhấn để lưu mã vào ví"}
+            className={`inline-flex items-center justify-center rounded-full px-4 py-1.5 text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer ${
+              isSaved
+                ? "bg-[#E2E8F0] text-[#64748B] hover:bg-slate-300 shadow-none"
+                : "bg-[#0B4DFF] text-white shadow-xs hover:bg-blue-700"
+            }`}
           >
             {isSaved ? "Đã lưu" : "Lưu"}
           </button>

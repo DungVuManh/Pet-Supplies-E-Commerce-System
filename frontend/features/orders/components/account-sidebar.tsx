@@ -14,6 +14,7 @@ import React from "react";
 const NAV_ITEMS = [
   { label: "Thông tin cá nhân", href: "/account/profile" },
   { label: "Đơn hàng ", href: "/orders" },
+  { label: "Ví voucher", href: "/account/vouchers" },
   { label: "Đánh giá ", href: "/reviews" },
   { label: "Sản phẩm yêu thích", href: "/account/wishlist" },
   { label: "Sổ địa chỉ", href: "/account/addresses" },

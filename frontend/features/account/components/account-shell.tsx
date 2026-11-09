@@ -1,12 +1,12 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
 import { AccountSidebar } from "@/features/orders/components/account-sidebar";
 import { ChevronRight } from "lucide-react";
 
 interface AccountShellProps {
-  activeTab: "profile" | "addresses" | "pets" | "orders" | "wishlist";
+  activeTab: "profile" | "addresses" | "pets" | "orders" | "wishlist" | "vouchers";
   children: ReactNode;
 }
 
@@ -17,6 +17,7 @@ export function AccountShell({ activeTab, children }: AccountShellProps) {
     pets: "Thú cưng của tôi",
     orders: "Đơn hàng của tôi",
     wishlist: "Sản phẩm yêu thích",
+    vouchers: "Ví voucher",
   };
 
   return (
@@ -48,7 +49,9 @@ export function AccountShell({ activeTab, children }: AccountShellProps) {
 
       {/* Layout 2 cột */}
       <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
-        <AccountSidebar />
+        <Suspense fallback={<aside className="w-full md:w-64 shrink-0" />}>
+          <AccountSidebar />
+        </Suspense>
 
         <main className="flex-1 min-w-0">
           {children}

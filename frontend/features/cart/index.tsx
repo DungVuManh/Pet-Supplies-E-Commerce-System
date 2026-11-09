@@ -3,6 +3,7 @@
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { PromoCodeCard } from "@/components/storefront/promo-code-card";
+import { VoucherWalletModal } from "@/features/checkout/components/voucher-wallet-modal";
 import { useCartPage } from "./hooks/use-cart-page";
 import { CartItemsTable } from "./components/cart-items-table";
 import { CartSummary } from "./components/cart-summary";
@@ -19,6 +20,7 @@ export function CartView() {
     } = useCartPage();
 
     const [selectedItems, setSelectedItems] = useState<Record<string, boolean>>({});
+    const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
 
     const handleToggleSelect = (id: string) => {
         setSelectedItems((prev) => ({
@@ -118,10 +120,26 @@ export function CartView() {
                             isError={voucher.isError}
                             pending={voucher.pending}
                             applied={voucher.applied}
+                            onOpenWallet={() => setIsWalletModalOpen(true)}
                         />
                     )}
                 </div>
             </div>
+
+            <VoucherWalletModal
+                isOpen={isWalletModalOpen}
+                onClose={() => setIsWalletModalOpen(false)}
+                subtotal={computedSummary.subtotal}
+                selectedCode={voucher.applied?.code}
+                onSelectVoucher={(code) => {
+                    if ((voucher as any).applyCode) {
+                        (voucher as any).applyCode(code);
+                    } else {
+                        voucher.setInput(code);
+                        voucher.apply();
+                    }
+                }}
+            />
         </div>
     );
 }

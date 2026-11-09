@@ -50,6 +50,7 @@ const orderSchema = new mongoose.Schema(
             required() { return this.channel === "online"; },
         },
         subtotal: { ...nonNegativeInteger, required: true },
+        shippingFee: { ...nonNegativeInteger, default: 0 },
         discount: { ...nonNegativeInteger, default: 0 },
         total: { ...nonNegativeInteger, required: true },
         paidAmount: { ...nonNegativeInteger, default: 0 },

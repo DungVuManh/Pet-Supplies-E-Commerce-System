@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/auth-provider";
 import type { Role } from "@/features/auth/types";
@@ -10,7 +10,7 @@ import { ProfileEdit } from "@/features/account/components/profile-edit";
 import { accountApi } from "@/features/account/api";
 import type { CustomerProfile, ProfileStats, ProfileFormValues } from "@/features/account/types";
 
-export default function ProfilePage() {
+function ProfileContent() {
   const router = useRouter();
   const { user, status, acceptUser } = useAuth();
 
@@ -217,5 +217,24 @@ export default function ProfilePage() {
         )}
       </AccountShell>
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col px-4 py-6 outline-none sm:px-6 xl:px-16">
+          <AccountShell activeTab="profile">
+            <div className="rounded-2xl border border-line bg-surface p-12 text-center text-sm text-muted shadow-xs">
+              <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-brand border-r-transparent" />
+              <p className="mt-3">Đang tải thông tin tài khoản…</p>
+            </div>
+          </AccountShell>
+        </div>
+      }
+    >
+      <ProfileContent />
+    </Suspense>
   );
 }
