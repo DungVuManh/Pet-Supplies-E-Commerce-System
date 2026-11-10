@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { z } from 'zod';
+
 const originSchema = z
   .string()
   .trim()
@@ -17,6 +18,7 @@ const originSchema = z
     },
     { message: 'Expected an HTTP(S) origin without a path or trailing slash' },
   );
+
 const environmentSchema = z.object({
   NODE_ENV: z
     .enum(['development', 'test', 'production'])
@@ -46,7 +48,12 @@ const environmentSchema = z.object({
     .string()
     .transform((value) => value.split(','))
     .pipe(z.array(originSchema).min(1)),
+  SEPAY_API_KEY: z.string().trim().optional(),
+  SEPAY_BANK_CODE: z.string().trim().optional(),
+  SEPAY_ACCOUNT_NUMBER: z.string().trim().optional(),
+  SEPAY_ACCOUNT_HOLDER: z.string().trim().optional(),
 });
+
 export function parseEnvironment(values) {
   const defaults =
     values.NODE_ENV === 'production'
@@ -64,6 +71,7 @@ export function parseEnvironment(values) {
   }
   return result.data;
 }
+
 export function loadEnvironment() {
   dotenv.config({ quiet: true });
   return parseEnvironment(process.env);

@@ -7,6 +7,7 @@
 
 import Link from "next/link";
 import React from "react";
+import { PromoCodeCard } from "@/components/storefront/promo-code-card";
 import { DeliveryAddressCard } from "./components/delivery-address-card";
 import { OrderReviewCard } from "./components/order-review-card";
 import { PaymentMethodCard } from "./components/payment-method-card";
@@ -32,7 +33,7 @@ export function CheckoutView() {
     setPaymentMethod,
     submitError,
     summary,
-    shippingMethod,
+    voucher,
   } = useCheckout();
 
   if (loadError) {
@@ -151,12 +152,22 @@ export function CheckoutView() {
             onSelectMethod={setPaymentMethod}
           />
           <p className="text-xs text-muted leading-relaxed">
-            Bằng việc đặt hàng, bạn đồng ý với Điều khoản mua hàng và Chính sách bảo mật của Petly.
+            Bằng việc đặt hàng, bạn đồng ý với Điều khoản mua hàng và Chính sách bảo mật của Petjoy.
           </p>
         </div>
 
         {/* CỘT PHẢI: Xem lại đơn hàng & Đặt hàng */}
-        <div className="lg:col-span-5 xl:col-span-4">
+        <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-6">
+          <PromoCodeCard
+            value={voucher.input}
+            onChange={voucher.setInput}
+            onApply={voucher.apply}
+            onRemove={voucher.remove}
+            message={voucher.message}
+            isError={voucher.isError}
+            pending={voucher.pending}
+            applied={voucher.applied}
+          />
           <OrderReviewCard
             items={items}
             summary={summary}

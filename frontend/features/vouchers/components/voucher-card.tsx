@@ -108,7 +108,7 @@ export function VoucherCard({
 
           {/* Logo paddy góc trên phải */}
           <span className="font-extrabold text-[17px] tracking-tight text-white lowercase">
-            paddy
+            petjoy
           </span>
         </div>
 
@@ -156,17 +156,18 @@ export function VoucherCard({
           {voucher.title}
         </h3>
 
-        {/* Hàng điều kiện: "Từ xxx.000đ" bên trái và "Không giới hạn" bên phải */}
+        {/* Hàng điều kiện: "Từ xxx.000đ" bên trái và hạn dùng bên phải */}
         <div className="flex items-center justify-between text-[11px] sm:text-xs text-[#8E95A5] mb-4 font-medium">
           <span>{voucher.minOrder}</span>
-          <span>{voucher.usageLimit}</span>
+          <span>{voucher.validUntil}</span>
         </div>
 
         {/* Dưới cùng: Pill chứa mã và Nút Lưu */}
         <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-200/50">
-          <div className="flex item-center justify-center rounded-[30px] border-radius-[30px]  font-bold  border border-indigo bg-purple-500 px-5 py-1.5">
+          <div className="flex rounded-[30px] border-radius-[30px]  font-bold  border border-indigo bg-purple-500 px-5 py-1.5">
             <span>{voucher.code}</span>
           </div>
+
           {/* Nút Lưu xanh dương bo tròn (bấm đổi thành Đã lưu) */}
           <button
             type="button"
@@ -184,3 +185,4 @@ export function VoucherCard({
   );
 }
 
+export default VoucherCard;

@@ -51,8 +51,10 @@ const orderSchema = new mongoose.Schema(
         },
         subtotal: { ...nonNegativeInteger, required: true },
         discount: { ...nonNegativeInteger, default: 0 },
-        shippingFee: { ...nonNegativeInteger, default: 0 },
         total: { ...nonNegativeInteger, required: true },
+        paidAmount: { ...nonNegativeInteger, default: 0 },
+        needsReview: { type: Boolean, default: false },
+        paymentExpiredAt: { type: Date },
         promotionCode: { type: String, trim: true, uppercase: true },
         paymentMethod: { type: String, enum: paymentMethods, required: true },
         paymentStatus: {
@@ -85,7 +87,7 @@ orderSchema.pre("validate", function () {
     const subtotal = this.items?.reduce((sum, item) => sum + item?.unitPrice * item?.qty, 0);
     if (this.subtotal !== subtotal) this.invalidate("subtotal", "Subtotal must match item snapshots");
     if (this.discount > this.subtotal) this.invalidate("discount", "Discount exceeds subtotal");
-    if (this.total !== this.subtotal - this.discount + this.shippingFee) {
+    if (this.total !== this.subtotal - this.discount) {
         this.invalidate("total", "Total must match subtotal, discount and shipping fee");
     }
 });

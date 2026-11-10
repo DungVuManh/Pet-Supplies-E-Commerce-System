@@ -495,7 +495,7 @@ export function NotificationsView() {
         {forcedState === "loading" ? (
           "Đang đồng bộ thông báo mới nhất từ hệ thống."
         ) : forcedState === "error" ? (
-          "Thông báo chưa đọc vẫn được giữ nguyên. Liên hệ support@petly.vn nếu lỗi tiếp tục xảy ra."
+          "Thông báo chưa đọc vẫn được giữ nguyên. Liên hệ support@petjoy.vn nếu lỗi tiếp tục xảy ra."
         ) : (
           "Thông báo được tổng hợp thời gian thực từ đơn hàng, kho hàng và hệ thống. Không sử dụng dữ liệu giả."
         )}

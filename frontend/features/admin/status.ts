@@ -1,9 +1,10 @@
 import type { BadgeTone } from "@/components/workspace/workspace-ui";
-import type { CategoryStatus, MasterDataStatus, OrderStatus, PaymentMethod, ProductStatus, UserActivityStatus, UserRole, UserStatus } from "./types";
+import type { CategoryStatus, MasterDataStatus, OrderStatus, PaymentMethod, ProductStatus, UserActivityStatus, UserRole, UserStatus, VoucherState } from "./types";
 
 /** Every status label shown in the Admin workspace and its badge tone; screens never pick tones themselves. */
 export const adminStatusTones = {
   "Hoạt động": "success",
+  "Đang chạy": "success",
   "Đang bán": "success",
   "Hiển thị": "success",
   "Thành công": "success",
@@ -17,9 +18,11 @@ export const adminStatusTones = {
   "Chờ duyệt": "warning",
   "Chờ đối soát": "warning",
   "Sắp hết hàng": "warning",
+  "Hết lượt": "warning",
   "Sắp hết": "warning",
   "Bản nháp": "warning",
   "Đang giao": "info",
+  "Sắp diễn ra": "info",
   "Đang đóng gói": "info",
   "Đã khóa": "danger",
   "Bị từ chối": "danger",
@@ -27,6 +30,8 @@ export const adminStatusTones = {
   "Đã hủy": "danger",
   "Hết hàng": "danger",
   "Đã ẩn": "neutral",
+  "Đã tắt": "neutral",
+  "Hết hạn": "neutral",
   "Tạm ngưng": "neutral",
 } as const satisfies Record<string, BadgeTone>;
 
@@ -36,6 +41,10 @@ export type AdminStatus = keyof typeof adminStatusTones;
 export const userStatusLabels: Record<UserStatus, AdminStatus> = { active: "Hoạt động", locked: "Đã khóa" };
 
 export const categoryStatusLabels: Record<CategoryStatus, AdminStatus> = { active: "Hiển thị", hidden: "Đã ẩn" };
+
+export const voucherStateLabels: Record<VoucherState, AdminStatus> = {
+  active: "Đang chạy", scheduled: "Sắp diễn ra", expired: "Hết hạn", disabled: "Đã tắt", exhausted: "Hết lượt",
+};
 
 export const masterDataStatusLabels: Record<MasterDataStatus, AdminStatus> = { active: "Hoạt động", inactive: "Tạm ngưng" };
 
@@ -64,6 +73,9 @@ export const userActivityStatusLabels: Record<UserActivityStatus, AdminStatus> =
   success: "Thành công",
   denied: "Bị từ chối",
 };
+
+/** Badge label for a dashboard activity row: an order, an audit entry, or a new account. */
+export const overviewActivityStatusLabels: Record<UserActivityStatus | UserStatus, AdminStatus> = { ...userActivityStatusLabels, ...userStatusLabels };
 
 export function adminStatusTone(status: AdminStatus): BadgeTone {
   return adminStatusTones[status];

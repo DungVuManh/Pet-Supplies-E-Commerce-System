@@ -4,9 +4,10 @@ import * as environment from "../src/config/env.js";
 import { Category } from "../src/models/category.model.js";
 import { MasterData } from "../src/models/master-data.model.js";
 import { Product } from "../src/models/product.model.js";
+import { Promotion } from "../src/models/promotion.model.js";
 import { User } from "../src/models/user.model.js";
-import { migrateAdmin, migrateAdminData } from "../src/scripts/migrate-admin.js";
-import { seedAdmin, seedAdminData } from "../src/scripts/seed-admin.js";
+import { migrateAdmin, migrateAdminData, migrations } from "../src/scripts/migrate-admin.js";
+import { seedAdmin, seedAdminData, seedSteps } from "../src/scripts/seed-admin.js";
 
 let nodeEnv;
 beforeEach(() => {
@@ -17,9 +18,10 @@ beforeEach(() => {
  vi.spyOn(database, "disconnectDatabase").mockResolvedValue();
  vi.spyOn(User, "updateMany").mockResolvedValue({ modifiedCount: 0 });
  vi.spyOn(Category, "find").mockImplementation(() => ({ select: () => ({ sort: () => ({ lean: async () => [] }) }) }));
- vi.spyOn(Category, "findOne").mockImplementation(() => ({ select: () => ({ lean: async () => null }) }));
  vi.spyOn(Product, "distinct").mockResolvedValue([]);
  vi.spyOn(MasterData, "updateOne").mockResolvedValue({});
+ vi.spyOn(Promotion, "updateMany").mockResolvedValue({ modifiedCount: 0 });
+ vi.spyOn(Promotion, "updateOne").mockResolvedValue({});
 });
 afterEach(() => vi.restoreAllMocks());
 
@@ -33,8 +35,8 @@ describe("Admin migration and seed scripts", () => {
  });
 
  it("connect, run, and always disconnect", async () => {
-  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 0, "categories.tree": 0 });
-  await expect(seedAdmin()).resolves.toEqual({ "categories.tree": 0, masterData: 38 });
+  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 0, "categories.tree": 0, "promotions.usage": 0 });
+  await expect(seedAdmin()).resolves.toEqual({ masterData: 38, vouchers: 3 });
   expect(database.connectDatabase).toHaveBeenCalledWith("mongodb://localhost/admin-test");
   expect(database.disconnectDatabase).toHaveBeenCalledTimes(2);
  });
@@ -50,22 +52,30 @@ describe("Admin migration and seed scripts", () => {
   nodeEnv = "production";
   await expect(seedAdmin()).rejects.toThrow("không chạy trong production");
   expect(database.connectDatabase).not.toHaveBeenCalled();
-  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 0, "categories.tree": 0 });
+  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 0, "categories.tree": 0, "promotions.usage": 0 });
  });
 
  it("backfills a missing user status once, without touching updatedAt", async () => {
   User.updateMany.mockResolvedValueOnce({ modifiedCount: 4 });
-  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 4, "categories.tree": 0 });
+  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 4, "categories.tree": 0, "promotions.usage": 0 });
   expect(User.updateMany).toHaveBeenCalledWith({ status: { $exists: false } }, { $set: { status: "active" } }, { timestamps: false });
-  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 0, "categories.tree": 0 });
+  await expect(migrateAdmin()).resolves.toEqual({ "users.status": 0, "categories.tree": 0, "promotions.usage": 0 });
  });
 
- it("nests the sample categories, skipping parents an older seed does not have", async () => {
-  const parent = { _id: "dog-food" };
-  Category.findOne.mockImplementation(({ slug }) => ({ select: () => ({ lean: async () => (slug === "thuc-an-cho-cho" ? parent : null) }) }));
-  const updateMany = vi.spyOn(Category, "updateMany").mockResolvedValue({ matchedCount: 2 });
-  await expect(seedAdmin()).resolves.toEqual({ "categories.tree": 2, masterData: 38 });
-  expect(updateMany).toHaveBeenCalledTimes(1);
-  expect(updateMany).toHaveBeenCalledWith({ slug: { $in: ["hat-cho-cho", "pate-cho"] } }, { $set: { parentId: "dog-food" } });
+ it("backfills a missing voucher count once, without touching updatedAt", async () => {
+  Promotion.updateMany.mockResolvedValueOnce({ modifiedCount: 4 });
+  await expect(migrateAdminData(migrations.filter((step) => step.name === "promotions.usage"))).resolves.toEqual({ "promotions.usage": 4 });
+  expect(Promotion.updateMany).toHaveBeenCalledWith({ usedCount: { $exists: false } }, { $set: { usedCount: 0 } }, { timestamps: false });
+ });
+
+ it("inserts sample vouchers without overwriting an existing one", async () => {
+  await seedAdminData(seedSteps.filter((step) => step.name === "vouchers"));
+  expect(Promotion.updateOne).toHaveBeenCalledTimes(3);
+  for (const [filter, update, options] of Promotion.updateOne.mock.calls) {
+   expect(filter.code).not.toMatch(/^SEED-/);
+   expect(Object.keys(update)).toEqual(["$setOnInsert"]);
+   expect(update.$setOnInsert).toMatchObject({ isPublic: true, usedCount: 0 });
+   expect(options).toEqual({ upsert: true });
+  }
  });
 });

@@ -417,11 +417,10 @@ export function PetFormView({
                         type="button"
                         disabled={isSaving}
                         onClick={() => handleSpeciesChange("dog")}
-                        className={`inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-semibold transition-all ${
-                          species === "dog"
-                            ? "bg-brand text-white shadow-xs"
-                            : "border border-line bg-surface text-ink hover:bg-canvas"
-                        }`}
+                        className={`inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-semibold transition-all ${species === "dog"
+                          ? "bg-brand text-white shadow-xs"
+                          : "border border-line bg-surface text-ink hover:bg-canvas"
+                          }`}
                       >
                         <span className="text-base">🐕</span>
                         <span>Chó</span>
@@ -430,11 +429,10 @@ export function PetFormView({
                         type="button"
                         disabled={isSaving}
                         onClick={() => handleSpeciesChange("cat")}
-                        className={`inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-semibold transition-all ${
-                          species === "cat"
-                            ? "bg-brand text-white shadow-xs"
-                            : "border border-line bg-surface text-ink hover:bg-canvas"
-                        }`}
+                        className={`inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-semibold transition-all ${species === "cat"
+                          ? "bg-brand text-white shadow-xs"
+                          : "border border-line bg-surface text-ink hover:bg-canvas"
+                          }`}
                       >
                         <span className="text-base">🐱</span>
                         <span>Mèo</span>
@@ -443,11 +441,10 @@ export function PetFormView({
                         type="button"
                         disabled={isSaving}
                         onClick={() => handleSpeciesChange("other")}
-                        className={`inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-semibold transition-all ${
-                          species === "other"
-                            ? "bg-brand text-white shadow-xs"
-                            : "border border-line bg-surface text-ink hover:bg-canvas"
-                        }`}
+                        className={`inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-semibold transition-all ${species === "other"
+                          ? "bg-brand text-white shadow-xs"
+                          : "border border-line bg-surface text-ink hover:bg-canvas"
+                          }`}
                       >
                         <span className="text-base">🐾</span>
                         <span>Khác</span>
@@ -504,20 +501,20 @@ export function PetFormView({
 
                     {(selectedBreed === "Khác (nhập tên giống)" ||
                       species === "other") && (
-                      <input
-                        type="text"
-                        disabled={isSaving}
-                        value={customBreed}
-                        onChange={(e) => {
-                          setCustomBreed(e.target.value);
-                          if (errors.breed) {
-                            setErrors((prev) => ({ ...prev, breed: undefined }));
-                          }
-                        }}
-                        placeholder="Nhập tên giống..."
-                        className="mt-2 block w-full min-h-10 rounded-xl border border-line bg-surface px-4 text-xs text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
-                      />
-                    )}
+                        <input
+                          type="text"
+                          disabled={isSaving}
+                          value={customBreed}
+                          onChange={(e) => {
+                            setCustomBreed(e.target.value);
+                            if (errors.breed) {
+                              setErrors((prev) => ({ ...prev, breed: undefined }));
+                            }
+                          }}
+                          placeholder="Nhập tên giống..."
+                          className="mt-2 block w-full min-h-10 rounded-xl border border-line bg-surface px-4 text-xs text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
+                        />
+                      )}
                     {errors.breed && (
                       <p className="mt-1 text-xs text-danger font-medium">
                         {errors.breed}
@@ -640,11 +637,10 @@ export function PetFormView({
                       type="button"
                       disabled={isSaving}
                       onClick={() => setIsSterilized(false)}
-                      className={`inline-flex min-h-9 items-center justify-center rounded-xl border px-5 text-xs font-semibold transition-all ${
-                        isSterilized === false
-                          ? "border-brand bg-brand-subtle text-brand ring-1 ring-brand"
-                          : "border-line bg-surface text-ink hover:bg-canvas"
-                      }`}
+                      className={`inline-flex min-h-9 items-center justify-center rounded-xl border px-5 text-xs font-semibold transition-all ${isSterilized === false
+                        ? "border-brand bg-brand-subtle text-brand ring-1 ring-brand"
+                        : "border-line bg-surface text-ink hover:bg-canvas"
+                        }`}
                     >
                       Chưa
                     </button>
@@ -652,11 +648,10 @@ export function PetFormView({
                       type="button"
                       disabled={isSaving}
                       onClick={() => setIsSterilized(true)}
-                      className={`inline-flex min-h-9 items-center justify-center rounded-xl border px-5 text-xs font-semibold transition-all ${
-                        isSterilized === true
-                          ? "border-brand bg-brand-subtle text-brand ring-1 ring-brand"
-                          : "border-line bg-surface text-ink hover:bg-canvas"
-                      }`}
+                      className={`inline-flex min-h-9 items-center justify-center rounded-xl border px-5 text-xs font-semibold transition-all ${isSterilized === true
+                        ? "border-brand bg-brand-subtle text-brand ring-1 ring-brand"
+                        : "border-line bg-surface text-ink hover:bg-canvas"
+                        }`}
                     >
                       Rồi
                     </button>
@@ -677,11 +672,10 @@ export function PetFormView({
                           type="button"
                           disabled={isSaving}
                           onClick={() => toggleHealthIssue(issue)}
-                          className={`inline-flex items-center rounded-full border px-3.5 py-1.5 text-xs transition-all ${
-                            selected
-                              ? "border-brand bg-brand-subtle font-semibold text-brand ring-1 ring-brand shadow-2xs"
-                              : "border-line bg-surface font-medium text-ink/80 hover:bg-canvas"
-                          }`}
+                          className={`inline-flex items-center rounded-full border px-3.5 py-1.5 text-xs transition-all ${selected
+                            ? "border-brand bg-brand-subtle font-semibold text-brand ring-1 ring-brand shadow-2xs"
+                            : "border-line bg-surface font-medium text-ink/80 hover:bg-canvas"
+                            }`}
                         >
                           {issue}
                         </button>
@@ -745,6 +739,9 @@ export function PetFormView({
                     placeholder="Thói quen ăn uống, dị ứng khác hoặc lưu ý đặc biệt..."
                     className="mt-1.5 block w-full rounded-xl border border-line bg-surface p-3.5 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
                   />
+                  <p className="mt-1 text-xs text-muted">
+                    Thông tin giúp Petjoy gợi ý khẩu phần ăn và phụ kiện an toàn
+                  </p>
                 </div>
 
                 {/* Submit / Cancel Buttons */}
@@ -757,8 +754,8 @@ export function PetFormView({
                     {isSaving
                       ? "Đang lưu…"
                       : petToEdit
-                      ? "Lưu thay đổi"
-                      : "Thêm Boss"}
+                        ? "Lưu thay đổi"
+                        : "Thêm Boss"}
                   </button>
                   <button
                     type="button"

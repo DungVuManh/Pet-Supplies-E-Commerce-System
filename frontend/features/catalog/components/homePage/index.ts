@@ -26,7 +26,6 @@ export type { FetchHomeProductsParams } from "./services/home.service";
 // Types
 export type {
   HeroSlide,
-  VoucherItem,
   BrandItem,
   PetCareArticle,
   HomeTab,

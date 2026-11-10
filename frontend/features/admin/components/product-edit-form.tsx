@@ -61,7 +61,7 @@ export function ProductEditForm({ product: initialProduct }: { product: AdminPro
               <div className={`mt-2 max-h-60 overflow-y-auto rounded-lg border p-3 ${errors.categoryCodes ? "border-danger" : "border-line"}`}>
                 {categories.length === 0 && <p className="text-sm text-muted">Đang tải danh mục…</p>}
                 <ul className="grid gap-1 sm:grid-cols-2">{categories.map((category) => <li key={category.id}>
-                  <label className={`flex min-h-10 items-center gap-3 text-sm ${category.isChild ? "pl-6" : "font-medium"}`}>
+                  <label className="flex min-h-10 items-center gap-3 text-sm font-medium">
                     <input type="checkbox" className="size-5 shrink-0 accent-brand" checked={values.categoryCodes.includes(category.ref)} onChange={() => toggleCategory(category.ref)} />
                     <span className="min-w-0">{category.name}</span>
                   </label>

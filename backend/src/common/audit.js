@@ -1,6 +1,6 @@
 import { AuditLog } from "../models/audit-log.model.js";
 
-const secretKey = /password|secret|token|cookie|csrf|credential|authorization/i;
+const secretKey = /password|secret|token|cookie|csrf|credential|authorization|apikey/i;
 
 /** Copies a before/after snapshot without any field whose name looks like a secret. */
 export function stripSecrets(value) {
@@ -36,4 +36,19 @@ export async function recordAudit(request, { action, target, before, after, resu
   console.error("[audit] Failed to record audit entry", { action });
   return null;
  }
+}
+
+/**
+ * Records structured payment audit events (e.g. SEPAY_WEBHOOK_RECEIVED, SEPAY_PAYMENT_VERIFIED, ORDER_NEEDS_REVIEW)
+ * with secrets safely stripped to ensure compliance with CR-08.
+ */
+export function logPaymentAudit({ action, orderCode, details, ip }) {
+  const sanitized = stripSecrets(details);
+  console.log(`[audit:payment] [${action}] Order: ${orderCode}`, {
+    action,
+    orderCode,
+    ip,
+    details: sanitized,
+    at: new Date().toISOString(),
+  });
 }

@@ -245,7 +245,7 @@ export default function PetsPage() {
                       Chưa có Boss nào được đăng ký
                     </h3>
                     <p className="mt-1 text-sm text-muted max-w-sm mx-auto">
-                      Hãy cho Petly biết thêm về người bạn bốn chân của bạn để chúng tôi phục vụ tốt nhất.
+                      Hãy cho Petjoy biết thêm về người bạn bốn chân của bạn để chúng tôi phục vụ tốt nhất.
                     </p>
                     <button
                       type="button"
@@ -286,7 +286,7 @@ export default function PetsPage() {
                 />
               </svg>
               <p className="text-muted text-xs sm:text-sm">
-                <strong className="text-brand">Mẹo chăm sóc thú cưng:</strong> Cập nhật cân nặng và tình trạng sức khỏe định kỳ giúp Petly gợi ý khẩu phần ăn chính xác nhất cho bé.
+                <strong className="text-brand">Mẹo chăm sóc thú cưng:</strong> Cập nhật cân nặng và tình trạng sức khỏe định kỳ giúp Petjoy gợi ý khẩu phần ăn chính xác nhất cho bé.
               </p>
             </div>
           </div>

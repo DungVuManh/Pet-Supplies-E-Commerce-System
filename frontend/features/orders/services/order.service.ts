@@ -59,6 +59,8 @@ export type CreateOrderPayload = {
   paymentMethod?: "COD" | "ONLINE";
   guestToken?: string;
   isBuyNow?: boolean;
+  promotionCode?: string;
+  expectedDiscount?: number;
 };
 
 // 0. POST /api/v1/orders/buy-now-preview - Kiểm tra tính hợp lệ & tồn kho cho Mua ngay
@@ -136,7 +138,7 @@ export async function createOrderApi(payload: CreateOrderPayload) {
 
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.message || "Không thể tạo đơn hàng.");
+    throw Object.assign(new Error(data.message || "Không thể tạo đơn hàng."), { code: data.error?.code as string | undefined });
   }
 
   return data;

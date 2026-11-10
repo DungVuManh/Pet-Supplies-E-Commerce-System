@@ -73,12 +73,14 @@ export function OrderReviewCard({
           </span>
         </div> */}
 
-    {/* <div className="flex justify-between text-muted">
-          <span>Giảm giá:</span>
-          <span className="font-semibold text-ink">
-            {formatVND(summary.discount)}
-          </span>
-        </div> */}
+    {summary.discount ? (
+     <div className="flex justify-between gap-3 text-muted">
+      <span className="min-w-0 break-words">Giảm giá{summary.promotionCode ? ` (${summary.promotionCode})` : ""}:</span>
+      <span className="shrink-0 font-semibold text-danger">
+       -{formatVND(summary.discount)}
+      </span>
+     </div>
+    ) : null}
    </div>
 
    {/* Tổng thanh toán */}

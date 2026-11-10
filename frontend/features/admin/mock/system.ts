@@ -26,8 +26,8 @@ export type StoreSettings = {
 };
 
 export const defaultStoreSettings: StoreSettings = {
-  storeName: "Petly – Pet Supplies",
-  contactEmail: "hello@petly.vn",
+  storeName: "Petjoy – Pet Supplies",
+  contactEmail: "hello@petjoy.vn",
   hotline: "1900 6868",
   address: "28 Nguyễn Thị Minh Khai, Đa Kao, Quận 1, TP. Hồ Chí Minh",
   timezone: "GMT+7 · Việt Nam",
@@ -38,7 +38,7 @@ export const defaultStoreSettings: StoreSettings = {
   codPayment: true,
   bankTransfer: true,
   vnpay: true,
-  accountHolder: "CÔNG TY TNHH PETLY",
+  accountHolder: "CÔNG TY TNHH PETJOY",
   emailOrderConfirmation: true,
   lowStockAlert: true,
   dailyRevenueReport: true,
@@ -74,10 +74,10 @@ Khách hàng có thể yêu cầu đổi trả trong 7 ngày kể từ ngày nh�
 Không nhận đổi trả thức ăn đã mở bao bì, sản phẩm đã sử dụng hoặc hư hỏng do bảo quản sai. Quy định này không áp dụng với lỗi phát sinh từ nhà sản xuất.
 
 3. Cách gửi yêu cầu
-Liên hệ hello@petly.vn hoặc 1900 6868, cung cấp mã đơn, hình ảnh sản phẩm và mô tả lỗi. Petly phản hồi trong 1 ngày làm việc.
+Liên hệ hello@petjoy.vn hoặc 1900 6868, cung cấp mã đơn, hình ảnh sản phẩm và mô tả lỗi. Petjoy phản hồi trong 1 ngày làm việc.
 
 4. Phí vận chuyển và hoàn tiền
-Petly chịu phí vận chuyển nếu giao sai hoặc sản phẩm lỗi. Sau khi xác nhận, tiền được hoàn về phương thức thanh toán ban đầu trong 3–7 ngày làm việc.`,
+Petjoy chịu phí vận chuyển nếu giao sai hoặc sản phẩm lỗi. Sau khi xác nhận, tiền được hoàn về phương thức thanh toán ban đầu trong 3–7 ngày làm việc.`,
   },
   {
     id: "cancellation",
@@ -111,7 +111,7 @@ Tiền hoàn sẽ được chuyển về tài khoản ban đầu trong thời gi
 - Thanh toán COD: Hoàn tiền qua tài khoản ngân hàng chính chủ của khách.
 
 3. Phí hoàn tiền
-Petly miễn phí toàn bộ chi phí phát sinh trong quá trình xử lý hoàn tiền cho khách hàng.`,
+Petjoy miễn phí toàn bộ chi phí phát sinh trong quá trình xử lý hoàn tiền cho khách hàng.`,
   },
   {
     id: "privacy",

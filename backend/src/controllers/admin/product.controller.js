@@ -30,11 +30,11 @@ function variantRows(product, threshold, index) {
  }));
 }
 
-/** The category and its children, or null when the reference matches nothing. */
+/** The category, or null when the reference matches nothing. */
 function categoryScope(ref, index) {
  const category = [...index.values()].find((item) => item.ref.toLowerCase() === ref.toLowerCase());
  if (!category) return null;
- return new Set([category.id, ...[...index.values()].filter((item) => item.parentId === category.id).map((item) => item.id)]);
+ return new Set([category.id]);
 }
 
 /**

@@ -1,32 +1,13 @@
 "use client";
 
 import { Tag, Copy, Check } from "lucide-react";
-import type { VoucherItem } from "../types";
+import { voucherCapLabel, voucherMinimumLabel, voucherValueLabel } from "@/lib/voucher";
 import { useVoucherBar } from "../hooks/use-voucher-bar";
 
-const VOUCHERS: readonly VoucherItem[] = [
-  {
-    code: "PETJOY10",
-    discount: "Giảm 10%",
-    condition: "Đơn từ 0đ · Tối đa 50k",
-    badge: "Thành viên mới",
-  },
-  {
-    code: "FREESHIP",
-    discount: "Freeship 30K",
-    condition: "Áp dụng đơn từ 250k",
-    badge: "Toàn quốc",
-  },
-  {
-    code: "PET50K",
-    discount: "Giảm 50.000đ",
-    condition: "Áp dụng đơn từ 500k",
-    badge: "Hot Deal",
-  },
-] as const;
-
 export function VoucherBar() {
-  const { copiedCode, handleCopy } = useVoucherBar();
+  const { vouchers, copiedCode, handleCopy } = useVoucherBar();
+
+  if (vouchers.length === 0) return null;
 
   return (
     <section aria-label="Mã giảm giá độc quyền" className="w-full">
@@ -44,7 +25,7 @@ export function VoucherBar() {
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {VOUCHERS.map((v) => {
+          {vouchers.map((v) => {
             const isCopied = copiedCode === v.code;
             return (
               <div
@@ -52,16 +33,11 @@ export function VoucherBar() {
                 className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-line bg-canvas p-3 transition-colors hover:border-brand/50"
               >
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-brand">
-                      {v.code}
-                    </span>
-                    <span className="rounded bg-brand-subtle px-1.5 py-0.2 text-[10px] font-semibold text-brand">
-                      {v.badge}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-xs font-semibold text-ink leading-snug">{v.discount}</p>
-                  <p className="text-[11px] text-muted">{v.condition}</p>
+                  <p className="break-words text-xs font-bold uppercase tracking-wider text-brand">
+                    {v.code}
+                  </p>
+                  <p className="mt-1 text-xs font-semibold text-ink leading-snug">Giảm {voucherValueLabel(v)}</p>
+                  <p className="text-[11px] text-muted">{[voucherMinimumLabel(v), voucherCapLabel(v)].filter(Boolean).join(" · ")}</p>
                 </div>
 
                 <button

@@ -73,16 +73,8 @@ export function OrderSummarySidebar({
               {formatVND(order.subtotal)}
             </span>
           </div>
-
           <div className="flex justify-between text-muted">
-            <span>Phí vận chuyển</span>
-            <span className="font-semibold text-ink">
-              {formatVND(order.shippingFee)}
-            </span>
-          </div>
-
-          <div className="flex justify-between text-muted">
-            <span>Giảm giá</span>
+            <span className="min-w-0 break-words">Giảm giá{order.promotionCode ? ` (${order.promotionCode})` : ""}</span>
             <span className="font-semibold text-ink">
               {formatVND(order.discount)}
             </span>

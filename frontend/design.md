@@ -208,7 +208,7 @@ app/                          Route, layout, metadata; page mỏng
   (customer)/(auth)/          /login và /register
   (customer)/page.tsx         Home công khai tại /
 components/ui/                Control dùng chung, không chứa nghiệp vụ Auth
-components/storefront/        Header/footer Customer
+components/storefront/        Header/footer Customer, PromoCodeCard dùng chung cho giỏ hàng và thanh toán
 features/<feature>/components/ Component theo nghiệp vụ
 features/<feature>/           Hook, validation và logic thuộc feature
 features/catalog/, cart/      Catalog mẫu/tìm kiếm; state và dialog giỏ hàng khách
@@ -223,6 +223,8 @@ app/fonts/                    Font local và license
 - Không thêm thư viện UI, icon, form hoặc state management chỉ để thay vài dòng đã có. Mọi dependency mới cần lý do cụ thể.
 - Không tạo tầng trừu tượng, state toàn cục hay component cho tính năng chưa có nhu cầu. Không sao chép nguyên JSX xuất từ Figma làm code sản phẩm mà bỏ qua component và token hiện có.
 - Màu/status nghiệp vụ phải có mapping tập trung khi được triển khai; không viết lại mapping ở từng bảng/trang.
+
+Màn hình Quản Lí Voucher (`/admin/vouchers`) chưa có thiết kế Figma, nên dùng lại mẫu danh sách và biểu mẫu của Admin như sản phẩm và danh mục.
 
 ## 9. Constraint và cách nghiệm thu
 

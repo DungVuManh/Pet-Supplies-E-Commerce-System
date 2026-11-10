@@ -23,7 +23,7 @@ export function OrdersView() {
   const { filter, query, setQuery, selectTab, selectStatus, clearFilters, items, counts, state, error, reload, page, setPage, pagination, from, to } = useOrdersList();
   const [notice, setNotice] = useState("");
   const loading = state === "loading";
-  const footnote = { empty: "Bộ lọc được giữ để bạn tiếp tục tìm kiếm.", loading: "Đang đồng bộ dữ liệu mới nhất.", error: "Liên hệ support@petly.vn nếu lỗi tiếp tục xảy ra." };
+  const footnote = { empty: "Bộ lọc được giữ để bạn tiếp tục tìm kiếm.", loading: "Đang đồng bộ dữ liệu mới nhất.", error: "Liên hệ support@petjoy.vn nếu lỗi tiếp tục xảy ra." };
 
   return <>
     <AdminPageHeader breadcrumbs={["Đơn hàng", "Danh sách đơn hàng"]} title="Danh sách đơn hàng" subtitle="Theo dõi và xử lý các đơn hàng của cửa hàng."

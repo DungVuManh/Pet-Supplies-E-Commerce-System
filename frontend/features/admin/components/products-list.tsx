@@ -31,7 +31,7 @@ export function ProductsList() {
       <Field label="Tìm kiếm" htmlFor="product-query"><input id="product-query" type="search" className={control} placeholder="Tên sản phẩm hoặc SKU" value={draft.q} onChange={(e) => setDraft({ ...draft, q: e.target.value })} /></Field>
       <Field label="Danh mục" htmlFor="product-filter-category"><select id="product-filter-category" className={control} value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })}>
         <option value="all">Tất cả danh mục</option>
-        {categories.map((category) => <option key={category.id} value={category.ref}>{category.isChild ? `— ${category.name}` : category.name}</option>)}
+        {categories.map((category) => <option key={category.id} value={category.ref}>{category.name}</option>)}
       </select></Field>
       <Field label="Trạng thái" htmlFor="product-filter-status"><select id="product-filter-status" className={control} value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value as ProductStatus | "all" })}>
         <option value="all">Tất cả trạng thái</option><option value="active">{productStatusLabels.active}</option><option value="low">{productStatusLabels.low}</option><option value="hidden">{productStatusLabels.hidden}</option>

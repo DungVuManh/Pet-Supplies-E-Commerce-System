@@ -1,4 +1,5 @@
 import { AppError } from "../common/errors/app-error.js";
+import { releaseVoucher } from "../common/voucher-redemption.js";
 import { Order } from "../models/order.model.js";
 import { Product } from "../models/product.model.js";
 import { parseOrderId, parseStaffOrderStatus, staffOrderTransitions } from "../validators/order.validator.js";
@@ -59,6 +60,7 @@ export async function updateStaffOrderStatus(request, response) {
     if (result.modifiedCount !== 1) {
       throw new AppError("Đơn hàng đã thay đổi. Hãy tải lại trước khi cập nhật.", 409, "ORDER_STATUS_CONFLICT");
     }
+    if (input.orderStatus === "cancelled") await releaseVoucher(id);
     response.json({ success: true, data: { order: { id, orderStatus: input.orderStatus } } });
   } catch (error) {
     if (error instanceof AppError) throw error;
