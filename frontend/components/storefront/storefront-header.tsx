@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, HelpCircle, Truck } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { CartPreview } from "@/features/cart/components/cart-preview";
 import { StorefrontSearch, StorefrontSearchForm } from "./storefront-search";
@@ -39,15 +39,14 @@ export function StorefrontHeader() {
 
 function StorefrontHeaderWithParams() {
   const searchParams = useSearchParams();
-  return <StorefrontHeaderContent currentPetType={searchParams.get("petType")} />;
+  const pathname = usePathname();
+  return <StorefrontHeaderContent currentPetType={searchParams.get("petType")} pathname={pathname} />;
 }
 
-function StorefrontHeaderContent({ currentPetType }: { currentPetType: string | null }) {
+function StorefrontHeaderContent({ currentPetType, pathname = "/" }: { currentPetType: string | null; pathname?: string }) {
   const [activeMenu, setActiveMenu] = useState<"dog" | "cat" | null>(null);
   const headerRef = useRef<HTMLElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const pathname = usePathname();
   // Mở menu có độ trễ nhỏ (~100ms) khi hover để trải nghiệm mượt mà, tránh nhấp nháy
   const handleMouseEnter = (type: "dog" | "cat") => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -106,18 +105,20 @@ function StorefrontHeaderContent({ currentPetType }: { currentPetType: string | 
           <Suspense fallback={<StorefrontSearchForm />}>
             <StorefrontSearch />
           </Suspense>
-          <div className="ml-auto flex items-center gap-4 whitespace-nowrap md:ml-0 md:gap-8">
-            <a
-              href="/policy/chinh-sach-van-chuyen"
-              className="hidden text-brand hover:underline sm:inline"
+          <div className="ml-auto flex items-center gap-2 sm:gap-3 whitespace-nowrap md:ml-0 md:gap-5">
+            <Link
+              href="/support"
+              className="group hidden sm:inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors"
             >
-              Trợ giúp
-            </a>
+              <HelpCircle className="size-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
+              <span>Trợ giúp</span>
+            </Link>
             <Link
               href="/order-tracking"
-              className="hidden text-brand hover:underline sm:inline"
+              className="group hidden sm:inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors"
             >
-              Tra cứu đơn hàng
+              <Truck className="size-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
+              <span>Tra cứu đơn hàng</span>
             </Link>
             <CartPreview />
             <AccountMenu />

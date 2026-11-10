@@ -17,13 +17,14 @@ import wishlistRouter from "./routers/wishlist.router.js";
 import reviewRouter from "./routers/review.router.js";
 import voucherRouter from "./routers/voucher.router.js";
 import paymentRouter from "./routers/payment.router.js";
+import customerVoucherRouter from "./routers/customer-voucher.router.js";
 
 export function createApp(config) {
  const app = express();
  app.locals.config = config;
  app.disable("x-powered-by");
  app.use(
-  ["/api/v1/auth", "/api/v1/account", "/api/v1/staff", "/api/v1/admin"],
+  ["/api/v1/auth", "/api/v1/account", "/api/v1/staff", "/api/v1/admin", "/api/v1/customer"],
   (_request, response, next) => {
    response.set("Cache-Control", "no-store");
    next();
@@ -58,6 +59,7 @@ export function createApp(config) {
  app.use("/api/v1/reviews", reviewRouter);
  app.use("/api/v1/vouchers", voucherRouter);
  app.use("/api/v1/promotions", voucherRouter);
+ app.use("/api/v1/customer/vouchers", customerVoucherRouter);
  app.use("/api/v1/admin", adminRouter);
  app.use("/api/v1", workspaceRouter);
  app.use(notFoundMiddleware);

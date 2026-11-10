@@ -3,25 +3,36 @@
 // =============================================================
 // features/vouchers/components/voucher-view.tsx
 // Màn hình "Mã giảm giá" - Fetch API Promotion model từ Database
-// Dùng useEffect, chỉ hiển thị tất cả các mã có isActive là true
+// Dùng useEffect, hỗ trợ lưu mã vào ví và lọc tab "Tất cả" / "Mã đã lưu"
 // =============================================================
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronRight, CheckCircle2 } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { ChevronRight, CheckCircle2, Bookmark, Sparkles } from "lucide-react";
 import { VoucherCard } from "./voucher-card";
 import { PromotionBanners } from "./promotion-banners";
 import type { VoucherItem } from "../types";
 import { fetchPromotions, promotionToVoucherItem } from "../services/voucher.service";
+import { useCustomerVouchers } from "../hooks/use-customer-vouchers";
+import { useAuth } from "@/features/auth/auth-provider";
+
+type VoucherFilterTab = "all" | "saved";
 
 export function VoucherView() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { user } = useAuth();
+
   // State lưu danh sách voucher lấy trực tiếp từ API Promotion model
   const [vouchers, setVouchers] = useState<VoucherItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [currentTab, setCurrentTab] = useState<VoucherFilterTab>("all");
 
-  // Quản lý danh sách ID voucher đã lưu (lưu vào localStorage)
-  const [savedIds, setSavedIds] = useState<string[]>([]);
+  // Hook quản lý ví voucher người dùng
+  const { savedCodes, isSaved, toggleSaveVoucher } = useCustomerVouchers();
+
   // Toast thông báo
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -85,36 +96,28 @@ export function VoucherView() {
       .finally(() => setIsLoading(false));
   };
 
-  // Đọc danh sách voucher đã lưu từ localStorage khi mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("petjoy_saved_vouchers");
-      if (stored) {
-        setSavedIds(JSON.parse(stored));
-      }
-    } catch {
-      // Bỏ qua nếu không truy cập được localStorage
+  // Xử lý lưu voucher (yêu cầu đăng nhập, chỉ lưu 1 lần)
+  const handleToggleSave = async (code: string) => {
+    // 1. Nếu chưa đăng nhập: chuyển hướng ngay sang trang đăng nhập
+    if (!user) {
+      router.push(`/login?redirect=${encodeURIComponent(pathname || "/voucher")}`);
+      return;
     }
-  }, []);
 
-  // Xử lý bật/tắt lưu voucher
-  const handleToggleSave = (id: string) => {
-    setSavedIds((prev) => {
-      let updated: string[];
-      if (prev.includes(id)) {
-        updated = prev.filter((item) => item !== id);
-        showToast("Đã bỏ lưu mã giảm giá");
-      } else {
-        updated = [...prev, id];
-        showToast("Đã lưu mã giảm giá vào ví!");
+    // 2. Nếu đã lưu rồi: không làm gì
+    if (isSaved(code)) {
+      return;
+    }
+
+    // 3. Nếu đã đăng nhập: thực hiện lưu vào ví
+    try {
+      const nowSaved = await toggleSaveVoucher(code);
+      if (nowSaved) {
+        showToast(`Đã lưu mã ${code} vào ví!`);
       }
-      try {
-        localStorage.setItem("petjoy_saved_vouchers", JSON.stringify(updated));
-      } catch {
-        // Ignored
-      }
-      return updated;
-    });
+    } catch (err: any) {
+      showToast(err.message || "Không thể cập nhật ví voucher.");
+    }
   };
 
   // Hiển thị toast thông báo tạm thời
@@ -129,6 +132,18 @@ export function VoucherView() {
     showToast(`Đã sao chép mã "${code}" vào clipboard!`);
   };
 
+  // Lọc voucher hiển thị theo tab
+  const displayedVouchers = useMemo(() => {
+    if (currentTab === "saved") {
+      return vouchers.filter((v) => isSaved(v.code));
+    }
+    return vouchers;
+  }, [vouchers, currentTab, isSaved]);
+
+  const savedCount = useMemo(() => {
+    return vouchers.filter((v) => isSaved(v.code)).length;
+  }, [vouchers, isSaved]);
+
   return (
     <div className="w-full">
       {/* Breadcrumb điều hướng */}
@@ -140,26 +155,69 @@ export function VoucherView() {
         <span className="font-semibold text-ink">Khuyến mãi & Ưu đãi</span>
       </nav>
 
-      {/* 1. KHỐI 3 BANNER QUẢNG CÁO: KHUYẾN MÃI & ƯU ĐÃI (1 banner lớn phía trên, 2 banner đôi phía dưới) */}
+      {/* 1. KHỐI 3 BANNER QUẢNG CÁO: KHUYẾN MÃI & ƯU ĐÃI */}
       <PromotionBanners />
 
-      {/* 2. KHỐI DANH SÁCH MÃ GIẢM GIÁ (GỌI TỪ API PROMOTION MODEL THẬT) */}
+      {/* 2. KHỐI DANH SÁCH MÃ GIẢM GIÁ */}
       <section>
-        {/* Header tiêu đề: "Mã giảm giá" đậm có nét highlight vàng #FFD600 bên dưới chữ */}
-        <div className="mb-8">
-          <div className="relative inline-block">
-            <h2 className="relative z-10 text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Mã giảm giá
-            </h2>
-            {/* Nét highlight vàng (#FFD600) phía dưới chữ */}
-            <span
-              className="absolute bottom-1 left-0 z-0 h-3 w-full rounded-full bg-[#FFD600] opacity-95"
-              aria-hidden="true"
-            />
+        {/* Header tiêu đề */}
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <div className="relative inline-block">
+              <h2 className="relative z-10 text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                Mã giảm giá
+              </h2>
+              {/* Nét highlight vàng (#FFD600) phía dưới chữ */}
+              <span
+                className="absolute bottom-1 left-0 z-0 h-3 w-full rounded-full bg-[#FFD600] opacity-95"
+                aria-hidden="true"
+              />
+            </div>
+            <p className="mt-2 text-sm text-[#8E95A5] font-medium">
+              Lưu về ví, dùng khi thanh toán
+            </p>
           </div>
-          <p className="mt-2 text-sm text-[#8E95A5] font-medium">
-            Lưu về ví, dùng khi thanh toán
-          </p>
+
+          {/* Tab chuyển đổi: Tất cả mã vs Mã đã lưu */}
+          <div className="inline-flex rounded-xl bg-slate-100 p-1.5 self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setCurrentTab("all")}
+              className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+                currentTab === "all"
+                  ? "bg-white text-blue-600 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Sparkles className="size-3.5" />
+              <span>Tất cả mã</span>
+              <span className="ml-1 rounded-full bg-slate-200/80 px-1.5 py-0.2 text-[10px] text-slate-700">
+                {vouchers.length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCurrentTab("saved")}
+              className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+                currentTab === "saved"
+                  ? "bg-white text-blue-600 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Bookmark className="size-3.5" />
+              <span>Mã đã lưu</span>
+              <span
+                className={`ml-1 rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                  savedCount > 0
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-slate-200/80 text-slate-700"
+                }`}
+              >
+                {savedCount}
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Trạng thái Loading khi đang fetch API */}
@@ -184,21 +242,41 @@ export function VoucherView() {
           </div>
         )}
 
-        {/* Trạng thái Rỗng */}
+        {/* Trạng thái Rỗng chung */}
         {!isLoading && !errorMessage && vouchers.length === 0 && (
           <div className="py-16 text-center">
             <p className="text-sm text-[#8E95A5]">Hiện chưa có mã giảm giá nào đang áp dụng.</p>
           </div>
         )}
 
-        {/* Lưới card: 5 cột trên desktop, 2 cột tablet, 1 cột mobile; khoảng cách đều ~24px (gap-6) */}
-        {!isLoading && !errorMessage && vouchers.length > 0 && (
+        {/* Trạng thái Rỗng riêng cho tab Mã đã lưu */}
+        {!isLoading && !errorMessage && vouchers.length > 0 && currentTab === "saved" && displayedVouchers.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-white py-16 px-4 text-center">
+            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-blue-50 text-blue-600 mb-3">
+              <Bookmark className="size-6" />
+            </div>
+            <h3 className="text-base font-bold text-slate-800">Bạn chưa lưu mã giảm giá nào</h3>
+            <p className="mt-1 text-sm text-[#8E95A5] max-w-md mx-auto">
+              Hãy nhấn nút "Lưu" trên các mã ưu đãi để thêm vào ví và áp dụng nhanh khi thanh toán.
+            </p>
+            <button
+              type="button"
+              onClick={() => setCurrentTab("all")}
+              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-blue-700 transition-colors"
+            >
+              Khám phá mã giảm giá
+            </button>
+          </div>
+        )}
+
+        {/* Lưới card: 5 cột trên desktop, 2 cột tablet, 1 cột mobile */}
+        {!isLoading && !errorMessage && displayedVouchers.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-            {vouchers.map((voucher) => (
+            {displayedVouchers.map((voucher) => (
               <VoucherCard
                 key={voucher.id}
                 voucher={voucher}
-                isSaved={savedIds.includes(voucher.id)}
+                isSaved={isSaved(voucher.code)}
                 onToggleSave={handleToggleSave}
                 onCopySuccess={handleCopySuccess}
               />

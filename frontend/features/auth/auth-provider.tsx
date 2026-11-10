@@ -5,6 +5,7 @@ import { authApi, AuthApiError } from "./api";
 import type { AuthUser } from "./types";
 
 import { AUTH_USER_KEY, syncGuestCartToBackend } from "@/features/cart/services/cart.service";
+import { syncGuestVouchersToBackend } from "@/lib/voucher-sync";
 
 type AuthState = { status: "loading" | "ready" | "error"; user: AuthUser | null };
 type AuthContextValue = AuthState & { refresh: () => Promise<void>; acceptUser: (user: AuthUser | null) => void };
@@ -37,6 +38,7 @@ export function AuthProvider({ children, initialUser }: { children: ReactNode; i
     syncAuthStorage(user);
     if (user) {
       void syncGuestCartToBackend();
+      void syncGuestVouchersToBackend();
     }
   }, []);
 
@@ -48,6 +50,7 @@ export function AuthProvider({ children, initialUser }: { children: ReactNode; i
         syncAuthStorage(user);
         if (user) {
           void syncGuestCartToBackend();
+          void syncGuestVouchersToBackend();
         }
       }
     }, (error: unknown) => {

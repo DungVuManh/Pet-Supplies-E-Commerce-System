@@ -80,6 +80,12 @@ export function useVoucherQuote({ items, phone, remember }: { items: VoucherQuot
       }
       void run(code, JSON.parse(itemsKey) as VoucherQuoteItem[], phone);
     },
+    applyCode(code: string) {
+      const normalized = code.trim().toUpperCase();
+      if (!normalized) return;
+      setInput(normalized);
+      void run(normalized, JSON.parse(itemsKey) as VoucherQuoteItem[], phone);
+    },
     remove() {
       latestRequest.current += 1;
       activeCode.current = null;

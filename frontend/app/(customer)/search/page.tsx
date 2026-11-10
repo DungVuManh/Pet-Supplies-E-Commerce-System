@@ -8,6 +8,8 @@ type SearchPageProps = {
   searchParams: Promise<{ q?: string; category?: string; petType?: string }>;
 };
 
+export const instant = false;
+
 export async function generateMetadata({
   searchParams,
 }: SearchPageProps): Promise<Metadata> {

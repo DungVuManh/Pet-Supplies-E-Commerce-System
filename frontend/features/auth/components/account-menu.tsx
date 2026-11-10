@@ -2,17 +2,19 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Heart, LayoutDashboard, LogOut, MapPin, PawPrint, ShoppingCart, Star, UserRound } from "lucide-react";
+import { Heart, LayoutDashboard, LogOut, MapPin, PawPrint, ShoppingCart, Star, Ticket, UserRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../auth-provider";
 import { authApi } from "../api";
 import { authErrorMessage } from "../errors";
+import { useCustomerVouchers } from "@/features/vouchers/hooks/use-customer-vouchers";
 
 const menuItemClassName = "flex min-h-11 w-full items-center gap-3 rounded-lg px-2 text-left text-sm font-medium text-ink transition-colors hover:bg-brand-subtle hover:text-brand";
 
 export function AccountMenu({ roleLabel }: { roleLabel?: string } = {}) {
     const { user, status, acceptUser, refresh } = useAuth();
+    const { savedCodes } = useCustomerVouchers();
     const [pending, setPending] = useState(false);
     const [failure, setFailure] = useState("");
     const locked = useRef(false);
@@ -193,6 +195,19 @@ export function AccountMenu({ roleLabel }: { roleLabel?: string } = {}) {
                             >
                                 <ShoppingCart aria-hidden="true" className="h-4 w-4 shrink-0" />
                                 Đơn hàng của tôi
+                            </Link>
+                            <Link
+                                href="/account/vouchers"
+                                onClick={closeMenu}
+                                className={menuItemClassName}
+                            >
+                                <Ticket aria-hidden="true" className="h-4 w-4 shrink-0 text-blue-600" />
+                                <span>Ví voucher của tôi</span>
+                                {savedCodes.length > 0 && (
+                                    <span className="ml-auto rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 text-[10px] font-bold">
+                                        {savedCodes.length}
+                                    </span>
+                                )}
                             </Link>
                             <Link
                                 href="/account/wishlist"

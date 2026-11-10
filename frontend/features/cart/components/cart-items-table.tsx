@@ -10,6 +10,8 @@ type CartItemsTableProps = {
  onIncreaseQuantity: (id: string) => void;
  onDecreaseQuantity: (id: string) => void;
  onRemoveItem: (id: string) => void;
+ selectedItems?: Record<string, boolean>;
+ onToggleSelect?: (id: string) => void;
 };
 
 function formatVND(value: number): string {
@@ -22,6 +24,8 @@ export function CartItemsTable({
  onIncreaseQuantity,
  onDecreaseQuantity,
  onRemoveItem,
+ selectedItems = {},
+ onToggleSelect,
 }: CartItemsTableProps) {
  if (isLoading) {
   return (
@@ -57,15 +61,23 @@ export function CartItemsTable({
    {/* Danh sách từng sản phẩm */}
    <div className="divide-y divide-line">
     {items.map((item) => {
-     const itemTotal = item.product.price * item.quantity;
+     const isSelected = Boolean(selectedItems[item.id]);
+     const itemTotal = isSelected ? item.product.price * item.quantity : 0;
 
      return (
       <div
        key={item.id}
        className="grid grid-cols-12 items-center px-6 py-6 gap-4"
       >
-       {/* Ảnh + Thông tin */}
+       {/* Checkbox + Ảnh + Thông tin */}
        <div className="col-span-6 flex items-center gap-4">
+        <input
+         type="checkbox"
+         checked={isSelected}
+         onChange={() => onToggleSelect?.(item.id)}
+         className="size-4 rounded border-line text-blue-600 focus:ring-blue-500 cursor-pointer"
+         aria-label={`Chọn mua ${item.product.name}`}
+        />
         <div className="relative size-20 shrink-0 overflow-hidden rounded-xl bg-gray-50 border border-line/60">
          <Image
           src={item.product.image}
