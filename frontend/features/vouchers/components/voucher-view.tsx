@@ -8,23 +8,29 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { ChevronRight, CheckCircle2, Bookmark, Sparkles } from "lucide-react";
 import { VoucherCard } from "./voucher-card";
 import { PromotionBanners } from "./promotion-banners";
 import type { VoucherItem } from "../types";
 import { fetchPromotions, promotionToVoucherItem } from "../services/voucher.service";
 import { useCustomerVouchers } from "../hooks/use-customer-vouchers";
+import { useAuth } from "@/features/auth/auth-provider";
 
 type VoucherFilterTab = "all" | "saved";
 
 export function VoucherView() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { user } = useAuth();
+
   // State lưu danh sách voucher lấy trực tiếp từ API Promotion model
   const [vouchers, setVouchers] = useState<VoucherItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentTab, setCurrentTab] = useState<VoucherFilterTab>("all");
 
-  // Hook quản lý ví voucher người dùng & khách
+  // Hook quản lý ví voucher người dùng
   const { savedCodes, isSaved, toggleSaveVoucher } = useCustomerVouchers();
 
   // Toast thông báo
@@ -90,12 +96,20 @@ export function VoucherView() {
       .finally(() => setIsLoading(false));
   };
 
-  // Xử lý lưu voucher (1 chiều, chỉ lưu 1 lần)
+  // Xử lý lưu voucher (yêu cầu đăng nhập, chỉ lưu 1 lần)
   const handleToggleSave = async (code: string) => {
-    if (isSaved(code)) {
-      showToast(`Mã "${code}" đã có trong ví của bạn.`);
+    // 1. Nếu chưa đăng nhập: chuyển hướng ngay sang trang đăng nhập
+    if (!user) {
+      router.push(`/login?redirect=${encodeURIComponent(pathname || "/voucher")}`);
       return;
     }
+
+    // 2. Nếu đã lưu rồi: không làm gì
+    if (isSaved(code)) {
+      return;
+    }
+
+    // 3. Nếu đã đăng nhập: thực hiện lưu vào ví
     try {
       const nowSaved = await toggleSaveVoucher(code);
       if (nowSaved) {

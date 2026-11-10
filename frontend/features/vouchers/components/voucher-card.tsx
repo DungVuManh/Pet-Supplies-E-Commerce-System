@@ -180,24 +180,30 @@ export function VoucherCard({
 
         {/* Dưới cùng: Pill chứa mã và Nút Lưu */}
         <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-200/50">
-          <div className="flex rounded-[30px] border-radius-[30px]  font-bold  border border-indigo bg-purple-500 px-5 py-1.5">
+          <div className="flex rounded-[30px] font-bold border border-indigo bg-purple-500 text-white px-5 py-1.5">
             <span>{voucher.code}</span>
           </div>
 
-          {/* Nút Lưu xanh dương bo tròn (chỉ lưu 1 lần, khi đã lưu sẽ khóa cố định) */}
-          <button
-            type="button"
-            disabled={isSaved}
-            onClick={handleSave}
-            title={isSaved ? "Mã giảm giá đã có trong ví của bạn" : "Nhấn để lưu mã vào ví"}
-            className={`inline-flex items-center justify-center rounded-full px-4 py-1.5 text-xs font-bold transition-all duration-200 ${
-              isSaved
-                ? "bg-[#E2E8F0] text-[#64748B] cursor-default opacity-90 shadow-none pointer-events-none select-none"
-                : "bg-[#0B4DFF] text-white shadow-xs hover:bg-blue-700 active:scale-95 cursor-pointer"
-            }`}
-          >
-            {isSaved ? "Đã lưu" : "Lưu"}
-          </button>
+          {/* Khi đã lưu: Render badge 'Đã lưu' không có tương tác click và hiển thị con trỏ cấm (cursor-not-allowed) */}
+          {isSaved ? (
+            <div
+              role="status"
+              aria-label="Mã giảm giá đã có trong ví của bạn"
+              title="Mã giảm giá đã có trong ví của bạn"
+              className="inline-flex items-center justify-center rounded-full bg-slate-200 text-slate-500 px-4 py-1.5 text-xs font-bold cursor-not-allowed select-none opacity-80 shadow-none pointer-events-auto"
+            >
+              Đã lưu
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSave}
+              title="Nhấn để lưu mã vào ví"
+              className="inline-flex items-center justify-center rounded-full bg-[#0B4DFF] text-white px-4 py-1.5 text-xs font-bold shadow-xs hover:bg-blue-700 active:scale-95 cursor-pointer transition-all duration-200"
+            >
+              Lưu
+            </button>
+          )}
         </div>
       </div>
     </div>

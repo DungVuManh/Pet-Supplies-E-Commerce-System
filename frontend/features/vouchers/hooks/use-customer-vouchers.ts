@@ -35,8 +35,8 @@ export function useCustomerVouchers() {
         setIsLoading(false);
       }
     } else {
-      const guestCodes = getGuestSavedVouchers();
-      setSavedCodes(guestCodes);
+      // Khách vãng lai chưa đăng nhập không có ví voucher
+      setSavedCodes([]);
       setIsLoading(false);
     }
   }, [user, status]);
@@ -74,27 +74,21 @@ export function useCustomerVouchers() {
         return true;
       }
 
+      // Chưa đăng nhập thì không thể lưu vào tài khoản
+      if (!user) {
+        return false;
+      }
+
       // Optimistic update
       setSavedCodes((prev) => [...prev, normalized]);
 
-      if (user) {
-        try {
-          await saveVoucherApi(normalized);
-          return true;
-        } catch (error) {
-          // Rollback on error
-          setSavedCodes((prev) => prev.filter((c) => c !== normalized));
-          throw error;
-        }
-      } else {
-        // Guest mode LocalStorage
-        try {
-          saveGuestVoucher(normalized);
-          return true;
-        } catch (error) {
-          setSavedCodes((prev) => prev.filter((c) => c !== normalized));
-          throw error;
-        }
+      try {
+        await saveVoucherApi(normalized);
+        return true;
+      } catch (error) {
+        // Rollback on error
+        setSavedCodes((prev) => prev.filter((c) => c !== normalized));
+        throw error;
       }
     },
     [savedCodes, user]
