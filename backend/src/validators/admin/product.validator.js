@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MAX_PRODUCT_IMAGES } from "../../common/product-images.js";
 import { listQueryShape } from "./list-query.js";
 
 export const productListQuerySchema = z.object({
@@ -26,6 +27,10 @@ const fields = {
  cost: integer("Giá vốn phải là số nguyên không âm.").nullable(),
  stock: integer("Tồn kho phải là số nguyên không âm."),
  lowStockThreshold: integer("Ngưỡng cảnh báo phải là số nguyên không âm.").nullable(),
+ // Image URLs, main photo first. Where they may point is checked in the controller.
+ images: z.array(z.string({ error: "Ảnh không hợp lệ." }).trim().min(1, "Ảnh không hợp lệ.").max(500, "Đường dẫn ảnh quá dài."), { error: "Ảnh không hợp lệ." })
+  .max(MAX_PRODUCT_IMAGES, `Tối đa ${MAX_PRODUCT_IMAGES} ảnh mỗi sản phẩm.`)
+  .refine((urls) => new Set(urls).size === urls.length, "Một ảnh bị thêm hai lần."),
 };
 
 // Only changed fields are sent. A SKU is checked only when it changes, because the
@@ -55,6 +60,7 @@ export const productCreateSchema = z.object({
  description: fields.description.default(""),
  unit: fields.unit.default(""),
  isActive: fields.isActive.default(true),
+ images: fields.images.default([]),
  variants: z.array(variantSchema, { error: "Phân loại không hợp lệ." }).min(1, "Thêm ít nhất một phân loại.").max(MAX_VARIANTS, `Tối đa ${MAX_VARIANTS} phân loại.`),
 }).strict().superRefine((product, context) => {
  const seen = new Set();

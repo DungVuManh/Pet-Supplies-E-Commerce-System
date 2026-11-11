@@ -118,7 +118,7 @@ export function useProductCreate() {
     try {
       const created = await createProduct({
         name: values.name.trim(), brand: values.brand, petType: values.petType, categoryCodes: values.categoryCodes,
-        description: values.description.trim(), unit: values.unit, isActive: values.visibility === "active",
+        description: values.description.trim(), unit: values.unit, isActive: values.visibility === "active", images: [],
         variants: variants.map((row) => ({
           label: row.label.trim(), sku: row.sku.trim(), price: parseAmount(row.price),
           cost: optionalAmount(row.cost), stock: optionalAmount(row.stock) ?? 0, lowStockThreshold: optionalAmount(row.threshold),

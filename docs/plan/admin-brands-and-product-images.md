@@ -39,15 +39,22 @@ Specification: `docs/specs/admin-brands-and-product-images.md`
 
 ## Part 2: Product photo upload
 
-- [ ] Add `common/middlewares/upload-guard.js`: allowed Origin, `multipart/form-data`, and the CSRF pair, using `cookieSettings` from `auth.middleware.js`.
-- [ ] Add `controllers/admin/upload.controller.js` and `POST /admin/uploads/product-images`: the guard, `multer` in memory (5 MB, 8 files), a first-bytes check for JPEG, PNG, and WebP, upload to `petjoy/products`, 503 without keys, and 400 for `multer` limit errors.
-- [ ] Add `images` to the product create and patch schemas with the URL rule, to `updateProduct` and its audit, and to `createProduct`.
-- [ ] Test in `backend/tests/admin-product-images.test.js`, with Cloudinary mocked: valid files, a renamed non-image, oversize, too many, no files, missing CSRF, wrong Origin, the wrong role, no keys, and a foreign URL refused on save.
-- [ ] Add `lib/api-upload.ts`: a fresh CSRF token, `FormData`, no `Content-Type`, and the same response envelope as `api-client.ts`.
-- [ ] Add `uploadProductImages` to `services/products.ts`, `hooks/use-product-images.ts` (upload, remove, make main, move, client checks for type, size, and count), and `components/product-images-field.tsx`.
-- [ ] Use it on the product edit page in place of the "Tải ảnh lên" demo notice, sending `images` only when they changed.
-- [ ] Browser check, with real Cloudinary: upload a photo of about 4 MB through the Next rewrite, make it main, remove another, save, and see it in the Admin and on the storefront. Then try a renamed text file and a file over 5 MB.
-- [ ] 🛑 **Commit checkpoint:** `admin - upload and manage product photos`
+- [x] Add `common/middlewares/upload-guard.js`: allowed Origin, `multipart/form-data`, and the CSRF pair, using `cookieSettings` from `auth.middleware.js`.
+  - Note: the CSRF pair is checked before the content type, so a forged JSON request gets 403 like every other mutation. A foreign Origin is already refused by the app's CORS middleware.
+- [x] Add `controllers/admin/upload.controller.js` and `POST /admin/uploads/product-images`: the guard, `multer` in memory (5 MB, 8 files), a first-bytes check for JPEG, PNG, and WebP, upload to `petjoy/products`, 503 without keys, and 400 for `multer` limit errors.
+  - Note: the URL and file rules are in `common/product-images.js`. A URL the product already stores stays allowed, so older seed images survive a reorder.
+- [x] Add `images` to the product create and patch schemas with the URL rule, to `updateProduct` and its audit, and to `createProduct`.
+  - Note: `admin-product-create.test.js` now expects a foreign URL to be refused with the images message, instead of `images` being an unknown field.
+- [x] Test in `backend/tests/admin-product-images.test.js`, with Cloudinary mocked: valid files, a renamed non-image, oversize, too many, no files, missing CSRF, wrong Origin, the wrong role, no keys, and a foreign URL refused on save.
+- [x] Add `lib/api-upload.ts`: a fresh CSRF token, `FormData`, no `Content-Type`, and the same response envelope as `api-client.ts`.
+- [x] Add `uploadProductImages` to `services/products.ts`, `hooks/use-product-images.ts` (upload, remove, make main, move, client checks for type, size, and count), and `components/product-images-field.tsx`.
+  - Note: the client checks are `productImagesError` in `validation.ts`, tested in `admin-create-forms.test.mjs`. The field is controlled by the form, so photos are saved with the product.
+- [x] Use it on the product edit page in place of the "Tải ảnh lên" demo notice, sending `images` only when they changed.
+  - Note: the create hook sends `images: []` until Part 3 adds the field there, so the build stays green.
+- [x] Browser check, with real Cloudinary: upload a photo of about 4 MB through the Next rewrite, make it main, remove another, save, and see it in the Admin and on the storefront. Then try a renamed text file and a file over 5 MB.
+  - Result (2026-11-11): 11 checks passed with the real Cloudinary account. A 4.4 MB JPEG and a small one went through the Next rewrite in about 15 s, and making a photo main, removing one, and saving all worked. The main photo showed on the Admin detail page and came first in the storefront catalog API. A 6 MB file was refused in the browser, a renamed text file was refused by the server, and 320 px had no page-level scroll. Two of the generated test images were blank white, which made photos look missing in screenshots. A proper image displayed correctly on the edit and detail pages. Test uploads remain in the `petjoy/products` folder.
+- [x] 🛑 **Commit checkpoint:** `admin - upload and manage product photos`
+  - Checks: backend 1049 passed with the same 18 baseline failures, frontend tests 120/120, lint at the baseline count, and the build passes.
 
 ## Part 3: Photos on the new product page
 

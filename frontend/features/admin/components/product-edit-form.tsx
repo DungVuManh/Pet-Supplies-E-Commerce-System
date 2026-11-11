@@ -1,9 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Upload } from "lucide-react";
 import { TextField } from "@/components/ui/text-field";
-import { DemoNotice } from "@/components/workspace/demo-notice";
 import { card, dangerButton, primaryLink, secondaryButton } from "@/components/workspace/workspace-ui";
 import { useProductEdit } from "../hooks/use-product-edit";
 import { productStatusLabels } from "../status";
@@ -11,7 +9,7 @@ import type { AdminProductDetail } from "../types";
 import { AdminConfirmDialog } from "./admin-confirm-dialog";
 import { AdminPageHeader } from "./admin-ui";
 import { ProductBasicSection, SelectField, UnitSelect } from "./product-form-fields";
-import { ProductImage } from "./product-image";
+import { ProductImagesField } from "./product-images-field";
 
 export function ProductEditForm({ product: initialProduct }: { product: AdminProductDetail }) {
   const { product, values, errors, notice, formError, pending, options, categories, set, toggleCategory, formatOnBlur, submit, deleteOpen, deletePending, deleteError, askDelete, cancelDelete, confirmDelete } = useProductEdit(initialProduct);
@@ -51,9 +49,7 @@ export function ProductEditForm({ product: initialProduct }: { product: AdminPro
       <aside className="min-w-0 space-y-6" aria-label="Hình ảnh và hiển thị">
         <section aria-labelledby="product-photo" className={`${card} p-6`}>
           <h2 id="product-photo" className="text-xl font-semibold">Hình ảnh</h2>
-          <ProductImage src={product.images[0]} alt={product.name} sizes="272px" className="mt-4 aspect-[17/12]" />
-          <DemoNotice label="Tải ảnh lên" icon={<Upload className="h-4 w-4" aria-hidden="true" />} className="mt-4 [&>button]:w-full" message="Tải ảnh lên chưa kết nối backend; ảnh hiện tại được giữ nguyên." />
-          <p className="mt-4 text-xs text-muted">JPG, PNG · Tối đa 5 MB mỗi ảnh. Ảnh đầu tiên là ảnh đại diện.</p>
+          <ProductImagesField images={values.images} onChange={(images) => set("images", images)} name={values.name} error={errors.images} />
         </section>
         <section aria-labelledby="product-visibility" className={`${card} space-y-4 p-6`}>
           <h2 id="product-visibility" className="text-xl font-semibold">Hiển thị</h2>

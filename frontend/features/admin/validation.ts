@@ -147,3 +147,17 @@ export function validateUserCreate(values: UserCreateValues): FormErrors<UserCre
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim()) || values.email.trim().length > 254) errors.email = "Nhập email hợp lệ, ví dụ ten@petjoy.vn.";
   return errors;
 }
+
+export const MAX_PRODUCT_IMAGES = 8;
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const imageTypes = ["image/jpeg", "image/png", "image/webp"];
+
+/** Why these files cannot be added to a product that already has `current` photos, or "". The server checks again. */
+export function productImagesError(files: { name: string; type: string; size: number }[], current: number) {
+  if (current + files.length > MAX_PRODUCT_IMAGES) return `Mỗi sản phẩm tối đa ${MAX_PRODUCT_IMAGES} ảnh; còn thêm được ${Math.max(0, MAX_PRODUCT_IMAGES - current)} ảnh.`;
+  const wrong = files.find((file) => !imageTypes.includes(file.type));
+  if (wrong) return `“${wrong.name}” không phải ảnh JPG, PNG hoặc WebP.`;
+  const big = files.find((file) => file.size > MAX_IMAGE_BYTES);
+  if (big) return `“${big.name}” lớn hơn 5 MB.`;
+  return "";
+}

@@ -140,7 +140,7 @@ describe("POST /api/v1/admin/products", () => {
    [{ variants: [{ label: "A", sku: "A", price: 0 }] }, "variants.0.price", "Giá bán phải là số nguyên lớn hơn 0."],
    [{ variants: [{ label: "A", sku: "A", price: 1, stock: -1 }] }, "variants.0.stock", "Tồn kho phải là số nguyên không âm."],
    [{ variants: [{ label: "A", sku: "A", price: 1, reservedStock: 2 }] }, "variants.0.reservedStock", "Không được phép thay đổi trường này."],
-   [{ images: ["https://example.com/a.png"] }, "images", "Không được phép thay đổi trường này."],
+   [{ images: ["https://example.com/a.png"] }, "images", "Có ảnh không phải tải lên từ trang quản trị."],
   ])("rejects %j on %s", async (patch, field, message) => {
    const { body } = await create(valid(patch)).expect(400);
    expect(body.error).toEqual({ code: "VALIDATION_ERROR", fields: { [field]: message } });

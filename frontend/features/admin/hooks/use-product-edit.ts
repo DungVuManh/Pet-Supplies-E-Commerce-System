@@ -11,11 +11,13 @@ import { parseAmount, validateProduct } from "../validation";
 export type ProductEditValues = {
   name: string; sku: string; brand: string; petType: string; description: string; unit: string; categoryCodes: string[];
   price: string; cost: string; stock: string; threshold: string; visibility: "active" | "hidden";
+  /** Photo URLs, main photo first. */
+  images: string[];
 };
 type FieldName = keyof ProductEditValues;
 type FieldErrors = Partial<Record<FieldName, string>>;
 
-const fieldOrder: FieldName[] = ["name", "sku", "brand", "categoryCodes", "petType", "description", "price", "cost", "stock", "unit", "threshold", "visibility"];
+const fieldOrder: FieldName[] = ["name", "sku", "brand", "categoryCodes", "petType", "description", "price", "cost", "stock", "unit", "threshold", "images", "visibility"];
 /** The form's field for each request field. */
 const formField: Record<string, FieldName> = { lowStockThreshold: "threshold", isActive: "visibility", expectedStock: "stock" };
 
@@ -26,9 +28,12 @@ const formValues = (product: AdminProductDetail): ProductEditValues => ({
   categoryCodes: product.categories.map((category) => category.ref),
   price: formatAmount(product.price), cost: product.cost === null ? "" : formatAmount(product.cost), stock: String(product.stock),
   threshold: product.ownThreshold === null ? "" : String(product.ownThreshold), visibility: product.isActive ? "active" : "hidden",
+  images: product.images,
 });
 
 const sameList = (a: string[], b: string[]) => a.length === b.length && [...a].sort().join() === [...b].sort().join();
+// Order matters for photos: the first one is the main photo.
+const sameOrder = (a: string[], b: string[]) => a.length === b.length && a.every((item, index) => item === b[index]);
 const optional = (text: string) => (text.trim() ? parseAmount(text) : null);
 
 /** Only the fields that differ from the loaded product, so an unrelated save never touches stock or SKU. */
@@ -47,6 +52,7 @@ function changedFields(values: ProductEditValues, product: AdminProductDetail): 
     ...(parseAmount(values.stock) !== product.stock && { stock: parseAmount(values.stock), expectedStock: product.stock }),
     ...(optional(values.threshold) !== product.ownThreshold && { lowStockThreshold: optional(values.threshold) }),
     ...(values.visibility !== loaded.visibility && { isActive: values.visibility === "active" }),
+    ...(!sameOrder(values.images, loaded.images) && { images: values.images }),
   };
 }
 

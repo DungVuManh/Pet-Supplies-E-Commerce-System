@@ -2,6 +2,7 @@ import { recordAudit } from "../../common/audit.js";
 import { AppError } from "../../common/errors/app-error.js";
 import { sendFieldErrors, zodFieldErrors } from "../../common/field-errors.js";
 import { pageDto } from "../../common/pagination.js";
+import { allowedImageUrl } from "../../common/product-images.js";
 import { accentInsensitiveRegex, searchTokens } from "../../common/search.js";
 import { AuditLog } from "../../models/audit-log.model.js";
 import { Cart } from "../../models/cart.model.js";
@@ -191,12 +192,19 @@ export function showProduct(request, response) {
 
 const PRODUCT_LABELS = {
  name: "tên", brand: "thương hiệu", petType: "loài", description: "mô tả", unit: "đơn vị", isActive: "trạng thái", categoryIds: "danh mục",
- sku: "SKU", price: "giá bán", cost: "giá vốn", stock: "tồn kho", lowStockThreshold: "ngưỡng cảnh báo",
+ sku: "SKU", price: "giá bán", cost: "giá vốn", stock: "tồn kho", lowStockThreshold: "ngưỡng cảnh báo", images: "ảnh",
 };
 const PRODUCT_FIELDS = ["name", "brand", "petType", "description", "unit", "isActive"];
 const VARIANT_FIELDS = ["sku", "price", "cost", "stock", "lowStockThreshold"];
 
 const sameCategories = (a, b) => a.length === b.length && [...a].sort().join() === [...b].sort().join();
+// Order matters for images: the first one is the main photo.
+const sameImages = (a, b) => a.length === b.length && a.every((url, index) => url === b[index]);
+
+/** The images field error when a URL points somewhere a product may not store, or null. */
+function imagesError(urls, current) {
+ return urls.every((url) => allowedImageUrl(url, current)) ? null : { images: "Có ảnh không phải tải lên từ trang quản trị." };
+}
 
 /** Resolves category references to ids, or null if any of them is unknown. */
 function resolveCategories(refs, index) {
@@ -226,6 +234,7 @@ function diffProduct(product, variant, input, categoryIds) {
  }
  for (const field of VARIANT_FIELDS) compare(field, variant[field] ?? null, input[field]);
  compare("categoryIds", productCategoryIds(product), categoryIds, sameCategories);
+ compare("images", product.images ?? [], input.images, sameImages);
  return { before, after };
 }
 
@@ -273,6 +282,8 @@ export async function updateProduct(request, response) {
  const index = await categoryIndex();
  const categoryIds = categoryCodes && resolveCategories(categoryCodes, index);
  if (categoryCodes && !categoryIds) return sendFieldErrors(response, { categoryCodes: "Có danh mục không tồn tại." });
+ const badImages = input.images && imagesError(input.images, product.images ?? []);
+ if (badImages) return sendFieldErrors(response, badImages);
 
  const { before, after } = diffProduct(product, variant, input, categoryIds ?? undefined);
  if (Object.keys(after).length === 0) {
@@ -372,7 +383,7 @@ async function recordStartingStock(request, product) {
 }
 
 /**
- * Creates a product with its variants and no images. SKUs are unique across all
+ * Creates a product with its variants and the photos already uploaded. SKUs are unique across all
  * products: the check names the clashing rows, and the unique index catches a race.
  */
 export async function createProduct(request, response) {
@@ -382,6 +393,8 @@ export async function createProduct(request, response) {
 
  const categoryIds = resolveCategories(categoryCodes, await categoryIndex());
  if (!categoryIds) return sendFieldErrors(response, { categoryCodes: "Có danh mục không tồn tại." });
+ const badImages = imagesError(input.images, []);
+ if (badImages) return sendFieldErrors(response, badImages);
 
  const skus = variants.map((variant) => variant.sku);
  const existing = await Product.find({ "variants.sku": { $in: skus } }).select("variants.sku").lean();
@@ -391,7 +404,7 @@ export async function createProduct(request, response) {
 
  let product;
  try {
-  product = (await Product.create({ ...input, categoryIds, images: [], variants: variants.map(storedVariant) })).toObject();
+  product = (await Product.create({ ...input, categoryIds, variants: variants.map(storedVariant) })).toObject();
  } catch (error) {
   if (error?.code !== 11000) throw error;
   const sku = error.keyValue?.["variants.sku"];

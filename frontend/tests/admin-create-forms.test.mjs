@@ -95,3 +95,12 @@ test("the order export has the agreed columns, in Vietnam time", async () => {
   assert.equal(section.headers.length, 12);
   assert.deepEqual(section.rows[0], ["PA-1", "08/11/2026 01:05", "Tại cửa hàng", "=Khách", "0912 345 678", "Tiền mặt", "Đã thanh toán", 150000, 50000, 100000, "", "Hoàn thành"]);
 });
+
+test("product photos are checked for count, type, and size before uploading", async () => {
+  const { productImagesError } = await import("../features/admin/validation.ts");
+  const photo = (patch = {}) => ({ name: "a.jpg", type: "image/jpeg", size: 1000, ...patch });
+  assert.equal(productImagesError([photo(), photo({ type: "image/png" }), photo({ type: "image/webp" })], 0), "");
+  assert.match(productImagesError([photo(), photo()], 7), /tối đa 8 ảnh; còn thêm được 1 ảnh/);
+  assert.equal(productImagesError([photo({ name: "x.gif", type: "image/gif" })], 0), "“x.gif” không phải ảnh JPG, PNG hoặc WebP.");
+  assert.equal(productImagesError([photo({ name: "big.jpg", size: 5 * 1024 * 1024 + 1 })], 0), "“big.jpg” lớn hơn 5 MB.");
+});
