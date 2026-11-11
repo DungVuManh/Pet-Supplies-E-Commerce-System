@@ -7,9 +7,10 @@ interface PetCardProps {
   pet: PetProfile;
   onEdit: (pet: PetProfile) => void;
   onDelete: (id: string) => void;
+  onViewDetail?: (pet: PetProfile) => void;
 }
 
-function getPetAgeText(pet: PetProfile): string {
+export function getPetAgeText(pet: PetProfile): string {
   if (pet.age) {
     return pet.age.endsWith("tuổi") || pet.age.endsWith("tháng")
       ? pet.age
@@ -33,7 +34,7 @@ function getPetAgeText(pet: PetProfile): string {
   return `${years} tuổi ${remainingMonths} tháng`;
 }
 
-export function PetCard({ pet, onEdit, onDelete }: PetCardProps) {
+export function PetCard({ pet, onEdit, onDelete, onViewDetail }: PetCardProps) {
   const isDog = pet.species === "dog" || pet.species === "chó";
   const isCat = pet.species === "cat" || pet.species === "mèo";
   const speciesLabel = isDog ? "Chó cưng" : isCat ? "Mèo cưng" : "Thú cưng khác";
@@ -56,7 +57,20 @@ export function PetCard({ pet, onEdit, onDelete }: PetCardProps) {
       : null;
 
   return (
-    <div className="flex flex-col justify-between overflow-hidden rounded-2xl border border-line bg-surface shadow-xs transition-all hover:border-line/80 hover:shadow-sm">
+    <div
+      onClick={() => onViewDetail?.(pet)}
+      role={onViewDetail ? "button" : undefined}
+      tabIndex={onViewDetail ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (onViewDetail && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onViewDetail(pet);
+        }
+      }}
+      className={`group flex flex-col justify-between overflow-hidden rounded-2xl border border-line bg-surface shadow-xs transition-all hover:border-brand/40 hover:shadow-md ${
+        onViewDetail ? "cursor-pointer text-left" : ""
+      }`}
+    >
       <div>
         {/* Top Pet Image Banner */}
         <div className="relative h-48 w-full overflow-hidden bg-canvas">
@@ -66,15 +80,31 @@ export function PetCard({ pet, onEdit, onDelete }: PetCardProps) {
             width={480}
             height={270}
             unoptimized
-            className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
+          {onViewDetail && (
+            <div className="absolute inset-0 flex items-center justify-center bg-ink/20 opacity-0 backdrop-blur-[2px] transition-opacity duration-200 group-hover:opacity-100">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-surface/90 px-3.5 py-1.5 text-xs font-bold text-ink shadow-sm">
+                <span>Xem chi tiết</span>
+                <svg
+                  className="h-3.5 w-3.5 text-brand"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="2.5"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                </svg>
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Card Body */}
         <div className="p-5">
           {/* Header row: Name + Species Badge */}
           <div className="flex items-center justify-between gap-2">
-            <h3 className="truncate text-lg font-bold text-ink sm:text-xl">
+            <h3 className="truncate text-lg font-bold text-ink transition-colors group-hover:text-brand sm:text-xl">
               {pet.name}
             </h3>
             <span className="inline-flex shrink-0 items-center rounded-full bg-brand-subtle px-3 py-1 text-xs font-semibold text-brand">
@@ -153,7 +183,10 @@ export function PetCard({ pet, onEdit, onDelete }: PetCardProps) {
       <div className="flex items-center justify-between border-t border-line/60 px-5 py-3.5 bg-surface">
         <button
           type="button"
-          onClick={() => onEdit(pet)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(pet);
+          }}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:underline"
         >
           <svg
@@ -173,7 +206,10 @@ export function PetCard({ pet, onEdit, onDelete }: PetCardProps) {
         </button>
         <button
           type="button"
-          onClick={() => onDelete(pet._id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(pet._id);
+          }}
           className="text-xs font-semibold text-danger hover:underline"
         >
           Xóa

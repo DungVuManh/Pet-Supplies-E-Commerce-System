@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/auth-provider";
 import { AccountShell } from "@/features/account/components/account-shell";
 import { PetCard } from "@/features/account/components/pet-card";
+import { PetDetailModal } from "@/features/account/components/pet-detail-modal";
 import { PetFormView } from "@/features/account/components/pet-form-view";
 import { ConfirmDialog } from "@/features/account/components/confirm-dialog";
 import { accountApi } from "@/features/account/api";
@@ -23,6 +24,9 @@ export default function PetsPage() {
   const [isFormView, setIsFormView] = useState(false);
   const [petToEdit, setPetToEdit] = useState<PetProfile | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Detail Modal State
+  const [selectedDetailPet, setSelectedDetailPet] = useState<PetProfile | null>(null);
 
   // Delete Dialog State
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -263,6 +267,7 @@ export default function PetsPage() {
                         pet={pet}
                         onEdit={handleOpenEdit}
                         onDelete={(id) => setDeleteTargetId(id)}
+                        onViewDetail={(pet) => setSelectedDetailPet(pet)}
                       />
                     ))}
                   </div>
@@ -291,6 +296,17 @@ export default function PetsPage() {
             </div>
           </div>
         )}
+
+        {/* Pet Detail Modal */}
+        <PetDetailModal
+          isOpen={Boolean(selectedDetailPet)}
+          pet={selectedDetailPet}
+          onClose={() => setSelectedDetailPet(null)}
+          onEdit={(pet) => {
+            setSelectedDetailPet(null);
+            handleOpenEdit(pet);
+          }}
+        />
 
         {/* Delete Confirmation Dialog */}
         <ConfirmDialog
