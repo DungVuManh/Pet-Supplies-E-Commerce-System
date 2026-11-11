@@ -124,25 +124,25 @@ export function PetDetailModal({
         onClick={onClose}
       />
 
-      {/* Modal Dialog */}
+      {/* Modal Dialog (Compact & Balanced Sizing) */}
       <div
         ref={dialogRef}
-        className="relative z-10 my-6 flex w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-line bg-surface shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+        className="relative z-10 my-4 flex w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl animate-in fade-in zoom-in-95 duration-200"
       >
         {/* Top Hero Banner with Avatar */}
-        <div className="relative h-52 sm:h-64 w-full overflow-hidden bg-canvas">
+        <div className="relative h-40 sm:h-48 w-full overflow-hidden bg-canvas">
           <Image
             src={imageSrc}
             alt={pet.name}
-            width={800}
-            height={450}
+            width={720}
+            height={360}
             unoptimized
             className="h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/15 to-transparent" />
 
           {/* Species Badge */}
-          <div className="absolute top-4 left-4 z-10 inline-flex items-center gap-1.5 rounded-full bg-surface/90 px-3.5 py-1.5 text-xs font-bold text-brand shadow-sm backdrop-blur-md">
+          <div className="absolute top-3 left-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-surface/90 px-3 py-1 text-xs font-bold text-brand shadow-xs backdrop-blur-md">
             <span>{speciesEmoji}</span>
             <span>{speciesLabel}</span>
           </div>
@@ -152,10 +152,10 @@ export function PetDetailModal({
             type="button"
             onClick={onClose}
             aria-label="Đóng chi tiết thú cưng"
-            className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-surface/90 text-ink shadow-sm backdrop-blur-md transition-colors hover:bg-surface hover:text-brand"
+            className="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-surface/90 text-ink shadow-xs backdrop-blur-md transition-colors hover:bg-surface hover:text-brand"
           >
             <svg
-              className="h-5 w-5"
+              className="h-4 w-4"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth="2"
@@ -167,18 +167,18 @@ export function PetDetailModal({
         </div>
 
         {/* Modal Scrollable Content */}
-        <div className="max-h-[calc(90vh-16rem)] overflow-y-auto px-6 py-5 sm:px-8">
+        <div className="max-h-[calc(88vh-13rem)] overflow-y-auto px-5 py-4 sm:px-6">
           {/* Header: Pet Name & Breed */}
-          <div className="border-b border-line/60 pb-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="border-b border-line/60 pb-3.5">
+            <div className="flex flex-wrap items-center justify-between gap-2.5">
               <div>
                 <h2
                   id="pet-detail-title"
-                  className="text-2xl font-extrabold text-ink sm:text-3xl tracking-tight"
+                  className="text-xl font-extrabold text-ink sm:text-2xl tracking-tight"
                 >
                   {pet.name}
                 </h2>
-                <p className="mt-1 text-sm font-medium text-muted">
+                <p className="mt-0.5 text-xs font-medium text-muted">
                   Giống loài:{" "}
                   <strong className="font-semibold text-ink">
                     {pet.breed || (isDog ? "Chưa rõ giống chó" : isCat ? "Chưa rõ giống mèo" : "Khác")}
@@ -192,7 +192,7 @@ export function PetDetailModal({
                   onClose();
                   onEdit(pet);
                 }}
-                className="inline-flex items-center gap-2 rounded-xl border border-brand/30 bg-brand-subtle px-4 py-2 text-xs font-bold text-brand transition-colors hover:bg-brand hover:text-white"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-brand/30 bg-brand-subtle px-3 py-1.5 text-xs font-bold text-brand transition-colors hover:bg-brand hover:text-white"
               >
                 <svg
                   className="h-3.5 w-3.5"
@@ -213,31 +213,31 @@ export function PetDetailModal({
           </div>
 
           {/* Quick Metrics Grid */}
-          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="rounded-2xl border border-line bg-canvas/60 p-3.5">
-              <span className="text-xs text-muted block">Tuổi</span>
-              <strong className="mt-1 text-sm font-bold text-ink block truncate">
+          <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+            <div className="rounded-xl border border-line bg-canvas/60 p-2.5">
+              <span className="text-[11px] text-muted block">Tuổi</span>
+              <strong className="mt-0.5 text-xs font-bold text-ink block truncate sm:text-sm">
                 {ageDisplay}
               </strong>
             </div>
 
-            <div className="rounded-2xl border border-line bg-canvas/60 p-3.5">
-              <span className="text-xs text-muted block">Cân nặng</span>
-              <strong className="mt-1 text-sm font-bold text-ink block truncate">
+            <div className="rounded-xl border border-line bg-canvas/60 p-2.5">
+              <span className="text-[11px] text-muted block">Cân nặng</span>
+              <strong className="mt-0.5 text-xs font-bold text-ink block truncate sm:text-sm">
                 {weightDisplay}
               </strong>
             </div>
 
-            <div className="rounded-2xl border border-line bg-canvas/60 p-3.5">
-              <span className="text-xs text-muted block">Giới tính</span>
-              <strong className="mt-1 text-sm font-bold text-ink block truncate">
+            <div className="rounded-xl border border-line bg-canvas/60 p-2.5">
+              <span className="text-[11px] text-muted block">Giới tính</span>
+              <strong className="mt-0.5 text-xs font-bold text-ink block truncate sm:text-sm">
                 {pet.gender || "Chưa cập nhật"}
               </strong>
             </div>
 
-            <div className="rounded-2xl border border-line bg-canvas/60 p-3.5">
-              <span className="text-xs text-muted block">Triệt sản</span>
-              <strong className="mt-1 text-sm font-bold text-ink block truncate">
+            <div className="rounded-xl border border-line bg-canvas/60 p-2.5">
+              <span className="text-[11px] text-muted block">Triệt sản</span>
+              <strong className="mt-0.5 text-xs font-bold text-ink block truncate sm:text-sm">
                 {sterilizationLabel}
               </strong>
             </div>
@@ -245,9 +245,9 @@ export function PetDetailModal({
 
           {/* Date of Birth info */}
           {pet.dob && (
-            <div className="mt-3.5 flex items-center gap-2 text-xs text-muted">
+            <div className="mt-2.5 flex items-center gap-1.5 text-xs text-muted">
               <svg
-                className="h-4 w-4 text-muted/80 shrink-0"
+                className="h-3.5 w-3.5 text-muted/80 shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth="2"
@@ -264,16 +264,16 @@ export function PetDetailModal({
           )}
 
           {/* Health Issues Badges */}
-          <div className="mt-6">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-muted">
+          <div className="mt-4">
+            <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted">
               Vấn đề sức khoẻ
             </h4>
             {pet.healthIssues && pet.healthIssues.length > 0 ? (
-              <div className="mt-2.5 flex flex-wrap gap-2">
+              <div className="mt-2 flex flex-wrap gap-1.5">
                 {pet.healthIssues.map((issue) => (
                   <span
                     key={issue}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/70 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-900 shadow-2xs"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/70 bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-900 shadow-2xs"
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
                     <span>{issue}</span>
@@ -281,7 +281,7 @@ export function PetDetailModal({
                 ))}
               </div>
             ) : (
-              <p className="mt-2 text-xs text-muted">
+              <p className="mt-1 text-xs text-muted">
                 Bé chưa ghi nhận vấn đề sức khoẻ đặc biệt.
               </p>
             )}
@@ -289,11 +289,11 @@ export function PetDetailModal({
 
           {/* Characteristics & Personality */}
           {(pet.identification || pet.personality || pet.notes) && (
-            <div className="mt-6 space-y-3 rounded-2xl border border-line bg-canvas/40 p-4">
+            <div className="mt-4 space-y-2 rounded-xl border border-line bg-canvas/40 p-3">
               {pet.identification && (
                 <div>
-                  <h5 className="text-xs font-bold text-ink">Đặc điểm nhận dạng:</h5>
-                  <p className="mt-1 text-xs text-muted leading-relaxed">
+                  <h5 className="text-[11px] font-bold text-ink">Đặc điểm nhận dạng:</h5>
+                  <p className="mt-0.5 text-xs text-muted leading-relaxed">
                     {pet.identification}
                   </p>
                 </div>
@@ -301,8 +301,8 @@ export function PetDetailModal({
 
               {pet.personality && (
                 <div>
-                  <h5 className="text-xs font-bold text-ink">Tính cách:</h5>
-                  <p className="mt-1 text-xs text-muted leading-relaxed">
+                  <h5 className="text-[11px] font-bold text-ink">Tính cách:</h5>
+                  <p className="mt-0.5 text-xs text-muted leading-relaxed">
                     {pet.personality}
                   </p>
                 </div>
@@ -310,8 +310,8 @@ export function PetDetailModal({
 
               {pet.notes && (
                 <div>
-                  <h5 className="text-xs font-bold text-ink">Ghi chú thêm:</h5>
-                  <p className="mt-1 text-xs text-muted leading-relaxed">
+                  <h5 className="text-[11px] font-bold text-ink">Ghi chú thêm:</h5>
+                  <p className="mt-0.5 text-xs text-muted leading-relaxed">
                     {pet.notes}
                   </p>
                 </div>
@@ -320,38 +320,38 @@ export function PetDetailModal({
           )}
 
           {/* SHOPPING SECTION: "Mua sắm cho [tên thú cưng]" */}
-          <div className="mt-7 rounded-3xl border border-brand/25 bg-linear-to-br from-brand-subtle/50 via-surface to-brand-subtle/25 p-5 sm:p-6 shadow-xs">
-            <div className="flex items-center gap-2.5 text-brand">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand text-white shadow-2xs text-sm">
+          <div className="mt-5 rounded-2xl border border-brand/25 bg-linear-to-br from-brand-subtle/50 via-surface to-brand-subtle/25 p-4 shadow-xs">
+            <div className="flex items-center gap-2 text-brand">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand text-white shadow-2xs text-xs">
                 🛍️
               </span>
               <div>
-                <h3 className="text-base font-bold text-ink sm:text-lg">
+                <h3 className="text-sm font-bold text-ink sm:text-base">
                   Mua sắm cho {pet.name}
                 </h3>
-                <p className="text-xs text-muted">
+                <p className="text-[11px] text-muted">
                   Gợi ý các mặt hàng thiết yếu phù hợp nhất với {pet.name}
                 </p>
               </div>
             </div>
 
             {/* Shopping Link Cards Grid */}
-            <div className="mt-4 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {/* Food Category Card */}
               <Link
                 href={foodLink}
                 onClick={onClose}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-line bg-surface p-4.5 shadow-2xs transition-all hover:-translate-y-0.5 hover:border-brand hover:shadow-md"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-line bg-surface p-3.5 shadow-2xs transition-all hover:-translate-y-0.5 hover:border-brand hover:shadow-md"
               >
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-100 text-2xl text-amber-700 shadow-2xs">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-xl text-amber-700 shadow-2xs">
                       🍲
                     </span>
-                    <span className="inline-flex items-center gap-1 text-xs font-bold text-brand group-hover:translate-x-1 transition-transform">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-brand group-hover:translate-x-1 transition-transform">
                       <span>Mua ngay</span>
                       <svg
-                        className="h-3.5 w-3.5"
+                        className="h-3 w-3"
                         fill="none"
                         viewBox="0 0 24 24"
                         strokeWidth="2.5"
@@ -362,15 +362,15 @@ export function PetDetailModal({
                     </span>
                   </div>
 
-                  <h4 className="mt-3.5 text-sm font-bold text-ink group-hover:text-brand transition-colors">
+                  <h4 className="mt-2.5 text-xs font-bold text-ink group-hover:text-brand transition-colors sm:text-sm">
                     {foodTitle}
                   </h4>
-                  <p className="mt-1 text-xs text-muted leading-relaxed line-clamp-2">
+                  <p className="mt-0.5 text-[11px] text-muted leading-relaxed line-clamp-2">
                     {foodDescription}
                   </p>
                 </div>
 
-                <div className="mt-4 border-t border-line/50 pt-2.5 text-[11px] font-semibold text-brand">
+                <div className="mt-3 border-t border-line/50 pt-2 text-[11px] font-semibold text-brand">
                   Khám phá danh mục Thức ăn →
                 </div>
               </Link>
@@ -379,17 +379,17 @@ export function PetDetailModal({
               <Link
                 href={hygieneLink}
                 onClick={onClose}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-line bg-surface p-4.5 shadow-2xs transition-all hover:-translate-y-0.5 hover:border-brand hover:shadow-md"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-line bg-surface p-3.5 shadow-2xs transition-all hover:-translate-y-0.5 hover:border-brand hover:shadow-md"
               >
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-100 text-2xl text-sky-700 shadow-2xs">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-100 text-xl text-sky-700 shadow-2xs">
                       🧼
                     </span>
-                    <span className="inline-flex items-center gap-1 text-xs font-bold text-brand group-hover:translate-x-1 transition-transform">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-brand group-hover:translate-x-1 transition-transform">
                       <span>Mua ngay</span>
                       <svg
-                        className="h-3.5 w-3.5"
+                        className="h-3 w-3"
                         fill="none"
                         viewBox="0 0 24 24"
                         strokeWidth="2.5"
@@ -400,15 +400,15 @@ export function PetDetailModal({
                     </span>
                   </div>
 
-                  <h4 className="mt-3.5 text-sm font-bold text-ink group-hover:text-brand transition-colors">
+                  <h4 className="mt-2.5 text-xs font-bold text-ink group-hover:text-brand transition-colors sm:text-sm">
                     {hygieneTitle}
                   </h4>
-                  <p className="mt-1 text-xs text-muted leading-relaxed line-clamp-2">
+                  <p className="mt-0.5 text-[11px] text-muted leading-relaxed line-clamp-2">
                     {hygieneDescription}
                   </p>
                 </div>
 
-                <div className="mt-4 border-t border-line/50 pt-2.5 text-[11px] font-semibold text-brand">
+                <div className="mt-3 border-t border-line/50 pt-2 text-[11px] font-semibold text-brand">
                   Khám phá danh mục Vệ sinh →
                 </div>
               </Link>
@@ -417,11 +417,11 @@ export function PetDetailModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="flex items-center justify-end gap-3 border-t border-line/60 bg-surface px-6 py-4 sm:px-8">
+        <div className="flex items-center justify-end gap-2.5 border-t border-line/60 bg-surface px-5 py-3 sm:px-6">
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex min-h-10 items-center justify-center rounded-xl border border-line bg-surface px-5 text-sm font-semibold text-ink hover:bg-canvas transition-colors"
+            className="inline-flex min-h-9 items-center justify-center rounded-xl border border-line bg-surface px-4 text-xs sm:text-sm font-semibold text-ink hover:bg-canvas transition-colors"
           >
             Đóng
           </button>
@@ -431,7 +431,7 @@ export function PetDetailModal({
               onClose();
               onEdit(pet);
             }}
-            className="inline-flex min-h-10 items-center justify-center rounded-xl bg-brand px-5 text-sm font-semibold text-white hover:bg-brand-hover transition-colors shadow-xs"
+            className="inline-flex min-h-9 items-center justify-center rounded-xl bg-brand px-4 text-xs sm:text-sm font-semibold text-white hover:bg-brand-hover transition-colors shadow-xs"
           >
             Chỉnh sửa hồ sơ
           </button>
