@@ -2,6 +2,7 @@
 
 import { useState, useRef, useMemo } from "react";
 import Image from "next/image";
+import { accountApi } from "../api";
 import type { PetProfile, PetFormValues } from "../types";
 
 interface PetFormViewProps {
@@ -147,6 +148,7 @@ export function PetFormView({
     petToEdit?.avatarUrl || defaultAvatar,
   );
   const [isNewAvatar, setIsNewAvatar] = useState(false);
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
   const [avatarError, setAvatarError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -251,6 +253,8 @@ export function PetFormView({
       return;
     }
 
+    setSelectedAvatarFile(file);
+
     const reader = new FileReader();
     reader.onload = (uploadEvent) => {
       const dataUrl = uploadEvent.target?.result;
@@ -314,6 +318,15 @@ export function PetFormView({
     const calculatedAge = dob ? calculateAgeFromDob(dob) : age.trim();
 
     try {
+      let finalAvatarUrl = avatarUrl;
+      if (isNewAvatar && selectedAvatarFile) {
+        try {
+          finalAvatarUrl = await accountApi.uploadAvatar(selectedAvatarFile, "pet");
+        } catch (uploadErr) {
+          console.warn("Cloudinary upload failed or not configured, using fallback:", uploadErr);
+        }
+      }
+
       await onSave({
         name: name.trim(),
         species,
@@ -327,7 +340,7 @@ export function PetFormView({
         identification: identification.trim(),
         personality: personality.trim(),
         notes: notes.trim(),
-        avatarUrl,
+        avatarUrl: finalAvatarUrl,
       });
     } catch (err: unknown) {
       if (err instanceof Error) {

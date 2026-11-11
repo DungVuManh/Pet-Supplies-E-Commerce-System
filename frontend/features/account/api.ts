@@ -253,4 +253,27 @@ export const accountApi = {
       {},
     );
   },
+
+  async uploadAvatar(file: File, type: "user" | "pet" = "user"): Promise<string> {
+    const formData = new FormData();
+    formData.append("avatar", file);
+    formData.append("type", type);
+
+    const response = await fetch("/api/v1/account/upload-avatar", {
+      method: "POST",
+      credentials: "same-origin",
+      body: formData,
+    });
+
+    const json = await response.json();
+    if (!response.ok || !json.success) {
+      throw new AccountApiError(
+        json.message || "Lỗi khi tải ảnh lên Cloudinary.",
+        json.error?.code || "UPLOAD_FAILED",
+        response.status,
+      );
+    }
+
+    return json.data?.url || "";
+  },
 };
