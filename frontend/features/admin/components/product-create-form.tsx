@@ -6,6 +6,7 @@ import { useProductCreate } from "../hooks/use-product-create";
 import { productStatusLabels } from "../status";
 import { AdminPageHeader } from "./admin-ui";
 import { ProductBasicSection, SelectField, UnitSelect } from "./product-form-fields";
+import { ProductImagesField } from "./product-images-field";
 import { ProductVariantsField } from "./product-variants-field";
 
 export function ProductCreateForm() {
@@ -30,17 +31,17 @@ export function ProductCreateForm() {
         </section>
       </div>
 
-      <aside className="min-w-0 space-y-6" aria-label="Hiển thị và hình ảnh">
+      <aside className="min-w-0 space-y-6" aria-label="Hình ảnh và hiển thị">
+        <section aria-labelledby="product-photo" className={`${card} p-6`}>
+          <h2 id="product-photo" className="text-xl font-semibold">Hình ảnh</h2>
+          <ProductImagesField images={values.images} onChange={(images) => set("images", images)} name={values.name} error={errors.images} />
+        </section>
         <section aria-labelledby="product-visibility" className={`${card} space-y-4 p-6`}>
           <h2 id="product-visibility" className="text-xl font-semibold">Hiển thị</h2>
           <SelectField id="product-visibility" label="Trạng thái" error={errors.visibility} value={values.visibility} onChange={(v) => set("visibility", v as "active" | "hidden")}>
             <option value="active">{productStatusLabels.active}</option><option value="hidden">{productStatusLabels.hidden}</option>
           </SelectField>
           <p className="text-xs text-muted">Sản phẩm ẩn không xuất hiện ở cửa hàng cho đến khi bạn hiện lại.</p>
-        </section>
-        <section aria-labelledby="product-photo" className={`${card} p-6`}>
-          <h2 id="product-photo" className="text-xl font-semibold">Hình ảnh</h2>
-          <p className="mt-4 text-sm text-muted">Sản phẩm mới chưa có ảnh; cửa hàng hiển thị ảnh mặc định. Tính năng tải ảnh lên đang được phát triển riêng.</p>
         </section>
       </aside>
     </form>

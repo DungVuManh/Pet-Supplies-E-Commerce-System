@@ -58,9 +58,12 @@ Specification: `docs/specs/admin-brands-and-product-images.md`
 
 ## Part 3: Photos on the new product page
 
-- [ ] Add the photo field to `product-create-form.tsx` and send `images` on create.
-- [ ] Browser check: create a product with 2 photos and see the main one on its Admin detail page and storefront page.
-- [ ] 🛑 **Commit checkpoint:** `admin - photos on new products`
+- [x] Add the photo field to `product-create-form.tsx` and send `images` on create.
+  - Note: the photo card now sits above the visibility card, as on the edit page.
+- [x] Browser check: create a product with 2 photos and see the main one on its Admin detail page and storefront page.
+  - Result (2026-11-11): two bundled product photos were uploaded to Cloudinary and the second was made main. The product `IMG49976` was created, its detail page shows both photos with the chosen one main, the catalog API lists it first, and the storefront product page loads it.
+- [x] 🛑 **Commit checkpoint:** `admin - photos on new products`
+  - Checks: backend 1049 passed with the same 18 baseline failures, frontend tests 120/120, lint at the baseline count, and the build passes. `origin/dev` gained `6f77837` (Staff offline order UI) since Part 0; it merges without conflicts and is not merged yet.
 
 ## Compatibility
 
