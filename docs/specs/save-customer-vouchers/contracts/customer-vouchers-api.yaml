@@ -1,0 +1,315 @@
+openapi: 3.0.3
+info:
+  title: Petjoy Customer Voucher Wallet API
+  description: API quản lý việc lưu, tra cứu và đồng bộ mã giảm giá vào ví cá nhân của khách hàng.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Máy chủ phát triển cục bộ
+
+paths:
+  /customer/vouchers:
+    get:
+      summary: Lấy danh sách mã giảm giá trong ví cá nhân của khách hàng
+      description: Trả về danh sách các voucher đã lưu kèm theo thông tin chi tiết và trạng thái tính toán động (ready, used, expired).
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [all, ready, used, expired]
+            default: all
+          description: Lọc theo trạng thái của voucher trong ví.
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Số trang.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+          description: Số lượng bản ghi trên một trang.
+      responses:
+        '200':
+          description: Danh sách voucher trong ví của khách hàng
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CustomerVoucherItem'
+                      counts:
+                        type: object
+                        properties:
+                          all:
+                            type: integer
+                            example: 5
+                          ready:
+                            type: integer
+                            example: 3
+                          used:
+                            type: integer
+                            example: 1
+                          expired:
+                            type: integer
+                            example: 1
+                      pagination:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                          limit:
+                            type: integer
+                          total:
+                            type: integer
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      summary: Lưu một mã giảm giá vào ví cá nhân
+      description: Thêm một mã giảm giá vào danh sách lưu của người dùng. Thao tác có tính chất bất biến (idempotent), nếu mã đã lưu trước đó sẽ không báo lỗi.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+              properties:
+                code:
+                  type: string
+                  example: "PETJOY10"
+                  description: Mã giảm giá cần lưu (không phân biệt chữ hoa/thường).
+      responses:
+        '201':
+          description: Lưu mã thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Đã lưu mã giảm giá vào ví!"
+                  data:
+                    $ref: '#/components/schemas/CustomerVoucherItem'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          description: Không tìm thấy mã giảm giá
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /customer/vouchers/{code}:
+    delete:
+      summary: Thao tác hủy lưu mã giảm giá (Không cho phép)
+      description: Thao tác lưu mã là một chiều (One-way). Request gửi tới endpoint này sẽ bị từ chối với mã lỗi 400 VOUCHER_CANNOT_BE_UNSAVED.
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Mã voucher cố ý hủy lưu.
+      responses:
+        '400':
+          description: Thao tác không được phép thực hiện
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VOUCHER_CANNOT_BE_UNSAVED"
+                      message:
+                        type: string
+                        example: "Mã giảm giá đã lưu không thể hủy bỏ."
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /customer/vouchers/ids:
+    get:
+      summary: Lấy danh sách ID các mã giảm giá người dùng đã lưu
+      description: Endpoint gọn nhẹ phục vụ render nhanh trạng thái "Lưu / Đã lưu" trên toàn bộ trang storefront.
+      responses:
+        '200':
+          description: Mảng chứa mã code hoặc ID voucher đã lưu
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      savedCodes:
+                        type: array
+                        items:
+                          type: string
+                        example: ["PETJOY10", "FREESHIP"]
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /customer/vouchers/sync:
+    post:
+      summary: Đồng bộ danh sách mã từ LocalStorage của khách vào tài khoản
+      description: Được gọi tự động ngay sau khi khách hàng đăng nhập, giúp gộp các mã đã lưu trước đó ở trình duyệt vào tài khoản.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - codes
+              properties:
+                codes:
+                  type: array
+                  items:
+                    type: string
+                  example: ["PETJOY10", "FREESHIP"]
+      responses:
+        '200':
+          description: Đồng bộ thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Đã đồng bộ mã giảm giá thành công."
+                  data:
+                    type: object
+                    properties:
+                      syncedCount:
+                        type: integer
+                        example: 2
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+components:
+  schemas:
+    CustomerVoucherItem:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "6724a8f9e123456789abcde1"
+        voucherId:
+          type: string
+          example: "6724a8f9e123456789abcde0"
+        code:
+          type: string
+          example: "PETJOY10"
+        name:
+          type: string
+          example: "Giảm 10% đơn từ 200k"
+        type:
+          type: string
+          enum: [percent, fixed]
+          example: "percent"
+        value:
+          type: number
+          example: 10
+        maxDiscount:
+          type: number
+          nullable: true
+          example: 50000
+        minOrderAmount:
+          type: number
+          example: 200000
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          example: "2026-11-30"
+        savedAt:
+          type: string
+          format: date-time
+        state:
+          type: string
+          enum: [ready, used, expired]
+          example: "ready"
+        isApplicable:
+          type: boolean
+          description: Cờ phụ trợ khi gọi kèm tham số subtotal đơn hàng hiện tại
+          example: true
+
+  responses:
+    UnauthorizedError:
+      description: Yêu cầu đăng nhập trước khi thực hiện
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Vui lòng đăng nhập để thực hiện thao tác này."
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: "UNAUTHORIZED"
+
+    ValidationError:
+      description: Dữ liệu gửi lên không hợp lệ
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Dữ liệu không hợp lệ."
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: "VALIDATION_ERROR"
+

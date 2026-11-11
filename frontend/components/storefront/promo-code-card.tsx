@@ -1,6 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
+import { Ticket } from "lucide-react";
 
 type PromoCodeCardProps = {
   value: string;
@@ -12,9 +13,20 @@ type PromoCodeCardProps = {
   pending: boolean;
   /** The code in effect and what it takes off, or null. */
   applied: { code: string; discount: number } | null;
+  onOpenWallet?: () => void;
 };
 
-export function PromoCodeCard({ value, onChange, onApply, onRemove, message, isError, pending, applied }: PromoCodeCardProps) {
+export function PromoCodeCard({
+  value,
+  onChange,
+  onApply,
+  onRemove,
+  message,
+  isError,
+  pending,
+  applied,
+  onOpenWallet,
+}: PromoCodeCardProps) {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!pending) onApply();
@@ -22,7 +34,19 @@ export function PromoCodeCard({ value, onChange, onApply, onRemove, message, isE
 
   return (
     <div className="rounded-2xl border border-line bg-surface p-6">
-      <h3 className="text-base font-bold text-ink">Mã ưu đãi</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-base font-bold text-ink">Mã ưu đãi</h3>
+        {onOpenWallet && (
+          <button
+            type="button"
+            onClick={onOpenWallet}
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+          >
+            <Ticket className="size-3.5" />
+            <span>Chọn từ Ví voucher</span>
+          </button>
+        )}
+      </div>
 
       {applied ? (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-brand-subtle px-4 py-3">

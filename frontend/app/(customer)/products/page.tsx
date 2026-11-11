@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   description: "Khám phá các sản phẩm chất lượng, chính hãng dành cho chó và mèo tại Petjoy.",
 };
 
+export const instant = false;
+
 type ProductsPageProps = {
   searchParams: Promise<{ category?: string; petType?: string }>;
 };

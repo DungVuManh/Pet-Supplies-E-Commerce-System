@@ -4,6 +4,8 @@ import { AllProduct } from "@/features/catalog/components/listProduct";
 
 export const metadata: Metadata = { title: "Sản phẩm đồ dùng và dinh dưỡng cho thú cưng | Petjoy" };
 
+export const instant = false;
+
 type ProductHomePageProps = {
   searchParams?: Promise<{ category?: string; petType?: string }>;
 };

@@ -6,16 +6,18 @@
 // =============================================================
 
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 import { PromoCodeCard } from "@/components/storefront/promo-code-card";
 import { DeliveryAddressCard } from "./components/delivery-address-card";
 import { OrderReviewCard } from "./components/order-review-card";
 import { PaymentMethodCard } from "./components/payment-method-card";
+import { VoucherWalletModal } from "./components/voucher-wallet-modal";
 import { useCheckout } from "./hooks/use-checkout";
 
 export * from "./types";
 
 export function CheckoutView() {
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const {
     address,
     setAddress,
@@ -167,6 +169,7 @@ export function CheckoutView() {
             isError={voucher.isError}
             pending={voucher.pending}
             applied={voucher.applied}
+            onOpenWallet={() => setIsWalletModalOpen(true)}
           />
           <OrderReviewCard
             items={items}
@@ -177,6 +180,21 @@ export function CheckoutView() {
           />
         </div>
       </div>
+
+      <VoucherWalletModal
+        isOpen={isWalletModalOpen}
+        onClose={() => setIsWalletModalOpen(false)}
+        subtotal={summary.subtotal}
+        selectedCode={voucher.applied?.code}
+        onSelectVoucher={(code) => {
+          if ((voucher as any).applyCode) {
+            (voucher as any).applyCode(code);
+          } else {
+            voucher.setInput(code);
+            voucher.apply();
+          }
+        }}
+      />
     </div>
   );
 }

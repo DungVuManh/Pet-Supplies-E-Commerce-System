@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import React from "react";
-import type { CheckoutOrderItem, CheckoutSummary } from "../types";
+import type { CheckoutOrderItem, CheckoutSummary, PaymentMethodType } from "../types";
 
 type OrderReviewCardProps = {
  items: CheckoutOrderItem[];
  summary: CheckoutSummary;
- paymentMethod: "vnpay" | "cod";
+ paymentMethod: PaymentMethodType;
  isSubmitting: boolean;
  onSubmitOrder: () => void;
 };

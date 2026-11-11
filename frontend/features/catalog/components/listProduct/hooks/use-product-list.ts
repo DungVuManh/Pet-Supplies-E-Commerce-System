@@ -4,7 +4,7 @@
 // Đã tối ưu triệt để: chống re-render vô tận, AbortController, useCallback
 // =============================================================
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
  getBrandsApi,
@@ -39,6 +39,11 @@ export function useProductList(
   const categoryParam = defaultCategory || searchParams?.get("category") || "all";
   const petTypeParam = (defaultPetType || searchParams?.get("petType") || "all") as "dog" | "cat" | "all";
   const searchParam = defaultSearch ?? searchParams?.get("q") ?? searchParams?.get("search") ?? "";
+  const brandsParam = searchParams?.get("brands") || searchParams?.get("brand") || "";
+  const initialBrands = useMemo(
+    () => (brandsParam ? brandsParam.split(",").map((b) => b.trim()).filter(Boolean) : []),
+    [brandsParam]
+  );
 
   // 1. State lưu dữ liệu trả về từ API
   const [products, setProducts] = useState<CatalogProduct[]>([]);
@@ -57,6 +62,7 @@ export function useProductList(
     category: categoryParam,
     petType: petTypeParam,
     search: searchParam,
+    brands: initialBrands,
   }));
   const [searchInput, setSearchInput] = useState(searchParam);
 
@@ -64,12 +70,17 @@ export function useProductList(
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    // Khi URL thay đổi (navigate từ menu / filter / search), sync filter theo params mới
+    // Khi URL thay đổi (navigate từ menu / filter / search / brands), sync filter theo params mới
     setFilter((prev) => {
+      const isBrandsSame =
+        prev.brands.length === initialBrands.length &&
+        prev.brands.every((b, i) => b === initialBrands[i]);
+
       if (
         prev.category === categoryParam &&
         prev.petType === petTypeParam &&
-        prev.search === searchParam
+        prev.search === searchParam &&
+        isBrandsSame
       ) {
         return prev;
       }
@@ -78,11 +89,12 @@ export function useProductList(
         category: categoryParam,
         petType: petTypeParam,
         search: searchParam,
+        brands: initialBrands,
         page: 1,
       };
     });
     setSearchInput(searchParam);
-  }, [categoryParam, petTypeParam, searchParam]);
+  }, [categoryParam, petTypeParam, searchParam, initialBrands]);
 
  useEffect(() => {
   let active = true;
