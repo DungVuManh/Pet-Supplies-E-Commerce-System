@@ -2,14 +2,22 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { Printer } from "lucide-react";
 import { money } from "@/features/staff/mock-data";
-import { Badge, PageHeader, card } from "@/features/staff/components/staff-ui";
+import {
+ Badge,
+ PageHeader,
+ card,
+ primaryLink,
+ secondaryButton,
+} from "@/features/staff/components/staff-ui";
 import {
  fetchStaffOrderDetail,
  StaffOrdersApiError,
 } from "@/features/staff/orders/api";
 import { OrderStatusAction } from "@/features/staff/components/order-status-action";
 import {
+ isInvoiceEligibleOrder,
  orderStatusLabels,
  orderStatusTones,
  paymentMethodLabels,
@@ -72,11 +80,39 @@ export default async function OrderDetailPage({
   throw error;
  }
 
+ const canExportInvoice = isInvoiceEligibleOrder(order.orderStatus);
+
  return (
   <>
    <PageHeader
     title={`Đơn hàng #${order.orderCode}`}
     subtitle={`Đặt lúc ${formatFullDateTime(order.createdAt)} `}
+    action={
+     canExportInvoice ? (
+      <Link
+       href={`/staff/orders/${encodeURIComponent(order.id)}/invoice`}
+       className={`${primaryLink} gap-2`}
+      >
+       <Printer className="h-4 w-4" aria-hidden="true" />
+       <span>Xuất hóa đơn</span>
+      </Link>
+     ) : (
+      <div className="flex flex-col items-start gap-1 sm:items-end">
+       <button
+        type="button"
+        disabled
+        title="Chỉ hỗ trợ xuất hóa đơn cho đơn hàng từ trạng thái Đã xác nhận trở lên."
+        className={`${secondaryButton} cursor-not-allowed gap-2 opacity-60 hover:bg-surface`}
+       >
+        <Printer className="h-4 w-4" aria-hidden="true" />
+        <span>Xuất hóa đơn</span>
+       </button>
+       <span className="text-xs text-muted">
+        Chỉ hỗ trợ xuất hóa đơn từ trạng thái Đã xác nhận trở lên.
+       </span>
+      </div>
+     )
+    }
    />
 
    <div className="mb-4">

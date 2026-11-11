@@ -21,6 +21,7 @@ import {
  type SortOption,
  type StaffOrdersFilterState,
  type StaffOrdersListResponse,
+ isInvoiceEligibleOrder,
  orderStatusLabels,
  orderStatusTones,
  sortOptions,
@@ -379,13 +380,13 @@ export function OrdersList() {
    <div className="min-w-0 whitespace-nowrap [&_table]:min-w-0 [&_table]:table-fixed [&_th]:overflow-hidden [&_th]:px-2 [&_th]:text-ellipsis [&_td]:overflow-hidden [&_td]:px-2 [&_td]:text-ellipsis">
     <TableFrame>
      <colgroup>
-      <col className="w-[22%]" />
+      <col className="w-[20%]" />
       <col className="w-[13%]" />
-      <col className="w-[17%]" />
-      <col className="w-[10%]" />
-      <col className="w-[14%]" />
       <col className="w-[15%]" />
       <col className="w-[9%]" />
+      <col className="w-[14%]" />
+      <col className="w-[14%]" />
+      <col className="w-[15%]" />
      </colgroup>
      <TableHead>
       <Th>Mã đơn</Th>
@@ -439,7 +440,14 @@ export function OrdersList() {
           </span>
          </Td>
          <Td>
-          <ActionLink href={`/staff/orders/${order.id}`}>Chi tiết</ActionLink>
+          <div className="flex items-center gap-3">
+           <ActionLink href={`/staff/orders/${order.id}`}>Chi tiết</ActionLink>
+           {isInvoiceEligibleOrder(order.orderStatus) && (
+            <ActionLink href={`/staff/orders/${order.id}/invoice`}>
+             Hóa đơn
+            </ActionLink>
+           )}
+          </div>
          </Td>
         </tr>
        ))

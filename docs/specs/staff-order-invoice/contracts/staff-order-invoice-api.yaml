@@ -1,0 +1,296 @@
+openapi: 3.0.3
+info:
+  title: Petjoy Staff Order Invoice API
+  description: API lấy dữ liệu hóa đơn chuẩn và ghi nhận lịch sử xuất/in hóa đơn của một đơn hàng dành cho nhân viên (Staff).
+  version: 1.0.0
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Máy chủ phát triển cục bộ
+
+paths:
+  /staff/orders/{id}/invoice:
+    get:
+      summary: Lấy dữ liệu hóa đơn chi tiết cho một đơn hàng hợp lệ
+      description: >
+        Chỉ tài khoản có vai trò `staff` đã xác thực mới được phép truy cập.
+        Hệ thống kiểm tra trạng thái đơn hàng phải thuộc nhóm từ Đã xác nhận trở lên (`confirmed`, `processing`, `shipping`, `completed`).
+        Trả về dữ liệu bất biến của đơn hàng, thông tin cửa hàng hiện hành và thông tin kiểm toán xuất hóa đơn.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-fA-F0-9]{24}$'
+          description: ObjectId 24 ký tự hex của đơn hàng.
+      responses:
+        '200':
+          description: Dữ liệu hóa đơn hợp lệ
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      invoice:
+                        $ref: '#/components/schemas/StaffOrderInvoice'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/OrderNotFoundError'
+        '409':
+          $ref: '#/components/responses/InvoiceNotEligibleError'
+        '503':
+          $ref: '#/components/responses/OrdersUnavailableError'
+
+  /staff/orders/{id}/invoice/exports:
+    post:
+      summary: Ghi nhận sự kiện nhân viên xuất/in hóa đơn đơn hàng
+      description: >
+        Yêu cầu xác thực `staff` kèm CSRF (`Origin`, `X-CSRF-Token`, cookie `petly-csrf`, `Content-Type: application/json`).
+        Kiểm tra đơn hàng tồn tại và đủ điều kiện xuất hóa đơn, sau đó ghi 1 bản ghi vào `AuditLog` với hành động `order.invoice.export`.
+        Tuyệt đối không thay đổi trạng thái đơn hàng, thanh toán hoặc tồn kho.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-fA-F0-9]{24}$'
+          description: ObjectId 24 ký tự hex của đơn hàng.
+      responses:
+        '201':
+          description: Đã ghi nhận lịch sử xuất hóa đơn
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      exportRecord:
+                        type: object
+                        properties:
+                          orderId:
+                            type: string
+                          orderCode:
+                            type: string
+                          exportedAt:
+                            type: string
+                            format: date-time
+                          exportedBy:
+                            type: string
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/OrderNotFoundError'
+        '409':
+          $ref: '#/components/responses/InvoiceNotEligibleError'
+        '503':
+          $ref: '#/components/responses/OrdersUnavailableError'
+
+components:
+  schemas:
+    StaffOrderInvoice:
+      type: object
+      required: [store, order, invoiceMeta]
+      properties:
+        store:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "Petjoy"
+            address:
+              type: string
+              example: "28 Nguyễn Thị Minh Khai, Quận 1, TP. Hồ Chí Minh"
+            hotline:
+              type: string
+              example: "1900 636 789"
+            email:
+              type: string
+              example: "support@petjoy.vn"
+        order:
+          type: object
+          properties:
+            id:
+              type: string
+            orderCode:
+              type: string
+              example: "ORD1794327303021111"
+            createdAt:
+              type: string
+              format: date-time
+            channel:
+              type: string
+              enum: [online, offline]
+            orderStatus:
+              type: string
+              enum: [confirmed, processing, shipping, completed]
+            paymentMethod:
+              type: string
+              enum: [COD, ONLINE, CASH]
+            paymentStatus:
+              type: string
+              enum: [unpaid, pending, paid, failed]
+            customer:
+              type: object
+              properties:
+                name:
+                  type: string
+                phone:
+                  type: string
+                email:
+                  type: string
+                  nullable: true
+            shippingAddress:
+              type: object
+              nullable: true
+              properties:
+                recipientName:
+                  type: string
+                phone:
+                  type: string
+                province:
+                  type: string
+                district:
+                  type: string
+                ward:
+                  type: string
+                street:
+                  type: string
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  variantSku:
+                    type: string
+                  name:
+                    type: string
+                  unitPrice:
+                    type: integer
+                  qty:
+                    type: integer
+                  lineTotal:
+                    type: integer
+            subtotal:
+              type: integer
+            discount:
+              type: integer
+            promotionCode:
+              type: string
+              nullable: true
+            shippingFee:
+              type: integer
+            total:
+              type: integer
+            paidAmount:
+              type: integer
+            remainingAmount:
+              type: integer
+            needsReview:
+              type: boolean
+            createdByStaff:
+              type: string
+              nullable: true
+        invoiceMeta:
+          type: object
+          properties:
+            generatedAt:
+              type: string
+              format: date-time
+            generatedBy:
+              type: string
+            exportCount:
+              type: integer
+
+  responses:
+    ValidationError:
+      description: Mã định danh đơn hàng không đúng định dạng ObjectId
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              message: { type: string, example: "Mã đơn hàng không hợp lệ." }
+              error: { type: object, properties: { code: { type: string, example: "VALIDATION_ERROR" } } }
+    UnauthorizedError:
+      description: Chưa đăng nhập hoặc phiên đăng nhập hết hạn
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              message: { type: string, example: "Bạn chưa đăng nhập." }
+              error: { type: object, properties: { code: { type: string, example: "UNAUTHENTICATED" } } }
+    ForbiddenError:
+      description: Tài khoản không có vai trò staff hoặc sai Origin/CSRF
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              message: { type: string, example: "Bạn không có quyền truy cập chức năng này." }
+              error: { type: object, properties: { code: { type: string, example: "FORBIDDEN" } } }
+    OrderNotFoundError:
+      description: Không tìm thấy đơn hàng hoặc đơn tại quầy đang tạo dở
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              message: { type: string, example: "Không tìm thấy đơn hàng." }
+              error: { type: object, properties: { code: { type: string, example: "ORDER_NOT_FOUND" } } }
+    InvoiceNotEligibleError:
+      description: Đơn hàng đang ở trạng thái Chờ xử lý hoặc Đã hủy, chưa đủ điều kiện xuất hóa đơn
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              message: { type: string, example: "Chỉ hỗ trợ xuất hóa đơn cho đơn hàng từ trạng thái Đã xác nhận trở lên." }
+              error: { type: object, properties: { code: { type: string, example: "INVOICE_NOT_ELIGIBLE" } } }
+    OrdersUnavailableError:
+      description: Lỗi kết nối cơ sở dữ liệu khi đọc thông tin hóa đơn
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              message: { type: string, example: "Chưa thể tải dữ liệu hóa đơn. Vui lòng thử lại." }
+              error: { type: object, properties: { code: { type: string, example: "ORDERS_UNAVAILABLE" } } }
+

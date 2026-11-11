@@ -100,10 +100,10 @@ export function StaffShell({ children }: { children: ReactNode }) {
  return (
   <div
    data-workspace="staff"
-   className="min-h-dvh max-w-full overflow-x-clip bg-surface lg:grid lg:grid-cols-[232px_minmax(0,1fr)]"
+   className="min-h-dvh max-w-full overflow-x-clip bg-surface lg:grid lg:grid-cols-[232px_minmax(0,1fr)] print:block"
   >
    <aside
-    className="hidden min-h-dvh border-r border-line bg-surface px-6 py-7 lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col"
+    className="hidden min-h-dvh border-r border-line bg-surface px-6 py-7 lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col print:hidden"
     aria-label="Điều hướng nhân viên"
    >
     <Logo href="/staff/dashboard" size="md" priority />
@@ -131,7 +131,7 @@ export function StaffShell({ children }: { children: ReactNode }) {
     </div>
    </aside>
    <div className="min-w-0">
-    <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur print:hidden">
      <div className="flex min-h-[72px] items-center justify-between gap-4 px-4 sm:px-8">
       <div className="min-w-0">
        <p className="truncate">
@@ -162,7 +162,7 @@ export function StaffShell({ children }: { children: ReactNode }) {
       </nav>
      </details>
     </header>
-    <main className="mx-auto w-full max-w-[1240px] space-y-6 px-4 py-8 sm:px-8 lg:py-10">
+    <main className="mx-auto w-full max-w-[1240px] space-y-6 px-4 py-8 sm:px-8 lg:py-10 print:max-w-none print:p-0 print:space-y-0">
      {children}
     </main>
    </div>

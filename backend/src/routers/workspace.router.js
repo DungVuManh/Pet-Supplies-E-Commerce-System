@@ -3,6 +3,7 @@ import { readCookies, requireAuth, requireRole } from "../common/middlewares/aut
 import { dashboard } from "../controllers/dashboard.controller.js";
 import { getStaffSales, getStaffPerformance, getStaffOverview } from "../controllers/staff-analytics.controller.js";
 import { listStaffOrders, getStaffOrderDetail } from "../controllers/order.controller.js";
+import { getStaffOrderInvoice, recordStaffOrderInvoiceExport } from "../controllers/order-invoice.controller.js";
 import { updateStaffOrderStatus } from "../controllers/order-status.controller.js";
 import { getStaffProducts, getProductBySku } from "../controllers/product.controller.js";
 import { updateStaffProduct } from "../controllers/product-update.controller.js";
@@ -24,6 +25,8 @@ router.get("/staff/orders/creation/:requestId", readCookies, requireAuth, requir
 router.get("/staff/order-customers", readCookies, requireAuth, requireRole("staff"), listSaleCustomers);
 router.get("/staff/order-products", readCookies, requireAuth, requireRole("staff"), listSaleProducts);
 router.get("/staff/orders/:id", readCookies, requireAuth, requireRole("staff"), getStaffOrderDetail);
+router.get("/staff/orders/:id/invoice", readCookies, requireAuth, requireRole("staff"), getStaffOrderInvoice);
+router.post("/staff/orders/:id/invoice/exports", readCookies, requireAuth, requireRole("staff"), protectMutation, recordStaffOrderInvoiceExport);
 router.patch("/staff/orders/:id/status", readCookies, requireAuth, requireRole("staff"), protectMutation, updateStaffOrderStatus);
 router.get("/staff/products", readCookies, requireAuth, requireRole("staff"), getStaffProducts);
 router.get("/staff/products/:sku", readCookies, requireAuth, requireRole("staff"), getProductBySku);

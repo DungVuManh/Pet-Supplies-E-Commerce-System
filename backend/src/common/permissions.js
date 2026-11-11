@@ -14,12 +14,15 @@ export const PERMISSIONS = [
   id: "all-orders", label: "Xem tất cả đơn hàng", roles: grant(false, true, true),
   staffRoutes: [
    "GET /staff/dashboard", "GET /staff/analytics/sales", "GET /staff/analytics/performance", "GET /staff/analytics/overview",
-   "GET /staff/orders", "GET /staff/orders/:id", "GET /staff/orders/creation/:requestId",
+   "GET /staff/orders", "GET /staff/orders/:id", "GET /staff/orders/:id/invoice", "GET /staff/orders/creation/:requestId",
   ],
  },
  {
   id: "process-orders", label: "Xử lý đơn và yêu cầu hủy", roles: grant(false, true, true),
-  staffRoutes: ["POST /staff/orders", "PATCH /staff/orders/:id/status", "GET /staff/order-customers", "GET /staff/order-products"],
+  staffRoutes: [
+   "POST /staff/orders", "POST /staff/orders/:id/invoice/exports", "PATCH /staff/orders/:id/status",
+   "GET /staff/order-customers", "GET /staff/order-products",
+  ],
  },
  {
   id: "catalog-stock", label: "Cập nhật sản phẩm và tồn kho", roles: grant(false, true, true),

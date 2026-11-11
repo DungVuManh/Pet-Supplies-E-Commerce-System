@@ -1,5 +1,7 @@
 import type {
   StaffOrderDetail,
+  StaffOrderInvoice,
+  StaffOrderInvoiceExportRecord,
   StaffOrdersFilterState,
   StaffOrdersListResponse,
   StaffOrderStatusUpdate,
@@ -108,12 +110,54 @@ export async function fetchStaffOrderDetail(
   return json.data.order;
 }
 
+export async function fetchStaffOrderInvoice(
+  origin: string,
+  cookieHeader: string,
+  id: string
+): Promise<StaffOrderInvoice> {
+  const url = `${origin}/api/v1/staff/orders/${encodeURIComponent(id)}/invoice`;
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      Cookie: cookieHeader,
+    },
+    cache: "no-store",
+  });
+
+  const json = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const code = json?.error?.code || "REQUEST_FAILED";
+    const message = json?.message || `Lỗi tải hóa đơn (${response.status})`;
+    throw new StaffOrdersApiError(response.status, code, message);
+  }
+
+  const invoice = json?.data?.invoice;
+  if (
+    !json?.success ||
+    !record(invoice) ||
+    !record(invoice.store) ||
+    !record(invoice.order) ||
+    !record(invoice.invoiceMeta)
+  ) {
+    throw new StaffOrdersApiError(
+      502,
+      "INVALID_RESPONSE",
+      "Dữ liệu hóa đơn không đúng cấu trúc."
+    );
+  }
+
+  return invoice as unknown as StaffOrderInvoice;
+}
+
 const statusMessages: Record<string, string> = {
   ORDER_STATUS_CONFLICT: "Đơn hàng đã thay đổi. Hãy tải lại trước khi cập nhật.",
   INVALID_ORDER_TRANSITION: "Đơn hàng không thể chuyển sang trạng thái đã chọn.",
   PAYMENT_NOT_VERIFIED: "Đơn thanh toán trực tuyến chưa được xác nhận thanh toán.",
   ORDER_NOT_CONFIRMABLE: "Thông tin đơn hàng chưa đầy đủ hoặc không hợp lệ.",
   OUT_OF_STOCK: "Sản phẩm không còn bán hoặc tồn khả dụng không đủ để xác nhận đơn.",
+  INVOICE_NOT_ELIGIBLE: "Chỉ hỗ trợ xuất hóa đơn cho đơn hàng từ trạng thái Đã xác nhận trở lên.",
   ORDER_NOT_FOUND: "Không tìm thấy đơn hàng.",
   VALIDATION_ERROR: "Thông tin cập nhật chưa hợp lệ. Hãy kiểm tra lại.",
   CSRF_INVALID: "Phiên gửi biểu mẫu đã hết hạn. Vui lòng thử lại.",
@@ -151,4 +195,45 @@ export async function updateStaffOrderStatus(id: string, input: StaffOrderStatus
     throw new StaffOrdersApiError(502, "INVALID_RESPONSE", "Phản hồi chưa hợp lệ. Hãy tải lại đơn hàng để kiểm tra.");
   }
   return { id, orderStatus: input.orderStatus };
+}
+
+export async function recordStaffOrderInvoiceExport(
+  id: string
+): Promise<StaffOrderInvoiceExportRecord> {
+  const { csrfToken } = await statusRequest("/api/v1/auth/csrf");
+  if (typeof csrfToken !== "string" || !/^[A-Za-z0-9_-]{43}$/.test(csrfToken)) {
+    throw new StaffOrdersApiError(
+      502,
+      "INVALID_RESPONSE",
+      "Phiên gửi biểu mẫu chưa hợp lệ. Hãy tải lại trang."
+    );
+  }
+
+  const { exportRecord } = await statusRequest(
+    `/api/v1/staff/orders/${encodeURIComponent(id)}/invoice/exports`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken,
+      },
+      body: JSON.stringify({}),
+    }
+  );
+
+  if (
+    !record(exportRecord) ||
+    typeof exportRecord.orderId !== "string" ||
+    typeof exportRecord.orderCode !== "string" ||
+    typeof exportRecord.exportedAt !== "string" ||
+    typeof exportRecord.exportedBy !== "string"
+  ) {
+    throw new StaffOrdersApiError(
+      502,
+      "INVALID_RESPONSE",
+      "Phản hồi ghi nhận xuất hóa đơn chưa hợp lệ."
+    );
+  }
+
+  return exportRecord as unknown as StaffOrderInvoiceExportRecord;
 }
