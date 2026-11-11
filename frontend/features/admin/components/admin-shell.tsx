@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type FormEvent, type ReactNode } from "react";
 import {
-  Bell, ChartNoAxesCombined, Database, LayoutGrid, ListTree, Package, RotateCcw, Search, Settings, ShoppingBag, TicketPercent, Users, Warehouse,
+  Bell, ChartNoAxesCombined, LayoutGrid, ListTree, Package, RotateCcw, Search, Settings, ShoppingBag, Tag, TicketPercent, Users, Warehouse,
   type LucideIcon,
 } from "lucide-react";
 import { Logo as PetjoyLogo } from "@/components/ui/logo";
@@ -15,7 +15,7 @@ const nav: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/admin/users", label: "Người dùng", icon: Users },
   { href: "/admin/products", label: "Sản phẩm", icon: Package },
   { href: "/admin/categories", label: "Danh mục", icon: ListTree },
-  { href: "/admin/master-data", label: "Dữ liệu nền", icon: Database },
+  { href: "/admin/brands", label: "Thương hiệu", icon: Tag },
   { href: "/admin/orders", label: "Đơn hàng", icon: ShoppingBag },
   { href: "/admin/vouchers", label: "Voucher", icon: TicketPercent },
   { href: "/admin/cancellations", label: "Yêu cầu hủy", icon: RotateCcw },

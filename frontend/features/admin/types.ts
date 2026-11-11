@@ -127,6 +127,8 @@ export type MasterDataKind = "petType" | "breed" | "brand" | "unit" | "shippingM
 export type MasterDataStatus = "active" | "inactive";
 export type MasterDataFilter = { kind: MasterDataKind; q: string; status: MasterDataStatus | "all" };
 export type MasterDataCounts = Record<MasterDataKind, number>;
+/** The brand list's filter; brands are master data of kind `brand`. */
+export type BrandFilter = { q: string; status: MasterDataStatus | "all" };
 /**
  * `GET /api/v1/admin/master-data/:kind/:code`. `petTypeCode` is set for breeds and
  * `fee` for shipping methods. `renameBlocked` and `blocker` say why the name
@@ -143,6 +145,8 @@ export type MasterDataDetail = {
   updatedAt: string;
   renameBlocked: string | null;
   blocker: string | null;
+  /** Products using a brand or unit; null for the other kinds. */
+  productCount: number | null;
 };
 
 /** One row of `GET /api/v1/admin/master-data`. `metric` depends on the kind: a count, a pet type name, or a fee. */

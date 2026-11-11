@@ -125,13 +125,13 @@ async function usage(row) {
  if (row.kind === "brand" || row.kind === "unit") {
   const products = await Product.countDocuments({ [row.kind]: row.name });
   const reason = products > 0 ? `đang dùng cho ${products} sản phẩm` : null;
-  return { renameBlocked: reason, blocker: reason };
+  return { renameBlocked: reason, blocker: reason, productCount: products };
  }
  if (row.kind === "petType") {
   const breeds = await MasterData.countDocuments({ kind: "breed", petTypeCode: row.code });
-  return { renameBlocked: null, blocker: breeds > 0 ? `còn ${breeds} giống thuộc loài này` : null };
+  return { renameBlocked: null, blocker: breeds > 0 ? `còn ${breeds} giống thuộc loài này` : null, productCount: null };
  }
- return { renameBlocked: null, blocker: null };
+ return { renameBlocked: null, blocker: null, productCount: null };
 }
 
 async function rowDetail(row) {

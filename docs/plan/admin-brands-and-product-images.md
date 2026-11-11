@@ -26,13 +26,16 @@ Specification: `docs/specs/admin-brands-and-product-images.md`
 
 ## Part 1: Thương hiệu page
 
-- [ ] Add brand service functions and types, with list, get, create, update, and delete over the master data API with `kind=brand`.
-- [ ] Add `hooks/use-brands-list.ts` (search, status, paging, delete with confirmation) and `components/brands-list.tsx`, modelled on the category list.
-- [ ] Add `hooks/use-brand-form.ts`, `components/brand-form.tsx` (new and edit modes), and the pages `/admin/brands`, `/admin/brands/new`, and `/admin/brands/[code]/edit`, with a server fetch that shows not-found for an unknown code.
-- [ ] Rename the sidebar entry to "Thương hiệu" at `/admin/brands`, and make `/admin/master-data` redirect there.
-- [ ] Remove the master data screen code: `master-data-view.tsx`, `master-data-dialog.tsx`, `use-master-data.ts`, and `use-master-data-form.ts`.
-- [ ] Browser check: create, search, edit, deactivate, a duplicate name, a brand in use that cannot be renamed or deleted, delete, the new brand in the product form, and the old URL redirecting.
-- [ ] 🛑 **Commit checkpoint:** `admin - brands page replaces master data`
+- [x] Add brand service functions and types, with list, get, create, update, and delete over the master data API with `kind=brand`.
+- [x] Add `hooks/use-brands-list.ts` (search, status, paging, delete with confirmation) and `components/brands-list.tsx`, modelled on the category list.
+- [x] Add `hooks/use-brand-form.ts`, `components/brand-form.tsx` (new and edit modes), and the pages `/admin/brands`, `/admin/brands/new`, and `/admin/brands/[code]/edit`, with a server fetch that shows not-found for an unknown code.
+  - Note: `GET /admin/master-data/:kind/:code` now also returns `productCount` for brands and units, so the edit page shows the count directly.
+- [x] Rename the sidebar entry to "Thương hiệu" at `/admin/brands`, and make `/admin/master-data` redirect there.
+- [x] Remove the master data screen code: `master-data-view.tsx`, `master-data-dialog.tsx`, `use-master-data.ts`, and `use-master-data-form.ts`.
+- [x] Browser check: create, search, edit, deactivate, a duplicate name, a brand in use that cannot be renamed or deleted, delete, the new brand in the product form, and the old URL redirecting.
+  - Result (2026-11-11): 16 checks passed, at 1440 and 320 px. The only console error is the 409 that the duplicate test triggers on purpose.
+- [x] 🛑 **Commit checkpoint:** `admin - brands page replaces master data`
+  - Checks: backend 1025 passed with the same 18 baseline failures, frontend tests 119/119, lint at the baseline count, and the build passes.
 
 ## Part 2: Product photo upload
 
