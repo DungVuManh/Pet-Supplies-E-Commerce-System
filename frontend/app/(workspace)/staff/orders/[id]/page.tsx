@@ -72,7 +72,7 @@ export default async function OrderDetailPage({
   throw error;
  }
 
-  return (
+ return (
   <>
    <PageHeader
     title={`Đơn hàng #${order.orderCode}`}
@@ -128,7 +128,9 @@ export default async function OrderDetailPage({
        <dd className="text-right font-medium">{money(order.subtotal)}</dd>
        {order.discount > 0 && (
         <>
-         <dt className="text-muted">Giảm giá{order.promotionCode ? ` (${order.promotionCode})` : ""}</dt>
+         <dt className="text-muted">
+          Giảm giá{order.promotionCode ? ` (${order.promotionCode})` : ""}
+         </dt>
          <dd className="text-right font-medium text-success">
           −{money(order.discount)}
          </dd>
@@ -222,14 +224,13 @@ export default async function OrderDetailPage({
        <Badge tone={paymentStatusTones[order.paymentStatus]}>
         {paymentStatusLabels[order.paymentStatus]}
        </Badge>
-       {order.needsReview && (
-        <Badge tone="warning">⚠️ Cần đối soát</Badge>
-       )}
+       {order.needsReview && <Badge tone="warning">⚠️ Cần đối soát</Badge>}
       </div>
 
       {order.needsReview && (
        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800 font-medium">
-        Đơn hàng có chênh lệch tiền hoặc chuyển khoản sau khi đổi phương thức. Vui lòng đối soát giao dịch ngân hàng.
+        Đơn hàng có chênh lệch tiền hoặc chuyển khoản sau khi đổi phương thức.
+        Vui lòng đối soát giao dịch ngân hàng.
        </div>
       )}
 

@@ -5,6 +5,7 @@
 
 import mongoose from "mongoose";
 import { AppError } from "../common/errors/app-error.js";
+import { generateOrderCode } from "../common/order-code.js";
 import { priceOrderItems } from "../common/order-pricing.js";
 import { VOUCHER_CHANGED_MESSAGE, VOUCHER_INVALID_MESSAGE, checkVoucher, releaseVoucher, reserveVoucher, undoReservation, voucherRefusalMessage } from "../common/voucher-redemption.js";
 import { Order } from "../models/order.model.js";
@@ -26,10 +27,6 @@ const SORT_MAP = {
   total_desc: { total: -1 },
   total_asc: { total: 1 },
 };
-
-function generateOrderCode() {
-  return `ORD${Date.now()}${Math.floor(100 + Math.random() * 900)}`;
-}
 
 // -------------------------------------------------------------
 // 1. DÀNH CHO CUSTOMER & GUEST (Mua ngay & Cart)

@@ -178,6 +178,7 @@ describe("Customer order creation HTTP", () => {
 
     expect(createOrder).toHaveBeenCalledWith(
       expect.objectContaining({
+        orderCode: expect.stringMatching(/^ORD\d+$/),
         guestInfo,
         subtotal: 420000,
         total: 420000,

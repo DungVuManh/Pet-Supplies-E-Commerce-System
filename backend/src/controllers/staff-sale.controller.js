@@ -1,5 +1,5 @@
-import { randomBytes } from "node:crypto";
 import { AppError } from "../common/errors/app-error.js";
+import { generateOrderCode } from "../common/order-code.js";
 import { Product } from "../models/product.model.js";
 import { User } from "../models/user.model.js";
 import { Order } from "../models/order.model.js";
@@ -60,6 +60,7 @@ export async function listSaleProducts(request, response) {
    { $skip: (page - 1) * PAGE_SIZE }, { $limit: PAGE_SIZE + 1 },
    { $project: { _id: 0, productId: { $toString: "$_id" }, name: 1,
     sku: "$variants.sku", variantLabel: "$variants.label", price: "$variants.price",
+    image: { $cond: [{ $isArray: "$images" }, { $ifNull: [{ $arrayElemAt: ["$images", 0] }, ""] }, ""] },
     availableStock: { $subtract: ["$variants.stock", "$variants.reservedStock"] } } },
   ]);
   response.json({ success: true, data: { page, hasMore: rows.length > PAGE_SIZE,
@@ -103,7 +104,7 @@ async function saveSale(input, actorId, requestId, hash) {
    name: product.name, unitPrice: variant.price, qty: requested.qty });
  }
  const now = new Date();
- const order = new Order({ orderCode: `POS-${now.toISOString().slice(0, 10).replaceAll("-", "")}-${randomBytes(8).toString("hex").toUpperCase()}`,
+ const order = new Order({ orderCode: generateOrderCode(),
   ...(input.customerId ? { customerId: input.customerId } : {}), guestInfo: contact,
   items, subtotal, total: subtotal, discount: 0, shippingFee: 0,
   channel: "offline", orderStatus: "completed", paymentMethod: "CASH", paymentStatus: "paid",
