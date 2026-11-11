@@ -20,7 +20,7 @@ Every Admin screen in `docs/specs/admin-workspace-ui.md` is built, but it reads 
 | Edit category | `/admin/categories/[code]/edit` | `GET /categories/:code`, `PATCH /categories/:code` | UC28, MSG32 |
 | Master data | `/admin/master-data` | `GET /master-data`, `GET /master-data/options` | — |
 | Orders | `/admin/orders` | `GET /orders` | UC31 (Admin view) |
-| Cancellations | `/admin/cancellations` | `GET /cancellations`, `POST /cancellations/:orderCode/approve`, `POST /cancellations/:orderCode/reject` | UC25, BR-20 |
+| ~~Cancellations~~ (dropped 2026-11-11: Staff handle cancellation requests) | ~~`/admin/cancellations`~~ | `GET /cancellations`, `POST /cancellations/:orderCode/approve`, `POST /cancellations/:orderCode/reject` | UC25, BR-20 |
 | Inventory | `/admin/inventory` | `GET /inventory`, `GET /inventory/movements`, `POST /inventory/receipts` | UC29, UC30, BR-26 |
 | Finance report | `/admin/reports/finance` | `GET /reports/finance` | UC41, BR-28 |
 | Sales report | `/admin/reports/sales` | `GET /reports/sales` | UC40 |

@@ -29,7 +29,6 @@ test("category form validation", () => {
 test("teammate screens search Vietnamese names with đ/Đ and ignore accents", () => {
   assert.deepEqual(filterAuditLog(auditLogEntries, { search: "duc long" }).map((e) => e.actor), ["Vũ Đức Long"]);
   assert.deepEqual(filterAuditLog(auditLogEntries, { search: "Đức" }).map((e) => e.actor), ["Vũ Đức Long"]);
-  assert.ok(filterCancellations(initialCancellations, { search: "dat nham" }).length >= 1, "“Đặt nhầm” matches without accents");
   assert.ok(filterNotifications(initialNotifications, { tab: "all", search: "don hang" }).length >= 1, "“Đơn hàng” matches “don hang”");
   assert.deepEqual(filterStockLevels(stockLevels, { search: "do choi" }).map((i) => i.sku), ["KG-CL-M"]);
 });
@@ -47,8 +46,6 @@ test("dashboard stock alert lists only below-threshold items, within the low-sto
   assert.ok(stockLevels.filter((item) => !isLowStock(item)).every((item) => item.available >= item.threshold));
 });
 
-import { filterCancellations, getCancellation, initialCancellations } from "../features/admin/mock/cancellations.ts";
-import { orders } from "../features/staff/mock-data.ts";
 
 test("admin status labels map to the designed badge tones", () => {
   const allowed = new Set(["success", "warning", "info", "danger", "neutral"]);
@@ -57,38 +54,6 @@ test("admin status labels map to the designed badge tones", () => {
   assert.equal(adminStatusTone("Sắp hết hàng"), "warning");
   assert.equal(adminStatusTone("Đã khóa"), "danger");
   assert.equal(adminStatusTone("Đã ẩn"), "neutral");
-});
-
-test("cancellation requests are linked to existing order IDs and have valid statuses and amounts", () => {
-  assert.ok(initialCancellations.length >= 6);
-  const orderIds = new Set(orders.map((o) => o.id));
-  assert.ok(initialCancellations.every((req) => orderIds.has(req.orderId)));
-
-  for (const req of initialCancellations) {
-    assert.ok(req.status in adminStatusTones, req.status);
-    const order = orders.find((o) => o.id === req.orderId);
-    assert.ok(order, `Request ${req.id} must link to a valid order`);
-    assert.equal(req.value, order.total, `Value for request ${req.id} matches order total`);
-    assert.ok(req.reason.length > 0);
-    assert.ok(req.customer.length > 0);
-  }
-
-  assert.equal(getCancellation("YC001")?.orderId, "PA261012018");
-  assert.equal(getCancellation("NON_EXISTENT"), undefined);
-});
-
-
-test("cancellation filter filters by search keyword and status correctly", () => {
-  const pending = filterCancellations(initialCancellations, { status: "Chờ duyệt" });
-  assert.ok(pending.every((r) => r.status === "Chờ duyệt"));
-  assert.equal(pending.length, 3);
-
-  const searched = filterCancellations(initialCancellations, { search: "YC001" });
-  assert.equal(searched.length, 1);
-  assert.equal(searched[0].id, "YC001");
-
-  const searchCustomer = filterCancellations(initialCancellations, { search: "Minh Anh" });
-  assert.ok(searchCustomer.some((r) => r.customer === "Nguyễn Minh Anh"));
 });
 
 import { filterStockHistory, filterStockLevels, getStockItem, getStockWarning, stockHistory } from "../features/admin/mock/inventory.ts";

@@ -261,6 +261,8 @@ UI it serves: `docs/specs/admin-workspace-ui.md` (complete on mock data in `fron
 
 ## 6. Cancellation requests: `/admin/cancellations`
 
+> **Dropped on 2026-11-11.** The user and their teammate decided that Staff handle cancellation requests, so Admin has no cancellations screen. The mock screen, its route, its sidebar entry, and `mock/cancellations.ts` were removed, and the bullets below will not be done.
+
 > **Voucher note:** approving a cancellation must also call `releaseVoucher(orderId)` from `common/voucher-redemption.js`, or the order's voucher use is never returned. See `docs/plan/voucher-system.md`.
 
 - [ ] `Order`: add the `cancellationRequest` subdocument (see the spec) and an index `{ "cancellationRequest.status": 1, "cancellationRequest.requestedAt": -1 }`

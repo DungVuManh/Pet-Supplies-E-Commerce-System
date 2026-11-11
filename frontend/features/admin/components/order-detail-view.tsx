@@ -92,7 +92,7 @@ export function OrderDetailView({ order }: { order: AdminOrderDetail }) {
           ]} /></div>
         </section>}
         <InfoCallout icon={<Star className="h-5 w-5" strokeWidth={1.7} />} title="Chỉ xem">
-          Nhân viên xử lý và cập nhật trạng thái đơn tại không gian vận hành. Yêu cầu hủy được duyệt ở mục Yêu cầu hủy.
+          Nhân viên xử lý và cập nhật trạng thái đơn tại không gian vận hành. Yêu cầu hủy đơn cũng do nhân viên xử lý.
         </InfoCallout>
       </aside>
     </div>
