@@ -34,6 +34,7 @@ const ALL_STATUSES: OrderStatus[] = [
  "shipping",
  "completed",
  "cancelled",
+ "returned",
 ];
 
 function formatOrderDateTime(isoString: string): string {
@@ -227,6 +228,7 @@ export function OrdersList() {
     shipping: 0,
     completed: 0,
     cancelled: 0,
+    returned: 0,
    };
    return [
     { value: "all", label: "Tất cả", count: data?.summary.all ?? 0 },

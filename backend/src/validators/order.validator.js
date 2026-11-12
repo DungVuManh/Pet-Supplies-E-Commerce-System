@@ -2,7 +2,7 @@ import { z } from "zod";
 import { AppError } from "../common/errors/app-error.js";
 import { orderStatuses } from "../models/shared.schema.js";
 
-export const staffOrderStatuses = ["pending", "confirmed", "processing", "shipping", "completed", "cancelled"];
+export const staffOrderStatuses = ["pending", "confirmed", "processing", "shipping", "completed", "cancelled", "returned"];
 
 const VIETNAMESE_ACCENT_MAP = {
   a: "[aàáảãạăằắẳẵặâầấẩẫậ]",
@@ -165,6 +165,7 @@ export const staffOrderTransitions = {
   shipping: [],
   completed: [],
   cancelled: [],
+  returned: [],
 };
 
 const staffOrderStatusSchema = z.object({

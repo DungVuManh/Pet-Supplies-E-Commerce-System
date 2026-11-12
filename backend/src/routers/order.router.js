@@ -4,6 +4,8 @@
 // =============================================================
 
 import { Router } from "express";
+import multer from "multer";
+import { AppError } from "../common/errors/app-error.js";
 import {
   createOrder,
   cancelOrder,
@@ -19,7 +21,14 @@ import {
   getCustomerOrderPayment,
   renewCustomerOrderPayment,
 } from "../controllers/order-payment.controller.js";
-import { protectMutation } from "../controllers/auth.controller.js";
+import {
+  protectMutation,
+  protectMultipartMutation,
+} from "../controllers/auth.controller.js";
+import {
+  uploadCustomerReturnImages,
+  submitCustomerReturnRequest,
+} from "../controllers/order-return.controller.js";
 import {
   optionalAuth,
   readCookies,
@@ -32,6 +41,33 @@ const router = Router();
 function noStore(_request, response, next) {
   response.set("Cache-Control", "no-store");
   next();
+}
+
+const returnImageUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+    files: 5,
+  },
+}).array("images", 5);
+
+function handleReturnImageUpload(request, response, next) {
+  returnImageUpload(request, response, (err) => {
+    if (err) {
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return next(
+          new AppError("Mỗi hình ảnh không được vượt quá 5MB.", 400, "FILE_TOO_LARGE")
+        );
+      }
+      if (err.code === "LIMIT_FILE_COUNT" || err.code === "LIMIT_UNEXPECTED_FILE") {
+        return next(
+          new AppError("Chỉ được tải lên tối đa 5 ảnh cho mỗi yêu cầu.", 400, "TOO_MANY_FILES")
+        );
+      }
+      return next(new AppError(err.message || "Lỗi tải ảnh lên.", 400, "UPLOAD_ERROR"));
+    }
+    next();
+  });
 }
 
 // Hỗ trợ nhận diện user nếu đã đăng nhập qua cookie
@@ -73,6 +109,25 @@ router.patch(
   requireRole("customer"),
   protectMutation,
   confirmCustomerOrderReceipt,
+);
+
+// Customer return requests: upload proof images and submit request
+router.post(
+  "/:id/return/upload",
+  noStore,
+  requireAuth,
+  requireRole("customer"),
+  protectMultipartMutation,
+  handleReturnImageUpload,
+  uploadCustomerReturnImages,
+);
+router.post(
+  "/:id/return",
+  noStore,
+  requireAuth,
+  requireRole("customer"),
+  protectMutation,
+  submitCustomerReturnRequest,
 );
 
 // 1b. Tra cứu đơn hàng công khai theo mã đơn hàng và số điện thoại (Không bắt buộc đăng nhập)

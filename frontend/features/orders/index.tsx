@@ -103,3 +103,4 @@ export { OrderDetailView } from "./components/order-detail-view";
 export { OrderCancelView } from "./components/order-cancel-view";
 export { OrderResumePaymentView } from "./components/order-resume-payment-view";
 export { OrderTrackingView } from "./components/order-tracking-view";
+export { OrderReturnView } from "./components/order-return-view";

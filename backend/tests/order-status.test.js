@@ -87,7 +87,7 @@ describe("Staff order status", () => {
     expect(response.body.data.items[0].orderStatus).toBe("completed");
     expect(response.body.data.pagination.total).toBe(3);
     expect(response.body.data.summary).toEqual({ all: 4, statusCounts: {
-      pending: 0, confirmed: 0, processing: 0, shipping: 0, completed: 3, cancelled: 1,
+      pending: 0, confirmed: 0, processing: 0, shipping: 0, completed: 3, cancelled: 1, returned: 0,
     } });
   });
   for (const status of ["pending", "confirmed"]) it(`allows cancellation only from ${status}`, async () => {

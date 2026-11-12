@@ -54,7 +54,7 @@ export type AdminOverview = {
   recentActivity: OverviewActivity[] | null;
 };
 
-export type UserActivityStatus = "pending" | "confirmed" | "processing" | "shipping" | "completed" | "cancelled" | "success" | "denied";
+export type UserActivityStatus = "pending" | "confirmed" | "processing" | "shipping" | "completed" | "cancelled" | "returned" | "success" | "denied";
 
 /** One entry of a user's history, merged from their orders and the audit log. `amount` is set for orders. */
 export type UserActivity = {
@@ -184,9 +184,9 @@ export type ProductOptions = { petTypes: { code: string; name: string }[]; brand
 /** `POST /api/v1/admin/products/:sku/hide` and `/show`. */
 export type ProductVisibilityResult = Pick<AdminProductDetail, "sku" | "isActive" | "status">;
 
-export type OrderStatus = "pending" | "confirmed" | "processing" | "shipping" | "completed" | "cancelled";
+export type OrderStatus = "pending" | "confirmed" | "processing" | "shipping" | "completed" | "cancelled" | "returned";
 export type OrderTab = "all" | "processing" | "shipping" | "completed" | "cancelled";
-export type OrderStatusFilter = "all" | "pending" | "processing" | "shipping" | "completed" | "cancelled";
+export type OrderStatusFilter = "all" | "pending" | "processing" | "shipping" | "completed" | "cancelled" | "returned";
 export type OrderFilter = { tab: OrderTab; q: string; status: OrderStatusFilter };
 export type OrderCounts = Record<OrderTab, number>;
 export type PaymentMethod = "COD" | "ONLINE" | "CASH";

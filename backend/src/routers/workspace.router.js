@@ -7,6 +7,11 @@ import { getStaffOrderInvoice, recordStaffOrderInvoiceExport } from "../controll
 import { updateStaffOrderStatus } from "../controllers/order-status.controller.js";
 import { getStaffProducts, getProductBySku } from "../controllers/product.controller.js";
 import { updateStaffProduct } from "../controllers/product-update.controller.js";
+import {
+  listStaffReturns,
+  getStaffReturnDetail,
+  decideStaffReturn,
+} from "../controllers/order-return.controller.js";
 import { protectMutation } from "../controllers/auth.controller.js";
 import { createStaffSale, getSaleCreation, listSaleCustomers, listSaleProducts } from "../controllers/staff-sale.controller.js";
 import { listInventory } from "../controllers/inventory.controller.js";
@@ -28,6 +33,9 @@ router.get("/staff/orders/:id", readCookies, requireAuth, requireRole("staff"), 
 router.get("/staff/orders/:id/invoice", readCookies, requireAuth, requireRole("staff"), getStaffOrderInvoice);
 router.post("/staff/orders/:id/invoice/exports", readCookies, requireAuth, requireRole("staff"), protectMutation, recordStaffOrderInvoiceExport);
 router.patch("/staff/orders/:id/status", readCookies, requireAuth, requireRole("staff"), protectMutation, updateStaffOrderStatus);
+router.get("/staff/returns", readCookies, requireAuth, requireRole("staff"), listStaffReturns);
+router.get("/staff/returns/:id", readCookies, requireAuth, requireRole("staff"), getStaffReturnDetail);
+router.post("/staff/returns/:id/decision", readCookies, requireAuth, requireRole("staff"), protectMutation, decideStaffReturn);
 router.get("/staff/products", readCookies, requireAuth, requireRole("staff"), getStaffProducts);
 router.get("/staff/products/:sku", readCookies, requireAuth, requireRole("staff"), getProductBySku);
 router.patch("/staff/products/:sku", readCookies, requireAuth, requireRole("staff"), protectMutation, updateStaffProduct);

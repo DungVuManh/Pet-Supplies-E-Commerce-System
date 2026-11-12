@@ -4,7 +4,8 @@ export type OrderStatus =
   | "processing"
   | "shipping"
   | "completed"
-  | "cancelled";
+  | "cancelled"
+  | "returned";
 
 export type PaymentMethod = "COD" | "ONLINE" | "CASH";
 export type StaffEditableOrderStatus = "confirmed" | "processing" | "shipping" | "cancelled";
@@ -135,6 +136,7 @@ export const orderStatusLabels: Record<OrderStatus, string> = {
   shipping: "Đang giao",
   completed: "Hoàn thành",
   cancelled: "Đã hủy",
+  returned: "Đã hoàn trả",
 };
 
 import type { BadgeTone } from "../components/staff-ui";
@@ -146,6 +148,7 @@ export const orderStatusTones: Record<OrderStatus, BadgeTone> = {
   shipping: "info",
   completed: "success",
   cancelled: "neutral",
+  returned: "danger",
 };
 
 export const paymentStatusLabels: Record<PaymentStatus, string> = {

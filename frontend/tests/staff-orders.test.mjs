@@ -47,7 +47,7 @@ test("StaffOrdersApiError retains HTTP status and application error code", () =>
   assert.equal(error.message, "Không tìm thấy đơn hàng.");
 });
 
-test("Order statuses and payment mappings cover the 6 staff statuses and 4 payment statuses", () => {
+test("Order statuses and payment mappings cover the 7 staff statuses and 4 payment statuses", () => {
   const expectedOrderStatuses = [
     "pending",
     "confirmed",
@@ -55,6 +55,7 @@ test("Order statuses and payment mappings cover the 6 staff statuses and 4 payme
     "shipping",
     "completed",
     "cancelled",
+    "returned",
   ];
   assert.deepEqual(Object.keys(orderStatusLabels), expectedOrderStatuses);
   assert.deepEqual(Object.keys(orderStatusTones), expectedOrderStatuses);

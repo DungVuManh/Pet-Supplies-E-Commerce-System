@@ -10,6 +10,7 @@ type StaffIcon =
  | "dashboard"
  | "orders"
  | "cancel"
+ | "returns"
  | "products"
  | "sales"
  | "performance";
@@ -20,6 +21,11 @@ const nav: { href: string; label: string; icon: StaffIcon }[] = [
   href: "/staff/orders?status=cancelled",
   label: "Yêu cầu hủy",
   icon: "cancel",
+ },
+ {
+  href: "/staff/returns",
+  label: "Yêu cầu hoàn trả",
+  icon: "returns",
  },
  { href: "/staff/products", label: "Sản phẩm", icon: "products" },
  { href: "/staff/sales", label: "Doanh số", icon: "sales" },
@@ -51,6 +57,12 @@ function StaffNavIcon({ name }: { name: StaffIcon }) {
    <>
     <circle cx="12" cy="12" r="9" />
     <path d="m9 9 6 6m0-6-6 6" />
+   </>
+  ),
+  returns: (
+   <>
+    <path d="M9 14 4 9l5-5" />
+    <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11" />
    </>
   ),
   products: (

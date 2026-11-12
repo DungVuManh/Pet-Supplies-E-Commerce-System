@@ -43,9 +43,9 @@ export async function getFinanceSummary(request, response) {
               },
             },
           ],
-          // Đơn đã thanh toán nhưng bị hủy (tiền cần hoàn)
+          // Đơn đã thanh toán nhưng bị hủy hoặc hoàn trả (tiền cần hoàn)
           cancelledPaid: [
-            { $match: { orderStatus: "cancelled", paymentStatus: "paid" } },
+            { $match: { orderStatus: { $in: ["cancelled", "returned"] }, paymentStatus: "paid" } },
             {
               $group: {
                 _id: null,
@@ -54,13 +54,13 @@ export async function getFinanceSummary(request, response) {
               },
             },
           ],
-          // Chờ đối soát 1: đơn ONLINE đang pending thanh toán, chưa hủy
+          // Chờ đối soát 1: đơn ONLINE đang pending thanh toán, chưa hủy/hoàn
           onlinePending: [
             {
               $match: {
                 paymentMethod: "ONLINE",
                 paymentStatus: "pending",
-                orderStatus: { $ne: "cancelled" },
+                orderStatus: { $nin: ["cancelled", "returned"] },
               },
             },
             {
@@ -100,7 +100,7 @@ export async function getFinanceSummary(request, response) {
           ],
           // Hoàn tiền theo từng ngày
           dailyRefund: [
-            { $match: { orderStatus: "cancelled", paymentStatus: "paid" } },
+            { $match: { orderStatus: { $in: ["cancelled", "returned"] }, paymentStatus: "paid" } },
             {
               $group: {
                 _id: mongoBucket("$createdAt", "day"),
@@ -133,7 +133,7 @@ export async function getFinanceSummary(request, response) {
                     $cond: [
                       {
                         $and: [
-                          { $eq: ["$orderStatus", "cancelled"] },
+                          { $in: ["$orderStatus", ["cancelled", "returned"]] },
                           { $eq: ["$paymentStatus", "paid"] },
                         ],
                       },
@@ -151,7 +151,7 @@ export async function getFinanceSummary(request, response) {
                             $and: [
                               { $eq: ["$paymentMethod", "ONLINE"] },
                               { $eq: ["$paymentStatus", "pending"] },
-                              { $ne: ["$orderStatus", "cancelled"] },
+                              { $not: [{ $in: ["$orderStatus", ["cancelled", "returned"]] }] },
                             ],
                           },
                           {

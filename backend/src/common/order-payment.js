@@ -40,7 +40,7 @@ export function canResumeOnlinePayment(order) {
   if (order.channel === "offline") return false;
   if (order.paymentMethod !== "ONLINE") return false;
   if (order.paymentStatus === "paid") return false;
-  if (order.orderStatus === "cancelled") return false;
+  if (order.orderStatus === "cancelled" || order.orderStatus === "returned") return false;
   return true;
 }
 
@@ -75,9 +75,11 @@ export function getOnlinePaymentIneligibilityError(order) {
   if (!order || order.creationState === "pending") {
     return new AppError("Không tìm thấy đơn hàng.", 404, "ORDER_NOT_FOUND");
   }
-  if (order.orderStatus === "cancelled") {
+  if (order.orderStatus === "cancelled" || order.orderStatus === "returned") {
     return new AppError(
-      "Đơn hàng đã bị hủy, không thể tiếp tục thanh toán.",
+      order.orderStatus === "returned"
+        ? "Đơn hàng đã hoàn trả, không thể tiếp tục thanh toán."
+        : "Đơn hàng đã bị hủy, không thể tiếp tục thanh toán.",
       409,
       "ORDER_CANCELLED"
     );
@@ -149,9 +151,12 @@ export function buildCustomerOrderPaymentSession(order, bankConfig, now = new Da
 
   let state = "eligible";
   let message = null;
-  if (order.orderStatus === "cancelled") {
+  if (order.orderStatus === "cancelled" || order.orderStatus === "returned") {
     state = "cancelled";
-    message = "Đơn hàng đã bị hủy nên không thể tiếp tục thanh toán.";
+    message =
+      order.orderStatus === "returned"
+        ? "Đơn hàng đã được hoàn trả nên không thể tiếp tục thanh toán."
+        : "Đơn hàng đã bị hủy nên không thể tiếp tục thanh toán.";
   } else if (order.paymentStatus === "paid") {
     state = "already_paid";
     message = "Đơn hàng này đã được thanh toán hoàn tất.";

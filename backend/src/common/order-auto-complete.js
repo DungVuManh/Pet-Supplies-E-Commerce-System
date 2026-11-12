@@ -1,6 +1,7 @@
 import { Order } from "../models/order.model.js";
 
 export const AUTO_COMPLETE_AFTER_MS = 3 * 24 * 60 * 60 * 1000;
+export const POST_REJECTION_GRACE_MS = 24 * 60 * 60 * 1000;
 export const DEFAULT_SWEEP_INTERVAL_MS = 15 * 60 * 1000;
 export const DEFAULT_BATCH_SIZE = 100;
 
@@ -43,9 +44,24 @@ export function isShippingOrderOverdue(
   if (order.creationState === "pending") return false;
   if (order.orderStatus !== "shipping") return false;
 
+  // Skip orders with pending or approved return request
+  if (order.returnRequest?.status === "pending" || order.returnRequest?.status === "approved") {
+    return false;
+  }
+
   const shippedAt = resolveShippingStartedAt(order);
   const current = parseValidDate(now);
   if (!shippedAt || !current) return false;
+
+  if (order.returnRequest?.status === "rejected") {
+    const reviewedAt = parseValidDate(order.returnRequest.reviewedAt);
+    if (reviewedAt) {
+      const graceThreshold = reviewedAt.getTime() + POST_REJECTION_GRACE_MS;
+      const normalThreshold = shippedAt.getTime() + thresholdMs;
+      const overdueTime = Math.max(graceThreshold, normalThreshold);
+      return current.getTime() >= overdueTime;
+    }
+  }
 
   return current.getTime() - shippedAt.getTime() >= thresholdMs;
 }
@@ -86,7 +102,7 @@ export async function autoCompleteOverdueShippingOrders({
 
     const candidates = await Order.find(filter)
       .select(
-        "_id orderCode channel orderStatus paymentMethod paymentStatus creationState statusHistory createdAt updatedAt"
+        "_id orderCode channel orderStatus paymentMethod paymentStatus creationState statusHistory createdAt updatedAt returnRequest"
       )
       .sort({ _id: 1 })
       .limit(effectiveBatchSize)
@@ -116,6 +132,7 @@ export async function autoCompleteOverdueShippingOrders({
           orderStatus: "shipping",
           paymentStatus: candidate.paymentStatus,
           creationState: { $ne: "pending" },
+          "returnRequest.status": { $nin: ["pending", "approved"] },
         },
         {
           $set: updateFields,

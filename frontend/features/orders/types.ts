@@ -20,6 +20,39 @@ export type CustomerPaymentEligibilityState =
   | "cancelled"
   | "not_online";
 
+export type ReturnBankAccount = {
+  bankName: string;
+  accountNumber: string;
+  accountHolder: string;
+};
+
+export type ReturnRequestReason =
+  | "damaged_or_missing"
+  | "damaged_or_defective"
+  | "not_received"
+  | "missing_items";
+
+export type ReturnRequestStatus = "pending" | "approved" | "rejected";
+
+export type CustomerOrderReturnRequest = {
+  reason: ReturnRequestReason;
+  reasonLabel: string;
+  bankAccount?: ReturnBankAccount | null;
+  description: string;
+  images: string[];
+  status: ReturnRequestStatus;
+  statusLabel: string;
+  refundRequired: boolean;
+  refundStatus: "none" | "pending_refund" | "refunded";
+  requestedAt: string;
+  reviewedAt: string | null;
+  rejectionReason: string | null;
+};
+
+export function isReturnImageRequired(reason: ReturnRequestReason): boolean {
+  return reason !== "not_received";
+}
+
 export type CustomerOrder = {
   id: string;
   orderCode: string;         // Mã đơn: #PA261012018
@@ -27,7 +60,7 @@ export type CustomerOrder = {
   productsSummary: string;   // Tên tóm tắt sản phẩm
   itemCount: number;         // Số lượng món đồ
   totalAmount: number;       // Tổng tiền: 1.100.000 đ
-  status: "pending" | "shipping" | "completed" | "cancelled";
+  status: "pending" | "shipping" | "completed" | "cancelled" | "returned";
   statusLabel: string;       // Nhãn hiển thị: "Chờ xử lý", "Đang giao", ...
 };
 
@@ -54,7 +87,7 @@ export type OrderDetail = {
   orderDate: string;
   orderTime: string;
   itemCount: number;
-  status: "pending" | "shipping" | "completed" | "cancelled";
+  status: "pending" | "shipping" | "completed" | "cancelled" | "returned";
   statusLabel: string;
   orderStatus?: string;
   channel?: "online" | "offline";
@@ -73,6 +106,9 @@ export type OrderDetail = {
   remainingAmount?: number;
   paymentExpiredAt?: string | null;
   canResumeOnlinePayment?: boolean;
+  canRequestReturn?: boolean;
+  canConfirmReceipt?: boolean;
+  returnRequest?: CustomerOrderReturnRequest | null;
   transactionCode: string;
   shippingAddress: {
     fullName: string;

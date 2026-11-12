@@ -432,6 +432,7 @@ export async function getOrderDetail(request, response, next) {
       shipping: { status: "shipping", statusLabel: "Đang giao" },
       completed: { status: "completed", statusLabel: "Hoàn thành" },
       cancelled: { status: "cancelled", statusLabel: "Đã hủy" },
+      returned: { status: "returned", statusLabel: "Đã hoàn trả" },
     };
 
     const { status, statusLabel } = statusMap[order.orderStatus] || { status: "pending", statusLabel: "Chờ xử lý" };
@@ -441,6 +442,11 @@ export async function getOrderDetail(request, response, next) {
       ? [
         { id: "step-1", title: "Đã đặt hàng", description: `${orderDate} · ${orderTime}`, status: "completed" },
         { id: "step-cancelled", title: "Đã hủy đơn", description: "Đơn hàng đã được hủy", status: "completed" },
+      ]
+      : status === "returned"
+      ? [
+        { id: "step-1", title: "Đã đặt hàng", description: `${orderDate} · ${orderTime}`, status: "completed" },
+        { id: "step-returned", title: "Đã hoàn trả", description: "Đơn hàng đã được hoàn trả", status: "completed" },
       ]
       : [
         { id: "step-1", title: "Đã đặt hàng", description: `${orderDate} · ${orderTime}`, status: "completed" },
@@ -508,6 +514,46 @@ export async function getOrderDetail(request, response, next) {
         ? computePaymentExpiry(order).expiredAt.toISOString()
         : null;
 
+    const RETURN_REASON_LABELS = {
+      damaged_or_defective: "Hàng có vấn đề",
+      not_received: "Chưa nhận được hàng",
+      missing_items: "Thiếu hàng",
+      damaged_or_missing: "Hàng có vấn đề hoặc thiếu hàng",
+    };
+    const RETURN_STATUS_LABELS = {
+      pending: "Chờ xử lý",
+      approved: "Đã chấp nhận",
+      rejected: "Đã từ chối",
+    };
+
+    const returnRequest = order.returnRequest?.status
+      ? {
+          reason: order.returnRequest.reason,
+          reasonLabel: RETURN_REASON_LABELS[order.returnRequest.reason] || order.returnRequest.reason,
+          bankAccount: order.returnRequest.bankAccount || null,
+          description: order.returnRequest.description,
+          images: order.returnRequest.images || [],
+          status: order.returnRequest.status,
+          statusLabel: RETURN_STATUS_LABELS[order.returnRequest.status] || order.returnRequest.status,
+          refundRequired: Boolean(order.returnRequest.refundRequired),
+          refundStatus: order.returnRequest.refundStatus || "none",
+          requestedAt: order.returnRequest.requestedAt ? new Date(order.returnRequest.requestedAt).toISOString() : null,
+          reviewedAt: order.returnRequest.reviewedAt ? new Date(order.returnRequest.reviewedAt).toISOString() : null,
+          rejectionReason: order.returnRequest.rejectionReason || null,
+        }
+      : null;
+
+    const canRequestReturn =
+      order.channel !== "offline" &&
+      order.orderStatus === "shipping" &&
+      !order.returnRequest?.status;
+
+    const canConfirmReceipt =
+      order.channel !== "offline" &&
+      order.orderStatus === "shipping" &&
+      order.returnRequest?.status !== "pending" &&
+      order.returnRequest?.status !== "approved";
+
     const result = {
       id: order._id.toString(),
       orderCode: order.orderCode,
@@ -533,6 +579,9 @@ export async function getOrderDetail(request, response, next) {
       remainingAmount,
       paymentExpiredAt,
       canResumeOnlinePayment: canResumeOnlinePayment(order),
+      canRequestReturn,
+      canConfirmReceipt,
+      returnRequest,
       transactionCode: order.orderCode, // Dùng orderCode làm mã giao dịch tạm thời
       shippingAddress,
     };

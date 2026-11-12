@@ -22,6 +22,7 @@ export const PERMISSIONS = [
   staffRoutes: [
    "POST /staff/orders", "POST /staff/orders/:id/invoice/exports", "PATCH /staff/orders/:id/status",
    "GET /staff/order-customers", "GET /staff/order-products",
+   "GET /staff/returns", "GET /staff/returns/:id", "POST /staff/returns/:id/decision",
   ],
  },
  {

@@ -21,6 +21,7 @@ const FILTER_STATUSES = {
  shipping: TAB_STATUSES.shipping,
  completed: TAB_STATUSES.completed,
  cancelled: TAB_STATUSES.cancelled,
+ returned: ["returned"],
 };
 
 const ROW_FIELDS = "orderCode customerId guestInfo shippingAddress total paymentMethod orderStatus createdAt";

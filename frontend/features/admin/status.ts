@@ -28,6 +28,7 @@ export const adminStatusTones = {
   "Bị từ chối": "danger",
   "Đã từ chối": "danger",
   "Đã hủy": "danger",
+  "Đã hoàn trả": "danger",
   "Hết hàng": "danger",
   "Đã ẩn": "neutral",
   "Đã tắt": "neutral",
@@ -55,7 +56,7 @@ export const petTypeLabels: Record<string, string> = { dog: "Chó", cat: "Mèo",
 
 /** "Đang đóng gói" is still part of the "Chờ xử lý" tab. */
 export const orderStatusLabels: Record<OrderStatus, AdminStatus> = {
-  pending: "Chờ xử lý", confirmed: "Chờ xử lý", processing: "Đang đóng gói", shipping: "Đang giao", completed: "Hoàn thành", cancelled: "Đã hủy",
+  pending: "Chờ xử lý", confirmed: "Chờ xử lý", processing: "Đang đóng gói", shipping: "Đang giao", completed: "Hoàn thành", cancelled: "Đã hủy", returned: "Đã hoàn trả",
 };
 
 export const paymentMethodLabels: Record<PaymentMethod, string> = { COD: "COD", ONLINE: "VNPay/QR", CASH: "Tiền mặt" };
@@ -70,6 +71,7 @@ export const userActivityStatusLabels: Record<UserActivityStatus, AdminStatus> =
   shipping: "Đang giao",
   completed: "Hoàn thành",
   cancelled: "Đã hủy",
+  returned: "Đã hoàn trả",
   success: "Thành công",
   denied: "Bị từ chối",
 };

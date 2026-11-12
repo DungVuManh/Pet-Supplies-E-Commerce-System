@@ -31,7 +31,21 @@ export function OrderSummarySidebar({
  onReceiptConfirmed,
 }: OrderSummarySidebarProps) {
  const canCancel = order.status === "pending";
- const canConfirmReceipt = order.status === "shipping";
+ const returnReq = order.returnRequest;
+ const isReturnPending = returnReq?.status === "pending";
+ const isReturnApproved = returnReq?.status === "approved" || order.status === "returned";
+ const isReturnRejected = returnReq?.status === "rejected";
+
+ const canConfirmReceipt =
+  typeof order.canConfirmReceipt === "boolean"
+   ? order.canConfirmReceipt
+   : order.status === "shipping" && !isReturnPending && !isReturnApproved;
+
+ const canRequestReturn =
+  typeof order.canRequestReturn === "boolean"
+   ? order.canRequestReturn
+   : order.channel !== "offline" && order.status === "shipping" && !returnReq?.status;
+
  const canResumePayment = isOrderEligibleForOnlinePayment(order);
  const paidAmount = order.paidAmount ?? 0;
  const remainingAmount =
@@ -152,7 +166,78 @@ export function OrderSummarySidebar({
     )}
    </div>
 
-   {/* Khối 3: Thao tác Tiếp tục thanh toán, Xác nhận nhận hàng, Hủy đơn & Hỗ trợ */}
+   {/* Khối Hoàn trả hàng: Trạng thái yêu cầu hoàn trả (Pending, Approved, Rejected) */}
+   {isReturnPending && (
+    <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-5 space-y-3">
+     <div className="flex items-center gap-2">
+      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-200 text-amber-800 text-xs font-bold">
+       ⏳
+      </span>
+      <h3 className="text-sm font-bold text-amber-900">
+       Chờ xử lý hoàn trả
+      </h3>
+     </div>
+     <p className="text-xs text-amber-800 leading-relaxed">
+      Bạn đã gửi yêu cầu hoàn trả cho đơn hàng này ({returnReq?.reasonLabel || returnReq?.reason}). Nhân viên đang kiểm tra thông tin và sẽ phản hồi sớm nhất.
+     </p>
+     {returnReq?.description && (
+      <div className="text-xs text-amber-900/80 bg-white/70 rounded-lg p-2.5 border border-amber-100">
+       <strong>Mô tả của bạn:</strong> {returnReq.description}
+      </div>
+     )}
+     {returnReq?.bankAccount && (
+      <div className="text-xs text-amber-900/80 bg-white/70 rounded-lg p-2.5 border border-amber-100">
+       <strong>Tài khoản nhận hoàn tiền:</strong> {returnReq.bankAccount.bankName} · {returnReq.bankAccount.accountNumber} · {returnReq.bankAccount.accountHolder}
+      </div>
+     )}
+    </div>
+   )}
+
+   {isReturnApproved && (
+    <div className="rounded-2xl border border-blue-200 bg-blue-50/70 p-5 space-y-3">
+     <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2">
+       <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-200 text-blue-800 text-xs font-bold">
+        ✓
+       </span>
+       <h3 className="text-sm font-bold text-blue-900">
+        Đã chấp nhận hoàn trả
+       </h3>
+      </div>
+      {returnReq?.refundRequired && (
+       <span className="inline-block rounded-full bg-rose-100 border border-rose-200 px-2.5 py-0.5 text-xs font-bold text-rose-700">
+        Cần hoàn tiền
+       </span>
+      )}
+     </div>
+     <p className="text-xs text-blue-800 leading-relaxed">
+      Yêu cầu hoàn trả đã được nhân viên chấp nhận. Đơn hàng đã chuyển sang trạng thái <strong>Đã hoàn trả</strong>.
+      {returnReq?.refundRequired && " Đơn hàng đang được bộ phận tài chính xử lý hoàn tiền chuyển khoản."}
+     </p>
+    </div>
+   )}
+
+   {isReturnRejected && (
+    <div className="rounded-2xl border border-rose-200 bg-rose-50/70 p-5 space-y-3">
+     <div className="flex items-center gap-2">
+      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-rose-200 text-rose-800 text-xs font-bold">
+       ✕
+      </span>
+      <h3 className="text-sm font-bold text-rose-900">
+       Yêu cầu hoàn trả bị từ chối
+      </h3>
+     </div>
+     <div className="text-xs text-rose-900 bg-white/80 rounded-lg p-3 border border-rose-200 space-y-1">
+      <p className="font-semibold text-rose-800">Lý do từ chối từ nhân viên:</p>
+      <p className="leading-relaxed">{returnReq?.rejectionReason || "Không đủ điều kiện hoàn trả hàng."}</p>
+     </div>
+     <p className="text-xs text-rose-700">
+      Nếu đã nhận được kiện hàng nguyên vẹn, bạn có thể bấm <strong>Đã nhận được hàng</strong> bên dưới.
+     </p>
+    </div>
+   )}
+
+   {/* Khối 3: Thao tác Tiếp tục thanh toán, Xác nhận nhận hàng, Hoàn trả, Hủy đơn & Hỗ trợ */}
    <div className="space-y-3">
     {canResumePayment && (
      <div className="space-y-2 rounded-2xl border border-brand/20 bg-brand-subtle/60 p-4">
@@ -215,6 +300,15 @@ export function OrderSummarySidebar({
        )}
       </div>
      </>
+    )}
+
+    {canRequestReturn && (
+     <Link
+      href={`/orders/${order.id}/return`}
+      className="flex min-h-11 w-full items-center justify-center rounded-xl border border-amber-300 bg-amber-50/70 px-4 py-3 text-center text-sm font-semibold text-amber-900 transition-colors hover:bg-amber-100"
+     >
+      Hoàn trả hàng
+     </Link>
     )}
 
     {canCancel &&
