@@ -767,7 +767,11 @@ export async function getStaffOrderDetail(request, response, next) {
         from: h.from || null,
         to: h.to,
         at: h.at ? new Date(h.at).toISOString() : new Date().toISOString(),
-        actorName: h.by ? userMap.get(h.by.toString()) || null : null,
+        actorName: h.by
+          ? userMap.get(h.by.toString()) || null
+          : h.actorType === "system"
+            ? "Hệ thống (tự động hoàn thành sau 3 ngày)"
+            : null,
       }))
       .sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
 

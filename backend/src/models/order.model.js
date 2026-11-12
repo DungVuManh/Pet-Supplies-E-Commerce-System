@@ -27,6 +27,7 @@ const statusHistorySchema = new mongoose.Schema(
         from: { type: String, enum: orderStatuses },
         to: { type: String, enum: orderStatuses, required: true },
         by: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        actorType: { type: String, enum: ["user", "system"] },
         at: { type: Date, default: Date.now, required: true },
     },
     { _id: false },
