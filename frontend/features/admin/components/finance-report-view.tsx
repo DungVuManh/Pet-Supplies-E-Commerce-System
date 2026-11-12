@@ -367,7 +367,6 @@ export function FinanceReportView({ period = defaultReportPeriod }: { period?: R
               <Th>Chi tiết đối soát</Th>
               <Th className="w-40">Thuần (VND)</Th>
               <Th className="w-36">Trạng thái</Th>
-              <Th className="w-32">Thao tác</Th>
             </>
           }
           footer={
@@ -395,9 +394,6 @@ export function FinanceReportView({ period = defaultReportPeriod }: { period?: R
                 <Td className="font-semibold tabular-nums">{vnd(row.net)}</Td>
                 <Td>
                   <StatusBadge status={row.status} />
-                </Td>
-                <Td>
-                  <ActionLink href={`/admin/reports/finance?channel=${row.id}`}>Chi tiết</ActionLink>
                 </Td>
               </tr>
             ))

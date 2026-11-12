@@ -14,8 +14,6 @@ const ACTION_OPTIONS = [
   { value: "product.update", label: "Cập nhật tồn kho" },
   { value: "user.lock", label: "Khóa tài khoản" },
   { value: "user.unlock", label: "Mở khóa tài khoản" },
-  { value: "admin.cancellation.approve", label: "Duyệt yêu cầu hủy" },
-  { value: "admin.cancellation.reject", label: "Từ chối yêu cầu hủy" },
   { value: "policies.update", label: "Công bố chính sách" },
   { value: "product.delete", label: "Xóa sản phẩm" },
   { value: "product.create", label: "Tạo sản phẩm" },
@@ -65,21 +63,12 @@ export function AuditLogView() {
     reset();
   }
 
-  const exportAction = (
-    <DemoNotice
-      label="Xuất nhật ký"
-      icon={<Download className="h-4 w-4" aria-hidden="true" />}
-      message="Chức năng xuất nhật ký hệ thống chưa kết nối backend."
-    />
-  );
-
   return (
     <div className="space-y-6">
       <AdminPageHeader
         breadcrumbs={["Hệ thống", "Nhật ký hệ thống"]}
         title="Nhật ký hệ thống"
         subtitle="Theo dõi ai đã thay đổi dữ liệu, khi nào và nội dung thay đổi."
-        actions={exportAction}
       />
 
       <SystemNav />
@@ -114,28 +103,6 @@ export function AuditLogView() {
             </select>
           </Field>
 
-          <Field label="Kết quả" htmlFor="audit-result">
-            <select
-              id="audit-result"
-              value={draftResult}
-              onChange={(e) => setDraftResult(e.target.value as AuditResult)}
-              className={control}
-            >
-              {RESULT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          <div className="flex min-w-0 flex-col gap-2">
-            <span className="font-medium">Khoảng thời gian</span>
-            <select className={control} defaultValue="all">
-              <option value="all">Tất cả</option>
-            </select>
-          </div>
-
           <button
             type="button"
             onClick={applyFilters}
@@ -147,13 +114,14 @@ export function AuditLogView() {
       </section>
 
       {/* Audit Log Table */}
+      {/* Audit Log Table */}
       <DataTable
         caption="Nhật ký hoạt động hệ thống chi tiết"
         head={
           <>
             <Th className="w-44">Thời gian</Th>
-            <Th>Người thực hiện / Hành động</Th>
-            <Th className="w-36">Đối tượng</Th>
+            <Th>Người thực hiện</Th>
+            <Th className="w-48">Hành động</Th>
             <Th className="w-36">Kết quả</Th>
             <Th className="w-32">Thao tác</Th>
           </>
@@ -228,14 +196,9 @@ export function AuditLogView() {
                       </span>
                     )}
                   </p>
-                  <p className="mt-1 text-xs text-muted">
-                    {row.action}
-                    {row.detail ? `: ${row.detail}` : ""}
-                    {row.ip && row.ip !== "—" ? ` · IP ${row.ip}` : ""}
-                  </p>
                 </div>
               </Td>
-              <Td className="font-semibold">{row.target}</Td>
+              <Td className="font-semibold">{row.action}</Td>
               <Td>
                 <StatusBadge status={row.result} />
               </Td>
@@ -246,7 +209,6 @@ export function AuditLogView() {
           ))
         )}
       </DataTable>
-
       {/* Read-only callout */}
       <InfoCallout
         icon={<ShieldCheck className="h-5 w-5" aria-hidden="true" />}

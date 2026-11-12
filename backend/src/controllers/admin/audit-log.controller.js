@@ -19,8 +19,6 @@ export const ACTION_LABELS = {
   "category.update": "Cập nhật danh mục",
   "category.delete": "Xóa danh mục",
   "order.status": "Cập nhật đơn hàng",
-  "admin.cancellation.approve": "Duyệt yêu cầu hủy",
-  "admin.cancellation.reject": "Từ chối yêu cầu hủy",
   "settings.update": "Cập nhật cấu hình",
   "policy.publish": "Công bố chính sách",
   "policies.update": "Công bố chính sách",
@@ -119,11 +117,35 @@ export function formatAuditTime(date) {
 }
 
 /** Formats a single audit log document for API response */
+
 export function formatAuditLogRow(log) {
-  const actorUser = log.actorId && typeof log.actorId === "object" ? log.actorId : null;
-  const actorName = actorUser?.fullName || actorUser?.email || "Hệ thống";
+  const actorUser =
+    log.actorId && typeof log.actorId === "object"
+      ? log.actorId
+      : null;
+
+  const actorName =
+    actorUser?.fullName || actorUser?.email || "Hệ thống";
+
   const actorRole = actorUser?.role || "system";
   const { time, fullTime } = formatAuditTime(log.at || log.createdAt);
+
+  const targetId = String(log.target?.id || "").trim();
+  const collectionName = String(
+    log.target?.collectionName || ""
+  ).toLowerCase();
+
+  // Ưu tiên tên đối tượng đã lưu trong Audit Log
+  let targetLabel = log.target?.label || targetId || "—";
+
+  // Cấu hình hệ thống
+  if (
+    collectionName === "settings" ||
+    targetId === "global" ||
+    targetId === "store-settings"
+  ) {
+    targetLabel = "Cấu hình cửa hàng";
+  }
 
   return {
     id: String(log._id),
@@ -137,15 +159,22 @@ export function formatAuditLogRow(log) {
     detail: log.summary || "",
     summary: log.summary || "",
     ip: log.ip || "—",
-    target: log.target?.id || "—",
-    targetCollection: log.target?.collectionName || "",
-    targetHref: auditTargetHref(log.target?.collectionName, log.target?.id),
+
+    // Hiển thị tên đối tượng thay vì ID
+    target: targetLabel,
+
+    // Vẫn giữ ID và collection để truy xuất
+    targetId,
+    targetCollection: collectionName,
+    targetHref: auditTargetHref(collectionName, targetId),
+
     result: log.result === "denied" ? "Bị từ chối" : "Thành công",
     rawResult: log.result || "success",
     before: log.before,
     after: log.after,
   };
 }
+
 
 /**
  * Builds the MongoDB query filter for listing audit logs.

@@ -234,28 +234,9 @@ export function InventoryView() {
       active: activeTab === "low",
       onSelect: () => handleTabSelect("low"),
     },
-    {
-      label: "Lịch sử nhập xuất",
-      active: activeTab === "history",
-      onSelect: () => handleTabSelect("history"),
-    },
   ];
 
-  const exportAction = showInitialLoading ? (
-    <button
-      type="button"
-      disabled
-      className="inline-flex min-h-10 items-center justify-center rounded-lg bg-brand px-6 font-semibold text-white opacity-40"
-    >
-      + Tạo phiếu nhập
-    </button>
-  ) : (
-    <DemoNotice
-      label="+ Tạo phiếu nhập"
-      variant="primary"
-      message="Chức năng tạo phiếu nhập kho chưa kết nối backend."
-    />
-  );
+
 
   const fromIndex = pagination.total === 0 ? 0 : (page - 1) * pageSize + 1;
   const toIndex = Math.min(page * pageSize, pagination.total);
@@ -265,8 +246,7 @@ export function InventoryView() {
       <AdminPageHeader
         breadcrumbs={["Kho hàng", "Danh sách tồn kho"]}
         title="Danh sách tồn kho"
-        subtitle="Kho TP. Hồ Chí Minh · Quản lý số lượng và ngưỡng cảnh báo."
-        actions={exportAction}
+        subtitle="Quản lý số lượng và ngưỡng cảnh báo."
       />
 
       <TabNav items={tabs} label="Chế độ xem kho hàng" />
