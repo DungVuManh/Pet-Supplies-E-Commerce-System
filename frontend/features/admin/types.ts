@@ -304,3 +304,26 @@ export type AdminVoucherRow = VoucherFields & { usedCount: number; state: Vouche
 
 /** `GET /api/v1/admin/vouchers/:code`. `lockedFields` is filled once the voucher has been used. */
 export type AdminVoucherDetail = AdminVoucherRow & { updatedAt: string; used: boolean; lockedFields: ("code" | "type" | "value")[] };
+
+export type AuditResult = "success" | "denied" | "all";
+export type AuditLogFilter = { q: string; action: string; result: AuditResult; from?: string; to?: string };
+
+/** One row of `GET /api/v1/admin/audit-logs`. */
+export type AdminAuditLogRow = {
+  id: string;
+  at: string;
+  time: string;
+  fullTime: string;
+  actor: string;
+  actorRole: string;
+  action: string;
+  actionCode: string;
+  detail: string;
+  summary: string;
+  ip: string;
+  target: string;
+  targetCollection: string;
+  targetHref: string;
+  result: "Thành công" | "Bị từ chối";
+  rawResult: "success" | "denied";
+};

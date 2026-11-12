@@ -1,45 +1,71 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Download, ShieldCheck } from "lucide-react";
+import { useState } from "react";
+import { CircleX, Download, ShieldCheck } from "lucide-react";
 import { AdminPageHeader, DataTable, StatusBadge, Stack, Td, Th } from "./admin-ui";
 import { SystemNav } from "./system-nav";
-import { auditLogEntries, auditTargetHref, filterAuditLog } from "../mock/system";
-import { ActionLink, InfoCallout, Pagination, card, control, secondaryButton } from "@/components/workspace/workspace-ui";
+import { ActionLink, Field, InfoCallout, ListState, Pagination, card, control, secondaryButton } from "@/components/workspace/workspace-ui";
 import { DemoNotice } from "@/components/workspace/demo-notice";
+import { useAuditLogList } from "../hooks/use-audit-log-list";
+import type { AuditLogFilter, AuditResult } from "../types";
 
-const ACTIONS = [
-  "Tất cả hành động",
-  "Cập nhật tồn kho",
-  "Khóa tài khoản",
-  "Duyệt yêu cầu hủy",
-  "Công bố chính sách",
-  "Xóa sản phẩm",
-  "Cập nhật cấu hình",
+const ACTION_OPTIONS = [
+  { value: "all", label: "Tất cả hành động" },
+  { value: "product.update", label: "Cập nhật tồn kho" },
+  { value: "user.lock", label: "Khóa tài khoản" },
+  { value: "user.unlock", label: "Mở khóa tài khoản" },
+  { value: "admin.cancellation.approve", label: "Duyệt yêu cầu hủy" },
+  { value: "admin.cancellation.reject", label: "Từ chối yêu cầu hủy" },
+  { value: "policies.update", label: "Công bố chính sách" },
+  { value: "product.delete", label: "Xóa sản phẩm" },
+  { value: "product.create", label: "Tạo sản phẩm" },
+  { value: "product.hide", label: "Ẩn sản phẩm" },
+  { value: "settings.update", label: "Cập nhật cấu hình" },
+  { value: "user.create", label: "Tạo người dùng" },
+  { value: "user.update", label: "Cập nhật người dùng" },
+  { value: "category.create", label: "Tạo danh mục" },
+  { value: "category.update", label: "Cập nhật danh mục" },
+  { value: "category.delete", label: "Xóa danh mục" },
+  { value: "voucher.create", label: "Tạo mã giảm giá" },
+  { value: "voucher.update", label: "Cập nhật mã giảm giá" },
+  { value: "voucher.delete", label: "Xóa mã giảm giá" },
+  { value: "admin.access", label: "Truy cập bị từ chối" },
 ];
 
-const PERIOD = "01–12/10/2026";
+const RESULT_OPTIONS: { value: AuditResult; label: string }[] = [
+  { value: "all", label: "Tất cả kết quả" },
+  { value: "success", label: "Thành công" },
+  { value: "denied", label: "Bị từ chối" },
+];
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: "Admin",
+  staff: "Staff",
+  customer: "Khách hàng",
+  system: "Hệ thống",
+};
 
 export function AuditLogView() {
-  const [searchInput, setSearchInput] = useState("");
-  const [actionInput, setActionInput] = useState("Tất cả hành động");
+  const { filter, draft, setDraft, apply, reset, setPage, reload, items, pagination, from, to, loading, state } = useAuditLogList();
 
-  const [appliedSearch, setAppliedSearch] = useState("");
-  const [appliedAction, setAppliedAction] = useState("Tất cả hành động");
+  // Draft state for filter form (applied only on button click)
+  const [draftAction, setDraftAction] = useState(draft.action);
+  const [draftResult, setDraftResult] = useState<AuditResult>(draft.result);
+  const [draftQ, setDraftQ] = useState(draft.q);
 
-  const handleApplyFilter = () => {
-    setAppliedSearch(searchInput);
-    setAppliedAction(actionInput);
-  };
+  function applyFilters() {
+    const next: AuditLogFilter = { q: draftQ, action: draftAction, result: draftResult };
+    apply(next);
+  }
 
-  const filteredEntries = useMemo(() => {
-    return filterAuditLog(auditLogEntries, {
-      search: appliedSearch,
-      action: appliedAction,
-    });
-  }, [appliedSearch, appliedAction]);
+  function handleReset() {
+    setDraftQ("");
+    setDraftAction("all");
+    setDraftResult("all");
+    reset();
+  }
 
-  const actions = (
+  const exportAction = (
     <DemoNotice
       label="Xuất nhật ký"
       icon={<Download className="h-4 w-4" aria-hidden="true" />}
@@ -53,58 +79,66 @@ export function AuditLogView() {
         breadcrumbs={["Hệ thống", "Nhật ký hệ thống"]}
         title="Nhật ký hệ thống"
         subtitle="Theo dõi ai đã thay đổi dữ liệu, khi nào và nội dung thay đổi."
-        actions={actions}
+        actions={exportAction}
       />
 
       <SystemNav />
 
       {/* Filter Section */}
       <section className={`${card} p-6`}>
-        <div className="grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_220px_180px_auto]">
-          <div className="flex min-w-0 flex-col gap-2">
-            <label htmlFor="audit-search" className="font-medium">
-              Tìm kiếm
-            </label>
+        <div className="grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_200px_180px_180px_auto]">
+          <Field label="Tìm kiếm" htmlFor="audit-search">
             <input
               id="audit-search"
               type="search"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Người thực hiện hoặc mã bản ghi"
+              value={draftQ}
+              onChange={(e) => setDraftQ(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && applyFilters()}
+              placeholder="Người thực hiện, IP hoặc mã bản ghi"
               className={control}
             />
-          </div>
+          </Field>
 
-          <div className="flex min-w-0 flex-col gap-2">
-            <label htmlFor="audit-action" className="font-medium">
-              Hành động
-            </label>
+          <Field label="Hành động" htmlFor="audit-action">
             <select
               id="audit-action"
-              value={actionInput}
-              onChange={(e) => setActionInput(e.target.value)}
+              value={draftAction}
+              onChange={(e) => setDraftAction(e.target.value)}
               className={control}
             >
-              {ACTIONS.map((act) => (
-                <option key={act} value={act}>
-                  {act}
+              {ACTION_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
                 </option>
               ))}
             </select>
-          </div>
+          </Field>
+
+          <Field label="Kết quả" htmlFor="audit-result">
+            <select
+              id="audit-result"
+              value={draftResult}
+              onChange={(e) => setDraftResult(e.target.value as AuditResult)}
+              className={control}
+            >
+              {RESULT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </Field>
 
           <div className="flex min-w-0 flex-col gap-2">
-            <label htmlFor="audit-period" className="font-medium">
-              Khoảng thời gian
-            </label>
-            <select id="audit-period" defaultValue={PERIOD} className={control}>
-              <option value={PERIOD}>{PERIOD}</option>
+            <span className="font-medium">Khoảng thời gian</span>
+            <select className={control} defaultValue="all">
+              <option value="all">Tất cả</option>
             </select>
           </div>
 
           <button
             type="button"
-            onClick={handleApplyFilter}
+            onClick={applyFilters}
             className={`${secondaryButton} h-12`}
           >
             Lọc dữ liệu
@@ -112,7 +146,7 @@ export function AuditLogView() {
         </div>
       </section>
 
-      {/* Populated Table */}
+      {/* Audit Log Table */}
       <DataTable
         caption="Nhật ký hoạt động hệ thống chi tiết"
         head={
@@ -125,38 +159,95 @@ export function AuditLogView() {
           </>
         }
         footer={
-          <Pagination
-            from={filteredEntries.length ? 1 : 0}
-            to={filteredEntries.length}
-            total={filteredEntries.length}
-          />
+          state ? undefined : (
+            <Pagination
+              from={from}
+              to={to}
+              total={pagination.total}
+              page={pagination.page}
+              pages={pagination.totalPages}
+              onPage={setPage}
+            />
+          )
         }
       >
-        {filteredEntries.map((row) => (
-          <tr key={row.id} className="hover:bg-canvas/50">
-            <Td>
-              <Stack primary={row.time} secondary={row.fullTime} strong />
-            </Td>
-            <Td>
-              <div className="min-w-0">
-                <p className="font-semibold">{row.actor}</p>
-                <p className="mt-1 text-xs text-muted">
-                  {row.action}: {row.detail} · IP {row.ip}
-                </p>
-              </div>
-            </Td>
-            <Td className="font-semibold">{row.target}</Td>
-            <Td>
-              <StatusBadge status={row.result} />
-            </Td>
-            <Td>
-              <ActionLink href={auditTargetHref(row.target)}>Chi tiết</ActionLink>
-            </Td>
+        {state ? (
+          <tr>
+            <td colSpan={5} className="border-t border-line px-6">
+              {state === "loading" && (
+                <ListState kind="loading" title="Đang tải nhật ký hệ thống..." />
+              )}
+              {state === "empty" && (
+                <ListState
+                  kind="empty"
+                  title="Không tìm thấy bản ghi"
+                  description="Không có bản ghi nhật ký khớp với bộ lọc. Thử thay đổi từ khóa hoặc xóa bộ lọc."
+                  action={
+                    <button
+                      type="button"
+                      className={`${secondaryButton} min-h-10`}
+                      onClick={handleReset}
+                    >
+                      Xóa bộ lọc
+                    </button>
+                  }
+                />
+              )}
+              {state === "error" && (
+                <ListState
+                  kind="error"
+                  icon={<CircleX className="h-9 w-9" strokeWidth={1.5} />}
+                  title="Không thể tải nhật ký hệ thống"
+                  description="Kết nối đến hệ thống bị gián đoạn. Kiểm tra kết nối và thử tải lại."
+                  action={
+                    <button
+                      type="button"
+                      className={`${secondaryButton} min-h-10`}
+                      onClick={reload}
+                    >
+                      Thử lại
+                    </button>
+                  }
+                />
+              )}
+            </td>
           </tr>
-        ))}
+        ) : (
+          items.map((row) => (
+            <tr key={row.id} className="hover:bg-canvas/50">
+              <Td>
+                <Stack primary={row.time} secondary={row.fullTime} strong />
+              </Td>
+              <Td>
+                <div className="min-w-0">
+                  <p className="font-semibold">
+                    {row.actor}
+                    {row.actorRole && row.actorRole !== "system" && (
+                      <span className="ml-1.5 text-xs font-normal text-muted">
+                        ({ROLE_LABELS[row.actorRole] ?? row.actorRole})
+                      </span>
+                    )}
+                  </p>
+                  <p className="mt-1 text-xs text-muted">
+                    {row.action}
+                    {row.detail ? `: ${row.detail}` : ""}
+                    {row.ip && row.ip !== "—" ? ` · IP ${row.ip}` : ""}
+                  </p>
+                </div>
+              </Td>
+              <Td className="font-semibold">{row.target}</Td>
+              <Td>
+                <StatusBadge status={row.result} />
+              </Td>
+              <Td>
+                <ActionLink href={row.targetHref}>Chi tiết</ActionLink>
+              </Td>
+            </tr>
+          ))
+        )}
       </DataTable>
 
-      {/* Nhật ký chỉ đọc callout */}
+      {/* Read-only callout */}
       <InfoCallout
         icon={<ShieldCheck className="h-5 w-5" aria-hidden="true" />}
         title="Nhật ký chỉ đọc"
