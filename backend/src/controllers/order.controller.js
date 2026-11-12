@@ -6,6 +6,11 @@
 import mongoose from "mongoose";
 import { AppError } from "../common/errors/app-error.js";
 import { generateOrderCode } from "../common/order-code.js";
+import {
+  canResumeOnlinePayment,
+  computeOrderPaymentAmounts,
+  computePaymentExpiry,
+} from "../common/order-payment.js";
 import { priceOrderItems } from "../common/order-pricing.js";
 import { VOUCHER_CHANGED_MESSAGE, VOUCHER_INVALID_MESSAGE, checkVoucher, releaseVoucher, reserveVoucher, undoReservation, voucherRefusalMessage } from "../common/voucher-redemption.js";
 import { Order } from "../models/order.model.js";
@@ -399,10 +404,18 @@ export async function getOrderDetail(request, response, next) {
   try {
     const { id } = request.params;
 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return response.status(404).json({ success: false, message: "Không tìm thấy đơn hàng." });
+    }
+
     // Tìm đơn hàng theo ID trong MongoDB
     const order = await Order.findById(id).lean();
 
-    if (!order || String(order.customerId) !== String(request.user?._id)) {
+    if (
+      !order ||
+      order.creationState === "pending" ||
+      String(order.customerId) !== String(request.user?._id)
+    ) {
       return response.status(404).json({ success: false, message: "Không tìm thấy đơn hàng." });
     }
 
@@ -414,6 +427,7 @@ export async function getOrderDetail(request, response, next) {
     // Map trạng thái backend sang frontend
     const statusMap = {
       pending: { status: "pending", statusLabel: "Chờ xử lý" },
+      confirmed: { status: "pending", statusLabel: "Đã xác nhận" },
       processing: { status: "pending", statusLabel: "Đang xử lý" },
       shipping: { status: "shipping", statusLabel: "Đang giao" },
       completed: { status: "completed", statusLabel: "Hoàn thành" },
@@ -469,6 +483,31 @@ export async function getOrderDetail(request, response, next) {
       ].filter(Boolean).join(", "),
     };
 
+    const { total, paidAmount, remainingAmount } = computeOrderPaymentAmounts(order);
+    const paymentStatusCode = order.paymentStatus || (order.paymentMethod === "ONLINE" ? "pending" : "unpaid");
+    const paymentMethodLabel =
+      order.paymentMethod === "ONLINE"
+        ? "Chuyển khoản trực tuyến (VietQR)"
+        : order.paymentMethod === "CASH"
+          ? "Tiền mặt tại quầy"
+          : "Thanh toán khi nhận hàng (COD)";
+
+    let paymentStatusLabel = "Chưa thanh toán";
+    if (paymentStatusCode === "paid") {
+      paymentStatusLabel = "Đã thanh toán";
+    } else if (paidAmount > 0 && remainingAmount > 0) {
+      paymentStatusLabel = "Thanh toán một phần";
+    } else if (paymentStatusCode === "failed") {
+      paymentStatusLabel = "Thanh toán thất bại";
+    } else if (order.paymentMethod === "ONLINE") {
+      paymentStatusLabel = "Chờ thanh toán";
+    }
+
+    const paymentExpiredAt =
+      order.paymentMethod === "ONLINE" && order.channel !== "offline"
+        ? computePaymentExpiry(order).expiredAt.toISOString()
+        : null;
+
     const result = {
       id: order._id.toString(),
       orderCode: order.orderCode,
@@ -477,19 +516,28 @@ export async function getOrderDetail(request, response, next) {
       itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
       status,
       statusLabel,
+      orderStatus: order.orderStatus,
+      channel: order.channel || "online",
       timeline: timelineSteps,
       items,
       subtotal: order.subtotal,
       shippingFee: order.shippingFee || 0,
       discount: order.discount || 0,
       promotionCode: order.promotionCode || null,
-      totalAmount: order.total,
+      totalAmount: total,
       paymentMethod: order.paymentMethod === "COD" ? "COD" : order.paymentMethod,
-      paymentStatus: order.paymentStatus === "unpaid" ? "Chưa thanh toán" : "Đã thanh toán",
+      paymentMethodLabel,
+      paymentStatus: paymentStatusLabel,
+      paymentStatusCode,
+      paidAmount,
+      remainingAmount,
+      paymentExpiredAt,
+      canResumeOnlinePayment: canResumeOnlinePayment(order),
       transactionCode: order.orderCode, // Dùng orderCode làm mã giao dịch tạm thời
       shippingAddress,
     };
 
+    response.set("Cache-Control", "no-store");
     response.json({
       success: true,
       data: { order: result },

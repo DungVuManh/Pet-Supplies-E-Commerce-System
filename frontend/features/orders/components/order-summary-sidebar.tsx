@@ -8,7 +8,7 @@
 
 import Link from "next/link";
 import React, { useState } from "react";
-import type { OrderDetail } from "../types";
+import { isOrderEligibleForOnlinePayment, type OrderDetail } from "../types";
 import { confirmOrderReceiptApi, OrderReceiptApiError } from "../services/receipt-confirmation.service";
 import { ReceiptConfirmedModal } from "./receipt-confirmed-modal";
 
@@ -29,6 +29,34 @@ export function OrderSummarySidebar({
 }: OrderSummarySidebarProps) {
   const canCancel = order.status === "pending";
   const canConfirmReceipt = order.status === "shipping";
+  const canResumePayment = isOrderEligibleForOnlinePayment(order);
+  const paidAmount = order.paidAmount ?? 0;
+  const remainingAmount =
+    order.remainingAmount ??
+    (order.paymentStatusCode === "paid" || order.paymentStatus === "Đã thanh toán"
+      ? 0
+      : Math.max(0, order.totalAmount - paidAmount));
+  const isPartialPaid = canResumePayment && paidAmount > 0 && remainingAmount > 0;
+  const paymentMethodLabel =
+    order.paymentMethodLabel ||
+    (order.paymentMethod === "ONLINE"
+      ? "Chuyển khoản trực tuyến (VietQR)"
+      : order.paymentMethod === "CASH"
+        ? "Tiền mặt tại quầy"
+        : "Thanh toán khi nhận hàng (COD)");
+
+  let paymentBadgeClass =
+    "border-warning/20 bg-warning-subtle text-warning";
+  if (
+    order.paymentStatusCode === "paid" ||
+    order.paymentStatus === "Đã thanh toán"
+  ) {
+    paymentBadgeClass = "border-success/20 bg-success-subtle text-success";
+  } else if (isPartialPaid) {
+    paymentBadgeClass = "border-brand/20 bg-brand-subtle text-brand";
+  } else if (order.paymentStatusCode === "failed") {
+    paymentBadgeClass = "border-danger/20 bg-danger-subtle text-danger";
+  }
   const [confirmingReceipt, setConfirmingReceipt] = useState(false);
   const [confirmingReceiptBusy, setConfirmingReceiptBusy] = useState(false);
   const [receiptError, setReceiptError] = useState("");
@@ -90,24 +118,58 @@ export function OrderSummarySidebar({
       </div>
 
       {/* Khối 2: Phương thức thanh toán */}
-      <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm space-y-3">
+      <div className="rounded-2xl border border-line bg-surface p-6 shadow-xs space-y-3">
         <h2 className="text-base font-bold text-ink">
-          Thanh toán qua {order.paymentMethod}
+          {paymentMethodLabel}
         </h2>
 
         <div>
-          <span className="inline-block rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
+          <span
+            className={`inline-block rounded-full border px-3 py-1 text-xs font-semibold ${paymentBadgeClass}`}
+          >
             {order.paymentStatus}
           </span>
         </div>
+
+        {isPartialPaid && (
+          <div className="space-y-1.5 rounded-xl border border-brand/20 bg-brand-subtle p-3 text-xs">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-muted">Đã thanh toán</span>
+              <span className="font-semibold text-success tabular-nums">
+                {formatVND(paidAmount)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-muted">Còn thiếu</span>
+              <span className="font-bold text-danger tabular-nums">
+                {formatVND(remainingAmount)}
+              </span>
+            </div>
+          </div>
+        )}
 
         <p className="text-xs text-muted font-mono">
           Mã giao dịch: {order.transactionCode}
         </p>
       </div>
 
-      {/* Khối 3: Thao tác Xác nhận nhận hàng & Hủy đơn & Hỗ trợ */}
+      {/* Khối 3: Thao tác Tiếp tục thanh toán, Xác nhận nhận hàng, Hủy đơn & Hỗ trợ */}
       <div className="space-y-3">
+        {canResumePayment && (
+          <div className="space-y-2 rounded-2xl border border-brand/20 bg-brand-subtle/60 p-4">
+            <Link
+              href={`/orders/${encodeURIComponent(order.id)}/pay`}
+              className="flex min-h-11 w-full items-center justify-center rounded-xl bg-brand px-4 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
+            >
+              {isPartialPaid ? "Tiếp tục thanh toán" : "Thanh toán ngay"}
+            </Link>
+            <p className="text-center text-xs text-muted">
+              {isPartialPaid
+                ? `Mở lại mã VietQR để chuyển bù ${formatVND(remainingAmount)}.`
+                : "Mở lại mã VietQR để hoàn tất thanh toán trực tuyến."}
+            </p>
+          </div>
+        )}
         {canConfirmReceipt && (
           <>
             {receiptError && (
