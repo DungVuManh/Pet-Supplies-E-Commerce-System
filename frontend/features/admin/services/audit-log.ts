@@ -7,3 +7,4 @@ export function listAuditLogs(
 ) {
   return apiGet<Page<AdminAuditLogRow>>("/api/v1/admin/audit-logs", query, { signal });
 }
+

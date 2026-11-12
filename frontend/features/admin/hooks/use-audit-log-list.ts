@@ -10,3 +10,4 @@ const initial: AuditLogFilter = { q: "", action: "all", result: "all" };
 export function useAuditLogList() {
   return useAdminList(listAuditLogs, initial, { pageSize: 10 });
 }
+
