@@ -6,6 +6,13 @@ export const POST_REJECTION_GRACE_MS = 24 * 60 * 60 * 1000;
 export const DEFAULT_SWEEP_INTERVAL_MS = 15 * 60 * 1000;
 export const DEFAULT_BATCH_SIZE = 100;
 
+export function orderWithoutReturnStatuses(statuses) {
+  return { $or: [
+    { "latestReturn.status": { $exists: true, $nin: statuses } },
+    { "latestReturn.status": { $exists: false }, "returnRequest.status": { $nin: statuses } },
+  ] };
+}
+
 function parseValidDate(value) {
   if (!value) return null;
   const date = value instanceof Date ? value : new Date(value);
@@ -73,7 +80,8 @@ export function isShippingOrderOverdue(
     "received",
     "completed",
   ];
-  if (nonCompletableReturnStatuses.includes(order.returnRequest?.status)) {
+  const latestReturn = order.latestReturn?.status ? order.latestReturn : order.returnRequest;
+  if (nonCompletableReturnStatuses.includes(latestReturn?.status)) {
     return false;
   }
 
@@ -81,8 +89,8 @@ export function isShippingOrderOverdue(
   const current = parseValidDate(now);
   if (!shippedAt || !current) return false;
 
-  if (order.returnRequest?.status === "rejected") {
-    const reviewedAt = parseValidDate(order.returnRequest.reviewedAt);
+  if (latestReturn?.status === "rejected") {
+    const reviewedAt = parseValidDate(latestReturn.reviewedAt);
     if (reviewedAt) {
       const graceThreshold = reviewedAt.getTime() + POST_REJECTION_GRACE_MS;
       const normalThreshold = shippedAt.getTime() + thresholdMs;
@@ -131,7 +139,7 @@ export async function autoCompleteOverdueShippingOrders({
 
     const candidates = await Order.find(filter)
       .select(
-        "_id orderCode channel orderStatus paymentMethod paymentStatus creationState statusHistory createdAt updatedAt returnRequest"
+        "_id orderCode channel orderStatus paymentMethod paymentStatus creationState statusHistory createdAt updatedAt latestReturn returnRequest"
       )
       .sort({ _id: 1 })
       .limit(effectiveBatchSize)
@@ -162,9 +170,7 @@ export async function autoCompleteOverdueShippingOrders({
           orderStatus: "shipping",
           paymentStatus: candidate.paymentStatus,
           creationState: { $ne: "pending" },
-          "returnRequest.status": {
-            $nin: ["pending", "approved", "customer_shipped", "received", "completed"],
-          },
+          ...orderWithoutReturnStatuses(["pending", "approved", "customer_shipped", "received", "completed"]),
         },
         {
           $set: updateFields,
@@ -232,8 +238,7 @@ export function isCodOrderPaymentOverdue(
 
   // Skip orders with pending or approved return request
   if (
-    order.returnRequest?.status === "pending" ||
-    order.returnRequest?.status === "approved"
+    ["pending", "approved"].includes(order.latestReturn?.status ?? order.returnRequest?.status)
   ) {
     return false;
   }
@@ -283,7 +288,7 @@ export async function autoPayOverdueCompletedCodOrders({
 
     const candidates = await Order.find(filter)
       .select(
-        "_id orderCode channel orderStatus paymentMethod paymentStatus creationState statusHistory total paidAmount createdAt updatedAt returnRequest"
+        "_id orderCode channel orderStatus paymentMethod paymentStatus creationState statusHistory total paidAmount createdAt updatedAt latestReturn returnRequest"
       )
       .sort({ _id: 1 })
       .limit(effectiveBatchSize)
@@ -310,7 +315,7 @@ export async function autoPayOverdueCompletedCodOrders({
           paymentMethod: "COD",
           paymentStatus: candidate.paymentStatus,
           creationState: { $ne: "pending" },
-          "returnRequest.status": { $nin: ["pending", "approved"] },
+          ...orderWithoutReturnStatuses(["pending", "approved"]),
         },
         {
           $set: {

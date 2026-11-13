@@ -10,7 +10,8 @@ export type StaffReturnStatus =
   | "customer_shipped"
   | "received"
   | "completed"
-  | "rejected";
+  | "rejected"
+  | "cancelled";
 
 export type StaffReturnCustomer = {
   name: string;
@@ -30,7 +31,8 @@ export type StaffReturnRequestStatus =
   | "customer_shipped"
   | "received"
   | "completed"
-  | "rejected";
+  | "rejected"
+  | "cancelled";
 
 export type StaffReturnRequestInfo = {
   reason: "damaged_or_defective" | "not_received" | "missing_items" | "damaged_or_missing";
@@ -47,6 +49,7 @@ export type StaffReturnRequestInfo = {
   customerShippedAt?: string | null;
   receivedAt?: string | null;
   completedAt?: string | null;
+  cancelledAt?: string | null;
   reviewedAt: string | null;
   reviewedByName: string | null;
   rejectionReason: string | null;
@@ -75,6 +78,7 @@ export type StaffReturnOrderItem = {
 
 export type StaffReturnDetail = {
   id: string;
+  orderId: string;
   orderCode: string;
   channel: string;
   customer: StaffReturnCustomer;
@@ -116,6 +120,7 @@ export type StaffReturnsCounts = {
   received?: number;
   completed?: number;
   rejected: number;
+  cancelled?: number;
 };
 
 export type StaffReturnsListResponse = {
@@ -143,5 +148,6 @@ export const RETURN_STATUS_LABELS: Record<string, string> = {
   received: "Đang kiểm tra",
   completed: "Hoàn tất hoàn trả",
   rejected: "Đã từ chối",
+  cancelled: "Khách đã hủy",
 };
 

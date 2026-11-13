@@ -76,8 +76,55 @@ paths:
                   items:
                     type: string
       responses:
+        '201':
+          description: Đã tạo yêu cầu mới, trả data.returnRequest.requestId
+
+  /orders/{id}/returns:
+    get:
+      summary: Lịch sử từng lần gửi của chủ đơn, mới nhất trước
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: pageSize
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 50, default: 10 }
+      responses:
         '200':
-          description: Tạo yêu cầu hoàn trả thành công
+          description: data.items gồm mã yêu cầu, lý do, trạng thái và thời điểm gửi hoặc hủy, kèm data.pagination
+        '404':
+          description: Đơn không tồn tại hoặc thuộc khách khác
+
+  /orders/{id}/returns/{requestId}:
+    get:
+      summary: Chi tiết đầy đủ của một lần gửi thuộc đơn của khách
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+        - name: requestId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: data.returnRequest chứa mô tả, ảnh, tài khoản nhận hoàn, trạng thái và các mốc xử lý
+        '404':
+          description: Yêu cầu hoặc đơn hàng không tồn tại trong phạm vi của khách
+
+  /orders/{id}/return/cancel:
+    post:
+      summary: Chủ đơn hủy yêu cầu đang chờ duyệt hoặc chờ gửi hàng
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      requestBody:
+        $ref: '#/components/requestBodies/ReturnRequestIdentity'
+      responses:
+        '200':
+          description: data.returnRequest ở trạng thái cancelled và có cancelledAt. Gửi lại cùng mã trả cùng kết quả.
+        '404':
+          description: Không tìm thấy yêu cầu thuộc đơn của khách
+        '409':
+          description: Thiếu mã hoặc trạng thái hiện tại không cho phép hủy
 
   /orders/{id}/return/confirm-shipped:
     post:
@@ -87,6 +134,8 @@ paths:
         - Customer Returns
       parameters:
         - $ref: '#/components/parameters/OrderIdParam'
+      requestBody:
+        $ref: '#/components/requestBodies/ReturnRequestIdentity'
       responses:
         '200':
           description: Xác nhận đã gửi hàng thành công
@@ -101,8 +150,8 @@ paths:
           in: query
           schema:
             type: string
-            enum: [all, pending, approved, customer_shipped, received, completed, rejected]
-        - name: q
+            enum: [all, pending, approved, customer_shipped, received, completed, rejected, cancelled]
+        - name: query
           in: query
           schema:
             type: string
@@ -116,7 +165,7 @@ paths:
       tags:
         - Staff Returns
       parameters:
-        - $ref: '#/components/parameters/OrderIdParam'
+        - $ref: '#/components/parameters/StaffReturnIdParam'
       responses:
         '200':
           description: Chi tiết yêu cầu hoàn trả kèm thông tin đơn và tài khoản hoàn tiền
@@ -127,7 +176,7 @@ paths:
       tags:
         - Staff Returns
       parameters:
-        - $ref: '#/components/parameters/OrderIdParam'
+        - $ref: '#/components/parameters/StaffReturnIdParam'
       responses:
         '200':
           description: Cập nhật đã nhận được kiện hàng hoàn trả
@@ -139,7 +188,7 @@ paths:
       tags:
         - Staff Returns
       parameters:
-        - $ref: '#/components/parameters/OrderIdParam'
+        - $ref: '#/components/parameters/StaffReturnIdParam'
       requestBody:
         required: true
         content:
@@ -155,12 +204,33 @@ paths:
                   type: string
                   minLength: 5
                   maxLength: 500
+                refundAmount:
+                  type: integer
+                  minimum: 0
       responses:
         '200':
           description: Xử lý quyết định thành công
 
 components:
+  requestBodies:
+    ReturnRequestIdentity:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [requestId]
+            properties:
+              requestId:
+                type: string
+                pattern: '^[0-9a-fA-F]{24}$'
   parameters:
+    StaffReturnIdParam:
+      name: id
+      in: path
+      required: true
+      description: Mã của một lần gửi. Kết quả Staff dùng id cho mã này và orderId cho mã đơn.
+      schema: { type: string }
     OrderIdParam:
       name: id
       in: path

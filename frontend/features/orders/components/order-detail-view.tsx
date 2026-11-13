@@ -11,6 +11,7 @@ import { AccountSidebar } from "./account-sidebar";
 import { OrderDetailItems } from "./order-detail-items";
 import { OrderSummarySidebar } from "./order-summary-sidebar";
 import { OrderTimeline } from "./order-timeline";
+import { ReturnHistory } from "./return-history";
 import { useOrderDetail } from "../hooks/use-order-detail";
 import { ChevronRight } from "lucide-react";
 
@@ -113,6 +114,7 @@ export function OrderDetailView({ orderId }: OrderDetailViewProps) {
           items={order.items}
           shippingAddress={order.shippingAddress}
          />
+                  {order.hasReturnHistory && <ReturnHistory orderId={order.id} version={`${order.returnRequest?.requestId}:${order.returnRequest?.status}`} />}
         </div>
 
         {/* Cột phải (5 cột): Tóm tắt tiền, phương thức & nút xác nhận nhận hàng / hủy đơn */}

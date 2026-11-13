@@ -17,7 +17,7 @@
 ### Session 2026-11-12
 - Q: Nút "Hoàn trả hàng" hiển thị ở trạng thái đơn hàng nào và ảnh minh chứng có bắt buộc theo từng lý do không? → A: Chỉ hiển thị nút **"Hoàn trả hàng"** khi đơn đang ở trạng thái **"Đang giao"** (hoặc đã nhận hàng); **bắt buộc tối thiểu 1 ảnh** đối với lý do *"Hàng có vấn đề hoặc thiếu hàng"*, còn với *"Chưa nhận được hàng"* thì ảnh là **tùy chọn** (0–5 ảnh).
 - Q: Khi Staff Chấp nhận hoàn trả, đơn hàng chính, tồn kho và hoàn tiền được xử lý thế nào? → A: Tách bạch rõ từng giai đoạn: Chấp nhận yêu cầu hoàn đơn -> Khách gửi trả -> Nhân viên nhận hàng -> Quyết định hoàn tiền (Refund) và cộng lại tồn kho.
-- Q: Sau khi Staff Từ chối hoàn trả kèm lý do, khách hàng có được gửi lại yêu cầu nữa không? → A: Mỗi đơn hàng chỉ gửi **1 yêu cầu hoàn trả duy nhất** — nếu Staff từ chối ở bước duyệt ban đầu, hiển thị rõ lý do từ chối trên Chi tiết đơn hàng, nút **"Đã nhận được hàng"** hoạt động lại bình thường và không cho gửi lại yêu cầu hoàn trả khác.
+- Q: Sau khi Staff từ chối hoàn trả, khách hàng có được gửi lại yêu cầu không? → A: Staff từ chối sẽ kết thúc luồng hoàn trả của đơn. Chi tiết đơn hiển thị lý do từ chối và cho phép xác nhận đã nhận hàng nếu đơn vẫn đang giao. Quyền gửi lại áp dụng khi khách tự hủy yêu cầu.
 
 ### Session 2026-11-13 (Cập nhật Chu trình Hoàn Đơn 4 Giai đoạn & Thanh Tiến Trình Timeline)
 - Q: Luồng hoàn đơn cụ thể gồm các giai đoạn và hành động nào giữa Khách hàng (Customer) và Nhân viên (Staff)?
@@ -47,6 +47,12 @@
 ---
 
 ## User Scenarios & Testing *(mandatory)*
+
+### Khách hủy yêu cầu và xem lại lịch sử
+
+- Chủ đơn trực tuyến được hủy yêu cầu đang chờ duyệt hoặc đã duyệt và chưa gửi hàng. Sau khi hủy, chi tiết đơn trở về tiến trình giao hàng. Khách có thể xác nhận nhận hàng nếu đơn vẫn đang giao.
+- Khách có thể gửi yêu cầu mới sau khi tự hủy nếu đơn vẫn đang giao hoặc trong 7 ngày kể từ khi hoàn thành. Mỗi lần gửi có mã riêng và được xét duyệt riêng. Yêu cầu bị Staff từ chối vẫn kết thúc luồng.
+- Khách mở từng lần gửi từ lịch sử trong Chi tiết đơn. Staff có bộ lọc **Khách đã hủy** và mở từng yêu cầu theo mã riêng. Chi tiết lưu lý do, mô tả, ảnh, thông tin nhận hoàn và các mốc xử lý. Yêu cầu đã hủy chỉ cho xem.
 
 ### User Story 1 - Khách hàng tạo yêu cầu hoàn đơn và theo dõi tiến trình 4 giai đoạn (Priority: P1)
 

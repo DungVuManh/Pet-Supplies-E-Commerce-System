@@ -29,6 +29,9 @@ import {
   uploadCustomerReturnImages,
   submitCustomerReturnRequest,
   confirmCustomerReturnShipped,
+  cancelCustomerReturn,
+  listCustomerReturns,
+  getCustomerReturnDetail,
 } from "../controllers/order-return.controller.js";
 import {
   optionalAuth,
@@ -138,6 +141,9 @@ router.post(
   protectMutation,
   confirmCustomerReturnShipped,
 );
+router.post("/:id/return/cancel", noStore, requireAuth, requireRole("customer"), protectMutation, cancelCustomerReturn);
+router.get("/:id/returns", noStore, requireAuth, requireRole("customer"), listCustomerReturns);
+router.get("/:id/returns/:requestId", noStore, requireAuth, requireRole("customer"), getCustomerReturnDetail);
 
 // 1b. Tra cứu đơn hàng công khai theo mã đơn hàng và số điện thoại (Không bắt buộc đăng nhập)
 router.get("/lookup", lookupOrder);

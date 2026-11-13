@@ -1,5 +1,15 @@
 # Quickstart & Validation Guide: Quy Trình Hoàn Trả Đơn Hàng Nhiều Bước & UI Timeline
 
+## Chuyển dữ liệu trước khi bật luồng hủy
+
+Luồng hoàn trả dùng transaction trên Atlas hoặc MongoDB replica set. Sao lưu dữ liệu và dừng backend cũ để tránh ghi đồng thời trong lúc chuyển dữ liệu. Trỏ `MONGODB_URI` vào đúng môi trường và chạy từ thư mục gốc:
+
+```powershell
+npm --prefix backend run migrate:order-returns
+```
+
+Chạy lại để kiểm tra kết quả `0` bản ghi mới. Đối chiếu các yêu cầu đã chuyển trên Staff và kiểm tra số bản ghi `orders` có `returnRequest.status` nhưng thiếu `latestReturn.requestId` bằng `0`. Mã đơn được dùng làm mã yêu cầu cho dữ liệu đã chuyển, nên đường dẫn Staff cũ vẫn hợp lệ. Sau khi kiểm tra, khởi động backend mới. Việc xóa trường nhúng cũ cần thực hiện ở đợt riêng sau khi xác nhận không cần quay về bản cũ. Sau khi backend mới nhận ghi, khôi phục bản cũ cần đối soát hoặc khôi phục dữ liệu từ bản sao lưu.
+
 **Feature Directory**: `docs/specs/order-returns` | **Contract**: [order-returns-api.yaml](./contracts/order-returns-api.yaml) | **Data Model**: [data-model.md](./data-model.md)
 
 ---

@@ -39,16 +39,18 @@ export type ReturnRequestStatus =
   | "customer_shipped"
   | "received"
   | "completed"
-  | "rejected";
+  | "rejected"
+  | "cancelled";
 
 export type CustomerOrderReturnRequest = {
+  requestId: string;
   reason: ReturnRequestReason;
-  reasonLabel: string;
+  reasonLabel?: string;
   bankAccount?: ReturnBankAccount | null;
   description: string;
   images: string[];
   status: ReturnRequestStatus;
-  statusLabel: string;
+  statusLabel?: string;
   refundRequired: boolean;
   refundStatus: "none" | "pending_refund" | "refunded";
   refundAmount?: number | null;
@@ -57,9 +59,12 @@ export type CustomerOrderReturnRequest = {
   customerShippedAt?: string | null;
   receivedAt?: string | null;
   completedAt?: string | null;
+  cancelledAt?: string | null;
   reviewedAt: string | null;
   rejectionReason: string | null;
 };
+
+export type ReturnHistoryItem = Pick<CustomerOrderReturnRequest, "requestId" | "reason" | "status" | "requestedAt" | "cancelledAt">;
 
 export function isReturnImageRequired(reason: ReturnRequestReason): boolean {
   return reason !== "not_received";
@@ -119,6 +124,8 @@ export type OrderDetail = {
   paymentExpiredAt?: string | null;
   canResumeOnlinePayment?: boolean;
   canRequestReturn?: boolean;
+  canCancelReturn?: boolean;
+  hasReturnHistory?: boolean;
   canConfirmReceipt?: boolean;
   canConfirmShipped?: boolean;
   returnRequest?: CustomerOrderReturnRequest | null;

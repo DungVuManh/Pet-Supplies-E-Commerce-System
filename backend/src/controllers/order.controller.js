@@ -12,7 +12,7 @@ import {
  computePaymentExpiry,
 } from "../common/order-payment.js";
 import { priceOrderItems } from "../common/order-pricing.js";
-import { resolveCompletedAt } from "../common/order-auto-complete.js";
+import { getReturnEligibilityError, serializeReturnRequest } from "../common/order-return.js";
 import {
  VOUCHER_CHANGED_MESSAGE,
  VOUCHER_INVALID_MESSAGE,
@@ -23,6 +23,7 @@ import {
  voucherRefusalMessage,
 } from "../common/voucher-redemption.js";
 import { Order } from "../models/order.model.js";
+import { ReturnRequest } from "../models/return-request.model.js";
 import { Product } from "../models/product.model.js";
 import { User } from "../models/user.model.js";
 import { Cart } from "../models/cart.model.js";
@@ -529,14 +530,16 @@ export async function getOrderDetail(request, response, next) {
    statusLabel: "Chờ xử lý",
   };
 
-  const returnReq = order.returnRequest;
-  const isReturnFlow = Boolean(returnReq?.status) || status === "returned";
+  const returnReq = order.latestReturn?.requestId
+   ? await ReturnRequest.findOne({ _id: order.latestReturn.requestId, orderId: order._id }).lean()
+   : order.returnRequest?.status && { ...order.returnRequest, _id: order._id };
+  const returnStatus = order.latestReturn?.status ?? returnReq?.status;
+  const isReturnFlow = Boolean(returnStatus && returnStatus !== "cancelled") || status === "returned";
 
   // Tạo timeline tự động theo trạng thái hiện tại (hỗ trợ luồng hoàn trả 4 bước)
   let timelineSteps;
-  if (isReturnFlow && returnReq?.status !== "rejected") {
-   const returnStatus =
-    returnReq?.status || (status === "returned" ? "completed" : "pending");
+  if (isReturnFlow && returnStatus !== "rejected") {
+   const timelineReturnStatus = returnStatus ?? (status === "returned" ? "completed" : "pending");
    const reqDate = returnReq?.requestedAt
     ? new Date(returnReq.requestedAt)
     : date;
@@ -547,24 +550,24 @@ export async function getOrderDetail(request, response, next) {
     "customer_shipped",
     "received",
     "completed",
-   ].includes(returnStatus);
-   const isStep2Active = ["pending", "approved"].includes(returnStatus);
+   ].includes(timelineReturnStatus);
+   const isStep2Active = ["pending", "approved"].includes(timelineReturnStatus);
    const step2Desc =
-    returnStatus === "pending"
+    timelineReturnStatus === "pending"
      ? "Chờ nhân viên xét duyệt"
-     : returnStatus === "approved"
+     : timelineReturnStatus === "approved"
        ? "Đã duyệt · Chờ khách gửi hàng"
        : "Khách đã gửi trả hàng";
 
-   const isStep3Completed = returnStatus === "completed";
-   const isStep3Active = returnStatus === "received";
+   const isStep3Completed = timelineReturnStatus === "completed";
+   const isStep3Active = timelineReturnStatus === "received";
    const step3Desc = isStep3Completed
     ? "Kiểm tra hàng đạt chuẩn"
     : isStep3Active
       ? "Đã nhận hàng · Đang kiểm tra"
       : "Chờ cửa hàng nhận hàng";
 
-   const isStep4Completed = returnStatus === "completed";
+   const isStep4Completed = timelineReturnStatus === "completed";
    const step4Desc = isStep4Completed
     ? "Hoàn tất hoàn trả thành công"
     : "Hoàn tiền & hoàn tất";
@@ -721,7 +724,7 @@ export async function getOrderDetail(request, response, next) {
    computeOrderPaymentAmounts(order);
   const isReturned =
    order.orderStatus === "returned" ||
-   order.returnRequest?.status === "completed";
+   returnStatus === "completed";
   const paymentStatusCode = isReturned
    ? "paid"
    : order.paymentStatus ||
@@ -765,69 +768,31 @@ export async function getOrderDetail(request, response, next) {
    received: "Đang kiểm tra hàng",
    completed: "Hoàn thành công",
    rejected: "Đã từ chối",
+   cancelled: "Khách đã hủy",
   };
 
-  const returnRequest = order.returnRequest?.status
+  const returnRequest = returnReq?.status
    ? {
-      reason: order.returnRequest.reason,
-      reasonLabel:
-       RETURN_REASON_LABELS[order.returnRequest.reason] ||
-       order.returnRequest.reason,
-      bankAccount: order.returnRequest.bankAccount || null,
-      description: order.returnRequest.description,
-      images: order.returnRequest.images || [],
-      status: order.returnRequest.status,
-      statusLabel:
-       RETURN_STATUS_LABELS[order.returnRequest.status] ||
-       order.returnRequest.status,
-      refundRequired: Boolean(order.returnRequest.refundRequired),
-      refundStatus: order.returnRequest.refundStatus || "none",
-      refundAmount: order.returnRequest.refundAmount || null,
-      requestedAt: order.returnRequest.requestedAt
-       ? new Date(order.returnRequest.requestedAt).toISOString()
-       : null,
-      approvedAt: order.returnRequest.approvedAt
-       ? new Date(order.returnRequest.approvedAt).toISOString()
-       : null,
-      customerShippedAt: order.returnRequest.customerShippedAt
-       ? new Date(order.returnRequest.customerShippedAt).toISOString()
-       : null,
-      receivedAt: order.returnRequest.receivedAt
-       ? new Date(order.returnRequest.receivedAt).toISOString()
-       : null,
-      completedAt: order.returnRequest.completedAt
-       ? new Date(order.returnRequest.completedAt).toISOString()
-       : null,
-      reviewedAt: order.returnRequest.reviewedAt
-       ? new Date(order.returnRequest.reviewedAt).toISOString()
-       : null,
-      rejectionReason: order.returnRequest.rejectionReason || null,
+      ...serializeReturnRequest(returnReq),
+      reasonLabel: RETURN_REASON_LABELS[returnReq.reason] || returnReq.reason,
+      statusLabel: RETURN_STATUS_LABELS[returnReq.status] || returnReq.status,
      }
    : null;
 
-  const RETURN_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
-  const isWithinReturnWindow = () => {
-   if (order.orderStatus === "shipping") return true;
-   if (order.orderStatus === "completed") {
-    const completedAt = resolveCompletedAt(order);
-    if (!completedAt) return false;
-    return Date.now() - completedAt.getTime() <= RETURN_WINDOW_MS;
-   }
-   return false;
-  };
-
   const canRequestReturn =
-   order.channel !== "offline" &&
-   isWithinReturnWindow() &&
-   !order.returnRequest?.status;
+   order.channel === "online" && !getReturnEligibilityError(order);
+
+  const canCancelReturn = Boolean(order.latestReturn?.requestId) && order.channel === "online" &&
+   ["shipping", "completed"].includes(order.orderStatus) && ["pending", "approved"].includes(returnStatus);
 
   const canConfirmShipped =
-   order.channel !== "offline" && order.returnRequest?.status === "approved";
+   Boolean(order.latestReturn?.requestId) && order.channel === "online" &&
+   ["shipping", "completed"].includes(order.orderStatus) && returnStatus === "approved";
 
   const canConfirmReceipt =
-   order.channel !== "offline" &&
+   order.channel === "online" &&
    order.orderStatus === "shipping" &&
-   !order.returnRequest?.status;
+   (!returnStatus || ["cancelled", "rejected"].includes(returnStatus));
 
   const result = {
    id: order._id.toString(),
@@ -855,6 +820,8 @@ export async function getOrderDetail(request, response, next) {
    paymentExpiredAt,
    canResumeOnlinePayment: canResumeOnlinePayment(order),
    canRequestReturn,
+   canCancelReturn,
+   hasReturnHistory: Boolean(order.latestReturn?.requestId),
    canConfirmShipped,
    canConfirmReceipt,
    returnRequest,

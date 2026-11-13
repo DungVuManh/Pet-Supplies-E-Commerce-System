@@ -1,5 +1,11 @@
 # Data Model: Quy Trình Hoàn Trả Đơn Hàng Nhiều Bước & UI Timeline (Order Returns Workflow)
 
+## Lưu từng lần gửi
+
+`returnRequests` là nguồn dữ liệu chính, mỗi document mang `_id` riêng, `orderId`, nội dung và các mốc xử lý của một lần gửi. `cancelled` có `cancelledAt`. Index duy nhất có điều kiện áp dụng cho `pending`, `approved`, `customer_shipped` và `received` trên mỗi `orderId`.
+
+`orders.latestReturn` lưu `requestId`, `status` và `reviewedAt` nếu có. `orders.returnWindowCompletedAt` giữ mốc hoàn thành đã dùng để tính hạn hoàn với đơn cũ. API ghi đồng bộ yêu cầu và bản tóm tắt trong transaction. Trường nhúng `returnRequest` được giữ trong thời gian chuyển dữ liệu.
+
 **Feature Directory**: `docs/specs/order-returns` | **Date**: 2026-11-13
 
 ---
@@ -23,6 +29,7 @@ const returnStatuses = [
   "received",          // Cửa hàng đã nhận được kiện hàng, nhân viên đang kiểm tra
   "completed",         // Nhân viên kiểm tra đạt yêu cầu, xác nhận hoàn tiền & hoàn tất
   "rejected",          // Bị từ chối (ở bước duyệt yêu cầu hoặc bước kiểm tra hàng)
+  "cancelled",         // Khách đã hủy trước khi gửi hàng
 ];
 ```
 

@@ -18,6 +18,7 @@ import {
  OrderReturnApiError,
 } from "../services/order-return.service";
 import { ReceiptConfirmedModal } from "./receipt-confirmed-modal";
+import { CancelReturnRequest } from "./cancel-return-request";
 
 type OrderSummarySidebarProps = {
  order: OrderDetail;
@@ -99,7 +100,7 @@ export function OrderSummarySidebar({
  const [shippedError, setShippedError] = useState("");
 
  async function confirmShipped() {
-  if (confirmingShippedBusy) return;
+  if (confirmingShippedBusy || !returnReq?.requestId) return;
   if (!confirmingShipped) {
    setConfirmingShipped(true);
    setShippedError("");
@@ -108,10 +109,11 @@ export function OrderSummarySidebar({
   setConfirmingShippedBusy(true);
   setShippedError("");
   try {
-   await confirmReturnShippedApi(order.id);
+   await confirmReturnShippedApi(order.id, returnReq.requestId);
    setConfirmingShipped(false);
    onReceiptConfirmed?.();
   } catch (error) {
+   if (error instanceof OrderReturnApiError && error.status === 409) onReceiptConfirmed?.();
    setShippedError(
     error instanceof OrderReturnApiError
      ? error.message
@@ -441,6 +443,16 @@ export function OrderSummarySidebar({
        )}
       </div>
      </>
+    )}
+
+    {order.canCancelReturn && returnReq?.requestId && (
+     <CancelReturnRequest key={returnReq.requestId} orderId={order.id} requestId={returnReq.requestId} onChange={onReceiptConfirmed} />
+    )}
+
+    {returnReq?.status === "cancelled" && returnReq.cancelledAt && (
+     <p role="status" className="rounded-lg border border-line bg-canvas p-3 text-sm text-ink">
+      Bạn đã hủy yêu cầu hoàn đơn lúc {new Date(returnReq.cancelledAt).toLocaleString("vi-VN")}.
+     </p>
     )}
 
     {canRequestReturn && (

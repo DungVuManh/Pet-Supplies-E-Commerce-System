@@ -34,7 +34,8 @@ const statusHistorySchema = new mongoose.Schema(
 );
 
 const returnReasons = ["damaged_or_defective", "not_received", "missing_items", "damaged_or_missing"];
-const returnStatuses = ["pending", "approved", "customer_shipped", "received", "completed", "rejected"];
+export const activeReturnStatuses = ["pending", "approved", "customer_shipped", "received"];
+export const returnStatuses = [...activeReturnStatuses, "completed", "rejected", "cancelled"];
 const refundStatuses = ["none", "pending_refund", "refunded"];
 
 const returnBankAccountSchema = new mongoose.Schema(
@@ -46,7 +47,7 @@ const returnBankAccountSchema = new mongoose.Schema(
     { _id: false },
 );
 
-const returnRequestSchema = new mongoose.Schema(
+export const returnRequestSchema = new mongoose.Schema(
     {
         reason: { type: String, enum: returnReasons, required: true },
         bankAccount: { type: returnBankAccountSchema, required: true },
@@ -69,6 +70,7 @@ const returnRequestSchema = new mongoose.Schema(
         refundAmount: { ...nonNegativeInteger },
         requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         requestedAt: { type: Date, required: true },
+        cancelledAt: { type: Date },
         approvedAt: { type: Date },
         customerShippedAt: { type: Date },
         receivedAt: { type: Date },
@@ -128,6 +130,12 @@ const orderSchema = new mongoose.Schema(
         cancellationReason: { type: String, trim: true, maxlength: 500 },
         cancellationNote: { type: String, trim: true, maxlength: 500 },
         returnRequest: { type: returnRequestSchema },
+        latestReturn: {
+            requestId: { type: mongoose.Schema.Types.ObjectId, ref: "ReturnRequest" },
+            status: { type: String, enum: returnStatuses },
+            reviewedAt: { type: Date },
+        },
+        returnWindowCompletedAt: { type: Date },
     },
     { timestamps: true, bufferCommands: false },
 );

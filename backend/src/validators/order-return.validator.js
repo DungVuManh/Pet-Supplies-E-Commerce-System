@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { AppError } from "../common/errors/app-error.js";
+import { returnStatuses } from "../models/order.model.js";
 
 export const RETURN_REASONS = [
   "damaged_or_defective",
@@ -8,14 +9,7 @@ export const RETURN_REASONS = [
   "damaged_or_missing",
 ];
 
-export const RETURN_STATUSES = [
-  "pending",
-  "approved",
-  "customer_shipped",
-  "received",
-  "completed",
-  "rejected",
-];
+export const RETURN_STATUSES = returnStatuses;
 
 export const CLOUDINARY_IMAGE_URL_REGEX =
   /^https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/.+$/;
@@ -84,10 +78,10 @@ export const staffReturnDecisionSchema = z
   })
   .strict()
   .superRefine((value, ctx) => {
-    const isReject =
-      value.action === "reject_request" ||
-      value.action === "reject_refund" ||
-      value.decision === "reject";
+    if (!value.action && !value.decision) {
+      ctx.addIssue({ code: "custom", path: ["action"], message: "Vui lòng chọn thao tác." });
+    }
+    const isReject = value.action ? value.action.startsWith("reject") : value.decision === "reject";
     if (isReject) {
       const reason = value.rejectionReason?.trim() || "";
       if (reason.length < 5) {
@@ -145,11 +139,7 @@ export function parseStaffReturnDecision(body) {
     (result.data.decision === "approve" ? "approve_request" : "reject_request");
   return {
     action,
-    decision:
-      result.data.decision ||
-      (action.startsWith("approve") || action.startsWith("complete")
-        ? "approve"
-        : "reject"),
+    decision: action.startsWith("reject") ? "reject" : "approve",
     refundAmount: result.data.refundAmount,
     rejectionReason: result.data.rejectionReason?.trim() || "",
   };

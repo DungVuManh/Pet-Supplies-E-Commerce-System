@@ -12,6 +12,7 @@ Cart and online checkout APIs are not implemented yet.
 - For Staff in-store order creation, MongoDB must be a replica set or Atlas.
   Standalone MongoDB supports the existing reads but sale creation fails closed
   with `TRANSACTIONS_REQUIRED`; there is no non-transactional fallback.
+- Return request mutations also use transactions. Before deploying the new returns workflow to a database with existing returns, follow the [returns migration instructions](docs/specs/order-returns/quickstart.md).
 
 Staff opens **Tạo đơn hộ khách** from Orders or Dashboard. The form can select an
 existing Customer or record guest contact information without creating a User,

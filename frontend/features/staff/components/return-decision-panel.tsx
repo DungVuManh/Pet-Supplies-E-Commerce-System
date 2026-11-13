@@ -70,6 +70,13 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
  const [actionError, setActionError] = useState<string | null>(null);
  const [copied, setCopied] = useState(false);
 
+ function refreshOnConflict(error: unknown) {
+  if (error instanceof StaffReturnApiError && error.status === 409) {
+   setDecisionMode(null);
+   router.refresh();
+  }
+ }
+
  const handleCopyAccount = (text: string) => {
   if (typeof navigator !== "undefined" && navigator.clipboard) {
    navigator.clipboard.writeText(text);
@@ -86,6 +93,7 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
    router.refresh();
    setDecisionMode(null);
   } catch (err) {
+   refreshOnConflict(err);
    setActionError(
     err instanceof StaffReturnApiError
      ? err.message
@@ -118,6 +126,7 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
    router.refresh();
    setDecisionMode(null);
   } catch (err) {
+   refreshOnConflict(err);
    setActionError(
     err instanceof StaffReturnApiError
      ? err.message
@@ -136,6 +145,7 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
    router.refresh();
    setDecisionMode(null);
   } catch (err) {
+   refreshOnConflict(err);
    setActionError(
     err instanceof StaffReturnApiError
      ? err.message
@@ -168,6 +178,7 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
    router.refresh();
    setDecisionMode(null);
   } catch (err) {
+   refreshOnConflict(err);
    setActionError(
     err instanceof StaffReturnApiError
      ? err.message
@@ -200,6 +211,7 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
    router.refresh();
    setDecisionMode(null);
   } catch (err) {
+   refreshOnConflict(err);
    setActionError(
     err instanceof StaffReturnApiError
      ? err.message
@@ -215,7 +227,7 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
    ? "success"
    : req.status === "approved" || req.status === "customer_shipped"
      ? "info"
-     : req.status === "rejected"
+     : req.status === "cancelled" ? "neutral" : req.status === "rejected"
        ? "danger"
        : "warning";
 
@@ -734,6 +746,11 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
          </div>
         )}
        </div>
+      ) : req.status === "cancelled" ? (
+       <div className="rounded-lg border border-line bg-canvas p-4 text-sm text-ink">
+        <p className="font-semibold">Khách đã hủy yêu cầu</p>
+        <p className="mt-2 text-muted">{formatDateTime(req.cancelledAt)}</p>
+       </div>
       ) : req.status === "completed" ? (
        <div className="space-y-3 text-xs">
         <div className="p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900 space-y-2">
@@ -887,15 +904,15 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
          {detail.paymentStatus === "paid" ? "Đã thanh toán" : "Chưa thanh toán"}
         </Badge>
        </div>
-       {isOnlinePaid &&
-        (req.refundStatus === "refunded" || req.status === "completed" ? (
+       {isOnlinePaid && (req.refundStatus === "refunded" || req.refundStatus === "pending_refund" || req.status === "received") &&
+        (req.refundStatus === "refunded" ? (
          <div className="mt-3 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-1">
           <p className="font-bold flex items-center gap-1.5 text-xs">
            <span>✓</span> Đã hoàn tiền chuyển khoản
           </p>
           <p className="leading-relaxed text-[11px] text-emerald-800">
            Đã hoàn tất chuyển khoản số tiền{" "}
-           <strong>{formatVND(req.refundAmount || detail.total)}</strong> cho
+           <strong>{formatVND(req.refundAmount ?? detail.total)}</strong> cho
            khách hàng.
           </p>
          </div>

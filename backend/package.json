@@ -14,6 +14,7 @@
   "seed": "node src/scripts/seed.js",
   "seed:admin": "node src/scripts/seed-admin.js",
   "migrate:admin": "node src/scripts/migrate-admin.js",
+  "migrate:order-returns": "node src/scripts/migrate-order-returns.js",
   "test": "vitest run",
   "test:watch": "vitest"
  },

@@ -57,6 +57,7 @@ const TABS: { id: StaffReturnStatus; label: string }[] = [
   { id: "received", label: "Đang kiểm tra" },
   { id: "completed", label: "Hoàn tất" },
   { id: "rejected", label: "Đã từ chối" },
+  { id: "cancelled", label: "Khách đã hủy" },
 ];
 
 export function ReturnsList() {
@@ -243,7 +244,7 @@ export function ReturnsList() {
                   ? "info"
                   : req.status === "rejected"
                   ? "danger"
-                  : "warning";
+                  : req.status === "cancelled" ? "neutral" : "warning";
 
               return (
                 <tr key={item.id} className="hover:bg-canvas/50 transition-colors">
@@ -275,7 +276,7 @@ export function ReturnsList() {
                   </Td>
                   <Td>
                     <p className="font-semibold text-ink">{formatVND(item.total)}</p>
-                    {req.refundStatus === "refunded" || req.status === "completed" ? (
+                    {req.refundStatus === "refunded" ? (
                       <span className="inline-block mt-1 text-[11px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
                         Đã hoàn tiền
                       </span>

@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "../src/app.js";
@@ -5,6 +6,7 @@ import { parseEnvironment } from "../src/config/env.js";
 import * as firebase from "../src/config/firebase.js";
 import { userRepository } from "../src/models/user.model.js";
 import { Order } from "../src/models/order.model.js";
+import { ReturnRequest } from "../src/models/return-request.model.js";
 import { Product } from "../src/models/product.model.js";
 import { AuditLog } from "../src/models/audit-log.model.js";
 import * as cloudinaryUpload from "../src/common/cloudinary-upload.js";
@@ -17,6 +19,7 @@ const staffId = "d".repeat(24);
 const productId = "e".repeat(24);
 
 const chain = (value) => ({
+  session() { return this; },
   select() {
     return this;
   },
@@ -90,6 +93,16 @@ beforeEach(() => {
     email: `${currentRole}@petjoy.vn`,
   }));
 
+  const session = {};
+  vi.spyOn(mongoose.connection, "transaction").mockImplementation((work) => work(session));
+  vi.spyOn(ReturnRequest, "create").mockImplementation(async ([entry]) => [{ ...entry, _id: orderId }]);
+  vi.spyOn(ReturnRequest, "findById").mockImplementation((id) => chain(
+    order.returnRequest && { ...order.returnRequest, _id: id, orderId }
+  ));
+  vi.spyOn(ReturnRequest, "findOne").mockImplementation(({ _id }) => chain(
+    order.returnRequest && { ...order.returnRequest, _id, orderId }
+  ));
+  vi.spyOn(ReturnRequest, "updateOne").mockResolvedValue({ modifiedCount: 1 });
   vi.spyOn(Order, "findById").mockImplementation(() => chain(order));
   vi.spyOn(Order, "findOne").mockImplementation((filter) => {
     if (filter._id && String(filter._id) !== orderId) return chain(null);
@@ -174,7 +187,7 @@ describe("Order Returns Feature", () => {
         .set("Origin", "http://localhost:3000")
         .set("X-CSRF-Token", csrfToken)
         .attach("images", Buffer.from("fake-image"), "test.jpg")
-        .expect(400);
+        .expect(409);
 
       expect(res.body.error.code).toBe("INVALID_ORDER_STATUS");
     });
@@ -260,6 +273,7 @@ describe("Order Returns Feature", () => {
 
     it("rejects upload when order already has a return request with 409", async () => {
       order.returnRequest = { status: "pending" };
+      order.latestReturn = { requestId: orderId, status: "pending" };
       const { agent, cookie, csrfToken } = await makeBrowser("customer", customerId);
       const res = await agent
         .post(`/api/v1/orders/${orderId}/return/upload`)
@@ -437,6 +451,7 @@ describe("Order Returns Feature", () => {
     it("rejects duplicate return submission with 409 DUPLICATE_RETURN_REQUEST", async () => {
       vi.spyOn(Order, "updateOne").mockResolvedValue({ modifiedCount: 0 });
       order.returnRequest = { status: "pending" };
+      order.latestReturn = { requestId: orderId, status: "pending" };
 
       const { agent, cookie, csrfToken } = await makeBrowser("customer", customerId);
       const res = await agent
@@ -459,6 +474,7 @@ describe("Order Returns Feature", () => {
   describe("Receipt Confirmation Guard with Return Request", () => {
     it("blocks customer confirmation when return request is pending", async () => {
       order.returnRequest = { status: "pending" };
+      order.latestReturn = { requestId: orderId, status: "pending" };
 
       const { agent, cookie, csrfToken } = await makeBrowser("customer", customerId);
       const res = await agent
@@ -505,9 +521,9 @@ describe("Order Returns Feature", () => {
         requestedAt: new Date(),
       };
 
-      vi.spyOn(Order, "countDocuments").mockResolvedValue(1);
-      vi.spyOn(Order, "find").mockImplementation(() => chain([order]));
-      vi.spyOn(Order, "aggregate").mockResolvedValue([{ _id: "pending", count: 1 }]);
+      vi.spyOn(ReturnRequest, "countDocuments").mockResolvedValue(1);
+      vi.spyOn(ReturnRequest, "find").mockImplementation(() => chain([{ ...order.returnRequest, _id: orderId, orderId: order }]));
+      vi.spyOn(ReturnRequest, "aggregate").mockResolvedValue([{ _id: "pending", count: 1 }]);
 
       const { agent, cookie } = await makeBrowser("staff", staffId);
       const res = await agent
@@ -543,9 +559,37 @@ describe("Order Returns Feature", () => {
     });
   });
 
+  describe("Customer cancels a specific return request", () => {
+    const path = `/api/v1/orders/${orderId}/return/cancel`;
+
+    it.each(["pending", "approved"])("cancels a %s request without changing the order status", async (status) => {
+      order.returnRequest = { status, requestedAt: new Date() };
+      order.latestReturn = { requestId: orderId, status };
+      const update = vi.spyOn(Order, "updateOne").mockResolvedValue({ modifiedCount: 1 });
+      const { agent, cookie, csrfToken } = await makeBrowser();
+      const response = await agent.post(path).set("Cookie", cookie).set("Origin", "http://localhost:3000")
+        .set("X-CSRF-Token", csrfToken).send({ requestId: orderId }).expect(200);
+      expect(response.headers["cache-control"]).toBe("no-store");
+      expect(response.body.data.returnRequest).toMatchObject({ requestId: orderId, status: "cancelled", cancelledAt: expect.any(String) });
+      expect(update.mock.calls[0][1].$set).toEqual({ "latestReturn.status": "cancelled" });
+      expect(Product.updateOne).not.toHaveBeenCalled();
+    });
+
+    it("requires the owner, valid CSRF and a request ID", async () => {
+      const { agent, cookie, csrfToken } = await makeBrowser("customer", otherCustomerId);
+      await agent.post(path).set("Cookie", cookie).set("Origin", "http://localhost:3000").send({ requestId: orderId }).expect(403);
+      await agent.post(path).set("Cookie", cookie).set("Origin", "http://localhost:3000")
+        .set("X-CSRF-Token", csrfToken).send({}).expect(409);
+      await agent.post(path).set("Cookie", cookie).set("Origin", "http://localhost:3000")
+        .set("X-CSRF-Token", csrfToken).send({ requestId: orderId }).expect(404);
+      expect(ReturnRequest.updateOne).not.toHaveBeenCalled();
+    });
+  });
+
   describe("Staff Return Decision & 4-Stage Lifecycle", () => {
     it("Step 1: staff approves initial request (status: approved, orderStatus remains shipping, no restock yet)", async () => {
       order.returnRequest = { status: "pending" };
+      order.latestReturn = { requestId: orderId, status: "pending" };
       order.paymentMethod = "ONLINE";
       order.paymentStatus = "paid";
 
@@ -570,8 +614,8 @@ describe("Order Returns Feature", () => {
       expect(res.body.data.status).toBe("approved");
 
       // Verify updateOperation
-      expect(updateOperation.$set["returnRequest.status"]).toBe("approved");
-      expect(updateOperation.$set["returnRequest.approvedAt"]).toBeDefined();
+      expect(updateOperation.$set["latestReturn.status"]).toBe("approved");
+      expect(ReturnRequest.updateOne.mock.calls[0][1].$set.approvedAt).toBeDefined();
       expect(updateOperation.$set.orderStatus).toBeUndefined(); // Does NOT change orderStatus yet!
 
       // Product stock must NOT be restocked at this stage
@@ -579,15 +623,16 @@ describe("Order Returns Feature", () => {
 
       // Verify AuditLog
       expect(auditSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
+        [expect.objectContaining({
           action: "order.return.approve_request",
           actorId: staffId,
-          target: { collectionName: "orders", id: orderId },
-        })
+          target: { collectionName: "returnRequests", id: orderId },
+        })], expect.objectContaining({ session: expect.anything() })
       );
     });
 
     it("Step 2: customer confirms shipped (status: customer_shipped, one-touch)", async () => {
+      order.latestReturn = { requestId: orderId, status: "approved" };
       order.returnRequest = {
         status: "approved",
         approvedAt: new Date(),
@@ -605,17 +650,18 @@ describe("Order Returns Feature", () => {
         .set("Cookie", cookie)
         .set("Origin", "http://localhost:3000")
         .set("X-CSRF-Token", csrfToken)
-        .send({})
+        .send({ requestId: orderId })
         .expect(200);
 
       expect(res.body.success).toBe(true);
       expect(res.body.data.status).toBe("customer_shipped");
-      expect(updateOperation.$set["returnRequest.status"]).toBe("customer_shipped");
-      expect(updateOperation.$set["returnRequest.customerShippedAt"]).toBeDefined();
+      expect(updateOperation.$set["latestReturn.status"]).toBe("customer_shipped");
+      expect(ReturnRequest.updateOne.mock.calls[0][1].$set.customerShippedAt).toBeDefined();
     });
 
     it("Step 2: customer confirmation fails if past 3 days (72h) deadline", async () => {
       const fourDaysAgo = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000);
+      order.latestReturn = { requestId: orderId, status: "approved" };
       order.returnRequest = {
         status: "approved",
         approvedAt: fourDaysAgo,
@@ -629,11 +675,12 @@ describe("Order Returns Feature", () => {
         .set("Cookie", cookie)
         .set("Origin", "http://localhost:3000")
         .set("X-CSRF-Token", csrfToken)
-        .send({})
+        .send({ requestId: orderId })
         .expect(400);
     });
 
     it("Step 3: staff receives returned package (POST /staff/returns/:id/receive)", async () => {
+      order.latestReturn = { requestId: orderId, status: "customer_shipped" };
       order.returnRequest = {
         status: "customer_shipped",
         customerShippedAt: new Date(),
@@ -657,18 +704,19 @@ describe("Order Returns Feature", () => {
 
       expect(res.body.success).toBe(true);
       expect(res.body.data.status).toBe("received");
-      expect(updateOperation.$set["returnRequest.status"]).toBe("received");
-      expect(updateOperation.$set["returnRequest.receivedAt"]).toBeDefined();
+      expect(updateOperation.$set["latestReturn.status"]).toBe("received");
+      expect(ReturnRequest.updateOne.mock.calls[0][1].$set.receivedAt).toBeDefined();
 
       expect(auditSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
+        [expect.objectContaining({
           action: "order.return.receive",
           actorId: staffId,
-        })
+        })], expect.objectContaining({ session: expect.anything() })
       );
     });
 
     it("Step 4: staff completes refund: sets status completed, orderStatus returned, restocks items, records refundAmount", async () => {
+      order.latestReturn = { requestId: orderId, status: "received" };
       order.returnRequest = {
         status: "received",
         receivedAt: new Date(),
@@ -703,27 +751,28 @@ describe("Order Returns Feature", () => {
       // Verify atomic update fields
       expect(updateOperation.$set.orderStatus).toBe("returned");
       expect(updateOperation.$set.paymentStatus).toBe("paid");
-      expect(updateOperation.$set["returnRequest.status"]).toBe("completed");
-      expect(updateOperation.$set["returnRequest.refundAmount"]).toBe(100000);
+      expect(updateOperation.$set["latestReturn.status"]).toBe("completed");
+      expect(ReturnRequest.updateOne.mock.calls[0][1].$set.refundAmount).toBe(100000);
 
       // Verify stock restoration
       expect(restockSpy).toHaveBeenCalledWith(
         { _id: productId, "variants.sku": "SKU-DOG-01" },
-        { $inc: { "variants.$.stock": 2 } }
+        { $inc: { "variants.$.stock": 2 } }, expect.objectContaining({ session: expect.anything() })
       );
 
       // Verify AuditLog
       expect(auditSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
+        [expect.objectContaining({
           action: "order.return.complete_refund",
           actorId: staffId,
-          target: { collectionName: "orders", id: orderId },
-        })
+          target: { collectionName: "returnRequests", id: orderId },
+        })], expect.objectContaining({ session: expect.anything() })
       );
     });
 
     it("rejects return: enforces rejectionReason 5..500 chars and records AuditLog", async () => {
       order.returnRequest = { status: "pending" };
+      order.latestReturn = { requestId: orderId, status: "pending" };
 
       const { agent, cookie, csrfToken } = await makeBrowser("staff", staffId);
 
@@ -754,15 +803,16 @@ describe("Order Returns Feature", () => {
       expect(res.body.success).toBe(true);
       expect(res.body.data.status).toBe("rejected");
       expect(auditSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          action: "order.return.reject",
+        [expect.objectContaining({
+          action: "order.return.reject_request",
           actorId: staffId,
-        })
+        })], expect.objectContaining({ session: expect.anything() })
       );
     });
 
     it("concurrency race: second decision fails with 409 conflict without double restock", async () => {
       order.returnRequest = { status: "pending" };
+      order.latestReturn = { requestId: orderId, status: "pending" };
       vi.spyOn(Order, "updateOne").mockResolvedValue({ modifiedCount: 0 });
       const restockSpy = vi.spyOn(Product, "updateOne");
 
@@ -775,7 +825,7 @@ describe("Order Returns Feature", () => {
         .send({ decision: "approve" })
         .expect(409);
 
-      expect(res.body.error.code).toBe("RETURN_DECISION_CONFLICT");
+      expect(res.body.error.code).toBe("RETURN_CONFLICT");
       expect(restockSpy).not.toHaveBeenCalled();
     });
   });

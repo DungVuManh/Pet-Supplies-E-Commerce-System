@@ -105,7 +105,7 @@ export function OrderReturnView({ orderId = "" }: OrderReturnViewProps) {
   }
 
   // Chặn nếu đơn không thỏa mãn điều kiện gửi hoàn trả
-  const hasExistingReturn = Boolean(order.returnRequest?.status);
+  const hasExistingReturn = Boolean(order.returnRequest?.status && order.returnRequest.status !== "cancelled");
   const canReturn =
     typeof order.canRequestReturn === "boolean"
       ? order.canRequestReturn

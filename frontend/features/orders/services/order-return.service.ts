@@ -3,7 +3,7 @@
 // Service API cho khách hàng gửi yêu cầu hoàn trả đơn hàng
 // =============================================================
 
-import type { ReturnRequestReason, CustomerOrderReturnRequest } from "../types";
+import type { ReturnRequestReason, CustomerOrderReturnRequest, ReturnHistoryItem } from "../types";
 
 export class OrderReturnApiError extends Error {
   status: number;
@@ -187,13 +187,22 @@ export async function submitOrderReturnApi(
  * Khách hàng xác nhận 1-chạm đã đóng gói gửi trả hàng về shop
  */
 export async function confirmReturnShippedApi(
-  orderId: string
+  orderId: string,
+  requestId: string,
 ): Promise<{ returnRequest: Partial<CustomerOrderReturnRequest> }> {
+  return updateCustomerReturn(orderId, requestId, "confirm-shipped");
+}
+
+export async function cancelReturnRequestApi(orderId: string, requestId: string) {
+  return updateCustomerReturn(orderId, requestId, "cancel");
+}
+
+async function updateCustomerReturn(orderId: string, requestId: string, action: "cancel" | "confirm-shipped") {
   const csrfToken = await fetchCsrfToken();
 
   let response: Response;
   try {
-    response = await fetch(`/api/v1/orders/${encodeURIComponent(orderId)}/return/confirm-shipped`, {
+    response = await fetch(`/api/v1/orders/${encodeURIComponent(orderId)}/return/${action}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -201,10 +210,11 @@ export async function confirmReturnShippedApi(
       },
       credentials: "include",
       cache: "no-store",
+      body: JSON.stringify({ requestId }),
     });
   } catch {
     throw new OrderReturnApiError(
-      "Chưa thể xác nhận đã gửi hàng. Hãy tải lại trang để kiểm tra.",
+      "Chưa thể xác nhận kết quả. Hãy tải lại trang để kiểm tra.",
       0,
       "NETWORK_ERROR"
     );
@@ -213,24 +223,43 @@ export async function confirmReturnShippedApi(
   const body = await response.json().catch(() => null);
   if (!response.ok) {
     const code = body?.error?.code || "REQUEST_FAILED";
-    const message = body?.message || returnMessages[code] || "Xác nhận gửi hàng thất bại.";
+    const message = body?.message || returnMessages[code] || "Không thể cập nhật yêu cầu hoàn trả.";
     throw new OrderReturnApiError(message, response.status, code);
   }
 
   const data = body?.data;
-  if (!body?.success || !data) {
+  if (!body?.success || data?.returnRequest?.requestId !== requestId ||
+      data.returnRequest.status !== (action === "cancel" ? "cancelled" : "customer_shipped")) {
     throw new OrderReturnApiError(
-      "Phản hồi xác nhận gửi hàng chưa hợp lệ.",
+      "Phản hồi cập nhật yêu cầu hoàn trả chưa hợp lệ.",
       502,
       "INVALID_RESPONSE"
     );
   }
 
-  const returnRequest = data.returnRequest || {
-    status: data.status,
-    customerShippedAt: data.customerShippedAt,
-  };
+  return { returnRequest: data.returnRequest as CustomerOrderReturnRequest };
+}
 
-  return { returnRequest };
+export type CustomerReturnHistory = {
+  items: ReturnHistoryItem[];
+  pagination: { page: number; totalPages: number };
+};
+
+async function getReturnHistoryData(path: string, signal?: AbortSignal) {
+  const response = await fetch(path, { credentials: "include", cache: "no-store", signal });
+  const body = await response.json().catch(() => null);
+  if (!response.ok || !body?.success || !body.data) {
+    throw new OrderReturnApiError(body?.message || "Không thể tải lịch sử hoàn đơn.", response.status, body?.error?.code || "FETCH_FAILED");
+  }
+  return body.data;
+}
+
+export async function getCustomerReturnHistory(orderId: string, page: number, signal?: AbortSignal): Promise<CustomerReturnHistory> {
+  return getReturnHistoryData(`/api/v1/orders/${encodeURIComponent(orderId)}/returns?page=${page}`, signal);
+}
+
+export async function getCustomerReturnDetail(orderId: string, requestId: string, signal?: AbortSignal): Promise<CustomerOrderReturnRequest> {
+  const data = await getReturnHistoryData(`/api/v1/orders/${encodeURIComponent(orderId)}/returns/${encodeURIComponent(requestId)}`, signal);
+  return data.returnRequest;
 }
 

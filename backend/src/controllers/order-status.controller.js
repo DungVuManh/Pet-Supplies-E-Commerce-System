@@ -1,6 +1,7 @@
 import { AppError } from "../common/errors/app-error.js";
 import { releaseVoucher } from "../common/voucher-redemption.js";
-import { Order } from "../models/order.model.js";
+import { orderWithoutReturnStatuses } from "../common/order-auto-complete.js";
+import { activeReturnStatuses, Order } from "../models/order.model.js";
 import { Product } from "../models/product.model.js";
 import { parseOrderId, parseStaffOrderStatus, staffOrderTransitions } from "../validators/order.validator.js";
 
@@ -78,7 +79,7 @@ export async function confirmCustomerOrderReceipt(request, response) {
     if (order.channel !== "online" || order.orderStatus !== "shipping") {
       throw new AppError("Đơn hàng chưa thể xác nhận đã nhận.", 409, "INVALID_ORDER_TRANSITION");
     }
-    if (order.returnRequest && (order.returnRequest.status === "pending" || order.returnRequest.status === "approved")) {
+    if (activeReturnStatuses.includes(order.latestReturn?.status ?? order.returnRequest?.status)) {
       throw new AppError("Đơn hàng đang có yêu cầu hoàn trả, không thể xác nhận đã nhận hàng.", 409, "RETURN_REQUEST_ACTIVE");
     }
 
@@ -95,7 +96,7 @@ export async function confirmCustomerOrderReceipt(request, response) {
       channel: "online",
       orderStatus: "shipping",
       creationState: { $ne: "pending" },
-      "returnRequest.status": { $nin: ["pending", "approved"] },
+      ...orderWithoutReturnStatuses(activeReturnStatuses),
     }, {
       $set: updateFields,
       $push: { statusHistory: { from: "shipping", to: "completed", by: request.user._id, at: new Date() } },

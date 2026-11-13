@@ -5,6 +5,7 @@ export { Category } from "./category.model.js";
 export { Product } from "./product.model.js";
 export { Cart } from "./cart.model.js";
 export { Order } from "./order.model.js";
+export { ReturnRequest } from "./return-request.model.js";
 export { Payment } from "./payment.model.js";
 export { Promotion } from "./promotion.model.js";
 export { PromotionRedemption } from "./promotion-redemption.model.js";
