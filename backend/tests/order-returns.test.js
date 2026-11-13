@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "../src/app.js";
@@ -19,7 +18,6 @@ const staffId = "d".repeat(24);
 const productId = "e".repeat(24);
 
 const chain = (value) => ({
-  session() { return this; },
   select() {
     return this;
   },
@@ -93,16 +91,17 @@ beforeEach(() => {
     email: `${currentRole}@petjoy.vn`,
   }));
 
-  const session = {};
-  vi.spyOn(mongoose.connection, "transaction").mockImplementation((work) => work(session));
-  vi.spyOn(ReturnRequest, "create").mockImplementation(async ([entry]) => [{ ...entry, _id: orderId }]);
+  let persistedRequest;
   vi.spyOn(ReturnRequest, "findById").mockImplementation((id) => chain(
     order.returnRequest && { ...order.returnRequest, _id: id, orderId }
   ));
   vi.spyOn(ReturnRequest, "findOne").mockImplementation(({ _id }) => chain(
-    order.returnRequest && { ...order.returnRequest, _id, orderId }
+    persistedRequest ?? (order.returnRequest && { ...order.returnRequest, _id, orderId })
   ));
-  vi.spyOn(ReturnRequest, "updateOne").mockResolvedValue({ modifiedCount: 1 });
+  vi.spyOn(ReturnRequest, "updateOne").mockImplementation(async (filter, { $set, $setOnInsert }) => {
+    persistedRequest = { ...order.returnRequest, ...$set, ...$setOnInsert, _id: filter._id, orderId };
+    return { modifiedCount: 1 };
+  });
   vi.spyOn(Order, "findById").mockImplementation(() => chain(order));
   vi.spyOn(Order, "findOne").mockImplementation((filter) => {
     if (filter._id && String(filter._id) !== orderId) return chain(null);
@@ -119,7 +118,7 @@ beforeEach(() => {
     ])
   );
   vi.spyOn(Product, "updateOne").mockResolvedValue({ modifiedCount: 1 });
-  vi.spyOn(AuditLog, "create").mockResolvedValue({ _id: "audit-1" });
+  vi.spyOn(AuditLog, "updateOne").mockResolvedValue({ upsertedId: "audit-1" });
 });
 
 afterEach(() => {
@@ -571,7 +570,7 @@ describe("Order Returns Feature", () => {
         .set("X-CSRF-Token", csrfToken).send({ requestId: orderId }).expect(200);
       expect(response.headers["cache-control"]).toBe("no-store");
       expect(response.body.data.returnRequest).toMatchObject({ requestId: orderId, status: "cancelled", cancelledAt: expect.any(String) });
-      expect(update.mock.calls[0][1].$set).toEqual({ "latestReturn.status": "cancelled" });
+      expect(update.mock.calls[1][1].$set).toEqual({ latestReturn: { requestId: orderId, status: "cancelled", reviewedAt: undefined } });
       expect(Product.updateOne).not.toHaveBeenCalled();
     });
 
@@ -599,7 +598,7 @@ describe("Order Returns Feature", () => {
         return { modifiedCount: 1 };
       });
       const restockSpy = vi.spyOn(Product, "updateOne");
-      const auditSpy = vi.spyOn(AuditLog, "create").mockResolvedValue({ _id: "audit-1" });
+      const auditSpy = vi.spyOn(AuditLog, "updateOne").mockResolvedValue({ upsertedId: "audit-1" });
 
       const { agent, cookie, csrfToken } = await makeBrowser("staff", staffId);
       const res = await agent
@@ -614,7 +613,7 @@ describe("Order Returns Feature", () => {
       expect(res.body.data.status).toBe("approved");
 
       // Verify updateOperation
-      expect(updateOperation.$set["latestReturn.status"]).toBe("approved");
+      expect(updateOperation.$set.latestReturn.status).toBe("approved");
       expect(ReturnRequest.updateOne.mock.calls[0][1].$set.approvedAt).toBeDefined();
       expect(updateOperation.$set.orderStatus).toBeUndefined(); // Does NOT change orderStatus yet!
 
@@ -623,11 +622,11 @@ describe("Order Returns Feature", () => {
 
       // Verify AuditLog
       expect(auditSpy).toHaveBeenCalledWith(
-        [expect.objectContaining({
+        { _id: expect.anything() }, { $setOnInsert: expect.objectContaining({
           action: "order.return.approve_request",
           actorId: staffId,
           target: { collectionName: "returnRequests", id: orderId },
-        })], expect.objectContaining({ session: expect.anything() })
+        }) }, expect.objectContaining({ upsert: true })
       );
     });
 
@@ -655,7 +654,7 @@ describe("Order Returns Feature", () => {
 
       expect(res.body.success).toBe(true);
       expect(res.body.data.status).toBe("customer_shipped");
-      expect(updateOperation.$set["latestReturn.status"]).toBe("customer_shipped");
+      expect(updateOperation.$set.latestReturn.status).toBe("customer_shipped");
       expect(ReturnRequest.updateOne.mock.calls[0][1].$set.customerShippedAt).toBeDefined();
     });
 
@@ -691,7 +690,7 @@ describe("Order Returns Feature", () => {
         updateOperation = op;
         return { modifiedCount: 1 };
       });
-      const auditSpy = vi.spyOn(AuditLog, "create").mockResolvedValue({ _id: "audit-2" });
+      const auditSpy = vi.spyOn(AuditLog, "updateOne").mockResolvedValue({ upsertedId: "audit-2" });
 
       const { agent, cookie, csrfToken } = await makeBrowser("staff", staffId);
       const res = await agent
@@ -704,14 +703,14 @@ describe("Order Returns Feature", () => {
 
       expect(res.body.success).toBe(true);
       expect(res.body.data.status).toBe("received");
-      expect(updateOperation.$set["latestReturn.status"]).toBe("received");
+      expect(updateOperation.$set.latestReturn.status).toBe("received");
       expect(ReturnRequest.updateOne.mock.calls[0][1].$set.receivedAt).toBeDefined();
 
       expect(auditSpy).toHaveBeenCalledWith(
-        [expect.objectContaining({
+        { _id: expect.anything() }, { $setOnInsert: expect.objectContaining({
           action: "order.return.receive",
           actorId: staffId,
-        })], expect.objectContaining({ session: expect.anything() })
+        }) }, expect.objectContaining({ upsert: true })
       );
     });
 
@@ -731,7 +730,7 @@ describe("Order Returns Feature", () => {
         return { modifiedCount: 1 };
       });
       const restockSpy = vi.spyOn(Product, "updateOne").mockResolvedValue({ modifiedCount: 1 });
-      const auditSpy = vi.spyOn(AuditLog, "create").mockResolvedValue({ _id: "audit-3" });
+      const auditSpy = vi.spyOn(AuditLog, "updateOne").mockResolvedValue({ upsertedId: "audit-3" });
 
       const { agent, cookie, csrfToken } = await makeBrowser("staff", staffId);
       const res = await agent
@@ -751,22 +750,22 @@ describe("Order Returns Feature", () => {
       // Verify atomic update fields
       expect(updateOperation.$set.orderStatus).toBe("returned");
       expect(updateOperation.$set.paymentStatus).toBe("paid");
-      expect(updateOperation.$set["latestReturn.status"]).toBe("completed");
+      expect(updateOperation.$set.latestReturn.status).toBe("completed");
       expect(ReturnRequest.updateOne.mock.calls[0][1].$set.refundAmount).toBe(100000);
 
       // Verify stock restoration
       expect(restockSpy).toHaveBeenCalledWith(
-        { _id: productId, "variants.sku": "SKU-DOG-01" },
-        { $inc: { "variants.$.stock": 2 } }, expect.objectContaining({ session: expect.anything() })
+        { _id: productId, "variants.sku": "SKU-DOG-01", returnRestockKeys: { $ne: orderId + ":SKU-DOG-01" } },
+        { $inc: { "variants.$.stock": 2 }, $addToSet: { returnRestockKeys: orderId + ":SKU-DOG-01" } }
       );
 
       // Verify AuditLog
       expect(auditSpy).toHaveBeenCalledWith(
-        [expect.objectContaining({
+        { _id: expect.anything() }, { $setOnInsert: expect.objectContaining({
           action: "order.return.complete_refund",
           actorId: staffId,
           target: { collectionName: "returnRequests", id: orderId },
-        })], expect.objectContaining({ session: expect.anything() })
+        }) }, expect.objectContaining({ upsert: true })
       );
     });
 
@@ -787,7 +786,7 @@ describe("Order Returns Feature", () => {
 
       // Valid rejection
       vi.spyOn(Order, "updateOne").mockResolvedValue({ modifiedCount: 1 });
-      const auditSpy = vi.spyOn(AuditLog, "create").mockResolvedValue({ _id: "audit-1" });
+      const auditSpy = vi.spyOn(AuditLog, "updateOne").mockResolvedValue({ upsertedId: "audit-1" });
 
       const res = await agent
         .post(`/api/v1/staff/returns/${orderId}/decision`)
@@ -803,10 +802,10 @@ describe("Order Returns Feature", () => {
       expect(res.body.success).toBe(true);
       expect(res.body.data.status).toBe("rejected");
       expect(auditSpy).toHaveBeenCalledWith(
-        [expect.objectContaining({
+        { _id: expect.anything() }, { $setOnInsert: expect.objectContaining({
           action: "order.return.reject_request",
           actorId: staffId,
-        })], expect.objectContaining({ session: expect.anything() })
+        }) }, expect.objectContaining({ upsert: true })
       );
     });
 

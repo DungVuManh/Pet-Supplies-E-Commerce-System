@@ -13,6 +13,7 @@ import {
 } from "../common/order-payment.js";
 import { priceOrderItems } from "../common/order-pricing.js";
 import { getReturnEligibilityError, serializeReturnRequest } from "../common/order-return.js";
+import { orderWithoutReturnStatuses } from "../common/order-auto-complete.js";
 import {
  VOUCHER_CHANGED_MESSAGE,
  VOUCHER_INVALID_MESSAGE,
@@ -22,7 +23,7 @@ import {
  undoReservation,
  voucherRefusalMessage,
 } from "../common/voucher-redemption.js";
-import { Order } from "../models/order.model.js";
+import { activeReturnStatuses, Order } from "../models/order.model.js";
 import { ReturnRequest } from "../models/return-request.model.js";
 import { Product } from "../models/product.model.js";
 import { User } from "../models/user.model.js";
@@ -362,8 +363,8 @@ export async function cancelOrder(request, response, next) {
    updateSet.cancellationNote = cancellationNote;
   }
 
-  const updatedOrder = await Order.findByIdAndUpdate(
-   id,
+  const updatedOrder = await Order.findOneAndUpdate(
+   { _id: id, orderStatus: fromStatus, ...orderWithoutReturnStatuses([...activeReturnStatuses, "completed"]) },
    {
     $set: updateSet,
     $push: {
@@ -376,6 +377,9 @@ export async function cancelOrder(request, response, next) {
    },
    { new: true },
   );
+  if (!updatedOrder) {
+   throw new AppError("Đơn hàng đã thay đổi hoặc đang xử lý hoàn trả. Hãy tải lại đơn hàng.", 409, "ORDER_STATUS_CONFLICT");
+  }
 
   await releaseVoucher(order._id);
 

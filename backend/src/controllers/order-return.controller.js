@@ -7,10 +7,10 @@ import {
 import {
   getReturnCompletionDate,
   getReturnEligibilityError,
-  runReturnTransaction,
+  returnConflict,
   serializeReturnRequest,
 } from "../common/order-return.js";
-import { AuditLog } from "../models/audit-log.model.js";
+import { applyReturnOperation, loadOrderForReturn } from "../common/order-return-operations.js";
 import { Order } from "../models/order.model.js";
 import { Product } from "../models/product.model.js";
 import { ReturnRequest } from "../models/return-request.model.js";
@@ -23,22 +23,18 @@ import { parseOrderId } from "../validators/order.validator.js";
 
 const shippingDeadlineMs = 3 * 24 * 60 * 60 * 1000;
 
-function returnConflict() {
-  return new AppError("Yêu cầu hoàn trả đã thay đổi. Hãy tải lại để xem trạng thái hiện tại.", 409, "RETURN_CONFLICT");
-}
-
 function returnNotFound() {
   return new AppError("Không tìm thấy yêu cầu hoàn trả.", 404, "RETURN_NOT_FOUND");
 }
 
-async function loadCustomerOrder(request, session) {
+async function loadCustomerOrder(request) {
   const id = parseOrderId({ id: request.params.id });
-  const order = await Order.findOne({
+  const order = await loadOrderForReturn({
     _id: id,
     customerId: request.user._id,
     channel: "online",
     creationState: { $ne: "pending" },
-  }).session(session ?? null).lean();
+  });
   if (!order) throw new AppError("Không tìm thấy đơn hàng.", 404, "ORDER_NOT_FOUND");
   return order;
 }
@@ -74,42 +70,27 @@ export async function uploadCustomerReturnImages(request, response) {
 
 export async function submitCustomerReturnRequest(request, response) {
   const payload = parseCustomerReturnRequest(request.body);
-  const entry = await runReturnTransaction(async (session) => {
-    const order = await loadCustomerOrder(request, session);
-    const now = new Date();
-    verifyReturnEligibility(order, now, payload.reason);
-
-    const [created] = await ReturnRequest.create([{
+  const order = await loadCustomerOrder(request);
+  const now = new Date();
+  verifyReturnEligibility(order, now, payload.reason);
+  const completedAt = getReturnCompletionDate(order);
+  const entry = await applyReturnOperation(order, {
+    requestId: new mongoose.Types.ObjectId(),
+    fields: {
       ...payload,
-      orderId: order._id,
       requestedBy: request.user._id,
       requestedAt: now,
       status: "pending",
-    }], { session });
-    const completedAt = getReturnCompletionDate(order);
-    const result = await Order.updateOne({
-      _id: order._id,
-      orderStatus: order.orderStatus,
-      "latestReturn.requestId": order.latestReturn?.requestId ?? { $exists: false },
-      "latestReturn.status": order.latestReturn?.status ?? { $exists: false },
-    }, {
-      $set: {
-        latestReturn: { requestId: created._id, status: "pending" },
-        ...(completedAt ? { returnWindowCompletedAt: completedAt } : {}),
-      },
-    }, { session, runValidators: true, timestamps: false });
-    if (result.modifiedCount !== 1) throw returnConflict();
-    return created;
-  }).catch((error) => {
-    if (error.code === 11000) throw returnConflict();
-    throw error;
-  });
+      createdAt: now,
+      updatedAt: now,
+    },
+  }, completedAt ? { returnWindowCompletedAt: completedAt } : {});
   response.status(201).json({ success: true, data: { returnRequest: serializeReturnRequest(entry) } });
 }
 
-async function loadCustomerReturn(request, session, requestId) {
-  const order = await loadCustomerOrder(request, session);
-  const entry = await ReturnRequest.findOne({ _id: requestId, orderId: order._id }).session(session ?? null).lean();
+async function loadCustomerReturn(request, requestId) {
+  const order = await loadCustomerOrder(request);
+  const entry = await ReturnRequest.findOne({ _id: requestId, orderId: order._id }).lean();
   if (!entry) throw returnNotFound();
   return { order, entry };
 }
@@ -135,46 +116,27 @@ export async function listCustomerReturns(request, response) {
 
 export async function getCustomerReturnDetail(request, response) {
   const requestId = parseOrderId({ id: request.params.requestId });
-  const { entry } = await loadCustomerReturn(request, null, requestId);
+  const { entry } = await loadCustomerReturn(request, requestId);
   response.json({ success: true, data: { returnRequest: serializeReturnRequest(entry) } });
 }
 
-// Both writes compare the request that was read and the order's current request.
-// Transactions retry write conflicts, then re-evaluate the transition.
-async function transitionReturn({ order, entry, fields, session, orderFields, orderHistory }) {
-  const requestUpdate = await ReturnRequest.updateOne({
-    _id: entry._id, status: entry.status,
-  }, { $set: fields }, { session, runValidators: true });
-  if (requestUpdate.modifiedCount !== 1) throw returnConflict();
-
-  const orderUpdate = await Order.updateOne({
-    _id: order._id,
-    orderStatus: order.orderStatus,
-    "latestReturn.requestId": entry._id,
-    "latestReturn.status": entry.status,
-  }, {
-    $set: {
-      ...orderFields,
-      "latestReturn.status": fields.status,
-      ...(fields.reviewedAt ? { "latestReturn.reviewedAt": fields.reviewedAt } : {}),
-    },
-    ...(orderHistory ? { $push: { statusHistory: orderHistory } } : {}),
-  }, { session, runValidators: true, timestamps: Boolean(orderFields) });
-  if (orderUpdate.modifiedCount !== 1) throw returnConflict();
-  return { ...entry, ...fields };
+function transitionReturn({ order, entry, fields, orderFields, orderHistory, audit }) {
+  if (String(order.latestReturn?.requestId) !== String(entry._id) || order.latestReturn.status !== entry.status) {
+    throw returnConflict();
+  }
+  return applyReturnOperation(order, { requestId: entry._id, fromStatus: entry.status, fields, orderFields, orderHistory, audit });
 }
 
 export async function cancelCustomerReturn(request, response) {
   const requestId = parseReturnActionId(request);
-  const entry = await runReturnTransaction(async (session) => {
-    const { order, entry } = await loadCustomerReturn(request, session, requestId);
-    if (entry.status === "cancelled") return entry;
-    if (!["pending", "approved"].includes(entry.status) || !["shipping", "completed"].includes(order.orderStatus)) {
-      throw returnConflict();
-    }
-    return transitionReturn({ order, entry, fields: { status: "cancelled", cancelledAt: new Date() }, session });
-  });
-  response.json({ success: true, data: { returnRequest: serializeReturnRequest(entry) } });
+  const { order, entry } = await loadCustomerReturn(request, requestId);
+  if (entry.status === "cancelled") {
+    response.json({ success: true, data: { returnRequest: serializeReturnRequest(entry) } });
+    return;
+  }
+  if (!["pending", "approved"].includes(entry.status) || !["shipping", "completed"].includes(order.orderStatus)) throw returnConflict();
+  const updated = await transitionReturn({ order, entry, fields: { status: "cancelled", cancelledAt: new Date() } });
+  response.json({ success: true, data: { returnRequest: serializeReturnRequest(updated) } });
 }
 
 function parseReturnActionId(request) {
@@ -187,20 +149,18 @@ function parseReturnActionId(request) {
 
 export async function confirmCustomerReturnShipped(request, response) {
   const requestId = parseReturnActionId(request);
-  const entry = await runReturnTransaction(async (session) => {
-    const { order, entry } = await loadCustomerReturn(request, session, requestId);
-    if (entry.status !== "approved" || !["shipping", "completed"].includes(order.orderStatus)) throw returnConflict();
-    const now = new Date();
-    if (entry.approvedAt && now - entry.approvedAt > shippingDeadlineMs) {
-      throw new AppError("Yêu cầu hoàn trả đã quá hạn gửi hàng (3 ngày).", 400, "RETURN_SHIPPING_EXPIRED");
-    }
-    return transitionReturn({ order, entry, fields: { status: "customer_shipped", customerShippedAt: now }, session });
-  });
+  const { order, entry } = await loadCustomerReturn(request, requestId);
+  if (entry.status !== "approved" || !["shipping", "completed"].includes(order.orderStatus)) throw returnConflict();
+  const now = new Date();
+  if (entry.approvedAt && now - entry.approvedAt > shippingDeadlineMs) {
+    throw new AppError("Yêu cầu hoàn trả đã quá hạn gửi hàng (3 ngày).", 400, "RETURN_SHIPPING_EXPIRED");
+  }
+  const updated = await transitionReturn({ order, entry, fields: { status: "customer_shipped", customerShippedAt: now } });
   response.json({ success: true, data: {
     orderId: String(entry.orderId),
-    status: entry.status,
-    customerShippedAt: entry.customerShippedAt,
-    returnRequest: serializeReturnRequest(entry),
+    status: updated.status,
+    customerShippedAt: updated.customerShippedAt,
+    returnRequest: serializeReturnRequest(updated),
   } });
 }
 
@@ -312,55 +272,42 @@ const staffTransitions = {
 
 async function applyStaffTransition(request, action, payload = {}) {
   const id = parseOrderId(request.params);
-  return runReturnTransaction(async (session) => {
-    const entry = await ReturnRequest.findById(id).session(session).lean();
-    if (!entry) throw returnNotFound();
-    const order = await Order.findById(entry.orderId).session(session).lean();
-    const { from, to } = staffTransitions[action];
-    if (!order || order.channel !== "online" || order.creationState === "pending" ||
-        !["shipping", "completed"].includes(order.orderStatus) || entry.status !== from ||
-        String(order.latestReturn?.requestId) !== id) throw returnConflict();
+  const existing = await ReturnRequest.findById(id).lean();
+  if (!existing) throw returnNotFound();
+  const order = await loadOrderForReturn({ _id: existing.orderId, channel: "online", creationState: { $ne: "pending" } });
+  const { from, to } = staffTransitions[action];
+  if (!order || !["shipping", "completed"].includes(order.orderStatus) ||
+      order.latestReturn?.status !== from || existing.status !== from) throw returnConflict();
 
-    const staffId = request.user._id;
-    const now = new Date();
-    const fields = { status: to, reviewedBy: staffId, reviewedAt: now };
-    if (action === "approve_request") fields.approvedAt = now;
-    if (action === "receive") fields.receivedAt = now;
-    if (to === "rejected") fields.rejectionReason = payload.rejectionReason;
+  const staffId = request.user._id;
+  const now = new Date();
+  const fields = { status: to, reviewedBy: staffId, reviewedAt: now };
+  if (action === "approve_request") fields.approvedAt = now;
+  if (action === "receive") fields.receivedAt = now;
+  if (to === "rejected") fields.rejectionReason = payload.rejectionReason;
 
-    let orderFields;
-    let orderHistory;
-    if (action === "complete_refund") {
-      const refundAmount = payload.refundAmount ?? order.total;
-      if (!Number.isSafeInteger(refundAmount) || refundAmount < 0 || refundAmount > order.total) {
-        throw new AppError("Số tiền hoàn không hợp lệ.", 400, "VALIDATION_ERROR");
-      }
-      Object.assign(fields, { completedAt: now, refundAmount, refundRequired: refundAmount > 0,
-        refundStatus: refundAmount > 0 ? "refunded" : "none" });
-      orderFields = { orderStatus: "returned", paymentStatus: "paid", paidAmount: order.total };
-      orderHistory = { from: order.orderStatus, to: "returned", by: staffId, at: now };
+  let orderFields;
+  let orderHistory;
+  if (action === "complete_refund") {
+    const refundAmount = payload.refundAmount ?? order.total;
+    if (!Number.isSafeInteger(refundAmount) || refundAmount < 0 || refundAmount > order.total) {
+      throw new AppError("Số tiền hoàn không hợp lệ.", 400, "VALIDATION_ERROR");
     }
-    const updated = await transitionReturn({ order, entry, fields, session, orderFields, orderHistory });
-    if (action === "complete_refund") {
-      for (const item of order.items || []) {
-        if (item.productId && item.variantSku && item.qty > 0) {
-          await Product.updateOne(
-            { _id: item.productId, "variants.sku": item.variantSku },
-            { $inc: { "variants.$.stock": item.qty } },
-            { session }
-          );
-        }
-      }
-    }
-    await AuditLog.create([{
-      actorId: staffId,
-      action: "order.return." + action,
-      target: { collectionName: "returnRequests", id },
-      after: { orderId: String(order._id), status: to },
-      at: now,
-    }], { session });
-    return updated;
-  });
+    Object.assign(fields, { completedAt: now, refundAmount, refundRequired: refundAmount > 0,
+      refundStatus: refundAmount > 0 ? "refunded" : "none" });
+    orderFields = { orderStatus: "returned", paymentStatus: "paid", paidAmount: order.total };
+    orderHistory = { from: order.orderStatus, to: "returned", by: staffId, at: now };
+  }
+  const audit = {
+    actorId: staffId,
+    action: "order.return." + action,
+    target: { collectionName: "returnRequests", id },
+    after: { orderId: String(order._id), status: to },
+    at: now,
+    createdAt: now,
+    updatedAt: now,
+  };
+  return transitionReturn({ order, entry: existing, fields, orderFields, orderHistory, audit });
 }
 
 export async function receiveStaffReturn(request, response) {

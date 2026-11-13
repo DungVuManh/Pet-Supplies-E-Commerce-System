@@ -53,6 +53,7 @@ const productSchema = new mongoose.Schema(
     ratingAvg: { type: Number, min: 0, max: 5, default: 0 },
     ratingCount: { ...nonNegativeInteger, default: 0 },
     soldCount: { ...nonNegativeInteger },
+    returnRestockKeys: { type: [String], default: undefined, select: false },
   },
   { timestamps: true, bufferCommands: false },
 );

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import mongoose from "mongoose";
 import { createModelIndexes } from "../src/config/database.js";
+import { recoverReturnOperations } from "../src/common/order-return-operations.js";
 import { Order } from "../src/models/order.model.js";
 import { ReturnRequest } from "../src/models/return-request.model.js";
 import { Product } from "../src/models/product.model.js";
@@ -20,7 +21,7 @@ import {
 } from "../src/controllers/order-return.controller.js";
 
 const uri = process.env.ORDER_RETURNS_TEST_MONGODB_URI;
-if (!uri) throw new Error("Set ORDER_RETURNS_TEST_MONGODB_URI to a MongoDB replica set.");
+if (!uri) throw new Error("Set ORDER_RETURNS_TEST_MONGODB_URI to a MongoDB instance.");
 const dbName = `return_test_${randomUUID().replaceAll("-", "")}`;
 const id = () => new mongoose.Types.ObjectId();
 const customerId = id();
@@ -63,12 +64,31 @@ async function staffDecision(requestId, action, fields = {}) {
 await mongoose.connect(uri, { dbName, autoIndex: false });
 try {
   await createModelIndexes();
-  const migrationOrder = await insertOrder({ returnRequest: {
+  const legacy = {
     ...payload, status: "pending", requestedBy: customerId, requestedAt: new Date(),
-  } });
+  };
+  const migrationOrder = await insertOrder({ returnRequest: legacy });
+  // Resume after the legacy request was copied but before the order was linked.
+  await ReturnRequest.collection.insertOne({ ...legacy, _id: migrationOrder, orderId: migrationOrder });
   assert.equal(await migrateOrderReturns(), 1);
   assert.equal(await migrateOrderReturns(), 0);
   assert.equal((await call(getStaffReturnDetail, migrationOrder, {}, staffId)).id, String(migrationOrder));
+
+  const interruptedOrder = await insertOrder();
+  const updateRequest = ReturnRequest.updateOne;
+  ReturnRequest.updateOne = async function (...args) {
+    await updateRequest.apply(this, args);
+    throw new Error("Simulated interruption after a request write");
+  };
+  try {
+    await assert.rejects(sendReturn(interruptedOrder), { code: "RETURN_SYNC_PENDING" });
+  } finally {
+    ReturnRequest.updateOne = updateRequest;
+  }
+  await assert.rejects(call(confirmCustomerOrderReceipt, interruptedOrder), { code: "ORDER_STATUS_CONFLICT" });
+  await recoverReturnOperations();
+  assert.equal(await ReturnRequest.countDocuments({ orderId: interruptedOrder }), 1);
+  assert.equal((await Order.findById(interruptedOrder).lean()).latestReturn.status, "pending");
 
   const orderId = await insertOrder();
   const first = await sendReturn(orderId);
@@ -119,10 +139,24 @@ try {
   await call(confirmCustomerReturnShipped, fulfillOrder, fulfill);
   await assert.rejects(call(cancelCustomerReturn, fulfillOrder, fulfill), { code: "RETURN_CONFLICT" });
   await call(receiveStaffReturn, fulfill.requestId, {}, staffId);
-  await staffDecision(fulfill.requestId, "complete_refund", { refundAmount: 85000 });
+  const updateProduct = Product.updateOne;
+  Product.updateOne = async function (...args) {
+    const result = await updateProduct.apply(this, args);
+    assert.equal(result.modifiedCount, 1);
+    throw new Error("Simulated interruption after a stock write");
+  };
+  try {
+    await assert.rejects(staffDecision(fulfill.requestId, "complete_refund", { refundAmount: 85000 }), { code: "RETURN_SYNC_PENDING" });
+  } finally {
+    Product.updateOne = updateProduct;
+  }
+  assert.equal((await Order.findById(fulfillOrder).lean()).orderStatus, "shipping");
+  assert.equal((await Product.findById(productId).lean()).variants[0].stock, 7);
+  await Promise.all([recoverReturnOperations(), recoverReturnOperations()]);
   await assert.rejects(staffDecision(fulfill.requestId, "complete_refund"), { code: "RETURN_CONFLICT" });
   assert.equal((await Order.findById(fulfillOrder).lean()).orderStatus, "returned");
   assert.equal((await Product.findById(productId).lean()).variants[0].stock, 7);
+  assert.equal((await Order.findById(fulfillOrder).lean()).statusHistory.filter(({ to }) => to === "returned").length, 1);
 
   const receiptOrder = await insertOrder();
   const receiptReturn = await sendReturn(receiptOrder);
@@ -135,7 +169,7 @@ try {
   await Order.collection.updateOne({ _id: receiptOrder }, { $set: { returnWindowCompletedAt: new Date(Date.now() - 8 * day) } });
   await assert.rejects(sendReturn(receiptOrder), { code: "RETURN_PERIOD_EXPIRED" });
 
-  console.info("Order returns migration, history, authorization, concurrency, expiry, and full lifecycle passed.");
+  console.info("Order returns migration, history, authorization, concurrency, recovery, expiry, and full lifecycle passed.");
 } finally {
   await mongoose.connection.dropDatabase();
   await mongoose.disconnect();

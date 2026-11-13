@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import { AppError } from "./errors/app-error.js";
 import { resolveCompletedAt } from "./order-auto-complete.js";
 
@@ -28,15 +27,8 @@ export function getReturnEligibilityError(order, now = new Date(), reason) {
   return null;
 }
 
-export async function runReturnTransaction(work) {
-  try {
-    return await mongoose.connection.transaction(work);
-  } catch (error) {
-    if (error.code === 20 && /transaction/i.test(error.message)) {
-      throw new AppError("Xử lý hoàn đơn cần MongoDB replica set hoặc Atlas.", 503, "TRANSACTIONS_REQUIRED");
-    }
-    throw error;
-  }
+export function returnConflict() {
+  return new AppError("Yêu cầu hoàn trả đã thay đổi. Hãy tải lại để xem trạng thái hiện tại.", 409, "RETURN_CONFLICT");
 }
 
 export function serializeReturnRequest(entry) {

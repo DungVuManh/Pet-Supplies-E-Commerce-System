@@ -7,7 +7,7 @@ export const DEFAULT_SWEEP_INTERVAL_MS = 15 * 60 * 1000;
 export const DEFAULT_BATCH_SIZE = 100;
 
 export function orderWithoutReturnStatuses(statuses) {
-  return { $or: [
+  return { returnOperation: { $exists: false }, $or: [
     { "latestReturn.status": { $exists: true, $nin: statuses } },
     { "latestReturn.status": { $exists: false }, "returnRequest.status": { $nin: statuses } },
   ] };
@@ -348,6 +348,7 @@ export async function autoPayOverdueCompletedCodOrders({
 export function startOrderAutoCompleteScheduler({
   intervalMs = DEFAULT_SWEEP_INTERVAL_MS,
   batchSize = DEFAULT_BATCH_SIZE,
+  beforeSweep,
   onError,
 } = {}) {
   const effectiveIntervalMs =
@@ -365,6 +366,7 @@ export function startOrderAutoCompleteScheduler({
 
     inFlight = (async () => {
       try {
+        if (beforeSweep) await beforeSweep();
         const autoCompleteResult = await autoCompleteOverdueShippingOrders({ batchSize });
         const autoPayResult = await autoPayOverdueCompletedCodOrders({ batchSize });
         return { autoCompleteResult, autoPayResult };

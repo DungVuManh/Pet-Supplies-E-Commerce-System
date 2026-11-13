@@ -135,6 +135,18 @@ const orderSchema = new mongoose.Schema(
             status: { type: String, enum: returnStatuses },
             reviewedAt: { type: Date },
         },
+        returnOperation: {
+            type: new mongoose.Schema({
+                id: { type: mongoose.Schema.Types.ObjectId, required: true },
+                requestId: { type: mongoose.Schema.Types.ObjectId, required: true },
+                fromStatus: { type: String, enum: returnStatuses },
+                fields: { type: mongoose.Schema.Types.Mixed, required: true },
+                orderFields: mongoose.Schema.Types.Mixed,
+                orderHistory: mongoose.Schema.Types.Mixed,
+                audit: mongoose.Schema.Types.Mixed,
+            }, { _id: false }),
+            select: false,
+        },
         returnWindowCompletedAt: { type: Date },
     },
     { timestamps: true, bufferCommands: false },
@@ -159,5 +171,6 @@ orderSchema.index({ createdByStaffId: 1, creationRequestId: 1 }, {
     partialFilterExpression: { creationRequestId: { $type: "string" } },
 });
 orderSchema.index({ "returnRequest.status": 1, "returnRequest.requestedAt": -1 });
+orderSchema.index({ "returnOperation.id": 1 }, { sparse: true });
 
 export const Order = mongoose.models.Order || mongoose.model("Order", orderSchema);

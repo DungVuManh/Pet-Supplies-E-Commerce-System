@@ -4,6 +4,7 @@ import { activeReturnStatuses, returnRequestSchema } from "./order.model.js";
 const schema = new mongoose.Schema({
   ...returnRequestSchema.obj,
   orderId: { type: mongoose.Schema.Types.ObjectId, ref: "Order", required: true, immutable: true },
+  lastOperationId: { type: mongoose.Schema.Types.ObjectId, select: false },
 }, { collection: "returnRequests", timestamps: true, bufferCommands: false });
 
 schema.index({ orderId: 1 }, {

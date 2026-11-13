@@ -10,7 +10,7 @@
 
 ### Hủy yêu cầu và quản lý từng lần gửi
 
-1. Tạo `returnRequests`, mỗi document là một lần gửi. Dùng index duy nhất có điều kiện cho các yêu cầu đang xử lý. Lưu `orders.latestReturn` làm mã và trạng thái dùng trong các cập nhật đơn hàng, đồng bộ bằng transaction trên MongoDB replica set hoặc Atlas.
+1. Giữ `returnRequests` theo từng lần gửi và `orders.latestReturn` cho điều kiện cập nhật đơn. Trên MongoDB standalone, ghi thao tác đang xử lý ngay trên đơn bằng cập nhật có điều kiện. Đồng bộ yêu cầu, ghi nhật ký và hoàn kho theo mã thao tác để có thể chạy lại sau gián đoạn. Chỉ cập nhật trạng thái cuối của đơn khi đã ghi xong các bước liên quan.
 2. Chuyển dữ liệu nhúng bằng migration chạy lại an toàn. Dùng mã đơn cũ làm mã yêu cầu được chuyển để giữ liên kết Staff. Giữ trường cũ trong đợt chuyển đổi và dọn trong một bước riêng.
 3. Bổ sung thao tác hủy theo mã yêu cầu, API lịch sử và chi tiết của khách. Chuyển danh sách và thao tác Staff sang mã yêu cầu. Dùng cùng quy tắc đủ điều kiện cho gửi mới, tải ảnh và giao diện.
 4. Thêm xác nhận hủy và lịch sử cho khách, bộ lọc và chi tiết chỉ đọc cho Staff. Xác minh quyền, giới hạn thời gian, giao dịch đồng thời và luồng duyệt hiện tại.

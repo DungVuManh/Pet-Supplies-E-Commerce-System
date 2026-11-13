@@ -4,7 +4,9 @@
 
 `returnRequests` là nguồn dữ liệu chính, mỗi document mang `_id` riêng, `orderId`, nội dung và các mốc xử lý của một lần gửi. `cancelled` có `cancelledAt`. Index duy nhất có điều kiện áp dụng cho `pending`, `approved`, `customer_shipped` và `received` trên mỗi `orderId`.
 
-`orders.latestReturn` lưu `requestId`, `status` và `reviewedAt` nếu có. `orders.returnWindowCompletedAt` giữ mốc hoàn thành đã dùng để tính hạn hoàn với đơn cũ. API ghi đồng bộ yêu cầu và bản tóm tắt trong transaction. Trường nhúng `returnRequest` được giữ trong thời gian chuyển dữ liệu.
+`orders.latestReturn` lưu `requestId`, `status` và `reviewedAt` nếu có. `orders.returnWindowCompletedAt` giữ mốc hoàn thành đã dùng để tính hạn hoàn với đơn cũ. Trường nhúng `returnRequest` được giữ trong thời gian chuyển dữ liệu.
+
+`orders.returnOperation` giữ thao tác đang thực hiện. Backend cập nhật có điều kiện trên đơn để chỉ tiếp nhận một thao tác tại một thời điểm. `returnRequests.lastOperationId`, mã nhật ký và `products.returnRestockKeys` cho phép chạy lại các bước ghi. Mã hoàn kho được lưu cùng lần tăng tồn của từng SKU. Backend cập nhật `latestReturn` và xóa thao tác sau khi các bước ghi hoàn tất.
 
 **Feature Directory**: `docs/specs/order-returns` | **Date**: 2026-11-13
 
