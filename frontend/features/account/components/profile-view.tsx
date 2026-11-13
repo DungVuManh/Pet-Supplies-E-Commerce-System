@@ -239,7 +239,7 @@ export function ProfileView({ profile, stats, onEdit }: ProfileViewProps) {
       </div>
 
       {/* Bottom Blue Notice Box */}
-      <div className="flex items-start gap-3 rounded-2xl border border-brand/20 bg-brand-subtle/50 p-5 text-xs text-brand leading-relaxed">
+      {/* <div className="flex items-start gap-3 rounded-2xl border border-brand/20 bg-brand-subtle/50 p-5 text-xs text-brand leading-relaxed">
         <svg
           className="h-5 w-5 shrink-0 text-brand mt-0.5"
           fill="none"
@@ -257,7 +257,7 @@ export function ProfileView({ profile, stats, onEdit }: ProfileViewProps) {
           <strong className="text-brand">Ghi chú:</strong> Lần cập nhật thông tin gần nhất:{" "}
            Để thay đổi Email hoặc CCCD, vui lòng liên hệ bộ phận Chăm sóc khách hàng của Petjoy.
         </p>
-      </div>
+      </div> */}
     </div>
   );
 }
