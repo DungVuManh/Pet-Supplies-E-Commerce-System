@@ -115,6 +115,13 @@ function renderOrderStatusBadge(status: string) {
           Đã hủy
         </span>
       );
+    case "returned":
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700 border border-purple-200">
+          <RotateCcw className="size-3.5" />
+          Đã hoàn trả
+        </span>
+      );
     default:
       return (
         <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 border border-slate-200">

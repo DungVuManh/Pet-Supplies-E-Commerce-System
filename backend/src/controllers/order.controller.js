@@ -368,10 +368,12 @@ export async function getMyOrders(request, response, next) {
       // Map trạng thái backend sang frontend
       const statusMap = {
         pending: { status: "pending", statusLabel: "Chờ xử lý" },
+        confirmed: { status: "pending", statusLabel: "Đã xác nhận" },
         processing: { status: "pending", statusLabel: "Đang xử lý" },
         shipping: { status: "shipping", statusLabel: "Đang giao" },
         completed: { status: "completed", statusLabel: "Hoàn thành" },
         cancelled: { status: "cancelled", statusLabel: "Đã hủy" },
+        returned: { status: "returned", statusLabel: "Đã hoàn trả" },
       };
 
       const { status, statusLabel } = statusMap[order.orderStatus] || { status: "pending", statusLabel: "Chờ xử lý" };

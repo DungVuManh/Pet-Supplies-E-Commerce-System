@@ -8,7 +8,8 @@ export type CustomerOrderStatus =
   | "pending"    // Chờ xử lý
   | "shipping"   // Đang giao
   | "completed"  // Hoàn thành
-  | "cancelled"; // Đã hủy
+  | "cancelled"  // Đã hủy
+  | "returned";  // Đã hoàn trả
 
 export type CustomerPaymentMethodCode = "ONLINE" | "COD" | "CASH";
 

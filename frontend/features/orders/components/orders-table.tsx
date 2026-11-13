@@ -45,6 +45,12 @@ function renderStatusBadge(status: CustomerOrder["status"], label: string) {
           {label}
         </span>
       );
+    case "returned":
+      return (
+        <span className="inline-block rounded-full bg-purple-50 px-2.5 py-0.5 text-xs font-semibold text-purple-700 border border-purple-200">
+          {label}
+        </span>
+      );
     default:
       return (
         <span className="inline-block rounded-full bg-gray-50 px-2.5 py-0.5 text-xs font-semibold text-gray-700 border border-gray-200">

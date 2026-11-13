@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Logo } from "@/components/ui/logo";
 import { AccountMenu } from "@/features/auth/components/account-menu";
@@ -9,7 +9,6 @@ import { AccountMenu } from "@/features/auth/components/account-menu";
 type StaffIcon =
  | "dashboard"
  | "orders"
- | "cancel"
  | "returns"
  | "products"
  | "sales"
@@ -17,11 +16,6 @@ type StaffIcon =
 const nav: { href: string; label: string; icon: StaffIcon }[] = [
  { href: "/staff/dashboard", label: "Tổng quan", icon: "dashboard" },
  { href: "/staff/orders", label: "Đơn hàng", icon: "orders" },
- {
-  href: "/staff/orders?status=cancelled",
-  label: "Yêu cầu hủy",
-  icon: "cancel",
- },
  {
   href: "/staff/returns",
   label: "Yêu cầu hoàn trả",
@@ -51,12 +45,6 @@ function StaffNavIcon({ name }: { name: StaffIcon }) {
     <path d="M7 4h10v3H7z" />
     <path d="M6 5H5a2 2 0 0 0-2 2v13h18V7a2 2 0 0 0-2-2h-1" />
     <path d="M8 11h8M8 15h6" />
-   </>
-  ),
-  cancel: (
-   <>
-    <circle cx="12" cy="12" r="9" />
-    <path d="m9 9 6 6m0-6-6 6" />
    </>
   ),
   returns: (
@@ -94,10 +82,8 @@ function StaffNavIcon({ name }: { name: StaffIcon }) {
   </svg>
  );
 }
-function active(pathname: string, cancelled: boolean, href: string) {
+function active(pathname: string, href: string) {
  const base = href.split("?")[0];
- if (href.includes("status=cancelled")) return pathname === base && cancelled;
- if (base === "/staff/orders") return pathname.startsWith(base) && !cancelled;
  return base === "/staff/dashboard"
   ? pathname === base
   : pathname.startsWith(base);
@@ -105,9 +91,8 @@ function active(pathname: string, cancelled: boolean, href: string) {
 
 export function StaffShell({ children }: { children: ReactNode }) {
  const pathname = usePathname();
- const cancelled = useSearchParams().get("status") === "cancelled";
  const current =
-  nav.find((item) => active(pathname, cancelled, item.href))?.label ||
+  nav.find((item) => active(pathname, item.href))?.label ||
   "Vận hành";
  return (
   <div
@@ -125,8 +110,8 @@ export function StaffShell({ children }: { children: ReactNode }) {
       <Link
        key={item.href}
        href={item.href}
-       aria-current={active(pathname, cancelled, item.href) ? "page" : undefined}
-       className={`flex min-h-12 items-center gap-3 rounded-lg px-2 font-medium ${active(pathname, cancelled, item.href) ? "bg-brand-subtle text-brand" : "hover:bg-canvas"}`}
+       aria-current={active(pathname, item.href) ? "page" : undefined}
+       className={`flex min-h-12 items-center gap-3 rounded-lg px-2 font-medium ${active(pathname, item.href) ? "bg-brand-subtle text-brand" : "hover:bg-canvas"}`}
       >
        <StaffNavIcon name={item.icon} />
        {item.label}
@@ -165,8 +150,8 @@ export function StaffShell({ children }: { children: ReactNode }) {
         <Link
          key={item.href}
          href={item.href}
-         aria-current={active(pathname, cancelled, item.href) ? "page" : undefined}
-         className={`rounded-lg px-3 py-3 ${active(pathname, cancelled, item.href) ? "bg-brand-subtle text-brand" : "bg-canvas"}`}
+         aria-current={active(pathname, item.href) ? "page" : undefined}
+         className={`rounded-lg px-3 py-3 ${active(pathname, item.href) ? "bg-brand-subtle text-brand" : "bg-canvas"}`}
         >
          {item.label}
         </Link>
