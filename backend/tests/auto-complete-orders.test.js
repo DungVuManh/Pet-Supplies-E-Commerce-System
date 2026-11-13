@@ -3,8 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "../src/app.js";
 import {
   AUTO_COMPLETE_AFTER_MS,
+  COD_AUTO_PAID_AFTER_MS,
   autoCompleteOverdueShippingOrders,
+  autoPayOverdueCompletedCodOrders,
+  isCodOrderPaymentOverdue,
   isShippingOrderOverdue,
+  resolveOrderCompletedAt,
   resolveShippingStartedAt,
   startOrderAutoCompleteScheduler,
 } from "../src/common/order-auto-complete.js";
@@ -62,6 +66,18 @@ describe("Auto-complete overdue shipping orders (3 days / 72h)", () => {
             return false;
           }
           if (
+            filter.paymentMethod &&
+            order.paymentMethod !== filter.paymentMethod
+          ) {
+            return false;
+          }
+          if (
+            filter.paymentStatus?.$ne &&
+            order.paymentStatus === filter.paymentStatus.$ne
+          ) {
+            return false;
+          }
+          if (
             filter.creationState?.$ne &&
             order.creationState === filter.creationState.$ne
           ) {
@@ -92,7 +108,14 @@ describe("Auto-complete overdue shipping orders (3 days / 72h)", () => {
             String(order._id) === String(filter._id) &&
             order.channel === filter.channel &&
             order.orderStatus === filter.orderStatus &&
-            order.paymentStatus === filter.paymentStatus &&
+            (filter.paymentMethod
+              ? order.paymentMethod === filter.paymentMethod
+              : true) &&
+            (filter.paymentStatus?.$ne
+              ? order.paymentStatus !== filter.paymentStatus.$ne
+              : filter.paymentStatus !== undefined
+                ? order.paymentStatus === filter.paymentStatus
+                : true) &&
             order.creationState !== filter.creationState?.$ne
         );
 
