@@ -110,8 +110,8 @@ function StorefrontHeaderContent({ currentPetType, pathname = "/" }: { currentPe
               href="/support"
               className="group hidden sm:inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors"
             >
-              <HelpCircle className="size-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
-              <span>Trợ giúp</span>
+              {/* <HelpCircle className="size-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
+              <span>Trợ giúp</span> */}
             </Link>
             <Link
               href="/order-tracking"

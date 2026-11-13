@@ -82,6 +82,11 @@ export async function confirmCustomerOrderReceipt(request, response) {
       throw new AppError("Đơn hàng đang có yêu cầu hoàn trả, không thể xác nhận đã nhận hàng.", 409, "RETURN_REQUEST_ACTIVE");
     }
 
+    const updateFields = {
+      orderStatus: "completed",
+      ...(order.paymentMethod === "ONLINE" ? { paymentStatus: "paid" } : {}),
+    };
+
     const result = await Order.updateOne({
       _id: id,
       customerId: request.user._id,
@@ -90,7 +95,7 @@ export async function confirmCustomerOrderReceipt(request, response) {
       creationState: { $ne: "pending" },
       "returnRequest.status": { $nin: ["pending", "approved"] },
     }, {
-      $set: { orderStatus: "completed", paymentStatus: "paid" },
+      $set: updateFields,
       $push: { statusHistory: { from: "shipping", to: "completed", by: request.user._id, at: new Date() } },
     }, { runValidators: true });
     if (result.modifiedCount !== 1) {
