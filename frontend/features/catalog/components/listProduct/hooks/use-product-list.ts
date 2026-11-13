@@ -39,11 +39,12 @@ export function useProductList(
   const categoryParam = defaultCategory || searchParams?.get("category") || "all";
   const petTypeParam = (defaultPetType || searchParams?.get("petType") || "all") as "dog" | "cat" | "all";
   const searchParam = defaultSearch ?? searchParams?.get("q") ?? searchParams?.get("search") ?? "";
-  const brandsParam = searchParams?.get("brands") || searchParams?.get("brand") || "";
-  const initialBrands = useMemo(
-    () => (brandsParam ? brandsParam.split(",").map((b) => b.trim()).filter(Boolean) : []),
-    [brandsParam]
-  );
+  const initialBrands = useMemo(() => {
+    const brandNames = searchParams?.getAll("brandName").filter(Boolean) ?? [];
+    if (brandNames.length) return brandNames;
+    const legacyBrands = searchParams?.get("brands") || searchParams?.get("brand") || "";
+    return legacyBrands.split(",").map((name) => name.trim()).filter(Boolean);
+  }, [searchParams]);
 
   // 1. State lưu dữ liệu trả về từ API
   const [products, setProducts] = useState<CatalogProduct[]>([]);

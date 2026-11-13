@@ -6,6 +6,8 @@ const sortValues = ["default", "price-asc", "price-desc", "name-asc", "name-desc
 
 const priceRangeValues = ["under-100k", "100k-300k", "above-300k"];
 
+const brandNameSchema = z.string().min(1).max(500);
+
 const catalogQuerySchema = z.object({
   search: z.string().max(200).optional().default(""),
 
@@ -14,6 +16,10 @@ const catalogQuerySchema = z.object({
   petType: z.string().max(50).optional().default("all"),
 
   brands: z.string().max(500).optional().default(""),
+  brandName: z
+    .union([brandNameSchema, z.array(brandNameSchema)])
+    .optional()
+    .transform((value) => [value ?? []].flat()),
 
   priceRanges: z.string().optional().default(""),
 
@@ -53,7 +59,7 @@ export function parseCatalogQuery(query) {
   const result = catalogQuerySchema.safeParse(query);
 
   if (!result.success) {
-    const firstError = result.error.errors[0];
+    const firstError = result.error.issues[0];
     throw new AppError(
       `Query không hợp lệ: ${firstError.message}`,
       400,

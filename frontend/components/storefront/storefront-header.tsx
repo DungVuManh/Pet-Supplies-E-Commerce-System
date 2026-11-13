@@ -19,6 +19,7 @@ type NavigationCategory = {
 
 const categories: NavigationCategory[] = [
   { name: "Sản phẩm", href: "/listProduct/allProducts" },
+  { name: "Thương hiệu", href: "/brands" },
   { name: "Dành cho chó", href: "/products?petType=dog", petType: "dog" },
   { name: "Dành cho mèo", href: "/products?petType=cat", petType: "cat" },
 ];
@@ -210,23 +211,23 @@ function StorefrontHeaderContent({ currentPetType, pathname = "/" }: { currentPe
                   );
                 }
 
-                // Mục "Sản phẩm" (tất cả sản phẩm)
-                const isAllProductActive =
-                  pathname === "/listProduct/allProducts" ||
-                  (pathname.startsWith("/products") && !currentPetType);
+                const isActive = pathname === category.href ||
+                  (category.href === "/listProduct/allProducts" && pathname.startsWith("/products") && !currentPetType);
 
                 return (
                   <li key={category.name} className="flex h-full items-center">
                     <Link
                       href={category.href}
-                      className={`relative flex h-full items-center font-bold transition-colors ${isAllProductActive
-                        ? "text-[#0B4DFF]"
-                        : "text-gray-700 hover:text-brand"
-                        }`}
+                      aria-current={isActive ? "page" : undefined}
+                      onClick={() => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                        setActiveMenu(null);
+                      }}
+                      className={`relative flex h-full items-center font-bold transition-colors focus-visible:outline-offset-[-2px] ${isActive ? "text-brand" : "text-ink hover:text-brand"}`}
                     >
                       {category.name}
-                      {isAllProductActive && (
-                        <span className="absolute bottom-0 left-0 h-0.5 w-full bg-[#0B4DFF]" />
+                      {isActive && (
+                        <span className="absolute bottom-0 left-0 h-0.5 w-full bg-brand" />
                       )}
                     </Link>
                   </li>

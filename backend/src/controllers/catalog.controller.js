@@ -80,7 +80,7 @@ function formatProduct(product) {
 // 1. GET /api/catalog/products
 export async function getAllProducts(request, response, next) {
   try {
-    const { search, category, petType, brands, priceRanges, sort, page, limit, minPrice, maxPrice } =
+    const { search, category, petType, brands, brandName, priceRanges, sort, page, limit, minPrice, maxPrice } =
       parseCatalogQuery(request.query);
 
     const mongoFilter = { isActive: true };
@@ -110,11 +110,9 @@ export async function getAllProducts(request, response, next) {
       ];
     }
 
-    if (brands && brands.trim()) {
-      const brandList = brands.split(",").map((b) => b.trim()).filter(Boolean);
-      if (brandList.length > 0) {
-        mongoFilter.brand = { $in: brandList };
-      }
+    const brandList = brandName.length ? brandName : brands.split(",").map((name) => name.trim()).filter(Boolean);
+    if (brandList.length) {
+      mongoFilter.brand = { $in: brandList };
     }
 
     // Lọc theo khoảng giá
@@ -199,15 +197,18 @@ export async function getCategories(request, response, next) {
 // 3. GET /api/catalog/brands
 export async function getBrands(request, response, next) {
   try {
-    const brands = await Product.distinct("brand", { isActive: true });
-
-    const filteredBrands = brands
-      .filter((brand) => brand && brand.trim() !== "")
-      .sort((a, b) => a.localeCompare(b, "vi"));
+    const counts = await Product.aggregate([
+      { $match: { isActive: true, brand: { $type: "string" } } },
+      { $group: { _id: "$brand", productCount: { $sum: 1 } } },
+    ]);
+    const brandDetails = counts
+      .filter(({ _id }) => typeof _id === "string" && _id.trim())
+      .map(({ _id, productCount }) => ({ name: _id, productCount }))
+      .sort((a, b) => a.name.localeCompare(b.name, "vi"));
 
     response.json({
       success: true,
-      data: { brands: filteredBrands },
+      data: { brands: brandDetails.map(({ name }) => name), brandDetails },
     });
   } catch (error) {
     next(error);

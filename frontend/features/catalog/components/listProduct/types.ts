@@ -66,10 +66,16 @@ export type GetCategoriesResponse = {
 };
 
 // Kết quả API lấy thương hiệu
+export type CatalogBrand = {
+  name: string;
+  productCount: number;
+};
+
 export type GetBrandsResponse = {
   success: boolean;
   data: {
     brands: string[];
+    brandDetails: CatalogBrand[];
   };
 };
 

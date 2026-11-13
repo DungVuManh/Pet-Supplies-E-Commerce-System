@@ -32,8 +32,8 @@ export async function getProductsApi(
   if (filter.petType && filter.petType !== "all") {
     params.set("petType", filter.petType);
   }
-  if (filter.brands.length > 0) {
-    params.set("brands", filter.brands.join(","));
+  for (const name of filter.brands) {
+    params.append("brandName", name);
   }
   if (filter.priceRanges.length > 0) {
     params.set("priceRanges", filter.priceRanges.join(","));
@@ -101,13 +101,12 @@ export async function getCategoriesApi(petType?: string): Promise<GetCategoriesR
 /**
  * 3. Gọi API lấy danh sách thương hiệu cho bộ lọc sidebar
  */
-export async function getBrandsApi(): Promise<GetBrandsResponse> {
+export async function getBrandsApi(signal?: AbortSignal): Promise<GetBrandsResponse> {
   const url = `${getApiBase()}/brands`;
   console.log("[CatalogService] GET Brands URL:", url);
 
   const response = await fetch(url, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
+    signal,
   });
 
   if (!response.ok) {
