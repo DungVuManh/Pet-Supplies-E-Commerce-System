@@ -66,7 +66,7 @@ export function OrderTimeline({ steps }: OrderTimelineProps) {
                 </span>
 
                 {/* Thời gian / Ghi chú */}
-                <span className="text-[11px] text-muted mt-0.5 whitespace-nowrap">
+                <span className="text-[11px] text-muted mt-0.5 max-w-[220px] leading-tight text-center">
                   {step.description}
                 </span>
               </div>

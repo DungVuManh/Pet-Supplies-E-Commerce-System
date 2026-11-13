@@ -346,10 +346,25 @@ export async function cancelOrder(request, response, next) {
 
   // Cập nhật trạng thái sang 'cancelled' thay vì xóa khỏi MongoDB
   const fromStatus = order.orderStatus;
+  const cancellationReason =
+   typeof reason === "string" && reason.trim()
+    ? reason.trim()
+    : "Khách hàng yêu cầu hủy đơn";
+  const cancellationNote =
+   typeof note === "string" && note.trim() ? note.trim() : "";
+
+  const updateSet = {
+   orderStatus: "cancelled",
+   cancellationReason,
+  };
+  if (cancellationNote) {
+   updateSet.cancellationNote = cancellationNote;
+  }
+
   const updatedOrder = await Order.findByIdAndUpdate(
    id,
    {
-    $set: { orderStatus: "cancelled" },
+    $set: updateSet,
     $push: {
      statusHistory: {
       from: fromStatus,
@@ -589,6 +604,9 @@ export async function getOrderDetail(request, response, next) {
     },
    ];
   } else if (status === "cancelled") {
+   const cancelDesc = order.cancellationReason
+    ? `Lý do: ${order.cancellationReason}`
+    : "Đơn hàng đã được hủy";
    timelineSteps = [
     {
      id: "step-1",
@@ -599,7 +617,7 @@ export async function getOrderDetail(request, response, next) {
     {
      id: "step-cancelled",
      title: "Đã hủy đơn",
-     description: "Đơn hàng đã được hủy",
+     description: cancelDesc,
      status: "completed",
     },
    ];
@@ -840,6 +858,8 @@ export async function getOrderDetail(request, response, next) {
    canConfirmShipped,
    canConfirmReceipt,
    returnRequest,
+   cancellationReason: order.cancellationReason || null,
+   cancellationNote: order.cancellationNote || null,
    transactionCode: order.orderCode, // Dùng orderCode làm mã giao dịch tạm thời
    shippingAddress,
   };
@@ -1146,6 +1166,8 @@ export async function getStaffOrderDetail(request, response, next) {
      : [],
    paidAmount: order.paidAmount || 0,
    needsReview: Boolean(order.needsReview),
+   cancellationReason: order.cancellationReason || null,
+   cancellationNote: order.cancellationNote || null,
   };
 
   response.set("Cache-Control", "no-store");

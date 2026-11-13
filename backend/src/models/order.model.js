@@ -125,6 +125,8 @@ const orderSchema = new mongoose.Schema(
             trackingNumber: { type: String, trim: true, maxlength: 100 },
         },
         statusHistory: { type: [statusHistorySchema], default: [] },
+        cancellationReason: { type: String, trim: true, maxlength: 500 },
+        cancellationNote: { type: String, trim: true, maxlength: 500 },
         returnRequest: { type: returnRequestSchema },
     },
     { timestamps: true, bufferCommands: false },

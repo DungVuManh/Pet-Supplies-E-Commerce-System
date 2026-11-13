@@ -122,6 +122,8 @@ export type OrderDetail = {
   canConfirmReceipt?: boolean;
   canConfirmShipped?: boolean;
   returnRequest?: CustomerOrderReturnRequest | null;
+  cancellationReason?: string | null;
+  cancellationNote?: string | null;
   transactionCode: string;
   shippingAddress: {
     fullName: string;

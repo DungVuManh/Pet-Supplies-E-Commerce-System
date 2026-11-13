@@ -40,7 +40,8 @@ export function OrderSummarySidebar({
  const isReturnApproved = returnReq?.status === "approved";
  const isReturnShipped = returnReq?.status === "customer_shipped";
  const isReturnReceived = returnReq?.status === "received";
- const isReturnCompleted = returnReq?.status === "completed" || order.status === "returned";
+ const isReturnCompleted =
+  returnReq?.status === "completed" || order.status === "returned";
  const isReturnRejected = returnReq?.status === "rejected";
 
  const canConfirmShipped =
@@ -216,12 +217,12 @@ export function OrderSummarySidebar({
       <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-200 text-amber-800 text-xs font-bold">
        ⏳
       </span>
-      <h3 className="text-sm font-bold text-amber-900">
-       Chờ xử lý hoàn trả
-      </h3>
+      <h3 className="text-sm font-bold text-amber-900">Chờ xử lý hoàn trả</h3>
      </div>
      <p className="text-xs text-amber-800 leading-relaxed">
-      Bạn đã gửi yêu cầu hoàn trả cho đơn hàng này ({returnReq?.reasonLabel || returnReq?.reason}). Nhân viên đang kiểm tra thông tin và sẽ phản hồi sớm nhất.
+      Bạn đã gửi yêu cầu hoàn trả cho đơn hàng này (
+      {returnReq?.reasonLabel || returnReq?.reason}). Nhân viên đang kiểm tra
+      thông tin và sẽ phản hồi sớm nhất.
      </p>
      {returnReq?.description && (
       <div className="text-xs text-amber-900/80 bg-white/70 rounded-lg p-2.5 border border-amber-100">
@@ -230,7 +231,9 @@ export function OrderSummarySidebar({
      )}
      {returnReq?.bankAccount && (
       <div className="text-xs text-amber-900/80 bg-white/70 rounded-lg p-2.5 border border-amber-100">
-       <strong>Tài khoản nhận hoàn tiền:</strong> {returnReq.bankAccount.bankName} · {returnReq.bankAccount.accountNumber} · {returnReq.bankAccount.accountHolder}
+       <strong>Tài khoản nhận hoàn tiền:</strong>{" "}
+       {returnReq.bankAccount.bankName} · {returnReq.bankAccount.accountNumber}{" "}
+       · {returnReq.bankAccount.accountHolder}
       </div>
      )}
     </div>
@@ -249,7 +252,9 @@ export function OrderSummarySidebar({
       </div>
      </div>
      <p className="text-xs text-blue-800 leading-relaxed">
-      Cửa hàng đã đồng ý yêu cầu hoàn trả. Vui lòng đóng gói và gửi hàng về địa chỉ của shop trong vòng 3 ngày. Sau khi gửi bưu kiện, bạn hãy bấm nút <strong>Xác nhận đã gửi trả hàng</strong> bên dưới.
+      Cửa hàng đã đồng ý yêu cầu hoàn trả. Vui lòng đóng gói và gửi hàng về địa
+      chỉ của shop trong vòng 3 ngày. Sau khi gửi bưu kiện, bạn hãy bấm nút{" "}
+      <strong>Xác nhận đã gửi trả hàng</strong> bên dưới.
      </p>
      {canConfirmShipped && (
       <div className="pt-2 space-y-2 border-t border-blue-100">
@@ -312,7 +317,8 @@ export function OrderSummarySidebar({
       </h3>
      </div>
      <p className="text-xs text-indigo-800 leading-relaxed">
-      Bạn đã xác nhận gửi trả kiện hàng về shop. Cửa hàng sẽ kiểm tra và xác nhận ngay khi bưu kiện được giao tới.
+      Bạn đã xác nhận gửi trả kiện hàng về shop. Cửa hàng sẽ kiểm tra và xác
+      nhận ngay khi bưu kiện được giao tới.
      </p>
     </div>
    )}
@@ -328,7 +334,8 @@ export function OrderSummarySidebar({
       </h3>
      </div>
      <p className="text-xs text-purple-800 leading-relaxed">
-      Kiện hàng trả về đã đến cửa hàng. Nhân viên đang tiến hành mở kiện và kiểm tra tình trạng hàng hóa trước khi thực hiện chuyển tiền hoàn.
+      Kiện hàng trả về đã đến cửa hàng. Nhân viên đang tiến hành mở kiện và kiểm
+      tra tình trạng hàng hóa trước khi thực hiện chuyển tiền hoàn.
      </p>
     </div>
    )}
@@ -345,7 +352,9 @@ export function OrderSummarySidebar({
      </div>
      <p className="text-xs text-emerald-800 leading-relaxed">
       Quy trình hoàn trả đơn hàng đã hoàn tất thành công.
-      {returnReq?.refundAmount ? ` Số tiền đã được chuyển hoàn: ${formatVND(returnReq.refundAmount)}.` : ""}
+      {returnReq?.refundAmount
+       ? ` Số tiền đã được chuyển hoàn: ${formatVND(returnReq.refundAmount)}.`
+       : ""}
      </p>
     </div>
    )}
@@ -362,11 +371,10 @@ export function OrderSummarySidebar({
      </div>
      <div className="text-xs text-rose-900 bg-white/80 rounded-lg p-3 border border-rose-200 space-y-1">
       <p className="font-semibold text-rose-800">Lý do từ chối từ nhân viên:</p>
-      <p className="leading-relaxed">{returnReq?.rejectionReason || "Không đủ điều kiện hoàn trả hàng."}</p>
+      <p className="leading-relaxed">
+       {returnReq?.rejectionReason || "Không đủ điều kiện hoàn trả hàng."}
+      </p>
      </div>
-     <p className="text-xs text-rose-700">
-      Nếu đã nhận được kiện hàng nguyên vẹn, bạn có thể bấm <strong>Đã nhận được hàng</strong> bên dưới.
-     </p>
     </div>
    )}
 
