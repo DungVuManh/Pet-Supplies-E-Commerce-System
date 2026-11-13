@@ -11,6 +11,7 @@ import {
   listStaffReturns,
   getStaffReturnDetail,
   decideStaffReturn,
+  receiveStaffReturn,
 } from "../controllers/order-return.controller.js";
 import { protectMutation } from "../controllers/auth.controller.js";
 import { createStaffSale, getSaleCreation, listSaleCustomers, listSaleProducts } from "../controllers/staff-sale.controller.js";
@@ -35,6 +36,7 @@ router.post("/staff/orders/:id/invoice/exports", readCookies, requireAuth, requi
 router.patch("/staff/orders/:id/status", readCookies, requireAuth, requireRole("staff"), protectMutation, updateStaffOrderStatus);
 router.get("/staff/returns", readCookies, requireAuth, requireRole("staff"), listStaffReturns);
 router.get("/staff/returns/:id", readCookies, requireAuth, requireRole("staff"), getStaffReturnDetail);
+router.post("/staff/returns/:id/receive", readCookies, requireAuth, requireRole("staff"), protectMutation, receiveStaffReturn);
 router.post("/staff/returns/:id/decision", readCookies, requireAuth, requireRole("staff"), protectMutation, decideStaffReturn);
 router.get("/staff/products", readCookies, requireAuth, requireRole("staff"), getStaffProducts);
 router.get("/staff/products/:sku", readCookies, requireAuth, requireRole("staff"), getProductBySku);

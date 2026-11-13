@@ -1,7 +1,8 @@
-# Specification Quality Checklist: Yêu Cầu Hoàn Trả Đơn Hàng & Duyệt Hoàn Đơn (Order Returns)
+# Specification Quality Checklist: Quy Trình Hoàn Trả Đơn Hàng & Duyệt Hoàn Tiền Nhiều Bước (Order Returns Workflow)
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-11-12
+**Updated**: 2026-11-13
 **Feature**: [spec.md](file:///E:/Pet-Supplies-E-Commerce-System/docs/specs/order-returns/spec.md)
 
 ## Content Quality
@@ -25,12 +26,16 @@
 ## Feature Readiness
 
 - [x] All functional requirements have clear acceptance criteria
-- [x] User scenarios cover primary flows
+- [x] User scenarios cover primary flows (4 giai đoạn hoàn trả: Yêu cầu hoàn đơn -> Chờ xác nhận -> Nhân viên kiểm tra -> Hoàn thành công)
 - [x] Feature meets measurable outcomes defined in Success Criteria
 - [x] No implementation details leak into specification
 
 ## Notes
 
-- Cả 3 điểm cần làm rõ (`Q1: A`, `Q2: A`, `Q3: A`) đã được chốt với người dùng ngày 2026-11-12 và cập nhật đầy đủ vào `Clarifications`, các User Story và Functional Requirements trong `spec.md`.
-- Đặc tả đạt 16/16 tiêu chí chất lượng, trạng thái `Ready` để chuyển sang giai đoạn `/speckit-plan`.
-
+- Đã làm rõ và cập nhật luồng hoàn trả 4 giai đoạn theo yêu cầu ngày 2026-11-13:
+  1. Khách gửi yêu cầu hoàn trả (kèm STK ngân hàng, lý do, ảnh).
+  2. Staff duyệt yêu cầu ban đầu -> Khách gửi trả hàng và bấm "Xác nhận đã gửi trả hàng".
+  3. Cửa hàng nhận hàng -> Staff bấm "Đã nhận được hàng" và tiến hành kiểm tra.
+  4. Staff duyệt "Hoàn tiền & Hoàn tất" -> Tự động hoàn kho, hoàn tiền và chuyển sang "Hoàn thành công".
+- Thanh timeline UI được đặc tả chuyển đổi hiển thị rõ 4 mốc: `Yêu cầu hoàn đơn` -> `Chờ xác nhận` -> `Nhân viên kiểm tra` -> `Hoàn thành công`.
+- Đặc tả đạt 16/16 tiêu chí chất lượng, trạng thái `Ready` để tiến hành `/speckit-plan`.

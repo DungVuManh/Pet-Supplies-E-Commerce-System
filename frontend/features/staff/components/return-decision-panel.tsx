@@ -9,7 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import { Badge, PageHeader, card } from "./staff-ui";
+import { Badge, PageHeader, card, control } from "./staff-ui";
 import type { StaffReturnDetail } from "../returns/types";
 import {
   RETURN_REASON_LABELS,
@@ -17,6 +17,7 @@ import {
 } from "../returns/types";
 import {
   submitStaffReturnDecision,
+  receiveStaffReturn,
   StaffReturnApiError,
 } from "../returns/api";
 
@@ -29,7 +30,7 @@ function formatVND(value: number | undefined | null): string {
   return num.toLocaleString("vi-VN") + " đ";
 }
 
-function formatDateTime(isoString: string | null): string {
+function formatDateTime(isoString: string | null | undefined): string {
   if (!isoString) return "—";
   try {
     const d = new Date(isoString);
@@ -48,13 +49,20 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
   const router = useRouter();
   const req = detail.returnRequest;
 
+  const isPending = req.status === "pending";
+  const isOnlinePaid = detail.paymentMethod === "ONLINE" && detail.paymentStatus === "paid";
+
   // Zoom modal state
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
-  // Decision mode: null | "approve" | "reject"
-  const [decisionMode, setDecisionMode] = useState<"approve" | "reject" | null>(null);
+  // Decision mode: null | "approve_request" | "reject_request" | "receive" | "complete_refund" | "reject_refund"
+  const [decisionMode, setDecisionMode] = useState<
+    "approve_request" | "reject_request" | "receive" | "complete_refund" | "reject_refund" | null
+  >(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectionError, setRejectionError] = useState("");
+  const [refundAmount, setRefundAmount] = useState<number>(detail.total || 0);
+  const [refundAmountError, setRefundAmountError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -67,14 +75,11 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
     }
   };
 
-  const isPending = req.status === "pending";
-  const isOnlinePaid = detail.paymentMethod === "ONLINE" && detail.paymentStatus === "paid";
-
-  const handleApprove = async () => {
+  const handleApproveRequest = async () => {
     try {
       setIsSubmitting(true);
       setActionError(null);
-      await submitStaffReturnDecision(detail.id, { decision: "approve" });
+      await submitStaffReturnDecision(detail.id, { action: "approve_request" });
       router.refresh();
       setDecisionMode(null);
     } catch (err) {
@@ -88,7 +93,7 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
     }
   };
 
-  const handleReject = async () => {
+  const handleRejectRequest = async () => {
     const trimmed = rejectionReason.trim();
     if (trimmed.length < 5) {
       setRejectionError("Vui lòng nhập lý do từ chối tối thiểu 5 ký tự.");
@@ -104,7 +109,7 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
       setActionError(null);
       setRejectionError("");
       await submitStaffReturnDecision(detail.id, {
-        decision: "reject",
+        action: "reject_request",
         rejectionReason: trimmed,
       });
       router.refresh();
@@ -120,9 +125,87 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
     }
   };
 
+  const handleReceive = async () => {
+    try {
+      setIsSubmitting(true);
+      setActionError(null);
+      await receiveStaffReturn(detail.id);
+      router.refresh();
+      setDecisionMode(null);
+    } catch (err) {
+      setActionError(
+        err instanceof StaffReturnApiError
+          ? err.message
+          : "Không thể xác nhận nhận hàng. Vui lòng thử lại."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCompleteRefund = async () => {
+    if (Number.isNaN(refundAmount) || refundAmount < 0 || refundAmount > detail.total) {
+      setRefundAmountError(`Số tiền hoàn phải từ 0 đ đến ${formatVND(detail.total)}.`);
+      return;
+    }
+    try {
+      setIsSubmitting(true);
+      setActionError(null);
+      setRefundAmountError("");
+      await submitStaffReturnDecision(detail.id, {
+        action: "complete_refund",
+        refundAmount,
+      });
+      router.refresh();
+      setDecisionMode(null);
+    } catch (err) {
+      setActionError(
+        err instanceof StaffReturnApiError
+          ? err.message
+          : "Không thể hoàn tất hoàn trả. Vui lòng thử lại."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRejectRefund = async () => {
+    const trimmed = rejectionReason.trim();
+    if (trimmed.length < 5) {
+      setRejectionError("Vui lòng nhập lý do từ chối tối thiểu 5 ký tự.");
+      return;
+    }
+    if (trimmed.length > 500) {
+      setRejectionError("Lý do từ chối không được vượt quá 500 ký tự.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setActionError(null);
+      setRejectionError("");
+      await submitStaffReturnDecision(detail.id, {
+        action: "reject_refund",
+        rejectionReason: trimmed,
+      });
+      router.refresh();
+      setDecisionMode(null);
+    } catch (err) {
+      setActionError(
+        err instanceof StaffReturnApiError
+          ? err.message
+          : "Không thể từ chối hoàn tiền. Vui lòng thử lại."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const statusTone =
-    req.status === "approved"
+    req.status === "completed"
       ? "success"
+      : req.status === "approved" || req.status === "customer_shipped"
+      ? "info"
       : req.status === "rejected"
       ? "danger"
       : "warning";
@@ -300,46 +383,43 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
               </h3>
             </div>
 
-            {isPending ? (
+            {req.status === "pending" ? (
               decisionMode === null ? (
                 <div className="space-y-4">
                   <p className="text-xs text-muted leading-relaxed">
-                    Vui lòng đối chiếu hình ảnh minh chứng và thông tin đơn hàng trước khi phê duyệt hoặc từ chối yêu cầu.
+                    Vui lòng đối chiếu hình ảnh minh chứng và thông tin đơn hàng trước khi phê duyệt yêu cầu bước đầu.
                   </p>
                   <div className="flex flex-col gap-2.5">
                     <button
                       type="button"
-                      onClick={() => setDecisionMode("approve")}
+                      onClick={() => setDecisionMode("approve_request")}
                       className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-emerald-600 px-4 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 transition-colors cursor-pointer"
                     >
-                      Chấp nhận hoàn trả
+                      Chấp nhận yêu cầu
                     </button>
                     <button
                       type="button"
-                      onClick={() => setDecisionMode("reject")}
+                      onClick={() => setDecisionMode("reject_request")}
                       className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-line bg-surface px-4 text-xs font-bold text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-colors cursor-pointer"
                     >
-                      Từ chối hoàn trả
+                      Từ chối yêu cầu
                     </button>
                   </div>
                 </div>
-              ) : decisionMode === "approve" ? (
+              ) : decisionMode === "approve_request" ? (
                 /* Xác nhận chấp nhận */
                 <div className="space-y-3.5 rounded-xl bg-emerald-50/70 p-4 border border-emerald-200/80">
                   <h4 className="text-sm font-bold text-emerald-900">
-                    Xác nhận chấp nhận hoàn trả?
+                    Xác nhận chấp nhận yêu cầu hoàn trả?
                   </h4>
                   <ul className="text-xs text-emerald-800 space-y-1.5 list-disc list-inside">
-                    <li>Đơn hàng sẽ chuyển sang trạng thái <strong>Đã hoàn trả</strong>.</li>
-                    <li>Tồn kho các sản phẩm sẽ được tự động cộng lại.</li>
-                    {isOnlinePaid && (
-                      <li>Đơn hàng sẽ được đánh dấu <strong>Cần hoàn tiền</strong>.</li>
-                    )}
+                    <li>Khách hàng sẽ nhận hướng dẫn gửi bưu kiện trả về trong 3 ngày.</li>
+                    <li>Kho sản phẩm chưa bị thay đổi ở bước này.</li>
                   </ul>
                   <div className="flex items-center gap-2 pt-2">
                     <button
                       type="button"
-                      onClick={handleApprove}
+                      onClick={handleApproveRequest}
                       disabled={isSubmitting}
                       className="flex-1 inline-flex min-h-10 items-center justify-center rounded-lg bg-emerald-600 px-4 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors cursor-pointer"
                     >
@@ -390,7 +470,7 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
                   <div className="flex items-center gap-2 pt-1">
                     <button
                       type="button"
-                      onClick={handleReject}
+                      onClick={handleRejectRequest}
                       disabled={isSubmitting}
                       className="flex-1 inline-flex min-h-10 items-center justify-center rounded-lg bg-rose-600 px-4 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50 transition-colors cursor-pointer"
                     >
@@ -410,37 +490,248 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
                   </div>
                 </div>
               )
-            ) : (
-              /* Đã xử lý */
+            ) : req.status === "approved" ? (
               <div className="space-y-3 text-xs">
-                <div
-                  className={`p-4 rounded-xl border ${
-                    req.status === "approved"
-                      ? "bg-emerald-50 border-emerald-200 text-emerald-900"
-                      : "bg-rose-50 border-rose-200 text-rose-900"
-                  }`}
-                >
-                  <p className="font-bold mb-1 text-sm">
-                    {req.status === "approved"
-                      ? "✓ Đã chấp nhận yêu cầu hoàn trả"
-                      : "✕ Đã từ chối yêu cầu hoàn trả"}
+                <div className="p-4 rounded-xl border bg-blue-50/80 border-blue-200 text-blue-900 space-y-2">
+                  <p className="font-bold text-sm">
+                    ✓ Đã duyệt yêu cầu · Chờ khách gửi hàng
                   </p>
-                  <p className="text-[11px] text-muted mb-2">
+                  <p className="text-[11px] text-blue-700">
+                    Người duyệt: <strong>{req.reviewedByName || "Nhân viên"}</strong> · Lúc:{" "}
+                    {formatDateTime(req.approvedAt || req.reviewedAt)}
+                  </p>
+                  <p className="text-xs text-blue-800 leading-relaxed pt-1">
+                    Khách hàng có thời hạn tối đa 3 ngày để đóng gói và gửi hàng về địa chỉ của shop. Sau khi khách bấm xác nhận đã gửi, hệ thống sẽ chuyển sang trạng thái <strong>Đã gửi hàng</strong>.
+                  </p>
+                </div>
+              </div>
+            ) : req.status === "customer_shipped" ? (
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl border bg-indigo-50/80 border-indigo-200 text-indigo-900 space-y-2">
+                  <p className="font-bold text-sm">
+                    📦 Khách đã xác nhận gửi trả hàng
+                  </p>
+                  <p className="text-[11px] text-indigo-700">
+                    Khách xác nhận lúc: <strong>{formatDateTime(req.customerShippedAt)}</strong>
+                  </p>
+                  <p className="text-xs text-indigo-800 leading-relaxed pt-1">
+                    Kiện hàng đang được chuyển về cửa hàng. Khi nhân viên nhận được bưu kiện thực tế, bấm <strong>Đã nhận được hàng</strong> bên dưới.
+                  </p>
+                </div>
+
+                {decisionMode === null ? (
+                  <button
+                    type="button"
+                    onClick={() => setDecisionMode("receive")}
+                    className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-blue-600 px-4 text-xs font-bold text-white shadow-xs hover:bg-blue-700 transition-colors cursor-pointer"
+                  >
+                    Đã nhận được hàng
+                  </button>
+                ) : (
+                  <div className="space-y-3 rounded-xl bg-blue-50/90 p-4 border border-blue-200">
+                    <h4 className="text-sm font-bold text-blue-900">
+                      Xác nhận cửa hàng đã nhận được kiện hàng?
+                    </h4>
+                    <p className="text-xs text-blue-800">
+                      Sau khi xác nhận, đơn hàng sẽ chuyển sang bước nhân viên mở kiện kiểm tra chất lượng sản phẩm.
+                    </p>
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={handleReceive}
+                        disabled={isSubmitting}
+                        className="flex-1 inline-flex min-h-10 items-center justify-center rounded-lg bg-blue-600 px-4 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors cursor-pointer"
+                      >
+                        {isSubmitting ? "Đang xử lý..." : "Xác nhận đã nhận"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDecisionMode(null)}
+                        disabled={isSubmitting}
+                        className="inline-flex min-h-10 items-center justify-center rounded-lg border border-line bg-surface px-3 text-xs font-medium text-ink hover:bg-canvas transition-colors cursor-pointer"
+                      >
+                        Hủy
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : req.status === "received" ? (
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl border bg-amber-50/80 border-amber-200 text-amber-900 space-y-2">
+                  <p className="font-bold text-sm">
+                    🔍 Đã nhận hàng · Nhân viên kiểm tra
+                  </p>
+                  <p className="text-[11px] text-amber-700">
+                    Nhận hàng lúc: <strong>{formatDateTime(req.receivedAt)}</strong>
+                  </p>
+                  <p className="text-xs text-amber-800 leading-relaxed pt-1">
+                    Nhân viên hãy kiểm tra tình trạng hàng thực tế, thực hiện chuyển tiền hoàn ngoài qua ứng dụng ngân hàng theo STK của khách, sau đó nhập số tiền hoàn và bấm hoàn tất.
+                  </p>
+                </div>
+
+                {/* Form nhập refundAmount */}
+                <div className="space-y-1.5">
+                  <label htmlFor="refundAmountInput" className="block text-xs font-semibold text-ink">
+                    Số tiền hoàn lại (VND) *
+                  </label>
+                  <input
+                    id="refundAmountInput"
+                    type="number"
+                    min={0}
+                    max={detail.total}
+                    value={refundAmount}
+                    onChange={(e) => {
+                      setRefundAmount(Number(e.target.value));
+                      setRefundAmountError("");
+                    }}
+                    className={`${control} w-full text-sm font-bold text-ink`}
+                  />
+                  <div className="flex justify-between items-center text-[11px] text-muted">
+                    <span>Tổng đơn: {formatVND(detail.total)}</span>
+                    {refundAmountError && (
+                      <span className="text-rose-600 font-semibold">{refundAmountError}</span>
+                    )}
+                  </div>
+                </div>
+
+                {decisionMode === null ? (
+                  <div className="flex flex-col gap-2.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setDecisionMode("complete_refund")}
+                      className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-emerald-600 px-4 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 transition-colors cursor-pointer"
+                    >
+                      Xác nhận hoàn tiền & Hoàn tất
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDecisionMode("reject_refund")}
+                      className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-line bg-surface px-4 text-xs font-bold text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-colors cursor-pointer"
+                    >
+                      Từ chối hoàn tiền
+                    </button>
+                  </div>
+                ) : decisionMode === "complete_refund" ? (
+                  <div className="space-y-3.5 rounded-xl bg-emerald-50/80 p-4 border border-emerald-200">
+                    <h4 className="text-sm font-bold text-emerald-900">
+                      Xác nhận hoàn tất hoàn trả & hoàn tiền?
+                    </h4>
+                    <ul className="text-xs text-emerald-800 space-y-1.5 list-disc list-inside">
+                      <li>Đã chuyển khoản ngoài: <strong>{formatVND(refundAmount)}</strong>.</li>
+                      <li>Đơn hàng sẽ chuyển sang trạng thái <strong>Đã hoàn trả</strong>.</li>
+                      <li>Sản phẩm trong đơn sẽ tự động được hoàn kho.</li>
+                    </ul>
+                    <div className="flex items-center gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={handleCompleteRefund}
+                        disabled={isSubmitting}
+                        className="flex-1 inline-flex min-h-10 items-center justify-center rounded-lg bg-emerald-600 px-4 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors cursor-pointer"
+                      >
+                        {isSubmitting ? "Đang xử lý..." : "Xác nhận hoàn tất"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDecisionMode(null)}
+                        disabled={isSubmitting}
+                        className="inline-flex min-h-10 items-center justify-center rounded-lg border border-line bg-surface px-3 text-xs font-medium text-ink hover:bg-canvas transition-colors cursor-pointer"
+                      >
+                        Hủy
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3.5 rounded-xl bg-rose-50/80 p-4 border border-rose-200">
+                    <h4 className="text-sm font-bold text-rose-900">
+                      Từ chối hoàn tiền
+                    </h4>
+                    <div>
+                      <label htmlFor="rejectionRefundReason" className="block text-xs font-semibold text-rose-800 mb-1.5">
+                        Lý do từ chối (bắt buộc 5–500 ký tự) *
+                      </label>
+                      <textarea
+                        id="rejectionRefundReason"
+                        rows={3}
+                        value={rejectionReason}
+                        onChange={(e) => {
+                          setRejectionReason(e.target.value);
+                          setRejectionError("");
+                        }}
+                        placeholder="Nhập lý do hàng hóa không hợp lệ sau khi kiểm tra..."
+                        className="w-full rounded-lg border border-rose-300 p-2.5 text-xs text-ink placeholder:text-muted bg-white focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                      />
+                      <div className="flex justify-between items-center mt-1.5">
+                        {rejectionError ? (
+                          <p className="text-[11px] text-rose-600 font-medium">{rejectionError}</p>
+                        ) : (
+                          <span />
+                        )}
+                        <span className="text-[11px] text-muted">
+                          {rejectionReason.trim().length} / 500
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={handleRejectRefund}
+                        disabled={isSubmitting}
+                        className="flex-1 inline-flex min-h-10 items-center justify-center rounded-lg bg-rose-600 px-4 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50 transition-colors cursor-pointer"
+                      >
+                        {isSubmitting ? "Đang xử lý..." : "Xác nhận từ chối hoàn tiền"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDecisionMode(null);
+                          setRejectionError("");
+                        }}
+                        disabled={isSubmitting}
+                        className="inline-flex min-h-10 items-center justify-center rounded-lg border border-line bg-surface px-3 text-xs font-medium text-ink hover:bg-canvas transition-colors cursor-pointer"
+                      >
+                        Hủy
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : req.status === "completed" ? (
+              <div className="space-y-3 text-xs">
+                <div className="p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900 space-y-2">
+                  <p className="font-bold text-sm">
+                    ✓ Hoàn tất hoàn trả thành công
+                  </p>
+                  <p className="text-[11px] text-emerald-700">
+                    Người duyệt: <strong>{req.reviewedByName || "Nhân viên"}</strong> · Lúc:{" "}
+                    {formatDateTime(req.completedAt || req.reviewedAt)}
+                  </p>
+                  {typeof req.refundAmount === "number" && (
+                    <div className="pt-2 border-t border-emerald-200 flex justify-between items-center font-semibold">
+                      <span>Số tiền hoàn thực tế:</span>
+                      <span className="text-emerald-800 text-sm font-bold">{formatVND(req.refundAmount)}</span>
+                    </div>
+                  )}
+                  <p className="text-[11px] text-emerald-700 pt-1">
+                    Đơn hàng đã được chuyển sang Đã hoàn trả và tự động hoàn kho sản phẩm thành công.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              /* Đã từ chối (req.status === "rejected") */
+              <div className="space-y-3 text-xs">
+                <div className="p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-900 space-y-2">
+                  <p className="font-bold text-sm">
+                    ✕ Đã từ chối yêu cầu hoàn trả
+                  </p>
+                  <p className="text-[11px] text-muted">
                     Người duyệt: <strong>{req.reviewedByName || "Nhân viên"}</strong> · Lúc:{" "}
                     {formatDateTime(req.reviewedAt)}
                   </p>
                   {req.rejectionReason && (
-                    <div className="mt-2.5 pt-2.5 border-t border-rose-200">
+                    <div className="pt-2 border-t border-rose-200">
                       <p className="font-semibold text-rose-800">Lý do từ chối:</p>
                       <p className="mt-1 text-ink leading-relaxed">{req.rejectionReason}</p>
-                    </div>
-                  )}
-                  {req.refundRequired && (
-                    <div className="mt-2.5 pt-2.5 border-t border-emerald-200">
-                      <p className="font-semibold text-emerald-800">Tình trạng hoàn tiền:</p>
-                      <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold text-[11px]">
-                        Cần hoàn tiền
-                      </span>
                     </div>
                   )}
                 </div>
@@ -552,14 +843,25 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
                 </Badge>
               </div>
               {isOnlinePaid && (
-                <div className="mt-3 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 space-y-1">
-                  <p className="font-bold flex items-center gap-1.5 text-xs">
-                    <span>⚠️</span> Cần hoàn tiền chuyển khoản
-                  </p>
-                  <p className="leading-relaxed text-[11px] text-amber-800">
-                    Đơn hàng đã thanh toán ONLINE ({formatVND(detail.total)}). Khi duyệt, hệ thống sẽ tự động gắn cờ <strong>Cần hoàn tiền</strong> để bộ phận kế toán thực hiện hoàn tiền.
-                  </p>
-                </div>
+                req.refundStatus === "refunded" || req.status === "completed" ? (
+                  <div className="mt-3 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-1">
+                    <p className="font-bold flex items-center gap-1.5 text-xs">
+                      <span>✓</span> Đã hoàn tiền chuyển khoản
+                    </p>
+                    <p className="leading-relaxed text-[11px] text-emerald-800">
+                      Đã hoàn tất chuyển khoản số tiền <strong>{formatVND(req.refundAmount || detail.total)}</strong> cho khách hàng.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-3 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 space-y-1">
+                    <p className="font-bold flex items-center gap-1.5 text-xs">
+                      <span>⚠️</span> Cần hoàn tiền chuyển khoản
+                    </p>
+                    <p className="leading-relaxed text-[11px] text-amber-800">
+                      Đơn hàng đã thanh toán ONLINE ({formatVND(detail.total)}). Nhân viên chuyển khoản thủ công cho khách, sau đó bấm <strong>Xác nhận hoàn tiền & Hoàn tất</strong>.
+                    </p>
+                  </div>
+                )
               )}
             </div>
           </section>

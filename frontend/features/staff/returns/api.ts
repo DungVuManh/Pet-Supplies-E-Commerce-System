@@ -198,16 +198,65 @@ export async function fetchStaffReturnDetailServer(
   return body.data as StaffReturnDetail;
 }
 
+export type StaffReturnDecisionPayload = {
+  action?: "approve_request" | "reject_request" | "complete_refund" | "reject_refund";
+  decision?: "approve" | "reject";
+  rejectionReason?: string;
+  refundAmount?: number;
+};
+
 /**
- * Staff phê duyệt hoặc từ chối yêu cầu hoàn trả
+ * Staff xác nhận đã nhận được kiện hàng trả về từ khách hàng
+ */
+export async function receiveStaffReturn(
+  id: string
+): Promise<{ orderId: string; status: "received" }> {
+  const csrfToken = await fetchCsrfToken();
+
+  let response: Response;
+  try {
+    response = await fetch(`/api/v1/staff/returns/${encodeURIComponent(id)}/receive`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken,
+      },
+      credentials: "include",
+      cache: "no-store",
+    });
+  } catch {
+    throw new StaffReturnApiError(
+      "Không thể xác nhận nhận hàng. Hãy tải lại trang để kiểm tra.",
+      0,
+      "NETWORK_ERROR"
+    );
+  }
+
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    const code = body?.error?.code || "RECEIVE_FAILED";
+    const msg = body?.message || staffErrorMessages[code] || "Xác nhận nhận hàng thất bại.";
+    throw new StaffReturnApiError(msg, response.status, code);
+  }
+
+  if (!body?.success || !body?.data?.status) {
+    throw new StaffReturnApiError(
+      "Phản hồi xác nhận nhận hàng không hợp lệ.",
+      502,
+      "INVALID_RESPONSE"
+    );
+  }
+
+  return body.data;
+}
+
+/**
+ * Staff phê duyệt hoặc từ chối yêu cầu hoàn trả (hỗ trợ 4 giai đoạn)
  */
 export async function submitStaffReturnDecision(
   id: string,
-  payload: {
-    decision: "approve" | "reject";
-    rejectionReason?: string;
-  }
-): Promise<{ orderId: string; decision: "approve" | "reject"; status: "approved" | "rejected" }> {
+  payload: StaffReturnDecisionPayload
+): Promise<{ orderId: string; decision?: "approve" | "reject"; status: string }> {
   const csrfToken = await fetchCsrfToken();
 
   let response: Response;

@@ -13,6 +13,10 @@ import {
  confirmOrderReceiptApi,
  OrderReceiptApiError,
 } from "../services/receipt-confirmation.service";
+import {
+ confirmReturnShippedApi,
+ OrderReturnApiError,
+} from "../services/order-return.service";
 import { ReceiptConfirmedModal } from "./receipt-confirmed-modal";
 
 type OrderSummarySidebarProps = {
@@ -33,18 +37,28 @@ export function OrderSummarySidebar({
  const canCancel = order.status === "pending";
  const returnReq = order.returnRequest;
  const isReturnPending = returnReq?.status === "pending";
- const isReturnApproved = returnReq?.status === "approved" || order.status === "returned";
+ const isReturnApproved = returnReq?.status === "approved";
+ const isReturnShipped = returnReq?.status === "customer_shipped";
+ const isReturnReceived = returnReq?.status === "received";
+ const isReturnCompleted = returnReq?.status === "completed" || order.status === "returned";
  const isReturnRejected = returnReq?.status === "rejected";
+
+ const canConfirmShipped =
+  typeof order.canConfirmShipped === "boolean"
+   ? order.canConfirmShipped
+   : isReturnApproved;
 
  const canConfirmReceipt =
   typeof order.canConfirmReceipt === "boolean"
    ? order.canConfirmReceipt
-   : order.status === "shipping" && !isReturnPending && !isReturnApproved;
+   : order.status === "shipping" && !returnReq?.status;
 
  const canRequestReturn =
   typeof order.canRequestReturn === "boolean"
    ? order.canRequestReturn
-   : order.channel !== "offline" && order.status === "shipping" && !returnReq?.status;
+   : order.channel !== "offline" &&
+     (order.status === "shipping" || order.status === "completed") &&
+     !returnReq?.status;
 
  const canResumePayment = isOrderEligibleForOnlinePayment(order);
  const paidAmount = order.paidAmount ?? 0;
@@ -78,6 +92,35 @@ export function OrderSummarySidebar({
  const [confirmingReceiptBusy, setConfirmingReceiptBusy] = useState(false);
  const [receiptError, setReceiptError] = useState("");
  const [showReceiptModal, setShowReceiptModal] = useState(false);
+
+ const [confirmingShipped, setConfirmingShipped] = useState(false);
+ const [confirmingShippedBusy, setConfirmingShippedBusy] = useState(false);
+ const [shippedError, setShippedError] = useState("");
+
+ async function confirmShipped() {
+  if (confirmingShippedBusy) return;
+  if (!confirmingShipped) {
+   setConfirmingShipped(true);
+   setShippedError("");
+   return;
+  }
+  setConfirmingShippedBusy(true);
+  setShippedError("");
+  try {
+   await confirmReturnShippedApi(order.id);
+   setConfirmingShipped(false);
+   onReceiptConfirmed?.();
+  } catch (error) {
+   setShippedError(
+    error instanceof OrderReturnApiError
+     ? error.message
+     : "Chưa xác nhận được kết quả. Hãy tải lại đơn hàng để kiểm tra.",
+   );
+   setConfirmingShipped(false);
+  } finally {
+   setConfirmingShippedBusy(false);
+  }
+ }
 
  async function confirmReceipt() {
   if (confirmingReceiptBusy) return;
@@ -201,18 +244,108 @@ export function OrderSummarySidebar({
         ✓
        </span>
        <h3 className="text-sm font-bold text-blue-900">
-        Đã chấp nhận hoàn trả
+        Yêu cầu hoàn trả đã được duyệt
        </h3>
       </div>
-      {returnReq?.refundRequired && (
-       <span className="inline-block rounded-full bg-rose-100 border border-rose-200 px-2.5 py-0.5 text-xs font-bold text-rose-700">
-        Cần hoàn tiền
-       </span>
-      )}
      </div>
      <p className="text-xs text-blue-800 leading-relaxed">
-      Yêu cầu hoàn trả đã được nhân viên chấp nhận. Đơn hàng đã chuyển sang trạng thái <strong>Đã hoàn trả</strong>.
-      {returnReq?.refundRequired && " Đơn hàng đang được bộ phận tài chính xử lý hoàn tiền chuyển khoản."}
+      Cửa hàng đã đồng ý yêu cầu hoàn trả. Vui lòng đóng gói và gửi hàng về địa chỉ của shop trong vòng 3 ngày. Sau khi gửi bưu kiện, bạn hãy bấm nút <strong>Xác nhận đã gửi trả hàng</strong> bên dưới.
+     </p>
+     {canConfirmShipped && (
+      <div className="pt-2 space-y-2 border-t border-blue-100">
+       {shippedError && (
+        <p
+         role="alert"
+         className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"
+        >
+         {shippedError}
+        </p>
+       )}
+       {confirmingShipped && (
+        <p
+         role="status"
+         className="rounded-xl border border-blue-200 bg-white/90 px-3 py-2 text-xs text-blue-800"
+        >
+         Xác nhận bạn đã gửi kiện hàng trả về shop?
+        </p>
+       )}
+       <div className="flex flex-wrap gap-2">
+        <button
+         type="button"
+         onClick={() => void confirmShipped()}
+         disabled={confirmingShippedBusy}
+         className="flex-1 rounded-xl bg-blue-600 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer shadow-sm"
+        >
+         {confirmingShippedBusy
+          ? "Đang xác nhận…"
+          : confirmingShipped
+            ? "Đồng ý, tôi đã gửi hàng"
+            : "Xác nhận đã gửi trả hàng"}
+        </button>
+        {confirmingShipped && (
+         <button
+          type="button"
+          onClick={() => {
+           setConfirmingShipped(false);
+           setShippedError("");
+          }}
+          disabled={confirmingShippedBusy}
+          className="rounded-xl border border-line bg-surface px-3 py-2.5 text-xs font-semibold text-ink transition-colors hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+         >
+          Hủy
+         </button>
+        )}
+       </div>
+      </div>
+     )}
+    </div>
+   )}
+
+   {isReturnShipped && (
+    <div className="rounded-2xl border border-indigo-200 bg-indigo-50/70 p-5 space-y-3">
+     <div className="flex items-center gap-2">
+      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-200 text-indigo-800 text-xs font-bold">
+       📦
+      </span>
+      <h3 className="text-sm font-bold text-indigo-900">
+       Đã gửi trả hàng · Chờ shop tiếp nhận
+      </h3>
+     </div>
+     <p className="text-xs text-indigo-800 leading-relaxed">
+      Bạn đã xác nhận gửi trả kiện hàng về shop. Cửa hàng sẽ kiểm tra và xác nhận ngay khi bưu kiện được giao tới.
+     </p>
+    </div>
+   )}
+
+   {isReturnReceived && (
+    <div className="rounded-2xl border border-purple-200 bg-purple-50/70 p-5 space-y-3">
+     <div className="flex items-center gap-2">
+      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-200 text-purple-800 text-xs font-bold">
+       🔍
+      </span>
+      <h3 className="text-sm font-bold text-purple-900">
+       Cửa hàng đã nhận được hàng
+      </h3>
+     </div>
+     <p className="text-xs text-purple-800 leading-relaxed">
+      Kiện hàng trả về đã đến cửa hàng. Nhân viên đang tiến hành mở kiện và kiểm tra tình trạng hàng hóa trước khi thực hiện chuyển tiền hoàn.
+     </p>
+    </div>
+   )}
+
+   {isReturnCompleted && (
+    <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-5 space-y-3">
+     <div className="flex items-center gap-2">
+      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-200 text-emerald-800 text-xs font-bold">
+       ✓
+      </span>
+      <h3 className="text-sm font-bold text-emerald-900">
+       Hoàn tất hoàn trả thành công
+      </h3>
+     </div>
+     <p className="text-xs text-emerald-800 leading-relaxed">
+      Quy trình hoàn trả đơn hàng đã hoàn tất thành công.
+      {returnReq?.refundAmount ? ` Số tiền đã được chuyển hoàn: ${formatVND(returnReq.refundAmount)}.` : ""}
      </p>
     </div>
    )}

@@ -33,7 +33,13 @@ export type ReturnRequestReason =
   | "not_received"
   | "missing_items";
 
-export type ReturnRequestStatus = "pending" | "approved" | "rejected";
+export type ReturnRequestStatus =
+  | "pending"
+  | "approved"
+  | "customer_shipped"
+  | "received"
+  | "completed"
+  | "rejected";
 
 export type CustomerOrderReturnRequest = {
   reason: ReturnRequestReason;
@@ -45,7 +51,12 @@ export type CustomerOrderReturnRequest = {
   statusLabel: string;
   refundRequired: boolean;
   refundStatus: "none" | "pending_refund" | "refunded";
+  refundAmount?: number | null;
   requestedAt: string;
+  approvedAt?: string | null;
+  customerShippedAt?: string | null;
+  receivedAt?: string | null;
+  completedAt?: string | null;
   reviewedAt: string | null;
   rejectionReason: string | null;
 };
@@ -109,6 +120,7 @@ export type OrderDetail = {
   canResumeOnlinePayment?: boolean;
   canRequestReturn?: boolean;
   canConfirmReceipt?: boolean;
+  canConfirmShipped?: boolean;
   returnRequest?: CustomerOrderReturnRequest | null;
   transactionCode: string;
   shippingAddress: {

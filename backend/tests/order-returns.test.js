@@ -165,8 +165,8 @@ describe("Order Returns Feature", () => {
         .expect(404);
     });
 
-    it("rejects upload when order is not in shipping status with 400", async () => {
-      order.orderStatus = "completed";
+    it("rejects upload when order is not in eligible status (e.g. pending) with 400", async () => {
+      order.orderStatus = "pending";
       const { agent, cookie, csrfToken } = await makeBrowser("customer", customerId);
       const res = await agent
         .post(`/api/v1/orders/${orderId}/return/upload`)
@@ -177,6 +177,85 @@ describe("Order Returns Feature", () => {
         .expect(400);
 
       expect(res.body.error.code).toBe("INVALID_ORDER_STATUS");
+    });
+
+    it("rejects upload when completed order is past 7 days with 400 RETURN_PERIOD_EXPIRED", async () => {
+      order.orderStatus = "completed";
+      const eightDaysAgo = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000);
+      order.statusHistory = [{ to: "completed", at: eightDaysAgo }];
+      order.updatedAt = eightDaysAgo;
+      order.createdAt = eightDaysAgo;
+
+      const { agent, cookie, csrfToken } = await makeBrowser("customer", customerId);
+      const res = await agent
+        .post(`/api/v1/orders/${orderId}/return/upload`)
+        .set("Cookie", cookie)
+        .set("Origin", "http://localhost:3000")
+        .set("X-CSRF-Token", csrfToken)
+        .attach("images", Buffer.from("fake-image"), "test.jpg")
+        .expect(400);
+
+      expect(res.body.error.code).toBe("RETURN_PERIOD_EXPIRED");
+    });
+
+    it("allows return submission when order is completed within 7 days", async () => {
+      order.orderStatus = "completed";
+      const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+      order.statusHistory = [{ to: "completed", at: twoDaysAgo }];
+      order.updatedAt = twoDaysAgo;
+      order.createdAt = twoDaysAgo;
+
+      vi.spyOn(Order, "updateOne").mockResolvedValue({ modifiedCount: 1 });
+
+      const { agent, cookie, csrfToken } = await makeBrowser("customer", customerId);
+      const res = await agent
+        .post(`/api/v1/orders/${orderId}/return`)
+        .set("Cookie", cookie)
+        .set("Origin", "http://localhost:3000")
+        .set("X-CSRF-Token", csrfToken)
+        .send({
+          reason: "damaged_or_defective",
+          description: "Hàng bị móp méo sau khi mở kiện kiểm tra",
+          bankAccount: {
+            bankName: "Techcombank",
+            accountNumber: "19036789123456",
+            accountHolder: "NGUYEN VAN A",
+          },
+          images: ["https://res.cloudinary.com/demo/image/upload/sample.jpg"],
+        })
+        .expect(201);
+
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.returnRequest.status).toBe("pending");
+    });
+
+    it("rejects return submission with not_received when order is already completed with 400", async () => {
+      order.orderStatus = "completed";
+      const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+      order.statusHistory = [{ to: "completed", at: twoDaysAgo }];
+      order.updatedAt = twoDaysAgo;
+      order.createdAt = twoDaysAgo;
+
+      vi.spyOn(Order, "updateOne").mockResolvedValue({ modifiedCount: 0 });
+
+      const { agent, cookie, csrfToken } = await makeBrowser("customer", customerId);
+      const res = await agent
+        .post(`/api/v1/orders/${orderId}/return`)
+        .set("Cookie", cookie)
+        .set("Origin", "http://localhost:3000")
+        .set("X-CSRF-Token", csrfToken)
+        .send({
+          reason: "not_received",
+          description: "Chưa nhận được kiện hàng",
+          bankAccount: {
+            bankName: "Techcombank",
+            accountNumber: "19036789123456",
+            accountHolder: "NGUYEN VAN A",
+          },
+        })
+        .expect(400);
+
+      expect(res.body.error.code).toBe("INVALID_RETURN_REASON");
     });
 
     it("rejects upload when order already has a return request with 409", async () => {
@@ -464,8 +543,8 @@ describe("Order Returns Feature", () => {
     });
   });
 
-  describe("Staff Return Decision (POST /staff/returns/:id/decision)", () => {
-    it("approves return: sets status returned, restocks items, flags refund for online paid", async () => {
+  describe("Staff Return Decision & 4-Stage Lifecycle", () => {
+    it("Step 1: staff approves initial request (status: approved, orderStatus remains shipping, no restock yet)", async () => {
       order.returnRequest = { status: "pending" };
       order.paymentMethod = "ONLINE";
       order.paymentStatus = "paid";
@@ -475,7 +554,7 @@ describe("Order Returns Feature", () => {
         updateOperation = op;
         return { modifiedCount: 1 };
       });
-      const restockSpy = vi.spyOn(Product, "updateOne").mockResolvedValue({ modifiedCount: 1 });
+      const restockSpy = vi.spyOn(Product, "updateOne");
       const auditSpy = vi.spyOn(AuditLog, "create").mockResolvedValue({ _id: "audit-1" });
 
       const { agent, cookie, csrfToken } = await makeBrowser("staff", staffId);
@@ -484,18 +563,148 @@ describe("Order Returns Feature", () => {
         .set("Cookie", cookie)
         .set("Origin", "http://localhost:3000")
         .set("X-CSRF-Token", csrfToken)
-        .send({ decision: "approve" })
+        .send({ action: "approve_request" })
         .expect(200);
 
       expect(res.body.success).toBe(true);
+      expect(res.body.data.status).toBe("approved");
+
+      // Verify updateOperation
+      expect(updateOperation.$set["returnRequest.status"]).toBe("approved");
+      expect(updateOperation.$set["returnRequest.approvedAt"]).toBeDefined();
+      expect(updateOperation.$set.orderStatus).toBeUndefined(); // Does NOT change orderStatus yet!
+
+      // Product stock must NOT be restocked at this stage
+      expect(restockSpy).not.toHaveBeenCalled();
+
+      // Verify AuditLog
+      expect(auditSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: "order.return.approve_request",
+          actorId: staffId,
+          target: { collectionName: "orders", id: orderId },
+        })
+      );
+    });
+
+    it("Step 2: customer confirms shipped (status: customer_shipped, one-touch)", async () => {
+      order.returnRequest = {
+        status: "approved",
+        approvedAt: new Date(),
+      };
+
+      let updateOperation = null;
+      vi.spyOn(Order, "updateOne").mockImplementation(async (_filter, op) => {
+        updateOperation = op;
+        return { modifiedCount: 1 };
+      });
+
+      const { agent, cookie, csrfToken } = await makeBrowser("customer", customerId);
+      const res = await agent
+        .post(`/api/v1/orders/${orderId}/return/confirm-shipped`)
+        .set("Cookie", cookie)
+        .set("Origin", "http://localhost:3000")
+        .set("X-CSRF-Token", csrfToken)
+        .send({})
+        .expect(200);
+
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.status).toBe("customer_shipped");
+      expect(updateOperation.$set["returnRequest.status"]).toBe("customer_shipped");
+      expect(updateOperation.$set["returnRequest.customerShippedAt"]).toBeDefined();
+    });
+
+    it("Step 2: customer confirmation fails if past 3 days (72h) deadline", async () => {
+      const fourDaysAgo = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000);
+      order.returnRequest = {
+        status: "approved",
+        approvedAt: fourDaysAgo,
+      };
+
+      vi.spyOn(Order, "updateOne").mockResolvedValue({ modifiedCount: 0 });
+
+      const { agent, cookie, csrfToken } = await makeBrowser("customer", customerId);
+      await agent
+        .post(`/api/v1/orders/${orderId}/return/confirm-shipped`)
+        .set("Cookie", cookie)
+        .set("Origin", "http://localhost:3000")
+        .set("X-CSRF-Token", csrfToken)
+        .send({})
+        .expect(400);
+    });
+
+    it("Step 3: staff receives returned package (POST /staff/returns/:id/receive)", async () => {
+      order.returnRequest = {
+        status: "customer_shipped",
+        customerShippedAt: new Date(),
+      };
+
+      let updateOperation = null;
+      vi.spyOn(Order, "updateOne").mockImplementation(async (_filter, op) => {
+        updateOperation = op;
+        return { modifiedCount: 1 };
+      });
+      const auditSpy = vi.spyOn(AuditLog, "create").mockResolvedValue({ _id: "audit-2" });
+
+      const { agent, cookie, csrfToken } = await makeBrowser("staff", staffId);
+      const res = await agent
+        .post(`/api/v1/staff/returns/${orderId}/receive`)
+        .set("Cookie", cookie)
+        .set("Origin", "http://localhost:3000")
+        .set("X-CSRF-Token", csrfToken)
+        .send({})
+        .expect(200);
+
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.status).toBe("received");
+      expect(updateOperation.$set["returnRequest.status"]).toBe("received");
+      expect(updateOperation.$set["returnRequest.receivedAt"]).toBeDefined();
+
+      expect(auditSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: "order.return.receive",
+          actorId: staffId,
+        })
+      );
+    });
+
+    it("Step 4: staff completes refund: sets status completed, orderStatus returned, restocks items, records refundAmount", async () => {
+      order.returnRequest = {
+        status: "received",
+        receivedAt: new Date(),
+      };
+      order.paymentMethod = "ONLINE";
+      order.paymentStatus = "paid";
+      order.total = 100000;
+
+      let updateOperation = null;
+      vi.spyOn(Order, "updateOne").mockImplementation(async (_filter, op) => {
+        updateOperation = op;
+        return { modifiedCount: 1 };
+      });
+      const restockSpy = vi.spyOn(Product, "updateOne").mockResolvedValue({ modifiedCount: 1 });
+      const auditSpy = vi.spyOn(AuditLog, "create").mockResolvedValue({ _id: "audit-3" });
+
+      const { agent, cookie, csrfToken } = await makeBrowser("staff", staffId);
+      const res = await agent
+        .post(`/api/v1/staff/returns/${orderId}/decision`)
+        .set("Cookie", cookie)
+        .set("Origin", "http://localhost:3000")
+        .set("X-CSRF-Token", csrfToken)
+        .send({ action: "complete_refund", refundAmount: 100000 })
+        .expect(200);
+
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.status).toBe("completed");
       expect(res.body.data.orderStatus).toBe("returned");
-      expect(res.body.data.refundRequired).toBe(true);
-      expect(res.body.data.refundStatus).toBe("pending_refund");
+      expect(res.body.data.paymentStatus).toBe("paid");
+      expect(res.body.data.refundAmount).toBe(100000);
 
       // Verify atomic update fields
       expect(updateOperation.$set.orderStatus).toBe("returned");
-      expect(updateOperation.$set["returnRequest.status"]).toBe("approved");
-      expect(updateOperation.$set["returnRequest.refundRequired"]).toBe(true);
+      expect(updateOperation.$set.paymentStatus).toBe("paid");
+      expect(updateOperation.$set["returnRequest.status"]).toBe("completed");
+      expect(updateOperation.$set["returnRequest.refundAmount"]).toBe(100000);
 
       // Verify stock restoration
       expect(restockSpy).toHaveBeenCalledWith(
@@ -506,31 +715,11 @@ describe("Order Returns Feature", () => {
       // Verify AuditLog
       expect(auditSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          action: "order.return.approve",
+          action: "order.return.complete_refund",
           actorId: staffId,
           target: { collectionName: "orders", id: orderId },
         })
       );
-    });
-
-    it("approves COD return: no refundRequired flag", async () => {
-      order.returnRequest = { status: "pending" };
-      order.paymentMethod = "COD";
-      order.paymentStatus = "unpaid";
-
-      vi.spyOn(Order, "updateOne").mockResolvedValue({ modifiedCount: 1 });
-
-      const { agent, cookie, csrfToken } = await makeBrowser("staff", staffId);
-      const res = await agent
-        .post(`/api/v1/staff/returns/${orderId}/decision`)
-        .set("Cookie", cookie)
-        .set("Origin", "http://localhost:3000")
-        .set("X-CSRF-Token", csrfToken)
-        .send({ decision: "approve" })
-        .expect(200);
-
-      expect(res.body.data.refundRequired).toBe(false);
-      expect(res.body.data.refundStatus).toBe("none");
     });
 
     it("rejects return: enforces rejectionReason 5..500 chars and records AuditLog", async () => {

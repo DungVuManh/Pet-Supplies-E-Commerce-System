@@ -3,7 +3,14 @@
 // Định nghĩa kiểu dữ liệu cho giao diện Quản lý hoàn trả của Staff
 // =============================================================
 
-export type StaffReturnStatus = "all" | "pending" | "approved" | "rejected";
+export type StaffReturnStatus =
+  | "all"
+  | "pending"
+  | "approved"
+  | "customer_shipped"
+  | "received"
+  | "completed"
+  | "rejected";
 
 export type StaffReturnCustomer = {
   name: string;
@@ -17,16 +24,29 @@ export type StaffReturnBankAccount = {
   accountHolder: string;
 };
 
+export type StaffReturnRequestStatus =
+  | "pending"
+  | "approved"
+  | "customer_shipped"
+  | "received"
+  | "completed"
+  | "rejected";
+
 export type StaffReturnRequestInfo = {
   reason: "damaged_or_defective" | "not_received" | "missing_items" | "damaged_or_missing";
   bankAccount?: StaffReturnBankAccount | null;
   description: string;
   images: string[];
   imageCount?: number;
-  status: "pending" | "approved" | "rejected";
+  status: StaffReturnRequestStatus;
   refundRequired: boolean;
   refundStatus: "none" | "pending_refund" | "refunded";
+  refundAmount?: number | null;
   requestedAt: string | null;
+  approvedAt?: string | null;
+  customerShippedAt?: string | null;
+  receivedAt?: string | null;
+  completedAt?: string | null;
   reviewedAt: string | null;
   reviewedByName: string | null;
   rejectionReason: string | null;
@@ -92,6 +112,9 @@ export type StaffReturnsCounts = {
   all: number;
   pending: number;
   approved: number;
+  customer_shipped?: number;
+  received?: number;
+  completed?: number;
   rejected: number;
 };
 
@@ -114,8 +137,11 @@ export const RETURN_REASON_LABELS: Record<string, string> = {
 };
 
 export const RETURN_STATUS_LABELS: Record<string, string> = {
-  pending: "Chờ xử lý",
-  approved: "Đã chấp nhận",
+  pending: "Chờ duyệt",
+  approved: "Chờ khách gửi",
+  customer_shipped: "Đã gửi trả hàng",
+  received: "Đang kiểm tra",
+  completed: "Hoàn tất hoàn trả",
   rejected: "Đã từ chối",
 };
 

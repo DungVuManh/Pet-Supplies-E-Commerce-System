@@ -28,6 +28,7 @@ import {
 import {
   uploadCustomerReturnImages,
   submitCustomerReturnRequest,
+  confirmCustomerReturnShipped,
 } from "../controllers/order-return.controller.js";
 import {
   optionalAuth,
@@ -128,6 +129,14 @@ router.post(
   requireRole("customer"),
   protectMutation,
   submitCustomerReturnRequest,
+);
+router.post(
+  "/:id/return/confirm-shipped",
+  noStore,
+  requireAuth,
+  requireRole("customer"),
+  protectMutation,
+  confirmCustomerReturnShipped,
 );
 
 // 1b. Tra cứu đơn hàng công khai theo mã đơn hàng và số điện thoại (Không bắt buộc đăng nhập)

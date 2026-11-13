@@ -8,7 +8,14 @@ export const RETURN_REASONS = [
   "damaged_or_missing",
 ];
 
-export const RETURN_STATUSES = ["pending", "approved", "rejected"];
+export const RETURN_STATUSES = [
+  "pending",
+  "approved",
+  "customer_shipped",
+  "received",
+  "completed",
+  "rejected",
+];
 
 export const CLOUDINARY_IMAGE_URL_REGEX =
   /^https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/.+$/;
@@ -68,12 +75,20 @@ export const staffReturnQuerySchema = z
 
 export const staffReturnDecisionSchema = z
   .object({
-    decision: z.enum(["approve", "reject"]),
+    action: z
+      .enum(["approve_request", "reject_request", "complete_refund", "reject_refund"])
+      .optional(),
+    decision: z.enum(["approve", "reject"]).optional(),
+    refundAmount: z.coerce.number().min(0).optional(),
     rejectionReason: z.string().trim().max(500).optional(),
   })
   .strict()
   .superRefine((value, ctx) => {
-    if (value.decision === "reject") {
+    const isReject =
+      value.action === "reject_request" ||
+      value.action === "reject_refund" ||
+      value.decision === "reject";
+    if (isReject) {
       const reason = value.rejectionReason?.trim() || "";
       if (reason.length < 5) {
         ctx.addIssue({
@@ -125,8 +140,17 @@ export function parseStaffReturnDecision(body) {
       "VALIDATION_ERROR"
     );
   }
+  const action =
+    result.data.action ||
+    (result.data.decision === "approve" ? "approve_request" : "reject_request");
   return {
-    decision: result.data.decision,
+    action,
+    decision:
+      result.data.decision ||
+      (action.startsWith("approve") || action.startsWith("complete")
+        ? "approve"
+        : "reject"),
+    refundAmount: result.data.refundAmount,
     rejectionReason: result.data.rejectionReason?.trim() || "",
   };
 }

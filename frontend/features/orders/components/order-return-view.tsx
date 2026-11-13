@@ -106,9 +106,14 @@ export function OrderReturnView({ orderId = "" }: OrderReturnViewProps) {
 
   // Chặn nếu đơn không thỏa mãn điều kiện gửi hoàn trả
   const hasExistingReturn = Boolean(order.returnRequest?.status);
-  const isNotShipping = order.orderStatus !== "shipping";
+  const canReturn =
+    typeof order.canRequestReturn === "boolean"
+      ? order.canRequestReturn
+      : order.channel !== "offline" &&
+        (order.orderStatus === "shipping" || order.orderStatus === "completed") &&
+        !hasExistingReturn;
 
-  if (hasExistingReturn || isNotShipping) {
+  if (hasExistingReturn || !canReturn) {
     return (
       <div className="min-h-screen bg-canvas py-8">
         <div className="container mx-auto px-4 max-w-6xl">
@@ -122,12 +127,12 @@ export function OrderReturnView({ orderId = "" }: OrderReturnViewProps) {
                 <h2 className="text-lg font-bold text-ink mb-2">
                   {hasExistingReturn
                     ? "Đơn hàng đã có yêu cầu hoàn trả"
-                    : "Đơn hàng không ở trạng thái đang giao"}
+                    : "Không thể yêu cầu hoàn trả"}
                 </h2>
                 <p className="text-sm text-ink-muted mb-6 max-w-md mx-auto">
                   {hasExistingReturn
                     ? "Yêu cầu hoàn trả cho đơn hàng này đã được gửi trước đó. Bạn có thể theo dõi tiến độ xử lý tại trang Chi tiết đơn hàng."
-                    : "Chức năng hoàn trả hàng chỉ áp dụng cho đơn hàng đang trong quá trình vận chuyển giao hàng."}
+                    : "Chức năng hoàn trả hàng chỉ áp dụng cho đơn hàng đang giao hoặc trong vòng 7 ngày kể từ khi nhận hàng."}
                 </p>
                 <Link
                   href={`/orders/${order.id}`}
@@ -282,7 +287,10 @@ export function OrderReturnView({ orderId = "" }: OrderReturnViewProps) {
                   1. Chọn lý do hoàn trả <span className="text-rose-500">*</span>
                 </label>
                 <div className="space-y-3">
-                  {RETURN_REASON_OPTIONS.map((opt) => (
+                  {(order.orderStatus === "completed" || order.status === "completed"
+                    ? RETURN_REASON_OPTIONS.filter((opt) => opt.value !== "not_received")
+                    : RETURN_REASON_OPTIONS
+                  ).map((opt) => (
                     <label
                       key={opt.value}
                       className={`flex items-start gap-3 p-3.5 rounded-lg border cursor-pointer transition-colors ${

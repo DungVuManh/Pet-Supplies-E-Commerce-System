@@ -34,7 +34,7 @@ const statusHistorySchema = new mongoose.Schema(
 );
 
 const returnReasons = ["damaged_or_defective", "not_received", "missing_items", "damaged_or_missing"];
-const returnStatuses = ["pending", "approved", "rejected"];
+const returnStatuses = ["pending", "approved", "customer_shipped", "received", "completed", "rejected"];
 const refundStatuses = ["none", "pending_refund", "refunded"];
 
 const returnBankAccountSchema = new mongoose.Schema(
@@ -66,8 +66,13 @@ const returnRequestSchema = new mongoose.Schema(
         status: { type: String, enum: returnStatuses, required: true },
         refundRequired: { type: Boolean, default: false },
         refundStatus: { type: String, enum: refundStatuses, default: "none" },
+        refundAmount: { ...nonNegativeInteger },
         requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         requestedAt: { type: Date, required: true },
+        approvedAt: { type: Date },
+        customerShippedAt: { type: Date },
+        receivedAt: { type: Date },
+        completedAt: { type: Date },
         reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
         reviewedAt: { type: Date },
         rejectionReason: { type: String, trim: true, maxlength: 500 },

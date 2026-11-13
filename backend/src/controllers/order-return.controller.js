@@ -18,6 +18,7 @@ import {
   parseStaffReturnDecision,
 } from "../validators/order-return.validator.js";
 import { parseOrderId } from "../validators/order.validator.js";
+import { resolveCompletedAt } from "../common/order-auto-complete.js";
 
 // =============================================================
 // 1. CUSTOMER RETURN WORKFLOW
@@ -45,9 +46,23 @@ export async function uploadCustomerReturnImages(request, response, next) {
       throw new AppError("Không tìm thấy đơn hàng.", 404, "ORDER_NOT_FOUND");
     }
 
-    if (order.orderStatus !== "shipping") {
+    const isShipping = order.orderStatus === "shipping";
+    const completedAt = resolveCompletedAt(order);
+    const isCompletedWithin7Days =
+      order.orderStatus === "completed" &&
+      completedAt &&
+      Date.now() - completedAt.getTime() <= 7 * 24 * 60 * 60 * 1000;
+
+    if (!isShipping && !isCompletedWithin7Days) {
+      if (order.orderStatus === "completed") {
+        throw new AppError(
+          "Đơn hàng đã quá thời hạn yêu cầu hoàn trả (tối đa 7 ngày kể từ khi nhận hàng).",
+          400,
+          "RETURN_PERIOD_EXPIRED"
+        );
+      }
       throw new AppError(
-        "Chỉ có thể yêu cầu hoàn trả khi đơn hàng đang giao.",
+        "Chỉ có thể yêu cầu hoàn trả khi đơn hàng đang giao hoặc trong vòng 7 ngày sau khi nhận hàng.",
         400,
         "INVALID_ORDER_STATUS"
       );
@@ -112,14 +127,41 @@ export async function submitCustomerReturnRequest(request, response, next) {
     const payload = parseCustomerReturnRequest(request.body);
 
     const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const statusMatch =
+      payload.reason === "not_received"
+        ? { orderStatus: "shipping" }
+        : {
+            $or: [
+              { orderStatus: "shipping" },
+              {
+                orderStatus: "completed",
+                $or: [
+                  {
+                    statusHistory: {
+                      $elemMatch: {
+                        to: "completed",
+                        at: { $gte: sevenDaysAgo },
+                      },
+                    },
+                  },
+                  {
+                    statusHistory: { $not: { $elemMatch: { to: "completed" } } },
+                    updatedAt: { $gte: sevenDaysAgo },
+                  },
+                ],
+              },
+            ],
+          };
+
     const updateResult = await Order.updateOne(
       {
         _id: id,
         customerId: request.user._id,
         channel: "online",
-        orderStatus: "shipping",
         creationState: { $ne: "pending" },
         "returnRequest.status": { $exists: false },
+        ...statusMatch,
       },
       {
         $set: {
@@ -147,8 +189,21 @@ export async function submitCustomerReturnRequest(request, response, next) {
       if (order.returnRequest?.status) {
         throw new AppError("Đơn hàng đã có yêu cầu hoàn trả.", 409, "DUPLICATE_RETURN_REQUEST");
       }
-      if (order.orderStatus !== "shipping") {
-        throw new AppError("Chỉ có thể gửi yêu cầu hoàn trả khi đơn hàng đang giao.", 409, "INVALID_ORDER_TRANSITION");
+      if (order.orderStatus === "completed" && payload.reason === "not_received") {
+        throw new AppError(
+          "Đơn hàng đã được xác nhận nhận hàng, không thể chọn lý do chưa nhận được hàng.",
+          400,
+          "INVALID_RETURN_REASON"
+        );
+      }
+      if (!["shipping", "completed"].includes(order.orderStatus)) {
+        throw new AppError("Chỉ có thể gửi yêu cầu hoàn trả khi đơn hàng đang giao hoặc trong vòng 7 ngày sau khi nhận hàng.", 409, "INVALID_ORDER_TRANSITION");
+      }
+      if (order.orderStatus === "completed") {
+        const completedAt = resolveCompletedAt(order);
+        if (completedAt && now.getTime() - completedAt.getTime() > 7 * 24 * 60 * 60 * 1000) {
+          throw new AppError("Đơn hàng đã quá thời hạn yêu cầu hoàn trả (tối đa 7 ngày kể từ khi nhận hàng).", 400, "RETURN_PERIOD_EXPIRED");
+        }
       }
       throw new AppError("Không thể gửi yêu cầu hoàn trả vào lúc này.", 409, "RETURN_REQUEST_CONFLICT");
     }
@@ -166,6 +221,79 @@ export async function submitCustomerReturnRequest(request, response, next) {
           refundRequired: false,
           refundStatus: "none",
           requestedAt: now.toISOString(),
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /api/v1/orders/:id/return/confirm-shipped
+ * Khách hàng bấm "Xác nhận đã gửi trả hàng" sau khi Staff đã duyệt yêu cầu
+ */
+export async function confirmCustomerReturnShipped(request, response, next) {
+  try {
+    const { id } = request.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new AppError("Không tìm thấy đơn hàng.", 404, "ORDER_NOT_FOUND");
+    }
+
+    const now = new Date();
+    const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+    const updateResult = await Order.updateOne(
+      {
+        _id: id,
+        customerId: request.user._id,
+        channel: "online",
+        creationState: { $ne: "pending" },
+        "returnRequest.status": "approved",
+        $or: [
+          { "returnRequest.approvedAt": { $exists: false } },
+          { "returnRequest.approvedAt": null },
+          { "returnRequest.approvedAt": { $gte: threeDaysAgo } },
+        ],
+      },
+      {
+        $set: {
+          "returnRequest.status": "customer_shipped",
+          "returnRequest.customerShippedAt": now,
+        },
+      },
+      { runValidators: true }
+    );
+
+    if (updateResult.modifiedCount !== 1) {
+      const order = await Order.findById(id).lean();
+      if (!order || String(order.customerId) !== String(request.user._id) || order.creationState === "pending") {
+        throw new AppError("Không tìm thấy đơn hàng.", 404, "ORDER_NOT_FOUND");
+      }
+      if (!order.returnRequest?.status) {
+        throw new AppError("Đơn hàng chưa có yêu cầu hoàn trả.", 404, "RETURN_NOT_FOUND");
+      }
+      if (order.returnRequest.status !== "approved") {
+        throw new AppError("Chỉ có thể xác nhận gửi hàng khi yêu cầu đã được duyệt.", 409, "INVALID_RETURN_STATE");
+      }
+      if (
+        order.returnRequest.approvedAt &&
+        new Date(order.returnRequest.approvedAt).getTime() < threeDaysAgo.getTime()
+      ) {
+        throw new AppError("Yêu cầu hoàn trả đã quá hạn gửi hàng (3 ngày).", 400, "RETURN_SHIPPING_EXPIRED");
+      }
+      throw new AppError("Không thể xác nhận gửi hàng vào lúc này.", 409, "RETURN_CONFLICT");
+    }
+
+    response.set("Cache-Control", "no-store");
+    response.json({
+      success: true,
+      data: {
+        orderId: String(id),
+        status: "customer_shipped",
+        customerShippedAt: now.toISOString(),
+        returnRequest: {
+          status: "customer_shipped",
+          customerShippedAt: now.toISOString(),
         },
       },
     });
@@ -236,6 +364,9 @@ export async function listStaffReturns(request, response, next) {
       all: 0,
       pending: 0,
       approved: 0,
+      customer_shipped: 0,
+      received: 0,
+      completed: 0,
       rejected: 0,
     };
     for (const group of countsAggregate) {
@@ -270,7 +401,12 @@ export async function listStaffReturns(request, response, next) {
           status: req.status,
           refundRequired: Boolean(req.refundRequired),
           refundStatus: req.refundStatus || "none",
+          refundAmount: req.refundAmount || null,
           requestedAt: req.requestedAt ? req.requestedAt.toISOString() : null,
+          approvedAt: req.approvedAt ? req.approvedAt.toISOString() : null,
+          customerShippedAt: req.customerShippedAt ? req.customerShippedAt.toISOString() : null,
+          receivedAt: req.receivedAt ? req.receivedAt.toISOString() : null,
+          completedAt: req.completedAt ? req.completedAt.toISOString() : null,
           reviewedAt: req.reviewedAt ? req.reviewedAt.toISOString() : null,
           reviewedByName: req.reviewedBy?.name || null,
           rejectionReason: req.rejectionReason || null,
@@ -371,7 +507,12 @@ export async function getStaffReturnDetail(request, response, next) {
           status: req.status,
           refundRequired: Boolean(req.refundRequired),
           refundStatus: req.refundStatus || "none",
+          refundAmount: req.refundAmount || null,
           requestedAt: req.requestedAt ? req.requestedAt.toISOString() : null,
+          approvedAt: req.approvedAt ? req.approvedAt.toISOString() : null,
+          customerShippedAt: req.customerShippedAt ? req.customerShippedAt.toISOString() : null,
+          receivedAt: req.receivedAt ? req.receivedAt.toISOString() : null,
+          completedAt: req.completedAt ? req.completedAt.toISOString() : null,
           reviewedAt: req.reviewedAt ? req.reviewedAt.toISOString() : null,
           reviewedByName: req.reviewedBy?.name || null,
           rejectionReason: req.rejectionReason || null,
@@ -384,13 +525,88 @@ export async function getStaffReturnDetail(request, response, next) {
 }
 
 /**
+ * POST /api/v1/staff/returns/:id/receive
+ * Nhân viên bấm "Đã nhận được hàng" khi kiện hàng hoàn về đến cửa hàng
+ */
+export async function receiveStaffReturn(request, response, next) {
+  try {
+    const id = parseOrderId(request.params);
+    const now = new Date();
+    const staffId = request.user._id;
+
+    const updateResult = await Order.updateOne(
+      {
+        _id: id,
+        creationState: { $ne: "pending" },
+        "returnRequest.status": "customer_shipped",
+      },
+      {
+        $set: {
+          "returnRequest.status": "received",
+          "returnRequest.receivedAt": now,
+          "returnRequest.reviewedBy": staffId,
+        },
+      },
+      { runValidators: true }
+    );
+
+    if (updateResult.modifiedCount !== 1) {
+      const order = await Order.findById(id).lean();
+      if (!order || order.creationState === "pending") {
+        throw new AppError("Không tìm thấy đơn hàng.", 404, "ORDER_NOT_FOUND");
+      }
+      if (!order.returnRequest?.status) {
+        throw new AppError("Đơn hàng không có yêu cầu hoàn trả.", 404, "RETURN_NOT_FOUND");
+      }
+      if (order.returnRequest.status !== "customer_shipped") {
+        throw new AppError(
+          "Chỉ có thể xác nhận nhận hàng khi khách đã gửi trả hàng.",
+          409,
+          "INVALID_RETURN_STATE"
+        );
+      }
+      throw new AppError(
+        "Yêu cầu hoàn trả đã được cập nhật bởi nhân viên khác.",
+        409,
+        "RETURN_CONFLICT"
+      );
+    }
+
+    await AuditLog.create({
+      actorId: staffId,
+      action: "order.return.receive",
+      target: { collectionName: "orders", id: String(id) },
+      summary: `Nhân viên xác nhận đã nhận được hàng hoàn cho đơn hàng ${id}`,
+      after: {
+        orderId: String(id),
+        status: "received",
+        receivedAt: now,
+      },
+      at: now,
+    });
+
+    response.set("Cache-Control", "no-store");
+    response.json({
+      success: true,
+      data: {
+        orderId: String(id),
+        status: "received",
+        receivedAt: now.toISOString(),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
  * POST /api/v1/staff/returns/:id/decision
- * Staff phê duyệt hoặc từ chối yêu cầu hoàn trả
+ * Staff phê duyệt hoặc từ chối yêu cầu hoàn trả (hỗ trợ cả chu trình 4 bước và legacy 1 bước)
  */
 export async function decideStaffReturn(request, response, next) {
   try {
     const id = parseOrderId(request.params);
-    const { decision, rejectionReason } = parseStaffReturnDecision(request.body);
+    const { action, decision, refundAmount, rejectionReason } = parseStaffReturnDecision(request.body);
 
     const existingOrder = await Order.findById(id).lean();
     if (!existingOrder || existingOrder.creationState === "pending") {
@@ -401,17 +617,198 @@ export async function decideStaffReturn(request, response, next) {
       throw new AppError("Đơn hàng không có yêu cầu hoàn trả.", 404, "RETURN_NOT_FOUND");
     }
 
-    if (existingOrder.returnRequest.status !== "pending") {
+    const currentStatus = existingOrder.returnRequest.status;
+    if (currentStatus === "completed" || currentStatus === "rejected") {
       throw new AppError("Yêu cầu hoàn trả đã được xử lý trước đó.", 409, "RETURN_REQUEST_ALREADY_REVIEWED");
-    }
-
-    if (existingOrder.orderStatus !== "shipping" || existingOrder.channel !== "online") {
-      throw new AppError("Đơn hàng không ở trạng thái hợp lệ để xử lý hoàn trả.", 409, "INVALID_ORDER_TRANSITION");
     }
 
     const now = new Date();
     const staffId = request.user._id;
 
+    // 1. Phê duyệt ban đầu (Staff cho phép khách gửi hàng)
+    if (action === "approve_request") {
+      if (currentStatus !== "pending") {
+        throw new AppError("Chỉ có thể duyệt yêu cầu khi đang ở trạng thái chờ duyệt.", 409, "INVALID_RETURN_STATE");
+      }
+
+      const updateResult = await Order.updateOne(
+        {
+          _id: id,
+          channel: "online",
+          "returnRequest.status": "pending",
+        },
+        {
+          $set: {
+            "returnRequest.status": "approved",
+            "returnRequest.approvedAt": now,
+            "returnRequest.reviewedBy": staffId,
+            "returnRequest.reviewedAt": now,
+          },
+        },
+        { runValidators: true }
+      );
+
+      if (updateResult.modifiedCount !== 1) {
+        throw new AppError("Yêu cầu hoàn trả đã được xử lý bởi nhân viên khác.", 409, "RETURN_DECISION_CONFLICT");
+      }
+
+      await AuditLog.create({
+        actorId: staffId,
+        action: "order.return.approve_request",
+        target: { collectionName: "orders", id: String(id) },
+        summary: `Chấp nhận yêu cầu hoàn trả ban đầu cho đơn hàng ${existingOrder.orderCode}`,
+        after: {
+          orderCode: existingOrder.orderCode,
+          status: "approved",
+        },
+        at: now,
+      });
+
+      response.set("Cache-Control", "no-store");
+      return response.json({
+        success: true,
+        data: {
+          orderId: String(id),
+          decision: "approve",
+          action: "approve_request",
+          status: "approved",
+          approvedAt: now.toISOString(),
+        },
+      });
+    }
+
+    // 2. Quyết định hoàn tiền sau khi đã nhận được hàng (complete_refund)
+    if (action === "complete_refund") {
+      if (currentStatus !== "received") {
+        throw new AppError("Chỉ có thể hoàn tiền sau khi đã nhận được hàng.", 409, "INVALID_RETURN_STATE");
+      }
+
+      const finalRefundAmount = typeof refundAmount === "number" ? refundAmount : existingOrder.total;
+      const updateResult = await Order.updateOne(
+        {
+          _id: id,
+          channel: "online",
+          "returnRequest.status": "received",
+        },
+        {
+          $set: {
+            orderStatus: "returned",
+            paymentStatus: "paid",
+            paidAmount: existingOrder.total,
+            "returnRequest.status": "completed",
+            "returnRequest.completedAt": now,
+            "returnRequest.refundAmount": finalRefundAmount,
+            "returnRequest.refundRequired": true,
+            "returnRequest.refundStatus": "refunded",
+            "returnRequest.reviewedBy": staffId,
+            "returnRequest.reviewedAt": now,
+          },
+          $push: {
+            statusHistory: {
+              from: existingOrder.orderStatus,
+              to: "returned",
+              by: staffId,
+              at: now,
+            },
+          },
+        },
+        { runValidators: true }
+      );
+
+      if (updateResult.modifiedCount !== 1) {
+        throw new AppError("Yêu cầu hoàn trả đã được xử lý bởi nhân viên khác.", 409, "RETURN_DECISION_CONFLICT");
+      }
+
+      // Hoàn kho tồn sản phẩm
+      for (const item of existingOrder.items || []) {
+        if (item.productId && item.variantSku && item.qty > 0) {
+          await Product.updateOne(
+            { _id: item.productId, "variants.sku": item.variantSku },
+            { $inc: { "variants.$.stock": item.qty } }
+          );
+        }
+      }
+
+      await AuditLog.create({
+        actorId: staffId,
+        action: "order.return.complete_refund",
+        target: { collectionName: "orders", id: String(id) },
+        summary: `Hoàn tất hoàn tiền ${finalRefundAmount} đ cho đơn hàng ${existingOrder.orderCode}`,
+        after: {
+          orderCode: existingOrder.orderCode,
+          orderStatus: "returned",
+          refundStatus: "refunded",
+          refundAmount: finalRefundAmount,
+        },
+        at: now,
+      });
+
+      response.set("Cache-Control", "no-store");
+      return response.json({
+        success: true,
+        data: {
+          orderId: String(id),
+          decision: "approve",
+          action: "complete_refund",
+          status: "completed",
+          orderStatus: "returned",
+          paymentStatus: "paid",
+          refundRequired: true,
+          refundStatus: "refunded",
+          refundAmount: finalRefundAmount,
+        },
+      });
+    }
+
+    // 3. Từ chối yêu cầu (reject_request hoặc reject_refund hoặc decision === "reject")
+    if (decision === "reject" || action === "reject_request" || action === "reject_refund") {
+      const trimmedReason = rejectionReason.trim();
+      const updateResult = await Order.updateOne(
+        {
+          _id: id,
+          channel: "online",
+          "returnRequest.status": { $in: ["pending", "customer_shipped", "received", "approved"] },
+        },
+        {
+          $set: {
+            "returnRequest.status": "rejected",
+            "returnRequest.rejectionReason": trimmedReason,
+            "returnRequest.reviewedBy": staffId,
+            "returnRequest.reviewedAt": now,
+          },
+        },
+        { runValidators: true }
+      );
+
+      if (updateResult.modifiedCount !== 1) {
+        throw new AppError("Yêu cầu hoàn trả đã được xử lý bởi nhân viên khác.", 409, "RETURN_DECISION_CONFLICT");
+      }
+
+      await AuditLog.create({
+        actorId: staffId,
+        action: "order.return.reject",
+        target: { collectionName: "orders", id: String(id) },
+        summary: `Từ chối hoàn trả đơn hàng ${existingOrder.orderCode}: ${trimmedReason}`,
+        after: {
+          orderCode: existingOrder.orderCode,
+          rejectionReason: trimmedReason,
+        },
+        at: now,
+      });
+
+      response.set("Cache-Control", "no-store");
+      return response.json({
+        success: true,
+        data: {
+          orderId: String(id),
+          decision: "reject",
+          status: "rejected",
+          rejectionReason: trimmedReason,
+        },
+      });
+    }
+
+    // 4. Fallback legacy approve (cho các unit test cũ gửi { decision: "approve" } từ pending)
     if (decision === "approve") {
       const isOnlinePaid = existingOrder.paymentMethod === "ONLINE" && existingOrder.paymentStatus === "paid";
       const refundRequired = isOnlinePaid;
@@ -427,6 +824,8 @@ export async function decideStaffReturn(request, response, next) {
         {
           $set: {
             orderStatus: "returned",
+            paymentStatus: "paid",
+            paidAmount: existingOrder.total,
             "returnRequest.status": "approved",
             "returnRequest.refundRequired": refundRequired,
             "returnRequest.refundStatus": refundStatus,
@@ -449,7 +848,6 @@ export async function decideStaffReturn(request, response, next) {
         throw new AppError("Yêu cầu hoàn trả đã được xử lý bởi nhân viên khác.", 409, "RETURN_DECISION_CONFLICT");
       }
 
-      // Restock inventory for all items
       for (const item of existingOrder.items || []) {
         if (item.productId && item.variantSku && item.qty > 0) {
           await Product.updateOne(
@@ -459,7 +857,6 @@ export async function decideStaffReturn(request, response, next) {
         }
       }
 
-      // Audit Log
       await AuditLog.create({
         actorId: staffId,
         action: "order.return.approve",
@@ -484,55 +881,6 @@ export async function decideStaffReturn(request, response, next) {
           orderStatus: "returned",
           refundRequired,
           refundStatus,
-        },
-      });
-    }
-
-    if (decision === "reject") {
-      const trimmedReason = rejectionReason.trim();
-      const updateResult = await Order.updateOne(
-        {
-          _id: id,
-          channel: "online",
-          orderStatus: "shipping",
-          "returnRequest.status": "pending",
-        },
-        {
-          $set: {
-            "returnRequest.status": "rejected",
-            "returnRequest.rejectionReason": trimmedReason,
-            "returnRequest.reviewedBy": staffId,
-            "returnRequest.reviewedAt": now,
-          },
-        },
-        { runValidators: true }
-      );
-
-      if (updateResult.modifiedCount !== 1) {
-        throw new AppError("Yêu cầu hoàn trả đã được xử lý bởi nhân viên khác.", 409, "RETURN_DECISION_CONFLICT");
-      }
-
-      // Audit Log
-      await AuditLog.create({
-        actorId: staffId,
-        action: "order.return.reject",
-        target: { collectionName: "orders", id: String(id) },
-        summary: `Từ chối hoàn trả đơn hàng ${existingOrder.orderCode}: ${trimmedReason}`,
-        after: {
-          orderCode: existingOrder.orderCode,
-          rejectionReason: trimmedReason,
-        },
-        at: now,
-      });
-
-      response.set("Cache-Control", "no-store");
-      return response.json({
-        success: true,
-        data: {
-          orderId: String(id),
-          decision: "reject",
-          status: "rejected",
-          rejectionReason: trimmedReason,
         },
       });
     }

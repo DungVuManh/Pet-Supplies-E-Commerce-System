@@ -21,11 +21,15 @@ const csrfPattern = /^[A-Za-z0-9_-]{43}$/;
 
 const returnMessages: Record<string, string> = {
   ORDER_NOT_FOUND: "Không tìm thấy đơn hàng.",
-  INVALID_ORDER_STATUS: "Chỉ có thể yêu cầu hoàn trả khi đơn hàng đang giao.",
+  INVALID_ORDER_STATUS: "Chỉ có thể yêu cầu hoàn trả khi đơn hàng đang giao hoặc trong vòng 7 ngày sau khi nhận hàng.",
+  INVALID_RETURN_REASON: "Đơn hàng đã được xác nhận nhận hàng, không thể chọn lý do chưa nhận được hàng.",
+  RETURN_PERIOD_EXPIRED: "Đơn hàng đã quá thời hạn yêu cầu hoàn trả (tối đa 7 ngày kể từ khi nhận hàng).",
   DUPLICATE_RETURN_REQUEST: "Đơn hàng đã có yêu cầu hoàn trả.",
   RETURN_REQUEST_ACTIVE: "Đơn hàng đang có yêu cầu hoàn trả chưa thể xử lý lại.",
   INVALID_ORDER_TRANSITION: "Trạng thái đơn hàng không hợp lệ để gửi yêu cầu hoàn trả.",
   RETURN_REQUEST_CONFLICT: "Không thể gửi yêu cầu hoàn trả vào lúc này. Vui lòng thử lại.",
+  RETURN_REQUEST_NOT_APPROVED: "Yêu cầu hoàn trả chưa được duyệt hoặc không ở trạng thái chờ gửi hàng.",
+  RETURN_SHIPPING_EXPIRED: "Yêu cầu hoàn trả đã quá hạn gửi hàng (3 ngày).",
   VALIDATION_ERROR: "Thông tin hoàn trả chưa hợp lệ. Vui lòng kiểm tra lại lý do, mô tả và hình ảnh.",
   NO_FILES: "Vui lòng chọn ít nhất 1 ảnh minh chứng.",
   TOO_MANY_FILES: "Chỉ được tải lên tối đa 5 ảnh cho mỗi yêu cầu.",
@@ -175,6 +179,57 @@ export async function submitOrderReturnApi(
       "INVALID_RESPONSE"
     );
   }
+
+  return { returnRequest };
+}
+
+/**
+ * Khách hàng xác nhận 1-chạm đã đóng gói gửi trả hàng về shop
+ */
+export async function confirmReturnShippedApi(
+  orderId: string
+): Promise<{ returnRequest: Partial<CustomerOrderReturnRequest> }> {
+  const csrfToken = await fetchCsrfToken();
+
+  let response: Response;
+  try {
+    response = await fetch(`/api/v1/orders/${encodeURIComponent(orderId)}/return/confirm-shipped`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken,
+      },
+      credentials: "include",
+      cache: "no-store",
+    });
+  } catch {
+    throw new OrderReturnApiError(
+      "Chưa thể xác nhận đã gửi hàng. Hãy tải lại trang để kiểm tra.",
+      0,
+      "NETWORK_ERROR"
+    );
+  }
+
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    const code = body?.error?.code || "REQUEST_FAILED";
+    const message = body?.message || returnMessages[code] || "Xác nhận gửi hàng thất bại.";
+    throw new OrderReturnApiError(message, response.status, code);
+  }
+
+  const data = body?.data;
+  if (!body?.success || !data) {
+    throw new OrderReturnApiError(
+      "Phản hồi xác nhận gửi hàng chưa hợp lệ.",
+      502,
+      "INVALID_RESPONSE"
+    );
+  }
+
+  const returnRequest = data.returnRequest || {
+    status: data.status,
+    customerShippedAt: data.customerShippedAt,
+  };
 
   return { returnRequest };
 }

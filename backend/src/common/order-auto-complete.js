@@ -31,6 +31,26 @@ export function resolveShippingStartedAt(order) {
 }
 
 /**
+ * Resolves when an order entered the `completed` state using the latest matching
+ * `statusHistory` record, falling back to `updatedAt` or `createdAt` for legacy rows.
+ */
+export function resolveCompletedAt(order) {
+  if (!order) return null;
+
+  const history = Array.isArray(order.statusHistory) ? order.statusHistory : [];
+  for (let index = history.length - 1; index >= 0; index -= 1) {
+    const entry = history[index];
+    if (entry?.to === "completed") {
+      const completedDate = parseValidDate(entry.at);
+      if (completedDate) return completedDate;
+    }
+  }
+
+  return parseValidDate(order.updatedAt) || parseValidDate(order.createdAt);
+}
+
+
+/**
  * Checks whether an online order has remained in `shipping` for at least `thresholdMs`
  * (default 72 hours) without customer confirmation or cancellation.
  */
@@ -44,8 +64,15 @@ export function isShippingOrderOverdue(
   if (order.creationState === "pending") return false;
   if (order.orderStatus !== "shipping") return false;
 
-  // Skip orders with pending or approved return request
-  if (order.returnRequest?.status === "pending" || order.returnRequest?.status === "approved") {
+  // Skip orders with active or completed return request
+  const nonCompletableReturnStatuses = [
+    "pending",
+    "approved",
+    "customer_shipped",
+    "received",
+    "completed",
+  ];
+  if (nonCompletableReturnStatuses.includes(order.returnRequest?.status)) {
     return false;
   }
 
@@ -132,7 +159,9 @@ export async function autoCompleteOverdueShippingOrders({
           orderStatus: "shipping",
           paymentStatus: candidate.paymentStatus,
           creationState: { $ne: "pending" },
-          "returnRequest.status": { $nin: ["pending", "approved"] },
+          "returnRequest.status": {
+            $nin: ["pending", "approved", "customer_shipped", "received", "completed"],
+          },
         },
         {
           $set: updateFields,

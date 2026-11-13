@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  title: Pet Supplies - Order Returns & Staff Review API
-  description: API gửi yêu cầu hoàn trả hàng kèm ảnh Cloudinary cho khách hàng và quản lý/duyệt hoàn trả cho Staff.
-  version: 1.0.0
+  title: Pet Supplies - Order Returns Workflow API
+  description: API quy trình hoàn trả hàng 4 giai đoạn giữa Khách hàng và Nhân viên (Staff).
+  version: 1.1.0
 servers:
   - url: http://localhost:3001/api/v1
     description: Local Backend Server
@@ -11,7 +11,7 @@ paths:
   /orders/{id}/return/upload:
     post:
       summary: Tải lên ảnh minh chứng hoàn trả hàng lên Cloudinary
-      description: Chỉ chủ sở hữu đơn hàng ở trạng thái Đang giao chưa có yêu cầu hoàn trả được tải lên 1–5 ảnh (JPG/PNG/WEBP, <=5MB/ảnh). Bảo vệ CSRF multipart + Origin + Role customer.
+      description: Khách hàng tải lên 1–5 ảnh (JPG/PNG/WEBP, <=5MB/ảnh) cho đơn hàng.
       tags:
         - Customer Returns
       security:
@@ -36,40 +36,16 @@ paths:
                     format: binary
       responses:
         '200':
-          description: Tải ảnh lên Cloudinary thành công
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-                    properties:
-                      urls:
-                        type: array
-                        items:
-                          type: string
+          description: Tải ảnh thành công
         '400':
-          $ref: '#/components/responses/ErrorResponse'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '403':
-          $ref: '#/components/responses/ErrorResponse'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '409':
           $ref: '#/components/responses/ErrorResponse'
 
   /orders/{id}/return:
     post:
-      summary: Gửi yêu cầu hoàn trả hàng cho đơn hàng Đang giao
+      summary: Gửi yêu cầu hoàn trả đơn hàng ban đầu
+      description: Khách hàng gửi lý do, thông tin ngân hàng, mô tả và ảnh minh chứng.
       tags:
         - Customer Returns
-      security:
-        - sessionCookie: []
-        - csrfToken: []
       parameters:
         - $ref: '#/components/parameters/OrderIdParam'
       requestBody:
@@ -79,7 +55,6 @@ paths:
             schema:
               type: object
               required: [reason, description, bankAccount]
-              additionalProperties: false
               properties:
                 reason:
                   type: string
@@ -87,108 +62,82 @@ paths:
                 bankAccount:
                   type: object
                   required: [bankName, accountNumber, accountHolder]
-                  additionalProperties: false
                   properties:
                     bankName:
                       type: string
-                      minLength: 2
-                      maxLength: 100
                     accountNumber:
                       type: string
-                      minLength: 6
-                      maxLength: 30
                     accountHolder:
                       type: string
-                      minLength: 2
-                      maxLength: 100
                 description:
                   type: string
-                  minLength: 10
-                  maxLength: 1000
                 images:
                   type: array
-                  maxItems: 5
                   items:
                     type: string
       responses:
-        '201':
-          description: Gửi yêu cầu hoàn trả thành công (trạng thái pending)
-        '400':
-          $ref: '#/components/responses/ErrorResponse'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '403':
-          $ref: '#/components/responses/ErrorResponse'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '409':
-          $ref: '#/components/responses/ErrorResponse'
-
-  /staff/returns:
-    get:
-      summary: Lấy danh sách yêu cầu hoàn trả hàng cho Staff
-      tags:
-        - Staff Returns
-      security:
-        - sessionCookie: []
-      parameters:
-        - in: query
-          name: status
-          schema:
-            type: string
-            enum: [all, pending, approved, rejected]
-            default: all
-        - in: query
-          name: query
-          schema:
-            type: string
-        - in: query
-          name: page
-          schema:
-            type: integer
-            default: 1
-        - in: query
-          name: pageSize
-          schema:
-            type: integer
-            default: 10
-      responses:
         '200':
-          description: Danh sách yêu cầu hoàn trả kèm summary counts
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '403':
-          $ref: '#/components/responses/ErrorResponse'
+          description: Tạo yêu cầu hoàn trả thành công
 
-  /staff/returns/{id}:
-    get:
-      summary: Xem chi tiết yêu cầu hoàn trả hàng & ảnh minh chứng
+  /orders/{id}/return/confirm-shipped:
+    post:
+      summary: Khách hàng xác nhận đã gửi trả hàng về cho cửa hàng
+      description: Sau khi Staff duyệt yêu cầu hoàn trả ban đầu, khách hàng bấm xác nhận đã gửi hàng.
       tags:
-        - Staff Returns
-      security:
-        - sessionCookie: []
+        - Customer Returns
       parameters:
         - $ref: '#/components/parameters/OrderIdParam'
       responses:
         '200':
-          description: Chi tiết yêu cầu hoàn trả và đơn hàng liên kết
-        '400':
-          $ref: '#/components/responses/ErrorResponse'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '403':
-          $ref: '#/components/responses/ErrorResponse'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
+          description: Xác nhận đã gửi hàng thành công
+
+  /staff/returns:
+    get:
+      summary: Lấy danh sách yêu cầu hoàn trả cho Staff
+      tags:
+        - Staff Returns
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [all, pending, approved, customer_shipped, received, completed, rejected]
+        - name: q
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Danh sách yêu cầu hoàn trả
+
+  /staff/returns/{id}:
+    get:
+      summary: Lấy chi tiết một yêu cầu hoàn trả cho Staff
+      tags:
+        - Staff Returns
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      responses:
+        '200':
+          description: Chi tiết yêu cầu hoàn trả kèm thông tin đơn và tài khoản hoàn tiền
+
+  /staff/returns/{id}/receive:
+    post:
+      summary: Nhân viên xác nhận đã nhận được hàng gửi trả tại cửa hàng
+      tags:
+        - Staff Returns
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      responses:
+        '200':
+          description: Cập nhật đã nhận được kiện hàng hoàn trả
 
   /staff/returns/{id}/decision:
     post:
-      summary: Staff phê duyệt hoặc từ chối yêu cầu hoàn trả hàng
+      summary: Nhân viên ra quyết định xử lý hoàn trả
+      description: Duyệt yêu cầu ban đầu (approve_request/reject_request) hoặc Quyết định hoàn tiền sau khi nhận hàng (complete_refund/reject_refund).
       tags:
         - Staff Returns
-      security:
-        - sessionCookie: []
-        - csrfToken: []
       parameters:
         - $ref: '#/components/parameters/OrderIdParam'
       requestBody:
@@ -197,53 +146,30 @@ paths:
           application/json:
             schema:
               type: object
-              required: [decision]
-              additionalProperties: false
+              required: [action]
               properties:
-                decision:
+                action:
                   type: string
-                  enum: [approve, reject]
+                  enum: [approve_request, reject_request, complete_refund, reject_refund]
                 rejectionReason:
                   type: string
                   minLength: 5
                   maxLength: 500
       responses:
         '200':
-          description: Đã xử lý yêu cầu hoàn trả thành công
-        '400':
-          $ref: '#/components/responses/ErrorResponse'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '403':
-          $ref: '#/components/responses/ErrorResponse'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '409':
-          $ref: '#/components/responses/ErrorResponse'
+          description: Xử lý quyết định thành công
 
 components:
-  securitySchemes:
-    sessionCookie:
-      type: apiKey
-      in: cookie
-      name: petly-session
-    csrfToken:
-      type: apiKey
-      in: header
-      name: X-CSRF-Token
-
   parameters:
     OrderIdParam:
-      in: path
       name: id
+      in: path
       required: true
       schema:
         type: string
-        pattern: '^[0-9a-fA-F]{24}$'
-
   responses:
     ErrorResponse:
-      description: Lỗi chuẩn của hệ thống
+      description: Phản hồi lỗi chuẩn
       content:
         application/json:
           schema:
@@ -259,4 +185,3 @@ components:
                 properties:
                   code:
                     type: string
-

@@ -1,57 +1,38 @@
-# Research: Yêu Cầu Hoàn Trả Đơn Hàng & Duyệt Hoàn Đơn (Order Returns)
+# Research: Quy Trình Hoàn Trả Đơn Hàng Nhiều Bước & UI Timeline (Order Returns Workflow)
 
-**Feature Directory**: `docs/specs/order-returns` | **Date**: 2026-11-12 | **Spec**: [spec.md](./spec.md)
-
-## 1. Khảo sát hiện trạng mã nguồn
-
-### 1.1. Luồng giao nhận và tự động hoàn thành hiện tại
-- Đơn hàng trực tuyến ở trạng thái `shipping` (`Đang giao`) hiện cho phép chủ đơn nhấn **"Đã nhận được hàng"** qua `PATCH /api/v1/orders/:id/receipt-confirmation` ([order-status.controller.js](file:///E:/Pet-Supplies-E-Commerce-System/backend/src/controllers/order-status.controller.js)).
-- Tác vụ tự động hoàn thành sau 3 ngày ([order-auto-complete.js](file:///E:/Pet-Supplies-E-Commerce-System/backend/src/common/order-auto-complete.js)) quét tất cả đơn `channel: "online"`, `orderStatus: "shipping"`, đủ 72 giờ để chuyển sang `completed`.
-- **Điểm cần đồng bộ**:
-  - Cần bổ sung chặn không cho khách bấm `"Đã nhận được hàng"` khi đang có yêu cầu hoàn trả `pending` hoặc đã `approved`.
-  - Tác vụ tự động hoàn thành sau 72 giờ phải bỏ qua đơn có yêu cầu hoàn trả đang `pending` hoặc `approved` (`FR-005`). Nếu yêu cầu hoàn trả bị Staff từ chối (`rejected`), cấp thêm khoảng đệm tối thiểu 24 giờ kể từ lúc từ chối (nếu đã qua 72h từ `shippedAt`) để khách kịp xem lý do từ chối hoặc bấm nhận hàng trước khi tự động hoàn thành.
-
-### 1.2. Hiện trạng Upload Cloudinary và Bảo vệ CSRF
-- Hệ thống đã tích hợp `cloudinary` v2 (`backend/src/config/cloudinary.js`) và `multer` v2.5.0 (`memoryStorage`) trong [review.router.js](file:///E:/Pet-Supplies-E-Commerce-System/backend/src/routers/review.router.js) và [review.controller.js](file:///E:/Pet-Supplies-E-Commerce-System/backend/src/controllers/review.controller.js).
-- Tuy nhiên:
-  - `protectMutation` trong `backend/src/controllers/auth.controller.js` bắt buộc `request.is("application/json")`, nên không áp dụng trực tiếp được lên route nhận `multipart/form-data`.
-  - `review.router.js` chỉ kiểm tra `file.mimetype.startsWith("image/")` (có nguy cơ cho phép `image/svg+xml`).
-- **Giải pháp chuẩn hóa**: Tạo helper `protectMultipartMutation` (kiểm tra `CORS_ORIGIN`, `multipart/form-data`, và cặp `X-CSRF-Token` / cookie giống `protectMutation`) cùng helper upload Cloudinary dùng chung giới hạn chặt allowlist MIME `["image/jpeg", "image/png", "image/webp"]`, tối đa 5MB/ảnh, tối đa 5 ảnh/yêu cầu, thư mục Cloudinary `petjoy/returns`.
-
-### 1.3. Hiện trạng Enum trạng thái đơn hàng & Tác động liên module
-- Enum `orderStatuses` (`shared.schema.js`) hiện có 6 giá trị: `pending`, `confirmed`, `processing`, `shipping`, `completed`, `cancelled`.
-- `backend/tests/models.test.js` kiểm tra danh sách cố định 17 model xuất từ `backend/src/models/index.js`.
-- `frontend/tests/staff-orders.test.mjs` kiểm tra `orderStatusLabels` và `orderStatusTones` khớp toàn bộ trạng thái Staff.
-- `backend/src/controllers/admin-finance.controller.js` tính hoàn tiền từ `cancelledPaid` và `netRevenue` từ `completed` trừ hoàn tiền.
-- `backend/src/controllers/order.controller.js` (`createOrder`) trừ trực tiếp `variants.$.stock` khi tạo đơn.
+**Feature Directory**: `docs/specs/order-returns` | **Date**: 2026-11-13 | **Spec**: [spec.md](./spec.md)
 
 ---
 
-## 2. Các quyết định kỹ thuật (Phase 0 Decisions)
+## 1. Khảo sát hiện trạng mã nguồn & Nhu cầu nâng cấp
 
-### Decision 1: Lưu trữ `returnRequest` nguyên tử ngay trên document `Order`
-- **Decision**: Thêm trường lồng ghép `returnRequest` (subdocument đơn, tùy chọn) trên `Order` thay vì tách collection riêng; kết hợp index `{ "returnRequest.status": 1, "returnRequest.requestedAt": -1 }`.
-- **Rationale**:
-  - Theo `Q3: A`, quan hệ giữa Đơn hàng và Yêu cầu hoàn trả là **1 : 0..1** (mỗi đơn tối đa 1 yêu cầu duy nhất).
-  - Do dự án chạy MongoDB standalone (không có multi-document transaction theo `CLAUDE.md`), việc lưu trên `Order` cho phép kiểm tra điều kiện và cập nhật trạng thái đơn + yêu cầu hoàn trả + lịch sử trạng thái chỉ trong **một lệnh `Order.updateOne` nguyên tử duy nhất**:
-    - Khách gửi yêu cầu (`Order.updateOne` lọc `orderStatus: "shipping"`, `"returnRequest.status": { $exists: false }`) chặn triệt để gửi trùng lặp hay cạnh tranh với nút nhận hàng.
-    - Staff duyệt (`Order.updateOne` lọc `orderStatus: "shipping"`, `"returnRequest.status": "pending"`) chỉ trả `modifiedCount: 1` đúng 1 lần duy nhất (`SC-004`), ngăn tuyệt đối 2 nhân viên cùng bấm duyệt làm cộng tồn kho 2 lần.
-  - Giữ nguyên danh sách 17 model xuất ra ở `backend/src/models/index.js`, không phá vỡ test kiểm soát SRS model.
-- **Alternatives considered**:
-  - *Tạo collection `ReturnRequest` riêng*: Trên MongoDB standalone dễ phát sinh trạng thái nửa vời khi ghi `ReturnRequest` xong mà ghi `Order` thất bại hoặc khi hai nhân viên duyệt đồng thời.
+### 1.1. Luồng hoàn trả cũ và vấn đề tồn tại
+- Trước đây, khi Staff bấm "Chấp nhận hoàn trả", hệ thống lập tức chuyển đơn sang `returned`, hoàn kho và đánh dấu hoàn tiền.
+- **Hạn chế thực tế**:
+  1. Hàng chưa về đến shop mà kho đã được cộng lại, tiềm ẩn nguy cơ sai lệch tồn kho nếu khách đổi ý không gửi hàng.
+  2. Khách hàng không có mốc tương tác để thông báo rằng mình đã đóng gói gửi bưu kiện đi.
+  3. Nhân viên tại shop không có bước xác nhận "Đã nhận được hàng" khi kiện hàng chuyển phát tới cửa hàng.
+  4. Thanh tiến trình đơn hàng (Timeline) trên UI chỉ hiển thị sơ sài 2 mốc (`Đã đặt hàng` -> `Đã hoàn trả`), không phản ánh quá trình xử lý hoàn đơn.
 
-### Decision 2: Bổ sung trạng thái `"returned"` (`Đã hoàn trả`) và đồng bộ hóa báo cáo/UI
-- **Decision**: Thêm `"returned"` vào `orderStatuses` trong `shared.schema.js`, đặt là trạng thái kết thúc (terminal, không nằm trong `staffOrderTransitions` cho phép sửa tay, không đủ điều kiện xuất hóa đơn bán hàng mới hoặc tiếp tục thanh toán ONLINE). Đồng thời:
-  - `admin-finance.controller.js`: tính đơn `returned` đã thanh toán (`paymentStatus: "paid"`) vào nhóm `refunds` (`{ $in: ["cancelled", "returned"] }`) và loại khỏi doanh thu bán (`completed`).
-  - `admin-inventory-report.controller.js`: loại đơn `returned` khỏi sản lượng bán ròng (`{ $nin: ["cancelled", "returned"] }`).
-  - `staff/orders/types.ts` & `admin/status.ts` & `admin/order.controller.js`: bổ sung nhãn `"Đã hoàn trả"` (tone `"danger"` / `"warning"` phù hợp) và cập nhật `frontend/tests/staff-orders.test.mjs`.
-- **Rationale**: Tuân thủ đúng `Q2: A` ("chuyển đơn hàng sang trạng thái riêng **Đã hoàn trả**, tách biệt khỏi đơn hủy thường và không tính vào doanh thu Hoàn thành") và giữ đồng nhất toàn bộ bảng lọc/thống kê Staff & Admin.
+### 1.2. Giải pháp chuẩn hóa
+- Tách chu trình hoàn đơn thành 4 giai đoạn tuần tự:
+  1. `requested` / `pending`: Khách gửi yêu cầu kèm STK ngân hàng và ảnh minh chứng.
+  2. `approved`: Staff chấp nhận cho phép gửi hàng -> Khách gửi hàng và bấm **"Xác nhận đã gửi trả hàng"** (`customer_shipped`).
+  3. `received`: Hàng về tới nơi, Staff bấm **"Đã nhận được hàng"** và tiến hành mở gói kiểm tra thực tế.
+  4. `completed`: Kiểm tra đạt chuẩn, Staff bấm **"Xác nhận hoàn tiền & Hoàn tất"** -> hoàn kho, hoàn tất chu trình.
 
-### Decision 3: Hoàn lại tồn kho sản phẩm khi Staff Chấp nhận hoàn trả (`Q2: A`)
-- **Decision**: Chỉ sau khi `Order.updateOne` nguyên tử chuyển `orderStatus: "returned"` và `returnRequest.status: "approved"` trả về `modifiedCount === 1`, vòng lặp cập nhật hoàn trả `Product.updateOne({ _id: item.productId, "variants.sku": item.variantSku }, { $inc: { "variants.$.stock": item.qty } })` và ghi nhật ký `AuditLog` (`action: "order.return.approve"` / `"order.return.reject"`).
-- **Rationale**: Vì `Order.updateOne` là chốt chặn nguyên tử đầu tiên, tồn kho chỉ bao giờ được cộng lại tối đa 1 lần cho một đơn hàng, khớp với luồng trừ trực tiếp `variants.$.stock` trong `createOrder` (`order.controller.js` dòng 203).
+---
 
-### Decision 4: Tải ảnh lên Cloudinary an toàn qua Backend trước khi gửi biểu mẫu hoàn trả
-- **Decision**: Khách hàng chọn tối đa 5 ảnh (`JPG`, `PNG`, `WEBP`, <= 5MB/ảnh); frontend gửi tới `POST /api/v1/orders/:id/return/upload` (bảo vệ bằng `readCookies`, `requireAuth`, `requireRole("customer")`, `protectMultipartMutation` + kiểm tra quyền sở hữu đơn đang `shipping` chưa có `returnRequest`). Backend đẩy lên thư mục Cloudinary `petjoy/returns` và trả danh sách `secure_url` (lọc domain Cloudinary hợp lệ khi submit `POST /api/v1/orders/:id/return`).
-- **Rationale**: Không lộ `CLOUDINARY_API_SECRET` ra client, ngăn upload rác từ người không sở hữu đơn hoặc đơn không hợp lệ, và bảo vệ CSRF đầy đủ cho upload multipart.
+## 2. Các quyết định kỹ thuật mới (Phase 0 Decisions)
 
+### Decision 5: Quy trình hoàn tiền và hoàn kho chỉ thực thi tại bước kiểm tra hàng cuối cùng
+- **Decision**: Tồn kho sản phẩm `Product.variants.$.stock` chỉ được hoàn lại khi Staff bấm "Xác nhận hoàn tiền & Hoàn tất" sau khi đã kiểm tra kiện hàng nhận về.
+- **Rationale**: Ngăn ngừa trường hợp khách gửi hàng sai, hàng bị tráo đổi, hoặc khách không bao giờ gửi hàng nhưng kho đã tự động cộng số lượng.
+
+### Decision 6: Order Timeline 4 mốc chuyên biệt cho luồng hoàn trả
+- **Decision**: Khi đơn hàng bước vào luồng hoàn trả, `getOrderDetail` và `lookupOrder` tự động sinh 4 bước timeline:
+  1. **Yêu cầu hoàn đơn**: Hoàn thành khi khách gửi form.
+  2. **Chờ xác nhận**: Đang diễn ra khi Staff duyệt và khách gửi hàng; hoàn thành khi khách bấm xác nhận đã gửi.
+  3. **Nhân viên kiểm tra**: Đang diễn ra khi Staff bấm "Đã nhận được hàng"; hoàn thành khi kiểm tra xong.
+  4. **Hoàn thành công**: Hoàn thành khi Staff duyệt hoàn tiền và hoàn tất đơn.
+- **Rationale**: Khách hàng và nhân viên đều theo dõi được tiến độ chính xác theo đúng yêu cầu UI trực quan.

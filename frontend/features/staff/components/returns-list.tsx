@@ -52,7 +52,10 @@ function formatDateTime(isoString: string | null): string {
 const TABS: { id: StaffReturnStatus; label: string }[] = [
   { id: "all", label: "Tất cả" },
   { id: "pending", label: "Chờ xử lý" },
-  { id: "approved", label: "Đã chấp nhận" },
+  { id: "approved", label: "Chờ khách gửi" },
+  { id: "customer_shipped", label: "Đã gửi hàng" },
+  { id: "received", label: "Đang kiểm tra" },
+  { id: "completed", label: "Hoàn tất" },
   { id: "rejected", label: "Đã từ chối" },
 ];
 
@@ -71,6 +74,9 @@ export function ReturnsList() {
     all: 0,
     pending: 0,
     approved: 0,
+    customer_shipped: 0,
+    received: 0,
+    completed: 0,
     rejected: 0,
   });
   const [pagination, setPagination] = useState({
@@ -150,7 +156,7 @@ export function ReturnsList() {
       <div className="flex flex-wrap items-center gap-2 border-b border-line pb-3">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
-          const count = counts[tab.id];
+          const count = counts[tab.id] ?? 0;
           return (
             <button
               key={tab.id}
@@ -231,8 +237,10 @@ export function ReturnsList() {
               const reasonLabel = RETURN_REASON_LABELS[req.reason] || req.reason;
               const statusLabel = RETURN_STATUS_LABELS[req.status] || req.status;
               const tone =
-                req.status === "approved"
+                req.status === "completed"
                   ? "success"
+                  : req.status === "approved" || req.status === "customer_shipped"
+                  ? "info"
                   : req.status === "rejected"
                   ? "danger"
                   : "warning";
@@ -267,11 +275,15 @@ export function ReturnsList() {
                   </Td>
                   <Td>
                     <p className="font-semibold text-ink">{formatVND(item.total)}</p>
-                    {req.refundRequired && (
+                    {req.refundStatus === "refunded" || req.status === "completed" ? (
+                      <span className="inline-block mt-1 text-[11px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                        Đã hoàn tiền
+                      </span>
+                    ) : req.refundStatus === "pending_refund" || req.refundRequired ? (
                       <span className="inline-block mt-1 text-[11px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">
                         Cần hoàn tiền
                       </span>
-                    )}
+                    ) : null}
                   </Td>
                   <Td>
                     <Badge tone={tone}>{statusLabel}</Badge>
