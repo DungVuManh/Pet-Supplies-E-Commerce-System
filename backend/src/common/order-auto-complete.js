@@ -149,9 +149,10 @@ export async function autoCompleteOverdueShippingOrders({
         continue;
       }
 
+      const total = Number.isSafeInteger(candidate.total) ? candidate.total : 0;
       const updateFields = {
         orderStatus: "completed",
-        ...(candidate.paymentMethod === "ONLINE" ? { paymentStatus: "paid" } : {}),
+        ...(candidate.paymentMethod === "COD" ? { paymentStatus: "paid", paidAmount: total } : {}),
       };
 
       const result = await Order.updateOne(

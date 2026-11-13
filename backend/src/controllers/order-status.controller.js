@@ -82,9 +82,11 @@ export async function confirmCustomerOrderReceipt(request, response) {
       throw new AppError("Đơn hàng đang có yêu cầu hoàn trả, không thể xác nhận đã nhận hàng.", 409, "RETURN_REQUEST_ACTIVE");
     }
 
+    const total = Number.isSafeInteger(order.total) ? order.total : 0;
     const updateFields = {
       orderStatus: "completed",
-      ...(order.paymentMethod === "ONLINE" ? { paymentStatus: "paid" } : {}),
+      paymentStatus: "paid",
+      paidAmount: total,
     };
 
     const result = await Order.updateOne({

@@ -27,6 +27,10 @@ beforeEach(() => {
     customerId,
     channel: "online",
     orderStatus: "shipping",
+    paymentMethod: "COD",
+    paymentStatus: "unpaid",
+    total: 150000,
+    paidAmount: 0,
     creationState: "complete",
     statusHistory: [],
   };
@@ -76,6 +80,9 @@ describe("Customer receipt confirmation", () => {
 
     expect(response.headers["cache-control"]).toBe("no-store");
     expect(response.body.data.order).toEqual({ id, orderStatus: "completed" });
+    expect(order.orderStatus).toBe("completed");
+    expect(order.paymentStatus).toBe("paid");
+    expect(order.paidAmount).toBe(150000);
     expect(order.statusHistory).toEqual([
       expect.objectContaining({ from: "shipping", to: "completed", by: customerId, at: expect.any(Date) }),
     ]);
