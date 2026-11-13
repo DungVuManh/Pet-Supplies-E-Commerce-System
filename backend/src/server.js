@@ -1,5 +1,6 @@
 import { createServer } from "node:http";
 import { createApp } from "./app.js";
+import { startOrderAutoCompleteScheduler } from "./common/order-auto-complete.js";
 import { connectDatabase, createModelIndexes, disconnectDatabase } from "./config/database.js";
 import { loadEnvironment } from "./config/env.js";
 import { getFirebaseAuth } from "./config/firebase.js";
@@ -8,6 +9,7 @@ async function startServer() {
  const config = loadEnvironment();
  const server = createServer(createApp(config));
  let stopping = false;
+ let autoCompleteScheduler = null;
  async function shutdown(exitCode) {
   if (stopping) return;
   stopping = true;
@@ -23,6 +25,10 @@ async function startServer() {
     await new Promise((resolve, reject) => {
      server.close((error) => (error ? reject(error) : resolve()));
     });
+   }
+   if (autoCompleteScheduler) {
+    await autoCompleteScheduler.stop();
+    autoCompleteScheduler = null;
    }
    await disconnectDatabase();
   } catch {
@@ -43,6 +49,7 @@ async function startServer() {
    await disconnectDatabase();
    return;
   }
+  autoCompleteScheduler = startOrderAutoCompleteScheduler();
   await new Promise((resolve, reject) => {
    server.once("error", reject);
    server.listen(config.PORT, () => {

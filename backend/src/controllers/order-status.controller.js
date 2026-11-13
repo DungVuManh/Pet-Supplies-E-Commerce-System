@@ -78,6 +78,14 @@ export async function confirmCustomerOrderReceipt(request, response) {
     if (order.channel !== "online" || order.orderStatus !== "shipping") {
       throw new AppError("Đơn hàng chưa thể xác nhận đã nhận.", 409, "INVALID_ORDER_TRANSITION");
     }
+    if (order.returnRequest && (order.returnRequest.status === "pending" || order.returnRequest.status === "approved")) {
+      throw new AppError("Đơn hàng đang có yêu cầu hoàn trả, không thể xác nhận đã nhận hàng.", 409, "RETURN_REQUEST_ACTIVE");
+    }
+
+    const updateFields = {
+      orderStatus: "completed",
+      ...(order.paymentMethod === "ONLINE" ? { paymentStatus: "paid" } : {}),
+    };
 
     const result = await Order.updateOne({
       _id: id,
@@ -85,8 +93,9 @@ export async function confirmCustomerOrderReceipt(request, response) {
       channel: "online",
       orderStatus: "shipping",
       creationState: { $ne: "pending" },
+      "returnRequest.status": { $nin: ["pending", "approved"] },
     }, {
-      $set: { orderStatus: "completed", paymentStatus: "paid" },
+      $set: updateFields,
       $push: { statusHistory: { from: "shipping", to: "completed", by: request.user._id, at: new Date() } },
     }, { runValidators: true });
     if (result.modifiedCount !== 1) {

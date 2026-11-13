@@ -1,0 +1,187 @@
+openapi: 3.0.3
+info:
+  title: Pet Supplies - Order Returns Workflow API
+  description: API quy trình hoàn trả hàng 4 giai đoạn giữa Khách hàng và Nhân viên (Staff).
+  version: 1.1.0
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Local Backend Server
+
+paths:
+  /orders/{id}/return/upload:
+    post:
+      summary: Tải lên ảnh minh chứng hoàn trả hàng lên Cloudinary
+      description: Khách hàng tải lên 1–5 ảnh (JPG/PNG/WEBP, <=5MB/ảnh) cho đơn hàng.
+      tags:
+        - Customer Returns
+      security:
+        - sessionCookie: []
+        - csrfToken: []
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [images]
+              properties:
+                images:
+                  type: array
+                  minItems: 1
+                  maxItems: 5
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          description: Tải ảnh thành công
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+
+  /orders/{id}/return:
+    post:
+      summary: Gửi yêu cầu hoàn trả đơn hàng ban đầu
+      description: Khách hàng gửi lý do, thông tin ngân hàng, mô tả và ảnh minh chứng.
+      tags:
+        - Customer Returns
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason, description, bankAccount]
+              properties:
+                reason:
+                  type: string
+                  enum: [damaged_or_missing, not_received, damaged_or_defective, missing_items]
+                bankAccount:
+                  type: object
+                  required: [bankName, accountNumber, accountHolder]
+                  properties:
+                    bankName:
+                      type: string
+                    accountNumber:
+                      type: string
+                    accountHolder:
+                      type: string
+                description:
+                  type: string
+                images:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Tạo yêu cầu hoàn trả thành công
+
+  /orders/{id}/return/confirm-shipped:
+    post:
+      summary: Khách hàng xác nhận đã gửi trả hàng về cho cửa hàng
+      description: Sau khi Staff duyệt yêu cầu hoàn trả ban đầu, khách hàng bấm xác nhận đã gửi hàng.
+      tags:
+        - Customer Returns
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      responses:
+        '200':
+          description: Xác nhận đã gửi hàng thành công
+
+  /staff/returns:
+    get:
+      summary: Lấy danh sách yêu cầu hoàn trả cho Staff
+      tags:
+        - Staff Returns
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [all, pending, approved, customer_shipped, received, completed, rejected]
+        - name: q
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Danh sách yêu cầu hoàn trả
+
+  /staff/returns/{id}:
+    get:
+      summary: Lấy chi tiết một yêu cầu hoàn trả cho Staff
+      tags:
+        - Staff Returns
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      responses:
+        '200':
+          description: Chi tiết yêu cầu hoàn trả kèm thông tin đơn và tài khoản hoàn tiền
+
+  /staff/returns/{id}/receive:
+    post:
+      summary: Nhân viên xác nhận đã nhận được hàng gửi trả tại cửa hàng
+      tags:
+        - Staff Returns
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      responses:
+        '200':
+          description: Cập nhật đã nhận được kiện hàng hoàn trả
+
+  /staff/returns/{id}/decision:
+    post:
+      summary: Nhân viên ra quyết định xử lý hoàn trả
+      description: Duyệt yêu cầu ban đầu (approve_request/reject_request) hoặc Quyết định hoàn tiền sau khi nhận hàng (complete_refund/reject_refund).
+      tags:
+        - Staff Returns
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [approve_request, reject_request, complete_refund, reject_refund]
+                rejectionReason:
+                  type: string
+                  minLength: 5
+                  maxLength: 500
+      responses:
+        '200':
+          description: Xử lý quyết định thành công
+
+components:
+  parameters:
+    OrderIdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    ErrorResponse:
+      description: Phản hồi lỗi chuẩn
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string

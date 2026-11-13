@@ -4,7 +4,8 @@ export type OrderStatus =
   | "processing"
   | "shipping"
   | "completed"
-  | "cancelled";
+  | "cancelled"
+  | "returned";
 
 export type PaymentMethod = "COD" | "ONLINE" | "CASH";
 export type StaffEditableOrderStatus = "confirmed" | "processing" | "shipping" | "cancelled";
@@ -135,6 +136,7 @@ export const orderStatusLabels: Record<OrderStatus, string> = {
   shipping: "Đang giao",
   completed: "Hoàn thành",
   cancelled: "Đã hủy",
+  returned: "Đã hoàn trả",
 };
 
 import type { BadgeTone } from "../components/staff-ui";
@@ -146,6 +148,7 @@ export const orderStatusTones: Record<OrderStatus, BadgeTone> = {
   shipping: "info",
   completed: "success",
   cancelled: "neutral",
+  returned: "danger",
 };
 
 export const paymentStatusLabels: Record<PaymentStatus, string> = {
@@ -174,3 +177,71 @@ export const sortOptions: { value: SortOption; label: string }[] = [
   { value: "total_desc", label: "Tổng tiền cao nhất" },
   { value: "total_asc", label: "Tổng tiền thấp nhất" },
 ];
+
+export const INVOICE_ELIGIBLE_STATUSES: readonly OrderStatus[] = [
+  "confirmed",
+  "processing",
+  "shipping",
+  "completed",
+];
+
+export function isInvoiceEligibleOrder(status?: string | null): boolean {
+  if (!status) return false;
+  return (INVOICE_ELIGIBLE_STATUSES as readonly string[]).includes(status);
+}
+
+export interface StaffOrderInvoiceStore {
+  name: string;
+  address: string;
+  hotline: string;
+  email: string;
+}
+
+export interface StaffOrderInvoiceItem {
+  variantSku: string;
+  name: string;
+  unitPrice: number;
+  qty: number;
+  lineTotal: number;
+}
+
+export interface StaffOrderInvoiceOrder {
+  id: string;
+  orderCode: string;
+  createdAt: string;
+  channel: OrderChannel;
+  orderStatus: OrderStatus;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  customer: StaffOrderCustomer;
+  shippingAddress: StaffOrderShippingAddress | null;
+  items: StaffOrderInvoiceItem[];
+  subtotal: number;
+  discount: number;
+  promotionCode: string | null;
+  shippingFee: number;
+  total: number;
+  paidAmount: number;
+  remainingAmount: number;
+  needsReview: boolean;
+  createdByStaff: string | null;
+}
+
+export interface StaffOrderInvoiceMeta {
+  generatedAt: string;
+  generatedBy: string;
+  exportCount: number;
+}
+
+export interface StaffOrderInvoice {
+  store: StaffOrderInvoiceStore;
+  order: StaffOrderInvoiceOrder;
+  invoiceMeta: StaffOrderInvoiceMeta;
+}
+
+export interface StaffOrderInvoiceExportRecord {
+  orderId: string;
+  orderCode: string;
+  exportedAt: string;
+  exportedBy: string;
+}

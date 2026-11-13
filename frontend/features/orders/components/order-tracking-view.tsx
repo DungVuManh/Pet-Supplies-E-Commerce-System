@@ -115,6 +115,13 @@ function renderOrderStatusBadge(status: string) {
           Đã hủy
         </span>
       );
+    case "returned":
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700 border border-purple-200">
+          <RotateCcw className="size-3.5" />
+          Đã hoàn trả
+        </span>
+      );
     default:
       return (
         <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 border border-slate-200">
@@ -359,6 +366,32 @@ export function OrderTrackingView() {
             )}
           </div>
         </form>
+
+      </div>
+      {/* Note hỗ trợ dành cho khách vãng lai */}
+      <div className="rounded-2xl border border-amber-200 bg-amber-50/70 px-6 py-5 flex items-start gap-3">
+        <span className="text-2xl shrink-0 mt-0.5">🐾</span>
+        <div className="text-sm text-amber-800 space-y-1">
+          <p className="font-semibold text-amber-900">
+            Cần hỗ trợ hoàn trả hàng hoặc hàng có vấn đề?
+          </p>
+          <p>
+            Nếu đơn hàng của bạn gặp sự cố hoặc bạn muốn hoàn trả, hãy liên hệ trực tiếp với chúng tôi qua{" "}
+            <a
+              href="https://zalo.me/0838447686"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 font-semibold text-blue-700 underline underline-offset-2 hover:text-blue-800 transition-colors"
+            >
+              Zalo
+            </a>
+            {" "}để được hỗ trợ nhanh nhất. Vui lòng cung cấp{" "}
+            <span className="font-semibold">mã đơn hàng </span> khi liên hệ.
+          </p>
+          <p className="text-amber-700 pt-1">
+            💛 Cảm ơn quý khách đã tin tưởng và ủng hộ shop. Chúng tôi luôn sẵn sàng hỗ trợ bạn!
+          </p>
+        </div>
       </div>
 
       {/* Thông báo lỗi nếu tra cứu không thành công */}
@@ -374,7 +407,7 @@ export function OrderTrackingView() {
 
       {/* Hiển thị kết quả tra cứu THEO DẠNG BẢNG */}
       {orderData && (
-        <div className="space-y-8 animate-fadeIn">
+        <div className="space-y-8 animate-fadeIn mt-4">
           {/* Header kết quả */}
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
             <div>
@@ -594,6 +627,8 @@ export function OrderTrackingView() {
               </table>
             </div>
           </div>
+
+
         </div>
       )}
 

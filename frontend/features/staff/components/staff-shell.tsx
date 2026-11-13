@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Logo } from "@/components/ui/logo";
 import { AccountMenu } from "@/features/auth/components/account-menu";
@@ -9,7 +9,7 @@ import { AccountMenu } from "@/features/auth/components/account-menu";
 type StaffIcon =
  | "dashboard"
  | "orders"
- | "cancel"
+ | "returns"
  | "products"
  | "sales"
  | "performance";
@@ -17,9 +17,9 @@ const nav: { href: string; label: string; icon: StaffIcon }[] = [
  { href: "/staff/dashboard", label: "Tổng quan", icon: "dashboard" },
  { href: "/staff/orders", label: "Đơn hàng", icon: "orders" },
  {
-  href: "/staff/orders?status=cancelled",
-  label: "Yêu cầu hủy",
-  icon: "cancel",
+  href: "/staff/returns",
+  label: "Yêu cầu hoàn trả",
+  icon: "returns",
  },
  { href: "/staff/products", label: "Sản phẩm", icon: "products" },
  { href: "/staff/sales", label: "Doanh số", icon: "sales" },
@@ -47,10 +47,10 @@ function StaffNavIcon({ name }: { name: StaffIcon }) {
     <path d="M8 11h8M8 15h6" />
    </>
   ),
-  cancel: (
+  returns: (
    <>
-    <circle cx="12" cy="12" r="9" />
-    <path d="m9 9 6 6m0-6-6 6" />
+    <path d="M9 14 4 9l5-5" />
+    <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11" />
    </>
   ),
   products: (
@@ -82,10 +82,8 @@ function StaffNavIcon({ name }: { name: StaffIcon }) {
   </svg>
  );
 }
-function active(pathname: string, cancelled: boolean, href: string) {
+function active(pathname: string, href: string) {
  const base = href.split("?")[0];
- if (href.includes("status=cancelled")) return pathname === base && cancelled;
- if (base === "/staff/orders") return pathname.startsWith(base) && !cancelled;
  return base === "/staff/dashboard"
   ? pathname === base
   : pathname.startsWith(base);
@@ -93,17 +91,16 @@ function active(pathname: string, cancelled: boolean, href: string) {
 
 export function StaffShell({ children }: { children: ReactNode }) {
  const pathname = usePathname();
- const cancelled = useSearchParams().get("status") === "cancelled";
  const current =
-  nav.find((item) => active(pathname, cancelled, item.href))?.label ||
+  nav.find((item) => active(pathname, item.href))?.label ||
   "Vận hành";
  return (
   <div
    data-workspace="staff"
-   className="min-h-dvh max-w-full overflow-x-clip bg-surface lg:grid lg:grid-cols-[232px_minmax(0,1fr)]"
+   className="min-h-dvh max-w-full overflow-x-clip bg-surface lg:grid lg:grid-cols-[232px_minmax(0,1fr)] print:block"
   >
    <aside
-    className="hidden min-h-dvh border-r border-line bg-surface px-6 py-7 lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col"
+    className="hidden min-h-dvh border-r border-line bg-surface px-6 py-7 lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col print:hidden"
     aria-label="Điều hướng nhân viên"
    >
     <Logo href="/staff/dashboard" size="md" priority />
@@ -113,8 +110,8 @@ export function StaffShell({ children }: { children: ReactNode }) {
       <Link
        key={item.href}
        href={item.href}
-       aria-current={active(pathname, cancelled, item.href) ? "page" : undefined}
-       className={`flex min-h-12 items-center gap-3 rounded-lg px-2 font-medium ${active(pathname, cancelled, item.href) ? "bg-brand-subtle text-brand" : "hover:bg-canvas"}`}
+       aria-current={active(pathname, item.href) ? "page" : undefined}
+       className={`flex min-h-12 items-center gap-3 rounded-lg px-2 font-medium ${active(pathname, item.href) ? "bg-brand-subtle text-brand" : "hover:bg-canvas"}`}
       >
        <StaffNavIcon name={item.icon} />
        {item.label}
@@ -131,7 +128,7 @@ export function StaffShell({ children }: { children: ReactNode }) {
     </div>
    </aside>
    <div className="min-w-0">
-    <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur print:hidden">
      <div className="flex min-h-[72px] items-center justify-between gap-4 px-4 sm:px-8">
       <div className="min-w-0">
        <p className="truncate">
@@ -153,8 +150,8 @@ export function StaffShell({ children }: { children: ReactNode }) {
         <Link
          key={item.href}
          href={item.href}
-         aria-current={active(pathname, cancelled, item.href) ? "page" : undefined}
-         className={`rounded-lg px-3 py-3 ${active(pathname, cancelled, item.href) ? "bg-brand-subtle text-brand" : "bg-canvas"}`}
+         aria-current={active(pathname, item.href) ? "page" : undefined}
+         className={`rounded-lg px-3 py-3 ${active(pathname, item.href) ? "bg-brand-subtle text-brand" : "bg-canvas"}`}
         >
          {item.label}
         </Link>
@@ -162,7 +159,7 @@ export function StaffShell({ children }: { children: ReactNode }) {
       </nav>
      </details>
     </header>
-    <main className="mx-auto w-full max-w-[1240px] space-y-6 px-4 py-8 sm:px-8 lg:py-10">
+    <main className="mx-auto w-full max-w-[1240px] space-y-6 px-4 py-8 sm:px-8 lg:py-10 print:max-w-none print:p-0 print:space-y-0">
      {children}
     </main>
    </div>

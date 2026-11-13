@@ -47,6 +47,7 @@ export function useOrdersPage() {
       shipping: orders.filter((o) => o.status === "shipping").length,
       completed: orders.filter((o) => o.status === "completed").length,
       cancelled: orders.filter((o) => o.status === "cancelled").length,
+      returned: orders.filter((o) => o.status === "returned").length,
     };
   }, [orders]);
 
