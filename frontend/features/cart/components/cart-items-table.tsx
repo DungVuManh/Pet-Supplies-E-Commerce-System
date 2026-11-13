@@ -63,6 +63,9 @@ export function CartItemsTable({
     {items.map((item) => {
      const isSelected = Boolean(selectedItems[item.id]);
      const itemTotal = isSelected ? item.product.price * item.quantity : 0;
+     
+     const maxStock = item.product.availableStock ?? item.product.stock;
+     const isMaxReached = maxStock !== undefined && item.quantity >= maxStock;
 
      return (
       <div
@@ -94,6 +97,17 @@ export function CartItemsTable({
          <p className="text-xs text-muted mt-0.5">
           {item.product.sku} · {formatVND(item.product.price)}
          </p>
+
+         {/* Thông báo nếu stock không đủ hoặc đã đạt tối đa */}
+         {maxStock !== undefined && maxStock <= 0 ? (
+          <p className="text-xs text-rose-500 mt-1 font-medium">
+           Sản phẩm hiện đã hết hàng
+          </p>
+         ) : isMaxReached ? (
+          <p className="text-xs text-rose-500 mt-1 font-medium">
+           Kho chỉ còn {maxStock} sản phẩm có sẵn
+          </p>
+         ) : null}
         </div>
        </div>
 
@@ -113,8 +127,13 @@ export function CartItemsTable({
          </span>
          <button
           type="button"
-          onClick={() => onIncreaseQuantity(item.id)}
-          className="size-7 flex items-center justify-center text-muted hover:text-ink transition-colors font-medium text-base"
+          disabled={isMaxReached}
+          onClick={() => {
+           if (!isMaxReached) {
+            onIncreaseQuantity(item.id);
+           }
+          }}
+          className="size-7 flex items-center justify-center text-muted hover:text-ink transition-colors font-medium text-base disabled:opacity-30 disabled:cursor-not-allowed"
           aria-label="Tăng số lượng"
          >
           +
