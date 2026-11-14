@@ -71,11 +71,15 @@ export function useMyReviews() {
         showToast("Đánh giá sản phẩm thành công! Cảm ơn bạn.", "success");
         setReviewingItem(null);
 
-        // Cập nhật state lạc quan hoặc reload data
+        // Cập nhật state lạc quan: chỉ xóa đúng sản phẩm của đơn hàng vừa đánh giá
         setData((prev) => {
           if (!prev) return prev;
           const nextUnreviewed = prev.unreviewed.filter(
-            (item) => item.productId !== payload.productId
+            (item) =>
+              !(
+                item.productId === payload.productId &&
+                (!payload.orderId || item.orderId === payload.orderId)
+              )
           );
           const nextReviewed = [newReview, ...prev.reviewed];
           return {
