@@ -43,7 +43,7 @@ const BACKEND_URL =
 export async function fetchPublishedPolicies(): Promise<PublicPolicyDto[]> {
   try {
     const res = await fetch(`${BACKEND_URL}/api/v1/policies`, {
-      cache: "no-store",
+      next: { revalidate: 60 },
     });
     if (!res.ok) return [];
     const json = await res.json();
@@ -200,7 +200,7 @@ export async function getPolicyBySlug(slug: string): Promise<PolicyItem | null> 
 
   try {
     const res = await fetch(`${BACKEND_URL}/api/v1/policies/${encodeURIComponent(normalized)}`, {
-      cache: "no-store",
+      next: { revalidate: 60 },
     });
 
     if (res.ok) {
@@ -228,9 +228,9 @@ export async function getPolicyBySlug(slug: string): Promise<PolicyItem | null> 
 }
 
 /**
- * Lấy danh sách link dành riêng cho Footer, bao gồm toàn bộ chính sách đã công bố
+ * Lấy danh sách link dành riêng cho Footer, bao gồm toàn bộ chính sách đã công bố (bất đồng bộ)
  */
-export async function getFooterPolicyLinks(): Promise<Array<{ slug: string; label: string }>> {
+export async function getDynamicFooterPolicyLinks(): Promise<Array<{ slug: string; label: string }>> {
   const backendPolicies = await fetchPublishedPolicies();
 
   if (backendPolicies.length > 0) {
@@ -257,6 +257,13 @@ export async function getFooterPolicyLinks(): Promise<Array<{ slug: string; labe
     });
   }
 
+  return getStaticFooterPolicyLinks();
+}
+
+/**
+ * Lấy danh sách link Footer đồng bộ (dùng làm initial render hoặc fallback an toàn)
+ */
+export function getFooterPolicyLinks(): Array<{ slug: string; label: string }> {
   return getStaticFooterPolicyLinks();
 }
 
