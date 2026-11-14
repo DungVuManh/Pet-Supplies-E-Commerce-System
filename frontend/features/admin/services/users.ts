@@ -22,3 +22,10 @@ export function lockUser(id: string, reason: string) {
 export function unlockUser(id: string) {
   return apiSend<UserLockResult>("POST", `/api/v1/admin/users/${encodeURIComponent(id)}/unlock`);
 }
+
+/** A new Staff account; the server sets the role, and the password is set by its owner from an email. */
+export type UserCreate = { fullName: string; email: string; phone: string; adminNote: string };
+
+export function createUser(user: UserCreate) {
+  return apiSend<AdminUserDetail>("POST", "/api/v1/admin/users", user);
+}

@@ -150,7 +150,7 @@ describe("GET /api/v1/admin/users/:id", () => {
   });
   expect(activity[1]).toEqual({
    id: `order-${id("1090")}`, at: "2026-10-19T03:00:00.000Z", title: "Tạo đơn #PA1090", detail: "Royal Canin · Số lượng 2",
-   amount: 450000, status: "completed", href: "/admin/orders?q=PA1090",
+   amount: 450000, status: "completed", href: "/admin/orders/PA1090",
   });
   // The oldest entry falls outside the newest 10.
   expect(activity.map((item) => item.id)).not.toContain(`audit-${id("a002")}`);

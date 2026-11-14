@@ -113,16 +113,15 @@ export async function getAdminNotifications(request, response) {
         id: `order-${order._id.toString()}`,
         type: "order",
         title: isCancelled
-          ? `Yêu cầu hủy đơn hàng ${ref}`
+          ? `Đơn hàng ${ref} đã hủy`
           : `Đơn hàng mới ${ref} (${statusLabel})`,
         detail: isCancelled
           ? `Đơn hàng trị giá ${totalStr} của khách hàng ${recipient} đã bị hủy.`
           : `Khách hàng ${recipient} đã đặt đơn hàng trị giá ${totalStr} (${payment}). Trạng thái hiện tại: ${statusLabel}.`,
         createdAt: formatTime(dateObj),
         rawDate: dateObj,
-        targetHref: isCancelled
-          ? "/admin/cancellations"
-          : `/admin/orders?q=${order.orderCode || order._id.toString()}`,
+        // Staff handle cancellations, so every order notification opens the order itself.
+        targetHref: `/admin/orders?q=${order.orderCode || order._id.toString()}`,
         reference: ref,
       });
     }

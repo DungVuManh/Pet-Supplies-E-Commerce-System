@@ -1,8 +1,6 @@
-import { Suspense } from "react";
-import { MasterDataView } from "@/features/admin/components/master-data-view";
+import { permanentRedirect } from "next/navigation";
 
-export const metadata = { title: "Dữ liệu nền" };
-
+// The master data screen was replaced by the brand page; old links and bookmarks land there.
 export default function AdminMasterDataPage() {
-  return <Suspense fallback={<p role="status">Đang tải dữ liệu nền…</p>}><MasterDataView /></Suspense>;
+  permanentRedirect("/admin/brands");
 }

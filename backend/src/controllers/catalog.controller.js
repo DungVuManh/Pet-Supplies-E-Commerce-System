@@ -263,11 +263,11 @@ export async function getProductDetail(request, response, next) {
       categorySlug: (product.categoryIds?.[0]?.slug) || "",
       categories: (product.categoryIds || []).map((c) => ({ _id: c._id, name: c.name, slug: c.slug })),
       categoryIds: (product.categoryIds || []).map((c) => c._id || c),
-      image: product.images?.[0] || "/images/products/royal-canin-mini-adult.png",
+      image: product.images?.[0] || "/images/products/default.png",
       images:
         product.images && product.images.length > 0
           ? product.images
-          : [product.images?.[0] || "/images/products/royal-canin-mini-adult.png"],
+          : [product.images?.[0] || "/images/products/default.png"],
       price: minPrice,
       variants,
       ratingAvg: product.ratingAvg,

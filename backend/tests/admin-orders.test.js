@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AuditLog } from "../src/models/audit-log.model.js";
 import { Order } from "../src/models/order.model.js";
 import { User } from "../src/models/user.model.js";
 import { createAdminTestApp } from "./helpers/admin-app.js";
@@ -206,5 +207,52 @@ describe("GET /api/v1/admin/orders", () => {
  it.each([["tab", "archived"], ["status", "delivered"], ["page", "0"]])("rejects %s=%s with 400", async (name, value) => {
   const { body } = await admin.send("GET", `/api/v1/admin/orders?${name}=${value}`).expect(400);
   expect(body.error.code).toBe("VALIDATION_ERROR");
+ });
+});
+
+describe("GET /api/v1/admin/orders/export", () => {
+ const exportOrders = async (query = {}) => (await admin.send("GET", `/api/v1/admin/orders/export?${new URLSearchParams(query)}`).expect(200)).body.data;
+
+ beforeEach(() => {
+  vi.spyOn(AuditLog, "create").mockImplementation(async (entry) => entry);
+ });
+
+ it("returns every visible order across pages with the export columns, and audits it", async () => {
+  orders.find((item) => item.orderCode === "PA-DONE").promotionCode = "PET50K";
+  Object.assign(orders.find((item) => item.orderCode === "PA-DONE"), { subtotal: 150000, discount: 50000, paymentStatus: "paid" });
+  const data = await exportOrders({ pageSize: "1" });
+  expect(data.items.map((item) => item.orderCode)).toEqual(["PA-PENDING", "PA-CONFIRM", "PA-PROCESS", "PA-SHIP", "PA-DONE", "PA-OLD", "PA-CANCEL", "PA-GUEST", "PA-ACCOUNT", "PA-WALKIN"]);
+  expect(data).toMatchObject({ total: 10, truncated: false });
+  expect(data.items.find((item) => item.orderCode === "PA-DONE")).toEqual({
+   orderCode: "PA-DONE", customerName: "Trần Bảo Ngọc", phone: "0912 456 789", createdAt: "2026-10-16T03:00:00.000Z",
+   total: 100000, paymentMethod: "ONLINE", status: "completed",
+   channel: "online", paymentStatus: "paid", subtotal: 150000, discount: 50000, promotionCode: "PET50K",
+  });
+  expect(AuditLog.create.mock.calls[0][0]).toMatchObject({ action: "order.export", after: { tab: "all", rows: 10 }, result: "success" });
+ });
+
+ it("resolves names like the list: guest, account, and walk-in", async () => {
+  const data = await exportOrders();
+  const name = (code) => data.items.find((item) => item.orderCode === code).customerName;
+  expect([name("PA-GUEST"), name("PA-ACCOUNT"), name("PA-WALKIN")]).toEqual(["Vũ Đức Long", "Đỗ Khánh Linh", "Khách lẻ"]);
+  expect(data.items.find((item) => item.orderCode === "PA-WALKIN").channel).toBe("offline");
+ });
+
+ it.each([
+  [{ tab: "processing" }, ["PA-PENDING", "PA-CONFIRM", "PA-PROCESS"]],
+  [{ status: "cancelled" }, ["PA-CANCEL"]],
+  [{ q: "#pa-guest" }, ["PA-GUEST"]],
+  [{ q: "khanh linh" }, ["PA-ACCOUNT"]],
+ ])("applies %j like the list", async (query, expected) => {
+  expect((await exportOrders(query)).items.map((item) => item.orderCode)).toEqual(expected);
+ });
+
+ it("refuses a guest, a Customer, and Staff", async () => {
+  admin.session.role = null;
+  await admin.send("GET", "/api/v1/admin/orders/export").expect(401);
+  for (const role of ["customer", "staff"]) {
+   admin.session.role = role;
+   await admin.send("GET", "/api/v1/admin/orders/export").expect(403);
+  }
  });
 });

@@ -1,5 +1,5 @@
 import type { BadgeTone } from "@/components/workspace/workspace-ui";
-import type { CategoryStatus, MasterDataStatus, OrderStatus, PaymentMethod, ProductStatus, UserActivityStatus, UserRole, UserStatus, VoucherState } from "./types";
+import type { CategoryPetType, CategoryStatus, MasterDataStatus, OrderStatus, PaymentMethod, PaymentStatus, ProductStatus, UserActivityStatus, UserRole, UserStatus, VoucherState } from "./types";
 
 /** Every status label shown in the Admin workspace and its badge tone; screens never pick tones themselves. */
 export const adminStatusTones = {
@@ -54,12 +54,16 @@ export const productStatusLabels: Record<ProductStatus, AdminStatus> = { active:
 /** The values `Product.petType` stores; the Customer catalog filters on them. */
 export const petTypeLabels: Record<string, string> = { dog: "Chó", cat: "Mèo", all: "Tất cả" };
 
+export const categoryPetTypeLabels: Record<CategoryPetType, string> = { both: "Chó và mèo", dog: "Chó", cat: "Mèo" };
+
 /** "Đang đóng gói" is still part of the "Chờ xử lý" tab. */
 export const orderStatusLabels: Record<OrderStatus, AdminStatus> = {
   pending: "Chờ xử lý", confirmed: "Chờ xử lý", processing: "Đang đóng gói", shipping: "Đang giao", completed: "Hoàn thành", cancelled: "Đã hủy", returned: "Đã hoàn trả",
 };
 
 export const paymentMethodLabels: Record<PaymentMethod, string> = { COD: "COD", ONLINE: "VNPay/QR", CASH: "Tiền mặt" };
+
+export const paymentStatusLabels: Record<PaymentStatus, string> = { unpaid: "Chưa thanh toán", pending: "Chờ thanh toán", paid: "Đã thanh toán", failed: "Thanh toán lỗi" };
 
 export const userRoleLabels: Record<UserRole, string> = { customer: "Customer", staff: "Staff" };
 

@@ -2,6 +2,7 @@ import { recordAudit } from "../../common/audit.js";
 import { AppError } from "../../common/errors/app-error.js";
 import { sendFieldErrors, zodFieldErrors } from "../../common/field-errors.js";
 import { pageDto } from "../../common/pagination.js";
+import { allowedImageUrl } from "../../common/product-images.js";
 import { accentInsensitiveRegex, searchTokens } from "../../common/search.js";
 import { AuditLog } from "../../models/audit-log.model.js";
 import { Cart } from "../../models/cart.model.js";
@@ -9,7 +10,7 @@ import { Order } from "../../models/order.model.js";
 import { Product } from "../../models/product.model.js";
 import { StockMovement } from "../../models/stock-movement.model.js";
 import { parseQuery } from "../../validators/admin/list-query.js";
-import { productListQuerySchema, productPatchSchema } from "../../validators/admin/product.validator.js";
+import { productCreateSchema, productListQuerySchema, productPatchSchema } from "../../validators/admin/product.validator.js";
 import {
  availableStock, categoryIndex, globalLowStockThreshold, productCategories, productCategoryIds, productCode, variantStatus,
 } from "./product.helpers.js";
@@ -38,11 +39,11 @@ function categoryScope(ref, index) {
 }
 
 /**
- * The list is built in code, not in a pipeline, so the threshold and status rules
- * exist once and are shared with the detail screen. `counts` ignores the filters.
+ * Every variant row, and the rows the tab, filters, and search keep. The list is
+ * built in code, not in a pipeline, so the threshold and status rules exist once
+ * and are shared with the detail screen and the export.
  */
-export async function listProducts(request, response) {
- const query = parseQuery(productListQuerySchema, request.query);
+async function filteredProductRows(query) {
  const [products, threshold, index] = await Promise.all([
   Product.find().select("name brand unit isActive categoryIds categoryId variants createdAt").sort({ createdAt: -1, _id: -1 }).lean(),
   globalLowStockThreshold(),
@@ -60,7 +61,14 @@ export async function listProducts(request, response) {
  const rows = all
   .filter(({ row, product }) => inScope(product) && inTab(row) && hasStatus(row) && matchesText(row))
   .map(({ row }) => row);
- const hidden = all.filter(({ row }) => row.status === "hidden").length;
+ return { all: all.map(({ row }) => row), rows };
+}
+
+/** `counts` ignores the filters. */
+export async function listProducts(request, response) {
+ const query = parseQuery(productListQuerySchema, request.query);
+ const { all, rows } = await filteredProductRows(query);
+ const hidden = all.filter((row) => row.status === "hidden").length;
  const start = (query.page - 1) * query.pageSize;
 
  response.json({
@@ -184,12 +192,19 @@ export function showProduct(request, response) {
 
 const PRODUCT_LABELS = {
  name: "tên", brand: "thương hiệu", petType: "loài", description: "mô tả", unit: "đơn vị", isActive: "trạng thái", categoryIds: "danh mục",
- sku: "SKU", price: "giá bán", cost: "giá vốn", stock: "tồn kho", lowStockThreshold: "ngưỡng cảnh báo",
+ sku: "SKU", price: "giá bán", cost: "giá vốn", stock: "tồn kho", lowStockThreshold: "ngưỡng cảnh báo", images: "ảnh",
 };
 const PRODUCT_FIELDS = ["name", "brand", "petType", "description", "unit", "isActive"];
 const VARIANT_FIELDS = ["sku", "price", "cost", "stock", "lowStockThreshold"];
 
 const sameCategories = (a, b) => a.length === b.length && [...a].sort().join() === [...b].sort().join();
+// Order matters for images: the first one is the main photo.
+const sameImages = (a, b) => a.length === b.length && a.every((url, index) => url === b[index]);
+
+/** The images field error when a URL points somewhere a product may not store, or null. */
+function imagesError(urls, current) {
+ return urls.every((url) => allowedImageUrl(url, current)) ? null : { images: "Có ảnh không phải tải lên từ trang quản trị." };
+}
 
 /** Resolves category references to ids, or null if any of them is unknown. */
 function resolveCategories(refs, index) {
@@ -219,6 +234,7 @@ function diffProduct(product, variant, input, categoryIds) {
  }
  for (const field of VARIANT_FIELDS) compare(field, variant[field] ?? null, input[field]);
  compare("categoryIds", productCategoryIds(product), categoryIds, sameCategories);
+ compare("images", product.images ?? [], input.images, sameImages);
  return { before, after };
 }
 
@@ -266,6 +282,8 @@ export async function updateProduct(request, response) {
  const index = await categoryIndex();
  const categoryIds = categoryCodes && resolveCategories(categoryCodes, index);
  if (categoryCodes && !categoryIds) return sendFieldErrors(response, { categoryCodes: "Có danh mục không tồn tại." });
+ const badImages = input.images && imagesError(input.images, product.images ?? []);
+ if (badImages) return sendFieldErrors(response, badImages);
 
  const { before, after } = diffProduct(product, variant, input, categoryIds ?? undefined);
  if (Object.keys(after).length === 0) {
@@ -323,4 +341,102 @@ export async function deleteProduct(request, response) {
   summary: `Xóa sản phẩm ${variant.sku} · ${product.name}`,
  });
  response.json({ success: true, data: { sku: variant.sku } });
+}
+
+const STARTING_STOCK_REASON = "Tồn kho ban đầu";
+const skuTaken = "SKU đã tồn tại.";
+
+const skuConflict = (response, indexes) => sendFieldErrors(
+ response,
+ Object.fromEntries(indexes.map((index) => [`variants.${index}.sku`, skuTaken])),
+ { status: 409, code: "DUPLICATE_VALUE", message: skuTaken },
+);
+
+/** A variant as stored: cost and threshold are left out when empty, so the global threshold applies. */
+function storedVariant({ label, sku, price, cost, stock, lowStockThreshold }) {
+ return {
+  label, sku, price, stock, reservedStock: 0,
+  ...(cost != null && { cost }),
+  ...(lowStockThreshold != null && { lowStockThreshold }),
+ };
+}
+
+/** Starting stock is recorded like any other adjustment. A failure is logged and never undoes the product. */
+async function recordStartingStock(request, product) {
+ const movements = product.variants.filter((variant) => variant.stock > 0).map((variant) => ({
+  productId: product._id,
+  sku: variant.sku,
+  type: "adjust",
+  quantity: variant.stock,
+  stockBefore: 0,
+  stockAfter: variant.stock,
+  reason: STARTING_STOCK_REASON,
+  source: { kind: "adjustment", id: String(product._id) },
+  actorId: request.user._id,
+ }));
+ if (movements.length === 0) return;
+ try {
+  await StockMovement.insertMany(movements);
+ } catch {
+  console.error("[stock] Failed to record starting stock", { productId: String(product._id) });
+ }
+}
+
+/**
+ * Creates a product with its variants and the photos already uploaded. SKUs are unique across all
+ * products: the check names the clashing rows, and the unique index catches a race.
+ */
+export async function createProduct(request, response) {
+ const parsed = productCreateSchema.safeParse(request.body);
+ if (!parsed.success) return sendFieldErrors(response, zodFieldErrors(parsed.error.issues));
+ const { categoryCodes, variants, ...input } = parsed.data;
+
+ const categoryIds = resolveCategories(categoryCodes, await categoryIndex());
+ if (!categoryIds) return sendFieldErrors(response, { categoryCodes: "Có danh mục không tồn tại." });
+ const badImages = imagesError(input.images, []);
+ if (badImages) return sendFieldErrors(response, badImages);
+
+ const skus = variants.map((variant) => variant.sku);
+ const existing = await Product.find({ "variants.sku": { $in: skus } }).select("variants.sku").lean();
+ const taken = new Set(existing.flatMap((product) => product.variants.map((variant) => variant.sku)));
+ const clashes = skus.flatMap((sku, index) => (taken.has(sku) ? [index] : []));
+ if (clashes.length) return skuConflict(response, clashes);
+
+ let product;
+ try {
+  product = (await Product.create({ ...input, categoryIds, variants: variants.map(storedVariant) })).toObject();
+ } catch (error) {
+  if (error?.code !== 11000) throw error;
+  const sku = error.keyValue?.["variants.sku"];
+  const index = skus.indexOf(sku);
+  return skuConflict(response, [index >= 0 ? index : 0]);
+ }
+
+ await recordStartingStock(request, product);
+ await recordAudit(request, {
+  action: "product.create",
+  target: { collectionName: "products", id: product._id },
+  after: { ...input, categoryIds: categoryIds.map(String), variants: variants.map(({ label, sku, price, stock }) => ({ label, sku, price, stock })) },
+  summary: `Tạo sản phẩm ${skus.join(", ")} · ${product.name}`,
+ });
+ response.status(201).json({ success: true, data: await productDetail(product, product.variants[0]) });
+}
+
+export const EXPORT_LIMIT = 5000;
+
+/**
+ * Every row the list would show for these filters, across all pages, up to
+ * `EXPORT_LIMIT`. The browser writes the file. Rows never include cost.
+ */
+export async function exportProducts(request, response) {
+ const query = parseQuery(productListQuerySchema, request.query);
+ const { rows } = await filteredProductRows(query);
+ const truncated = rows.length > EXPORT_LIMIT;
+ await recordAudit(request, {
+  action: "product.export",
+  target: { collectionName: "products", id: "export" },
+  after: { tab: query.tab, category: query.category, status: query.status, q: query.q, rows: Math.min(rows.length, EXPORT_LIMIT) },
+  summary: `Xuất danh sách sản phẩm: ${Math.min(rows.length, EXPORT_LIMIT)} dòng`,
+ });
+ response.json({ success: true, data: { items: rows.slice(0, EXPORT_LIMIT), total: rows.length, truncated } });
 }

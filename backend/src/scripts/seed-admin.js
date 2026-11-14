@@ -2,6 +2,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { connectDatabase, disconnectDatabase } from "../config/database.js";
 import { loadEnvironment } from "../config/env.js";
+import { codeFrom } from "../common/master-data-code.js";
 import { MasterData } from "../models/master-data.model.js";
 import { Product } from "../models/product.model.js";
 import { Promotion } from "../models/promotion.model.js";
@@ -16,11 +17,6 @@ const sampleVouchers = [
  { code: "PET50K", name: "Giảm 50.000 ₫ cho đơn từ 500.000 ₫", type: "fixed", value: 50000, minOrderAmount: 500000 },
  { code: "PETFIRST20K", name: "Giảm 20.000 ₫, chỉ một lượt", type: "fixed", value: 20000, minOrderAmount: 0, usageLimit: 1 },
 ];
-
-/** "Thương hiệu Mới" → "THUONG-HIEU-MOI" */
-function codeFrom(name) {
- return name.normalize("NFD").replace(/\p{M}/gu, "").replace(/[đĐ]/g, "D").toUpperCase().replace(/[^A-Z0-9]+/g, "-").replace(/^-|-$/g, "");
-}
 
 /** Every master data row: the designed ones, plus one brand per brand name used by a product. */
 async function masterDataRows() {

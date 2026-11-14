@@ -55,7 +55,7 @@ describe("GET /api/v1/admin/categories/:code", () => {
  it("returns the edit form's data", async () => {
   const { body } = await admin.send("GET", url("DM003")).expect(200);
   expect(body.data).toEqual({
-   id: String(id("0003")), ref: "DM003", code: "DM003", name: "Thức ăn cho chó", slug: "thuc-an-cho-cho",
+   id: String(id("0003")), ref: "DM003", code: "DM003", name: "Thức ăn cho chó", slug: "thuc-an-cho-cho", petType: "both",
    description: "", displayOrder: 1, status: "hidden", updatedAt: LOADED_AT,
    productCount: 1, blocker: "còn 1 sản phẩm liên kết",
   });

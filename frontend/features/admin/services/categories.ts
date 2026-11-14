@@ -6,11 +6,21 @@ export function listCategories(query: CategoryFilter & { page: number; pageSize:
 }
 
 /** The changed fields, plus the `updatedAt` the form was loaded with. */
-export type CategoryEdit = Partial<Pick<AdminCategoryDetail, "name" | "slug" | "description">> & {
+export type CategoryEdit = Partial<Pick<AdminCategoryDetail, "name" | "slug" | "petType" | "description">> & {
   expectedUpdatedAt: string;
   displayOrder?: number;
   isActive?: boolean;
 };
+
+/** A new category. The server assigns the code, and the display order when it is left out. */
+export type CategoryCreate = Pick<AdminCategoryDetail, "name" | "slug" | "petType" | "description"> & {
+  displayOrder?: number;
+  isActive: boolean;
+};
+
+export function createCategory(category: CategoryCreate) {
+  return apiSend<AdminCategoryDetail>("POST", "/api/v1/admin/categories", category);
+}
 
 export function updateCategory(ref: string, edit: CategoryEdit) {
   return apiSend<AdminCategoryDetail & { changed: boolean }>("PATCH", `/api/v1/admin/categories/${encodeURIComponent(ref)}`, edit);

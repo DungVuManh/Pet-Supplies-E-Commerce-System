@@ -98,7 +98,7 @@ function orderActivity(order) {
   value: `${order.total.toLocaleString("vi-VN")} ₫`,
   // `delivered` is not in the Order enum, but older documents have it.
   status: order.orderStatus === "delivered" ? "completed" : order.orderStatus,
-  href: `/admin/orders?q=${encodeURIComponent(order.orderCode)}`,
+  href: `/admin/orders/${encodeURIComponent(order.orderCode)}`,
  };
 }
 

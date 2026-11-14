@@ -1,7 +1,7 @@
 export function parseInventoryQuery(query = {}) {
   const page = Math.max(1, parseInt(query.page, 10) || 1);
   const pageSize = Math.min(
-    100,
+    5000,
     Math.max(1, parseInt(query.pageSize || query.limit, 10) || 6),
   );
 

@@ -1,12 +1,17 @@
 "use client";
 
-import { CircleX, Package } from "lucide-react";
+import Link from "next/link";
+import { CircleX, Download, Package, Plus } from "lucide-react";
 import { ActionLink, Field, ListState, Pagination, TabNav, control, primaryLink, secondaryButton } from "@/components/workspace/workspace-ui";
 import { formatVnd } from "@/lib/format";
+import { useExport } from "../hooks/use-export";
 import { useProductsList } from "../hooks/use-products-list";
+import { exportProducts } from "../services/products";
 import { productStatusLabels } from "../status";
 import type { AdminProductRow, ProductFilter, ProductStatus } from "../types";
-import { DataTable, StatusBadge, Stack, Td, Th } from "./admin-ui";
+import { downloadExcelCsv } from "../utils/export-excel";
+import { fileDate, productSection } from "../utils/export-rows";
+import { AdminPageHeader, DataTable, StatusBadge, Stack, Td, Th } from "./admin-ui";
 
 const tabs: { value: ProductFilter["tab"]; label: string }[] = [
   { value: "all", label: "Tất cả" }, { value: "active", label: "Đang bán" }, { value: "hidden", label: "Đã ẩn" },
@@ -23,8 +28,22 @@ export function ProductsList() {
   const { filter, draft, setDraft, apply, reset, reload, items, counts, state, error, page, setPage, pagination, from, to, categories } = useProductsList();
 
   function submit(event: React.FormEvent<HTMLFormElement>) { event.preventDefault(); apply({ ...draft, tab: filter.tab }); }
+  // Exports the applied filter, which is what the table shows, not unapplied edits in the form.
+  const exporter = useExport(() => exportProducts(filter), (rows) => downloadExcelCsv({
+    filename: `San_pham_${fileDate()}`, title: "DANH SÁCH SẢN PHẨM", sections: [productSection(rows)],
+  }), "sản phẩm");
 
   return <>
+    <AdminPageHeader breadcrumbs={["Sản phẩm", "Sản phẩm"]} title="Sản phẩm" subtitle="Quản lý sản phẩm, giá bán và tình trạng hiển thị."
+      actions={<>
+        <div className="flex flex-col items-end gap-2">
+          <button type="button" className={`${secondaryButton} min-h-12 gap-2 disabled:opacity-60`} disabled={exporter.exporting} onClick={() => void exporter.run()}>
+            <Download className="h-4 w-4" aria-hidden="true" />{exporter.exporting ? "Đang xuất…" : "Xuất danh sách"}
+          </button>
+          {exporter.notice && <span role="status" className="max-w-72 text-right text-xs text-brand">{exporter.notice}</span>}
+        </div>
+        <Link href="/admin/products/new" className={`${primaryLink} min-h-12 gap-2`}><Plus className="h-4 w-4" aria-hidden="true" />Thêm sản phẩm</Link>
+      </>} />
     <TabNav label="Lọc theo hiển thị" items={tabs.map((tab) => ({ label: `${tab.label} (${(counts?.[tab.value] ?? 0).toLocaleString("vi-VN")})`, active: filter.tab === tab.value, onSelect: () => apply({ ...filter, tab: tab.value }) }))} />
 
     <form onSubmit={submit} className="grid items-end gap-4 md:grid-cols-[minmax(0,1fr)_232px_232px_auto]" aria-label="Bộ lọc sản phẩm">

@@ -97,7 +97,7 @@ describe("GET /api/v1/admin/overview", () => {
   expect(body.data.lowStock).toEqual({ total: 4, items: [{ sku: "A-1", name: "Cát vệ sinh", available: 0, threshold: 20 }] });
   expect(body.data.recentActivity.map((row) => row.id)).toEqual(["audit-a1", "order-o1", "user-u1"]);
   expect(body.data.recentActivity[1]).toMatchObject({
-   title: "Đơn #PA1 được tạo", detail: "Nguyễn An · Royal Canin và 1 sản phẩm khác", status: "completed", href: "/admin/orders?q=PA1",
+   title: "Đơn #PA1 được tạo", detail: "Nguyễn An · Royal Canin và 1 sản phẩm khác", status: "completed", href: "/admin/orders/PA1",
   });
   expect(body.data.recentActivity[2]).toMatchObject({ status: "active", value: "Customer", href: "/admin/users/u1" });
  });
