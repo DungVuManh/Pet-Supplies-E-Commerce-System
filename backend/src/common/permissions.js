@@ -27,7 +27,7 @@ export const PERMISSIONS = [
  },
  {
   id: "catalog-stock", label: "Cập nhật sản phẩm và tồn kho", roles: grant(false, true, true),
-  staffRoutes: ["GET /staff/products", "GET /staff/products/:sku", "PATCH /staff/products/:sku"],
+  staffRoutes: ["GET /staff/products", "GET /staff/products/:sku", "GET /staff/products/:sku/reviews", "PATCH /staff/products/:sku"],
  },
  { id: "master-data", label: "Quản lý danh mục và dữ liệu nền", roles: grant(false, false, true) },
  { id: "vouchers", label: "Quản lý voucher", roles: grant(false, false, true) },

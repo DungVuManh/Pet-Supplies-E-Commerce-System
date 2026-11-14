@@ -5,7 +5,7 @@ import { getStaffSales, getStaffPerformance, getStaffOverview } from "../control
 import { listStaffOrders, getStaffOrderDetail } from "../controllers/order.controller.js";
 import { getStaffOrderInvoice, recordStaffOrderInvoiceExport } from "../controllers/order-invoice.controller.js";
 import { updateStaffOrderStatus } from "../controllers/order-status.controller.js";
-import { getStaffProducts, getProductBySku } from "../controllers/product.controller.js";
+import { getStaffProducts, getProductBySku, getStaffProductReviews } from "../controllers/product.controller.js";
 import { updateStaffProduct } from "../controllers/product-update.controller.js";
 import {
   listStaffReturns,
@@ -40,6 +40,7 @@ router.post("/staff/returns/:id/receive", readCookies, requireAuth, requireRole(
 router.post("/staff/returns/:id/decision", readCookies, requireAuth, requireRole("staff"), protectMutation, decideStaffReturn);
 router.get("/staff/products", readCookies, requireAuth, requireRole("staff"), getStaffProducts);
 router.get("/staff/products/:sku", readCookies, requireAuth, requireRole("staff"), getProductBySku);
+router.get("/staff/products/:sku/reviews", readCookies, requireAuth, requireRole("staff"), getStaffProductReviews);
 router.patch("/staff/products/:sku", readCookies, requireAuth, requireRole("staff"), protectMutation, updateStaffProduct);
 
 router.get("/admin/dashboard", readCookies, requireAuth, requireRole("admin"), dashboard);
