@@ -21,6 +21,7 @@ const fields = {
     petType: z.enum(["dog", "cat", "all"], { error: "Loài thú cưng không hợp lệ." }),
     categoryCodes: z.array(z.string().trim().min(1).max(100), { error: "Danh mục không hợp lệ." }).min(1, "Chọn ít nhất một danh mục.").max(30, "Chọn tối đa 30 danh mục."),
     description: z.string({ error: "Mô tả không hợp lệ." }).trim().max(20000, "Mô tả tối đa 20.000 ký tự."),
+    components: z.string({ error: "Thành phần không hợp lệ." }).trim().max(20000, "Thành phần tối đa 20.000 ký tự."),
     unit: z.string({ error: "Đơn vị không hợp lệ." }).trim().max(50, "Đơn vị tối đa 50 ký tự."),
     isActive: z.boolean({ error: "Trạng thái không hợp lệ." }),
     price: integer("Giá bán phải là số nguyên lớn hơn 0.").min(1, "Giá bán phải là số nguyên lớn hơn 0."),
@@ -51,6 +52,7 @@ export const productPatchSchema = z.object({
     cost: integer("Giá vốn phải là số nguyên không âm.").nullable().optional(),
     stock: integer("Tồn kho phải là số nguyên không âm.").optional(),
     expectedStock: integer("Thiếu tồn kho lúc tải biểu mẫu.").optional(),
+    lowStockThreshold: integer("Ngưỡng cảnh báo phải là số nguyên không âm.").nullable().optional(),
 }).strict();
 
 export const MAX_VARIANTS = 20;
@@ -71,6 +73,7 @@ export const productCreateSchema = z.object({
     petType: fields.petType,
     categoryCodes: fields.categoryCodes,
     description: fields.description.default(""),
+    components: fields.components.default(""),
     unit: fields.unit.default(""),
     isActive: fields.isActive.default(true),
     images: fields.images.default([]),

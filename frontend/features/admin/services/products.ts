@@ -8,7 +8,7 @@ export function listProducts(query: ProductFilter & { page: number; pageSize: nu
 
 /** The changed fields only. `expectedStock` goes with a stock change; null clears cost or threshold. */
 export type ProductEdit = {
-  name?: string; sku?: string; brand?: string; petType?: string; categoryCodes?: string[]; description?: string; unit?: string; isActive?: boolean;
+  name?: string; sku?: string; brand?: string; petType?: string; categoryCodes?: string[]; description?: string; components?: string; unit?: string; isActive?: boolean;
   price?: number; cost?: number | null; stock?: number; expectedStock?: number; lowStockThreshold?: number | null; images?: string[];
 };
 
@@ -37,7 +37,7 @@ export type ProductVariantCreate = { label: string; sku: string; price: number; 
 
 /** A new product, with the URLs of photos already uploaded. */
 export type ProductCreate = {
-  name: string; brand: string; petType: string; categoryCodes: string[]; description: string; unit: string; isActive: boolean; images: string[];
+  name: string; brand: string; petType: string; categoryCodes: string[]; description: string; components?: string; unit: string; isActive: boolean; images: string[];
   variants: ProductVariantCreate[];
 };
 
