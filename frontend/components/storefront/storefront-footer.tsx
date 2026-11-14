@@ -3,8 +3,8 @@ import React from "react";
 import { Logo } from "@/components/ui/logo";
 import { getFooterPolicyLinks } from "@/features/policy";
 
-export function StorefrontFooter() {
-  const footerLinks = getFooterPolicyLinks();
+export async function StorefrontFooter() {
+  const footerLinks = await getFooterPolicyLinks();
 
   return (
     <footer className="shrink-0 border-t border-line bg-surface text-xs text-muted">

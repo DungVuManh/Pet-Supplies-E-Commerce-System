@@ -10,7 +10,7 @@ const data = policiesData as PoliciesData;
 
 export const DEFAULT_POLICY_SLUG = "chinh-sach-van-chuyen";
 
-// Danh sách 11 slug hiển thị ở Footer theo đúng thứ tự yêu cầu
+// Danh sách 11 slug hiển thị ở Footer theo đúng thứ tự ưu tiên
 export const FOOTER_POLICY_SLUGS = [
   "chinh-sach-doi-tra-hang",
   "huong-dan-thanh-toan",
@@ -25,18 +25,32 @@ export const FOOTER_POLICY_SLUGS = [
   "ho-tro-truc-tuyen",
 ] as const;
 
-export function getAllPolicies(): PolicyItem[] {
-  return data.policies || [];
-}
+export type PublicPolicyDto = {
+  code: string;
+  id: string;
+  slug: string;
+  title: string;
+  content: string;
+  status: string;
+  effectiveDate: string;
+  updatedAt?: string | null;
+};
 
-export function getMenuPolicies(): PolicyItem[] {
-  return (data.policies || []).filter((p) => p.showInMenu === true);
-}
+const BACKEND_URL =
+  process.env.BACKEND_ORIGIN ||
+  (typeof window === "undefined" ? "http://127.0.0.1:3001" : "");
 
-export function getStaticPolicyBySlug(slug: string): PolicyItem | null {
-  if (!slug) return null;
-  const normalized = slug.toLowerCase().trim();
-  return (data.policies || []).find((p) => p.slug.toLowerCase() === normalized) || null;
+export async function fetchPublishedPolicies(): Promise<PublicPolicyDto[]> {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/v1/policies`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.success && Array.isArray(json.data) ? json.data : [];
+  } catch {
+    return [];
+  }
 }
 
 export function parseContentToSections(content: string): PolicySection[] {
@@ -93,6 +107,88 @@ function appendLinesToSection(lines: string[], section: PolicySection) {
   }
 }
 
+export function getStaticPolicyBySlug(slug: string): PolicyItem | null {
+  if (!slug) return null;
+  const normalized = slug.toLowerCase().trim();
+  return (data.policies || []).find((p) => p.slug.toLowerCase() === normalized) || null;
+}
+
+/**
+ * Lấy danh sách toàn bộ policies đã công bố từ backend (kèm fallback tĩnh)
+ */
+export async function getAllPolicies(): Promise<PolicyItem[]> {
+  const backendPolicies = await fetchPublishedPolicies();
+
+  if (backendPolicies.length > 0) {
+    const staticMap = new Map<string, PolicyItem>();
+    for (const p of data.policies || []) {
+      staticMap.set(p.slug, p);
+    }
+
+    const dynamicItems: PolicyItem[] = backendPolicies.map((p) => {
+      const staticItem = staticMap.get(p.slug);
+      const sections = parseContentToSections(p.content);
+      return {
+        slug: p.slug,
+        label: staticItem?.label || p.title,
+        title: p.title,
+        showInMenu: true,
+        updatedAt: p.effectiveDate || null,
+        intro: staticItem?.intro,
+        sections: sections.length > 0 ? sections : staticItem?.sections || [],
+      };
+    });
+
+    for (const sp of data.policies || []) {
+      if (!dynamicItems.some((dp) => dp.slug === sp.slug)) {
+        dynamicItems.push(sp);
+      }
+    }
+    return dynamicItems;
+  }
+
+  return data.policies || [];
+}
+
+/**
+ * Lấy danh sách policy hiển thị trong Sidebar
+ */
+export async function getMenuPolicies(): Promise<PolicyItem[]> {
+  const backendPolicies = await fetchPublishedPolicies();
+
+  if (backendPolicies.length > 0) {
+    const staticMap = new Map<string, PolicyItem>();
+    for (const p of data.policies || []) {
+      staticMap.set(p.slug, p);
+    }
+
+    const orderMap = new Map<string, number>();
+    FOOTER_POLICY_SLUGS.forEach((slug, idx) => orderMap.set(slug, idx));
+
+    const sorted = [...backendPolicies].sort((a, b) => {
+      const orderA = orderMap.has(a.slug) ? orderMap.get(a.slug)! : 1000;
+      const orderB = orderMap.has(b.slug) ? orderMap.get(b.slug)! : 1000;
+      return orderA - orderB;
+    });
+
+    return sorted.map((p) => {
+      const staticItem = staticMap.get(p.slug);
+      const sections = parseContentToSections(p.content);
+      return {
+        slug: p.slug,
+        label: staticItem?.label || p.title,
+        title: p.title,
+        showInMenu: true,
+        updatedAt: p.effectiveDate || null,
+        intro: staticItem?.intro,
+        sections: sections.length > 0 ? sections : staticItem?.sections || [],
+      };
+    });
+  }
+
+  return (data.policies || []).filter((p) => p.showInMenu === true);
+}
+
 /**
  * Lấy chi tiết một policy từ backend thật (nếu đã lưu & công bố).
  * Nếu không kết nối được hoặc policy chỉ có ở file tĩnh thì fallback sang policies.json.
@@ -102,12 +198,8 @@ export async function getPolicyBySlug(slug: string): Promise<PolicyItem | null> 
   const normalized = slug.toLowerCase().trim();
   const staticPolicy = getStaticPolicyBySlug(normalized);
 
-  const backendUrl =
-    process.env.BACKEND_ORIGIN ||
-    (typeof window === "undefined" ? "http://127.0.0.1:3001" : "");
-
   try {
-    const res = await fetch(`${backendUrl}/api/v1/policies/${encodeURIComponent(normalized)}`, {
+    const res = await fetch(`${BACKEND_URL}/api/v1/policies/${encodeURIComponent(normalized)}`, {
       cache: "no-store",
     });
 
@@ -135,7 +227,40 @@ export async function getPolicyBySlug(slug: string): Promise<PolicyItem | null> 
   return staticPolicy;
 }
 
-export function getFooterPolicyLinks(): Array<{ slug: string; label: string }> {
+/**
+ * Lấy danh sách link dành riêng cho Footer, bao gồm toàn bộ chính sách đã công bố
+ */
+export async function getFooterPolicyLinks(): Promise<Array<{ slug: string; label: string }>> {
+  const backendPolicies = await fetchPublishedPolicies();
+
+  if (backendPolicies.length > 0) {
+    const staticMap = new Map<string, PolicyItem>();
+    for (const p of data.policies || []) {
+      staticMap.set(p.slug, p);
+    }
+
+    const orderMap = new Map<string, number>();
+    FOOTER_POLICY_SLUGS.forEach((slug, idx) => orderMap.set(slug, idx));
+
+    const sorted = [...backendPolicies].sort((a, b) => {
+      const orderA = orderMap.has(a.slug) ? orderMap.get(a.slug)! : 1000;
+      const orderB = orderMap.has(b.slug) ? orderMap.get(b.slug)! : 1000;
+      return orderA - orderB;
+    });
+
+    return sorted.map((p) => {
+      const staticItem = staticMap.get(p.slug);
+      return {
+        slug: p.slug,
+        label: staticItem?.label || p.title,
+      };
+    });
+  }
+
+  return getStaticFooterPolicyLinks();
+}
+
+export function getStaticFooterPolicyLinks(): Array<{ slug: string; label: string }> {
   const policyMap = new Map<string, PolicyItem>();
   for (const p of data.policies || []) {
     policyMap.set(p.slug, p);

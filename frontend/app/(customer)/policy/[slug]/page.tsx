@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export async function generateStaticParams() {
-  const policies = getAllPolicies();
+  const policies = await getAllPolicies();
   return policies.map((p) => ({
     slug: p.slug,
   }));
@@ -49,7 +49,7 @@ async function PolicyDetailContent({ params }: PageProps) {
     notFound();
   }
 
-  const menuPolicies = getMenuPolicies();
+  const menuPolicies = await getMenuPolicies();
 
   return (
     <PolicyView
