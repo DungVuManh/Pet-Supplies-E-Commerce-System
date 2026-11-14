@@ -204,7 +204,8 @@ export function StorePoliciesView() {
       setError(null);
       setNotice("");
 
-      await deletePolicy(selectedPolicy.code);
+      const targetIdentifier = selectedPolicy.code || selectedPolicy.id;
+      await deletePolicy(targetIdentifier);
 
       const remaining = policies.filter(
         (p) => p.code !== selectedPolicy.code && p.id !== selectedPolicy.id
@@ -212,6 +213,8 @@ export function StorePoliciesView() {
       setPolicies(remaining);
       if (remaining.length > 0) {
         setSelectedId(remaining[0].id || remaining[0].code);
+      } else {
+        setSelectedId("");
       }
       setIsDeleteOpen(false);
       setNotice(`Đã xóa chính sách “${selectedPolicy.title}” thành công.`);

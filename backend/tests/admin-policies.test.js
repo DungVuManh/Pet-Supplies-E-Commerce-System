@@ -220,6 +220,12 @@ describe("Admin Policies API (Real Backend & MongoDB)", () => {
       }).lean();
       expect(audit).toBeTruthy();
       expect(audit.summary).toContain("Xóa chính sách");
+
+      // Verify that subsequent listPolicies / ensureDefaultPolicies does NOT re-create the deleted policy
+      const listRes = await app.send("GET", "/api/v1/admin/policies");
+      expect(listRes.status).toBe(200);
+      const codes = listRes.body.data.map((p) => p.code);
+      expect(codes).not.toContain("POL-VIP-TEST");
     });
 
     it("returns 404 when deleting non-existent policy", async () => {

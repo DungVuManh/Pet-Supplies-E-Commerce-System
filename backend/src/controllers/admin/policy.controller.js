@@ -23,18 +23,31 @@ export const DEFAULT_POLICIES = JSON.parse(
   readFileSync(new URL("./all-default-policies.json", import.meta.url), "utf8")
 );
 
-/** Ensures initial default policies exist in the database and have slug set */
+export function buildLookupQuery(code) {
+  const trimmed = (code || "").trim();
+  const escaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(`^${escaped}$`, "i");
+  return {
+    $or: [{ code: regex }, { id: regex }, { slug: regex }],
+  };
+}
+
+/** Ensures initial default policies exist in the database on initial start, but never re-inserts deleted policies */
 export async function ensureDefaultPolicies() {
   try {
+    const count = await Policy.countDocuments();
+    if (count === 0) {
+      for (const item of DEFAULT_POLICIES) {
+        await Policy.create(item);
+      }
+      return;
+    }
+
+    // Ensure existing policies without slug get their slug populated
     for (const item of DEFAULT_POLICIES) {
-      const { slug, ...rest } = item;
       await Policy.updateOne(
-        { code: item.code },
-        {
-          $setOnInsert: rest,
-          $set: { slug: item.slug },
-        },
-        { upsert: true }
+        { code: item.code, slug: { $exists: false } },
+        { $set: { slug: item.slug } }
       );
     }
   } catch (error) {
@@ -94,11 +107,7 @@ export async function listPolicies(request, response) {
  */
 export async function getPolicy(request, response) {
   const { code } = request.params;
-  const normalized = (code || "").trim().toLowerCase();
-  const normalizedUpper = (code || "").trim().toUpperCase();
-  const policy = await Policy.findOne({
-    $or: [{ code: normalizedUpper }, { id: normalized }, { slug: normalized }],
-  })
+  const policy = await Policy.findOne(buildLookupQuery(code))
     .populate("updatedBy", "fullName email role")
     .lean();
 
@@ -125,11 +134,7 @@ export async function updatePolicy(request, response) {
 
   const { title, content, status, effectiveDate } = parsed.data;
 
-  const normalized = (code || "").trim().toLowerCase();
-  const normalizedUpper = (code || "").trim().toUpperCase();
-  const policy = await Policy.findOne({
-    $or: [{ code: normalizedUpper }, { id: normalized }, { slug: normalized }],
-  });
+  const policy = await Policy.findOne(buildLookupQuery(code));
 
   if (!policy) {
     throw new AppError("Không tìm thấy chính sách cửa hàng.", 404, "NOT_FOUND");
@@ -247,12 +252,7 @@ export async function createPolicy(request, response) {
  */
 export async function deletePolicy(request, response) {
   const { code } = request.params;
-  const normalized = (code || "").trim().toLowerCase();
-  const normalizedUpper = (code || "").trim().toUpperCase();
-
-  const policy = await Policy.findOne({
-    $or: [{ code: normalizedUpper }, { id: normalized }, { slug: normalized }],
-  });
+  const policy = await Policy.findOne(buildLookupQuery(code));
 
   if (!policy) {
     throw new AppError("Không tìm thấy chính sách để xóa.", 404, "NOT_FOUND");

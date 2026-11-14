@@ -1,6 +1,6 @@
 import { AppError } from "../common/errors/app-error.js";
 import { Policy } from "../models/policy.model.js";
-import { ensureDefaultPolicies } from "./admin/policy.controller.js";
+import { buildLookupQuery, ensureDefaultPolicies } from "./admin/policy.controller.js";
 
 /**
  * Formats a policy document for guest / public display.
@@ -43,12 +43,7 @@ export async function getPublicPolicy(request, response) {
   await ensureDefaultPolicies();
 
   const { slug } = request.params;
-  const normalized = (slug || "").trim().toLowerCase();
-  const normalizedUpper = (slug || "").trim().toUpperCase();
-
-  const policy = await Policy.findOne({
-    $or: [{ slug: normalized }, { id: normalized }, { code: normalizedUpper }],
-  }).lean();
+  const policy = await Policy.findOne(buildLookupQuery(slug)).lean();
 
   if (!policy) {
     throw new AppError("Không tìm thấy chính sách được yêu cầu.", 404, "NOT_FOUND");
