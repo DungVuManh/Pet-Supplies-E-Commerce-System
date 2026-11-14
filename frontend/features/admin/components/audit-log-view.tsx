@@ -275,7 +275,6 @@ export function AuditLogView() {
             <Th>Người thực hiện</Th>
             <Th className="w-64">Hành động</Th>
             <Th className="w-36">Kết quả</Th>
-            <Th className="w-40">Thao tác</Th>
           </>
         }
         footer={
@@ -350,7 +349,6 @@ export function AuditLogView() {
                   </p>
                   <p className="mt-1 text-xs text-muted">
                     {row.detail && row.detail !== row.action ? `${row.detail} · ` : ""}
-                    {row.ip && row.ip !== "—" ? `IP ${row.ip}` : ""}
                   </p>
                 </div>
               </Td>
@@ -359,13 +357,6 @@ export function AuditLogView() {
               </Td>
               <Td>
                 <StatusBadge status={row.result} />
-              </Td>
-              <Td>
-                {row.targetHref ? (
-                  <ActionLink href={row.targetHref}>{targetActionText(row)}</ActionLink>
-                ) : (
-                  <span className="text-sm text-muted">—</span>
-                )}
               </Td>
             </tr>
           ))
