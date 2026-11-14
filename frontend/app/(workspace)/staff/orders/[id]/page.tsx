@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { Printer } from "lucide-react";
+import { Printer, AlertCircle } from "lucide-react";
 import { money } from "@/features/staff/mock-data";
 import {
  Badge,
@@ -217,6 +217,23 @@ export default async function OrderDetailPage({
        {orderStatusLabels[order.orderStatus]}
       </Badge>
      </div>
+
+     {order.orderStatus === "cancelled" && (
+      <div className="rounded-lg border border-danger/30 bg-danger-subtle p-4 text-danger">
+       <div className="flex items-center gap-2 font-semibold">
+        <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
+        <span>Đơn hàng đã bị hủy</span>
+       </div>
+       <p className="mt-2 text-sm">
+        <strong>Lý do:</strong> {order.cancellationReason || "Không có lý do cụ thể"}
+       </p>
+       {order.cancellationNote && (
+        <p className="mt-1 text-sm text-danger/80">
+         <strong>Ghi chú:</strong> {order.cancellationNote}
+        </p>
+       )}
+      </div>
+     )}
 
      {/* Customer & Address */}
      <OrderStatusAction order={order} />

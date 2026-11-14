@@ -13,6 +13,8 @@ export type StaffOrderStatusUpdate = {
   expectedStatus: OrderStatus;
   orderStatus: StaffEditableOrderStatus;
   shipping?: StaffOrderShippingInfo;
+  cancellationReason?: string;
+  cancellationNote?: string;
 };
 export type PaymentStatus = "unpaid" | "pending" | "paid" | "failed";
 export type OrderChannel = "online" | "offline";
@@ -116,6 +118,8 @@ export interface StaffOrderDetail {
   items: StaffOrderDetailItem[];
   statusHistory: StaffOrderStatusHistoryItem[];
   allowedNextStatuses: StaffEditableOrderStatus[];
+  cancellationReason?: string | null;
+  cancellationNote?: string | null;
   paidAmount?: number;
   needsReview?: boolean;
 }

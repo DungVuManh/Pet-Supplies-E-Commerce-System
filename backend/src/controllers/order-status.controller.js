@@ -50,6 +50,12 @@ export async function updateStaffOrderStatus(request, response) {
 
     const changes = { orderStatus: input.orderStatus };
     if (input.shipping) changes.shipping = input.shipping;
+    if (input.orderStatus === "cancelled") {
+      changes.cancellationReason = input.cancellationReason;
+      if (input.cancellationNote) {
+        changes.cancellationNote = input.cancellationNote;
+      }
+    }
     // Status and its audit history must be committed together, including on standalone MongoDB.
     const result = await Order.updateOne({
       _id: id, orderStatus: input.expectedStatus, channel: "online",

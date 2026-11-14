@@ -92,8 +92,24 @@ describe("Staff order status", () => {
   });
   for (const status of ["pending", "confirmed"]) it(`allows cancellation only from ${status}`, async () => {
     const { send } = await browser(); order.orderStatus = status;
-    await send({ expectedStatus: status, orderStatus: "cancelled" }).expect(200);
+    await send({
+      expectedStatus: status,
+      orderStatus: "cancelled",
+      cancellationReason: "Hết hàng / Tồn kho không đủ",
+      cancellationNote: "Ghi chú kiểm thử hủy đơn",
+    }).expect(200);
     expect(order.statusHistory).toHaveLength(1);
+    expect(order.cancellationReason).toBe("Hết hàng / Tồn kho không đủ");
+    expect(order.cancellationNote).toBe("Ghi chú kiểm thử hủy đơn");
+  });
+  it("rejects cancellation when cancellationReason is missing or empty", async () => {
+    const { send } = await browser();
+    order.orderStatus = "pending";
+    const res1 = await send({ expectedStatus: "pending", orderStatus: "cancelled" }).expect(400);
+    expect(res1.body.error.code).toBe("VALIDATION_ERROR");
+
+    const res2 = await send({ expectedStatus: "pending", orderStatus: "cancelled", cancellationReason: "   " }).expect(400);
+    expect(res2.body.error.code).toBe("VALIDATION_ERROR");
   });
   it("rejects skipping, reversing, terminal/offline changes and the removed delivered step", async () => {
     const { send } = await browser();
@@ -101,7 +117,9 @@ describe("Staff order status", () => {
       ["shipping", "cancelled"],
       ["completed", "processing"], ["cancelled", "confirmed"]]) {
       order.orderStatus = from;
-      await send({ expectedStatus: from, orderStatus: to }).expect(409);
+      const payload = { expectedStatus: from, orderStatus: to };
+      if (to === "cancelled") payload.cancellationReason = "Lý do hợp lệ";
+      await send(payload).expect(409);
     }
     for (const from of ["pending", "confirmed", "processing", "shipping"]) {
       order.orderStatus = from;

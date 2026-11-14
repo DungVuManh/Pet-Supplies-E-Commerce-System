@@ -10,6 +10,22 @@ import {
 } from "../orders/types";
 import { card, control, primaryLink, secondaryButton } from "./staff-ui";
 
+const CANCELLATION_REASONS = [
+ "Hết hàng / Tồn kho không đủ",
+ "Không thể giao tới địa chỉ người mua",
+ "Người mua yêu cầu hủy",
+ "Không liên lạc được với người mua",
+ "other",
+] as const;
+
+const REASON_LABELS: Record<string, string> = {
+ "Hết hàng / Tồn kho không đủ": "Hết hàng / Tồn kho không đủ",
+ "Không thể giao tới địa chỉ người mua": "Không thể giao tới địa chỉ người mua",
+ "Người mua yêu cầu hủy": "Người mua yêu cầu hủy",
+ "Không liên lạc được với người mua": "Không liên lạc được với người mua",
+ other: "Khác (tự nhập lý do)",
+};
+
 export function OrderStatusAction({ order }: { order: StaffOrderDetail }) {
  const router = useRouter();
  const [refreshing, startTransition] = useTransition();
@@ -19,14 +35,39 @@ export function OrderStatusAction({ order }: { order: StaffOrderDetail }) {
  const [failure, setFailure] = useState("");
  const [notice, setNotice] = useState("");
  const [needsReload, setNeedsReload] = useState(false);
+
+ const [cancelReasonType, setCancelReasonType] = useState<string>(CANCELLATION_REASONS[0]);
+ const [customCancelReason, setCustomCancelReason] = useState("");
+ const [cancellationNote, setCancellationNote] = useState("");
+
  const locked = useRef(false);
  const options = order.allowedNextStatuses ?? [];
  const nextStatus = options.find((value) => value === selected) || options[0];
  const busy = saving || refreshing;
 
+ const isCancelling = nextStatus === "cancelled";
+
  async function submit(event: FormEvent) {
   event.preventDefault();
   if (locked.current || busy || needsReload || !nextStatus) return;
+
+  let finalReason = "";
+  if (isCancelling) {
+   if (cancelReasonType === "other") {
+    finalReason = customCancelReason.trim();
+    if (!finalReason) {
+     setFailure("Vui lòng nhập lý do hủy đơn hàng.");
+     return;
+    }
+    if (finalReason.length < 5) {
+     setFailure("Lý do hủy đơn phải có ít nhất 5 ký tự.");
+     return;
+    }
+   } else {
+    finalReason = cancelReasonType;
+   }
+  }
+
   if (!confirming) {
    setConfirming(true);
    setNotice("");
@@ -38,10 +79,17 @@ export function OrderStatusAction({ order }: { order: StaffOrderDetail }) {
   setFailure("");
   setNotice("");
   try {
-   await updateStaffOrderStatus(order.id, {
+   const payload: Parameters<typeof updateStaffOrderStatus>[1] = {
     expectedStatus: order.orderStatus,
     orderStatus: nextStatus,
-   });
+   };
+   if (isCancelling) {
+    payload.cancellationReason = finalReason;
+    if (cancellationNote.trim()) {
+     payload.cancellationNote = cancellationNote.trim();
+    }
+   }
+   await updateStaffOrderStatus(order.id, payload);
    setNotice("Cập nhật trạng thái đơn hàng thành công.");
    setConfirming(false);
    startTransition(() => router.refresh());
@@ -114,6 +162,7 @@ export function OrderStatusAction({ order }: { order: StaffOrderDetail }) {
          setSelected(event.target.value as StaffEditableOrderStatus);
          setFailure("");
          setNotice("");
+         setConfirming(false);
         }}
        >
         {options.map((status) => (
@@ -123,24 +172,89 @@ export function OrderStatusAction({ order }: { order: StaffOrderDetail }) {
         ))}
        </select>
       </label>
+
+      {isCancelling && (
+       <div className="space-y-3 rounded-lg border border-danger/30 bg-danger-subtle/40 p-4">
+        <p className="font-semibold text-danger">Lý do hủy đơn hàng *</p>
+        <label className="grid gap-1 text-sm font-medium">
+         Chọn lý do hủy
+         <select
+          className={`${control} w-full bg-surface`}
+          value={cancelReasonType}
+          onChange={(e) => {
+           setCancelReasonType(e.target.value);
+           setFailure("");
+          }}
+         >
+          {CANCELLATION_REASONS.map((r) => (
+           <option key={r} value={r}>
+            {REASON_LABELS[r]}
+           </option>
+          ))}
+         </select>
+        </label>
+
+        {cancelReasonType === "other" && (
+         <label className="grid gap-1 text-sm font-medium">
+          Lý do cụ thể (tự viết) *
+          <textarea
+           rows={2}
+           className={`${control} w-full bg-surface`}
+           placeholder="Nhập lý do hủy chi tiết (tối thiểu 5 ký tự)..."
+           value={customCancelReason}
+           onChange={(e) => {
+            setCustomCancelReason(e.target.value);
+            setFailure("");
+           }}
+          />
+         </label>
+        )}
+
+        <label className="grid gap-1 text-sm font-medium">
+         Ghi chú thêm (tùy chọn)
+         <textarea
+          rows={2}
+          className={`${control} w-full bg-surface`}
+          placeholder="Ghi chú nội bộ hoặc lưu ý xử lý..."
+          value={cancellationNote}
+          onChange={(e) => setCancellationNote(e.target.value)}
+         />
+        </label>
+       </div>
+      )}
      </fieldset>
      {confirming && (
-      <p role="status" className="rounded-lg bg-canvas p-4">
-       Chuyển đơn từ <strong>{orderStatusLabels[order.orderStatus]}</strong>{" "}
-       sang <strong>{orderStatusLabels[nextStatus]}</strong>?
-      </p>
+      <div role="status" className={`rounded-lg p-4 ${isCancelling ? "bg-danger-subtle text-danger" : "bg-canvas"}`}>
+       <p>
+        Chuyển đơn từ <strong>{orderStatusLabels[order.orderStatus]}</strong>{" "}
+        sang <strong>{orderStatusLabels[nextStatus]}</strong>?
+       </p>
+       {isCancelling && (
+        <p className="mt-2 text-sm">
+         Lý do: <strong>{cancelReasonType === "other" ? customCancelReason : REASON_LABELS[cancelReasonType]}</strong>
+        </p>
+       )}
+      </div>
      )}
      <div className="flex flex-wrap gap-3">
       <button
        type="submit"
        disabled={busy}
-       className={`${primaryLink} disabled:cursor-not-allowed disabled:opacity-50`}
+       className={
+        isCancelling
+         ? "inline-flex items-center justify-center rounded-lg bg-danger px-4 py-2 text-sm font-medium text-white transition hover:bg-danger/90 disabled:cursor-not-allowed disabled:opacity-50"
+         : `${primaryLink} disabled:cursor-not-allowed disabled:opacity-50`
+       }
       >
        {busy
         ? "Đang cập nhật…"
         : confirming
-          ? "Xác nhận cập nhật"
-          : "Cập nhật trạng thái"}
+          ? isCancelling
+            ? "Xác nhận hủy đơn hàng"
+            : "Xác nhận cập nhật"
+          : isCancelling
+            ? "Hủy đơn hàng"
+            : "Cập nhật trạng thái"}
       </button>
       {confirming && (
        <button
