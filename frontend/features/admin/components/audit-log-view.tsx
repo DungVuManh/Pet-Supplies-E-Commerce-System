@@ -53,6 +53,20 @@ const ROLE_LABELS: Record<string, string> = {
   system: "Hệ thống",
 };
 
+function targetActionText(row: { targetCollection?: string; actionCode?: string }) {
+  const col = (row.targetCollection || "").toLowerCase();
+  const code = (row.actionCode || "").toLowerCase();
+  if (col === "users" || code.startsWith("user.")) return "Xem tài khoản →";
+  if (col === "orders" || code.startsWith("order.") || code.includes("cancellation")) return "Xem đơn hàng →";
+  if (col === "products" || code.startsWith("product.")) return "Xem sản phẩm →";
+  if (col === "settings" || code.startsWith("setting")) return "Xem cấu hình →";
+  if (col === "categories" || code.startsWith("category.")) return "Xem danh mục →";
+  if (col === "vouchers" || code.startsWith("voucher.")) return "Xem voucher →";
+  if (col === "policies" || code.startsWith("polic")) return "Xem chính sách →";
+  if (col === "masterdata" || code.startsWith("masterdata.")) return "Xem thuộc tính →";
+  return "Xem đối tượng →";
+}
+
 function formatIsoDate(d: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -261,7 +275,7 @@ export function AuditLogView() {
             <Th>Người thực hiện</Th>
             <Th className="w-64">Hành động</Th>
             <Th className="w-36">Kết quả</Th>
-            <Th className="w-32">Thao tác</Th>
+            <Th className="w-40">Thao tác</Th>
           </>
         }
         footer={
@@ -347,7 +361,11 @@ export function AuditLogView() {
                 <StatusBadge status={row.result} />
               </Td>
               <Td>
-                <ActionLink href={`/admin/system/audit-log/${row.id}`}>Chi tiết</ActionLink>
+                {row.targetHref ? (
+                  <ActionLink href={row.targetHref}>{targetActionText(row)}</ActionLink>
+                ) : (
+                  <span className="text-sm text-muted">—</span>
+                )}
               </Td>
             </tr>
           ))

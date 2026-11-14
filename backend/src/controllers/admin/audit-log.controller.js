@@ -131,7 +131,41 @@ export function formatAuditTime(date) {
   }
 }
 
-export function getAuditSummary(log) {
+export function getAuditSummary(log, targetUserMap) {
+  const targetId = String(log.target?.id || "").trim();
+  const collectionName = String(log.target?.collectionName || "").toLowerCase();
+
+  // Xử lý định dạng riêng cho các hành động trên tài khoản người dùng
+  if (collectionName === "users" || log.action?.startsWith("user.")) {
+    const targetUser = targetUserMap?.get(targetId);
+    const targetRole = targetUser?.role || log.after?.targetRole || (targetId.startsWith("NV") ? "staff" : "customer");
+    const targetRoleLabel = targetRole === "staff" ? "nhân viên" : "khách hàng";
+    const targetName = targetUser?.fullName || log.after?.targetName || (log.target?.label && log.target.label !== targetId ? log.target.label : "");
+
+    if (log.action === "user.lock") {
+      let reason = log.after?.lockReason;
+      if (!reason && log.summary?.includes(":")) {
+        reason = log.summary.split(":").slice(1).join(":").trim();
+      }
+      const reasonSuffix = reason ? `: ${reason}` : "";
+      if (targetName) {
+        return `Khóa tài khoản ${targetRoleLabel} - ${targetName}${reasonSuffix}`;
+      }
+    }
+
+    if (log.action === "user.unlock") {
+      if (targetName) {
+        return `Mở khóa tài khoản ${targetRoleLabel} - ${targetName}`;
+      }
+    }
+
+    if (log.action === "user.update") {
+      if (targetName) {
+        return `Cập nhật tài khoản ${targetRoleLabel} - ${targetName}`;
+      }
+    }
+  }
+
   if (log.summary) return log.summary;
   if (log.action === "order.create.offline") {
     const code = log.after?.orderCode || log.target?.id || "";
@@ -154,7 +188,7 @@ export function getAuditSummary(log) {
 }
 
 /** Formats a single audit log document for API response */
-export function formatAuditLogRow(log) {
+export function formatAuditLogRow(log, targetUserMap) {
   const actorUser =
     log.actorId && typeof log.actorId === "object"
       ? log.actorId
@@ -183,7 +217,7 @@ export function formatAuditLogRow(log) {
     targetLabel = "Cấu hình cửa hàng";
   }
 
-  const detailSummary = getAuditSummary(log);
+  const detailSummary = getAuditSummary(log, targetUserMap);
 
   return {
     id: String(log._id),
@@ -308,7 +342,23 @@ export async function listAuditLogs(request, response) {
     AuditLog.countDocuments(filter),
   ]);
 
-  const paged = pageDto(items.map(formatAuditLogRow), total, query);
+  // Lookup target users for any user actions
+  const userTargetIds = items
+    .filter((log) => (log.target?.collectionName === "users" || log.action?.startsWith("user.")) && log.target?.id)
+    .map((log) => String(log.target.id).trim())
+    .filter((id) => /^[0-9a-fA-F]{24}$/.test(id));
+
+  let targetUserMap = new Map();
+  if (userTargetIds.length > 0) {
+    try {
+      const targetUsers = await User.find({ _id: { $in: userTargetIds } }).select("fullName role").lean();
+      targetUserMap = new Map(targetUsers.map((u) => [String(u._id), u]));
+    } catch {
+      // Fallback
+    }
+  }
+
+  const paged = pageDto(items.map((log) => formatAuditLogRow(log, targetUserMap)), total, query);
 
   response.json({
     success: true,
@@ -331,8 +381,19 @@ export async function getAuditLog(request, response) {
     throw new AppError("Không tìm thấy bản ghi nhật ký hệ thống.", 404, "NOT_FOUND");
   }
 
+  let targetUserMap = new Map();
+  const targetId = String(log.target?.id || "").trim();
+  if ((log.target?.collectionName === "users" || log.action?.startsWith("user.")) && /^[0-9a-fA-F]{24}$/.test(targetId)) {
+    try {
+      const targetUser = await User.findById(targetId).select("fullName role").lean();
+      if (targetUser) targetUserMap.set(String(targetUser._id), targetUser);
+    } catch {
+      // Ignore
+    }
+  }
+
   response.json({
     success: true,
-    data: formatAuditLogRow(log),
+    data: formatAuditLogRow(log, targetUserMap),
   });
 }
