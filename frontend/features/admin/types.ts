@@ -304,3 +304,22 @@ export type AdminVoucherRow = VoucherFields & { usedCount: number; state: Vouche
 
 /** `GET /api/v1/admin/vouchers/:code`. `lockedFields` is filled once the voucher has been used. */
 export type AdminVoucherDetail = AdminVoucherRow & { updatedAt: string; used: boolean; lockedFields: ("code" | "type" | "value")[] };
+
+export type ReviewRatingFilter = "all" | "1" | "2" | "3" | "4" | "5";
+export type ReviewFilter = { q: string; rating: ReviewRatingFilter };
+
+/**
+ * One row of `GET /api/v1/admin/reviews`. `avatarUrl` is null when the customer has
+ * none that can be shown in a list, and `product` is null once the product is deleted.
+ * `product.sku` is its first variant's SKU, which addresses the Admin product page.
+ */
+export type AdminReviewRow = {
+  id: string;
+  rating: number;
+  comment: string;
+  images: string[];
+  createdAt: string;
+  edited: boolean;
+  customer: { name: string; avatarUrl: string | null };
+  product: { sku: string | null; name: string; image: string | null } | null;
+};

@@ -10,6 +10,7 @@ import { createProduct, deleteProduct, exportProducts, getProduct, hideProduct, 
 import { exportOrders, getOrder, listOrders } from "../controllers/admin/order.controller.js";
 import { getOverview } from "../controllers/admin/overview.controller.js";
 import { listPermissions } from "../controllers/admin/permission.controller.js";
+import { deleteReview, listReviews } from "../controllers/admin/review.controller.js";
 import { readProductImages, uploadProductImages } from "../controllers/admin/upload.controller.js";
 import { createUser, getUser, listUsers, lockUser, unlockUser, updateUser } from "../controllers/admin/user.controller.js";
 import { createVoucher, deleteVoucher, disableVoucher, enableVoucher, getVoucher, listVouchers, updateVoucher } from "../controllers/admin/voucher.controller.js";
@@ -51,6 +52,8 @@ router.patch("/products/:sku", protectMutation, updateProduct);
 router.delete("/products/:sku", protectMutation, deleteProduct);
 router.post("/products/:sku/hide", protectMutation, hideProduct);
 router.post("/products/:sku/show", protectMutation, showProduct);
+router.get("/reviews", listReviews);
+router.delete("/reviews/:id", protectMutation, deleteReview);
 // Multipart, so it has its own Origin and CSRF guard, checked before the files are read.
 router.post("/uploads/product-images", protectUpload, readProductImages, uploadProductImages);
 router.get("/users", listUsers);
