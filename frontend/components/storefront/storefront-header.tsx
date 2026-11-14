@@ -8,6 +8,7 @@ import { Logo } from "@/components/ui/logo";
 import { CartPreview } from "@/features/cart/components/cart-preview";
 import { StorefrontSearch, StorefrontSearchForm } from "./storefront-search";
 import { AccountMenu } from "@/features/auth/components/account-menu";
+import { NotificationPopover } from "@/features/notifications/components/notification-popover";
 import { MegaMenu } from "./mega-menu";
 
 
@@ -121,6 +122,7 @@ function StorefrontHeaderContent({ currentPetType, pathname = "/" }: { currentPe
               <Truck className="size-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
               <span>Tra cứu đơn hàng</span>
             </Link>
+            <NotificationPopover />
             <CartPreview />
             <AccountMenu />
           </div>

@@ -19,7 +19,7 @@ const NAV_ITEMS = [
   { label: "Sản phẩm yêu thích", href: "/account/wishlist" },
   { label: "Sổ địa chỉ", href: "/account/addresses" },
   { label: "Thú cưng của tôi", href: "/account/pets" },
-  { label: "Thông báo", href: "#" },
+  { label: "Thông báo", href: "/account/notifications" },
 ];
 
 export function AccountSidebar() {

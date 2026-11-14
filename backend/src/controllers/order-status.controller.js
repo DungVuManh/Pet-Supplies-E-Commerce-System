@@ -3,6 +3,7 @@ import { releaseVoucher } from "../common/voucher-redemption.js";
 import { orderWithoutReturnStatuses } from "../common/order-auto-complete.js";
 import { activeReturnStatuses, Order } from "../models/order.model.js";
 import { Product } from "../models/product.model.js";
+import { notifyCustomer } from "../common/customer-notification.js";
 import { parseOrderId, parseStaffOrderStatus, staffOrderTransitions } from "../validators/order.validator.js";
 
 async function checkConfirmation(order) {
@@ -68,6 +69,42 @@ export async function updateStaffOrderStatus(request, response) {
       throw new AppError("Đơn hàng đã thay đổi. Hãy tải lại trước khi cập nhật.", 409, "ORDER_STATUS_CONFLICT");
     }
     if (input.orderStatus === "cancelled") await releaseVoucher(id);
+
+    // Bắn thông báo tương ứng cho khách hàng
+    if (order.customerId) {
+      if (input.orderStatus === "cancelled") {
+        const isPaid = order.paymentMethod === "ONLINE" && order.paymentStatus === "paid";
+        notifyCustomer({
+          userId: order.customerId,
+          orderId: order._id,
+          type: "order_cancelled",
+          title: `Đơn hàng #${order.orderCode} đã bị hủy`,
+          message: isPaid
+            ? `Đơn hàng đã bị hủy. Lý do: ${input.cancellationReason || "Không có lý do cụ thể"}. Nhân viên sẽ liên hệ với bạn để hoàn tiền.`
+            : `Đơn hàng đã bị hủy. Lý do: ${input.cancellationReason || "Không có lý do cụ thể"}.`,
+          link: `/orders/${order._id}`,
+        });
+      } else if (input.orderStatus === "confirmed") {
+        notifyCustomer({
+          userId: order.customerId,
+          orderId: order._id,
+          type: "order_confirmed",
+          title: `Đơn hàng #${order.orderCode} đã được xác nhận`,
+          message: "Cửa hàng đã xác nhận đơn hàng của bạn và đang tiến hành đóng gói.",
+          link: `/orders/${order._id}`,
+        });
+      } else if (input.orderStatus === "shipping") {
+        notifyCustomer({
+          userId: order.customerId,
+          orderId: order._id,
+          type: "order_shipping",
+          title: `Đơn hàng #${order.orderCode} đang được giao`,
+          message: "Kiện hàng của bạn đã được bàn giao cho đơn vị vận chuyển.",
+          link: `/orders/${order._id}`,
+        });
+      }
+    }
+
     response.json({ success: true, data: { order: { id, orderStatus: input.orderStatus } } });
   } catch (error) {
     if (error instanceof AppError) throw error;
@@ -110,6 +147,15 @@ export async function confirmCustomerOrderReceipt(request, response) {
     if (result.modifiedCount !== 1) {
       throw new AppError("Trạng thái đơn đã thay đổi. Hãy tải lại đơn hàng.", 409, "ORDER_STATUS_CONFLICT");
     }
+
+    notifyCustomer({
+      userId: request.user._id,
+      orderId: order._id,
+      type: "order_completed",
+      title: `Đơn hàng #${order.orderCode} giao thành công`,
+      message: "Cảm ơn bạn đã mua hàng tại Petjoy! Hãy để lại đánh giá sản phẩm nhé.",
+      link: `/orders/${order._id}`,
+    });
 
     response.json({ success: true, data: { order: { id, orderStatus: "completed" } } });
   } catch (error) {

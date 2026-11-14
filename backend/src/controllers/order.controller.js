@@ -28,6 +28,7 @@ import { ReturnRequest } from "../models/return-request.model.js";
 import { Product } from "../models/product.model.js";
 import { User } from "../models/user.model.js";
 import { Cart } from "../models/cart.model.js";
+import { notifyCustomer } from "../common/customer-notification.js";
 import {
  buildOrderSearchFilter,
  computeDateRange,
@@ -382,6 +383,21 @@ export async function cancelOrder(request, response, next) {
   }
 
   await releaseVoucher(order._id);
+
+  // Gửi thông báo cho khách hàng
+  if (order.customerId) {
+   const isPaid = order.paymentMethod === "ONLINE" && order.paymentStatus === "paid";
+   notifyCustomer({
+    userId: order.customerId,
+    orderId: order._id,
+    type: "order_cancelled",
+    title: `Đơn hàng #${order.orderCode} đã bị hủy`,
+    message: isPaid
+     ? `Đơn hàng đã bị hủy. Lý do: ${cancellationReason}. Nhân viên sẽ liên hệ với bạn để hoàn tiền.`
+     : `Đơn hàng đã bị hủy. Lý do: ${cancellationReason}.`,
+    link: `/orders/${order._id}`,
+   });
+  }
 
   // Hoàn lại tồn kho và giảm soldCount tương ứng khi đơn hàng bị hủy
   try {
