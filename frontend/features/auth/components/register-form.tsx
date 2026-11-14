@@ -19,7 +19,16 @@ export function RegisterForm() {
       fullName: String(data.get("fullName") || "").trim(), phone: String(data.get("phone") || "").trim(),
       terms: data.get("terms") === "on",
     });
-    acceptUser(user); router.replace("/");
+    acceptUser(user);
+    let safeRedirect: string | null = null;
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const redirectParam = params.get("redirect") || params.get("next");
+      if (redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//")) {
+        safeRedirect = redirectParam;
+      }
+    }
+    router.replace(safeRedirect || "/");
   });
 
   return (

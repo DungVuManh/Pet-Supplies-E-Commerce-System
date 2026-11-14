@@ -20,7 +20,33 @@ export function LoginForm() {
   const { acceptUser } = useAuth();
   const [needsProfile, setNeedsProfile] = useState(false);
   const [remember, setRemember] = useState(false);
-  function finish(user: AuthUser) { acceptUser(user); router.replace("/"); }
+  function finish(user: AuthUser) {
+    acceptUser(user);
+    let safeRedirect: string | null = null;
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const redirectParam = params.get("redirect") || params.get("next");
+      if (redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//")) {
+        safeRedirect = redirectParam;
+      }
+    }
+
+    if (user.role === "admin") {
+      router.replace(
+        safeRedirect && safeRedirect.startsWith("/admin")
+          ? safeRedirect
+          : "/admin/dashboard",
+      );
+    } else if (user.role === "staff") {
+      router.replace(
+        safeRedirect && safeRedirect.startsWith("/staff")
+          ? safeRedirect
+          : "/staff/dashboard",
+      );
+    } else {
+      router.replace(safeRedirect || "/");
+    }
+  }
   const { errors, notice, failure, pending, onSubmit, onChange } = useAuthForm(validateLogin, async (data) => {
     const rememberChoice = data.get("remember") === "on";
     setRemember(rememberChoice);
