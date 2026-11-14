@@ -44,21 +44,21 @@ export function LoginForm() {
    }
   }
 
-  if (user.role === "admin") {
-   router.replace(
-    safeRedirect && safeRedirect.startsWith("/admin")
-     ? safeRedirect
-     : "/admin/dashboard",
-   );
-  } else if (user.role === "staff") {
-   router.replace(
-    safeRedirect && safeRedirect.startsWith("/staff")
-     ? safeRedirect
-     : "/staff/dashboard",
-   );
-  } else {
-   router.replace(safeRedirect || "/");
+  let target = "/";
+  if (user.role === "admin" && safeRedirect && safeRedirect.startsWith("/admin")) {
+   target = safeRedirect;
+  } else if (user.role === "staff" && safeRedirect && safeRedirect.startsWith("/staff")) {
+   target = safeRedirect;
+  } else if (
+   user.role === "customer" &&
+   safeRedirect &&
+   !safeRedirect.startsWith("/admin") &&
+   !safeRedirect.startsWith("/staff")
+  ) {
+   target = safeRedirect;
   }
+
+  router.replace(target);
  }
  const { errors, notice, failure, pending, onSubmit, onChange } = useAuthForm(
   validateLogin,

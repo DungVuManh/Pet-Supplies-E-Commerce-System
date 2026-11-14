@@ -65,21 +65,21 @@ export function GuestGuard({ children }: { children: ReactNode }) {
     }
    }
 
-   if (user.role === "admin") {
-    router.replace(
-     safeRedirect && safeRedirect.startsWith("/admin")
-      ? safeRedirect
-      : "/admin/dashboard",
-    );
-   } else if (user.role === "staff") {
-    router.replace(
-     safeRedirect && safeRedirect.startsWith("/staff")
-      ? safeRedirect
-      : "/staff/dashboard",
-    );
-   } else {
-    router.replace(safeRedirect || "/");
+   let target = "/";
+   if (user.role === "admin" && safeRedirect && safeRedirect.startsWith("/admin")) {
+    target = safeRedirect;
+   } else if (user.role === "staff" && safeRedirect && safeRedirect.startsWith("/staff")) {
+    target = safeRedirect;
+   } else if (
+    user.role === "customer" &&
+    safeRedirect &&
+    !safeRedirect.startsWith("/admin") &&
+    !safeRedirect.startsWith("/staff")
+   ) {
+    target = safeRedirect;
    }
+
+   router.replace(target);
   }
  }, [status, user, router]);
 

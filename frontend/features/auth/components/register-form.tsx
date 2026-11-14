@@ -34,7 +34,11 @@ export function RegisterForm() {
         safeRedirect = redirectParam;
       }
     }
-    router.replace(safeRedirect || "/");
+    let target = "/";
+    if (safeRedirect && !safeRedirect.startsWith("/admin") && !safeRedirect.startsWith("/staff")) {
+      target = safeRedirect;
+    }
+    router.replace(target);
   }
 
   const { errors, notice, failure, pending, onSubmit, onChange } = useAuthForm(validateRegister, async (data) => {
