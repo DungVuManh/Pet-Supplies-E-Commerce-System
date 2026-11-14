@@ -6,6 +6,7 @@ const policySchema = new mongoose.Schema(
   {
     code: { type: String, required: true, unique: true, trim: true, uppercase: true },
     id: { type: String, required: true, unique: true, trim: true, lowercase: true },
+    slug: { type: String, trim: true, lowercase: true },
     title: { type: String, required: true, trim: true },
     content: { type: String, required: true, maxlength: 20000, default: "" },
     status: { type: String, enum: POLICY_STATUSES, default: "published" },

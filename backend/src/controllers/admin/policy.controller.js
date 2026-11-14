@@ -22,6 +22,7 @@ export const DEFAULT_POLICIES = [
   {
     id: "return",
     code: "POL-RETURN",
+    slug: "chinh-sach-doi-tra-hang",
     title: "Chính sách đổi trả",
     status: "published",
     effectiveDate: "01/10/2026",
@@ -40,6 +41,7 @@ Petjoy chịu phí vận chuyển nếu giao sai hoặc sản phẩm lỗi. Sau 
   {
     id: "cancellation",
     code: "POL-CANCEL",
+    slug: "chinh-sach-huy-don",
     title: "Chính sách hủy đơn",
     status: "published",
     effectiveDate: "01/10/2026",
@@ -55,6 +57,7 @@ Sau khi đơn hàng đã xuất kho và có mã vận đơn, khách hàng không
   {
     id: "refund",
     code: "POL-REFUND",
+    slug: "chinh-sach-hoan-tien",
     title: "Chính sách hoàn tiền",
     status: "published",
     effectiveDate: "01/10/2026",
@@ -72,6 +75,7 @@ Petjoy miễn phí toàn bộ chi phí phát sinh trong quá trình xử lý ho�
   {
     id: "privacy",
     code: "POL-PRIVACY",
+    slug: "chinh-sach-bao-mat",
     title: "Chính sách bảo mật",
     status: "published",
     effectiveDate: "01/10/2026",
@@ -86,18 +90,19 @@ Mọi thông tin thẻ và tài khoản ngân hàng được xử lý bảo mậ
   },
 ];
 
-/** Ensures initial default policies exist in the database */
+/** Ensures initial default policies exist in the database and have slug set */
 export async function ensureDefaultPolicies() {
   try {
-    const count = await Policy.countDocuments();
-    if (count === 0) {
-      for (const item of DEFAULT_POLICIES) {
-        await Policy.updateOne(
-          { code: item.code },
-          { $setOnInsert: item },
-          { upsert: true }
-        );
-      }
+    for (const item of DEFAULT_POLICIES) {
+      const { slug, ...rest } = item;
+      await Policy.updateOne(
+        { code: item.code },
+        {
+          $setOnInsert: rest,
+          $set: { slug: item.slug },
+        },
+        { upsert: true }
+      );
     }
   } catch (error) {
     console.warn("[policies] Could not verify or seed default policies", error?.message);
@@ -121,6 +126,7 @@ export function formatPolicyDto(policy, actor = null) {
   return {
     id: policy.id || policy.code?.replace(/^POL-/, "").toLowerCase(),
     code: policy.code,
+    slug: policy.slug || policy.id || policy.code?.toLowerCase(),
     title: policy.title,
     status: statusVn,
     rawStatus: policy.status,
@@ -155,8 +161,10 @@ export async function listPolicies(request, response) {
  */
 export async function getPolicy(request, response) {
   const { code } = request.params;
+  const normalized = (code || "").trim().toLowerCase();
+  const normalizedUpper = (code || "").trim().toUpperCase();
   const policy = await Policy.findOne({
-    $or: [{ code: code.toUpperCase() }, { id: code.toLowerCase() }],
+    $or: [{ code: normalizedUpper }, { id: normalized }, { slug: normalized }],
   })
     .populate("updatedBy", "fullName email role")
     .lean();
@@ -184,8 +192,10 @@ export async function updatePolicy(request, response) {
 
   const { title, content, status, effectiveDate } = parsed.data;
 
+  const normalized = (code || "").trim().toLowerCase();
+  const normalizedUpper = (code || "").trim().toUpperCase();
   const policy = await Policy.findOne({
-    $or: [{ code: code.toUpperCase() }, { id: code.toLowerCase() }],
+    $or: [{ code: normalizedUpper }, { id: normalized }, { slug: normalized }],
   });
 
   if (!policy) {

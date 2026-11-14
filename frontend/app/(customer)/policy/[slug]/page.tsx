@@ -19,7 +19,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const policy = getPolicyBySlug(slug);
+  const policy = await getPolicyBySlug(slug);
 
   if (!policy) {
     return {
@@ -42,7 +42,7 @@ export async function generateStaticParams() {
 
 async function PolicyDetailContent({ params }: PageProps) {
   const { slug } = await params;
-  const currentPolicy = getPolicyBySlug(slug);
+  const currentPolicy = await getPolicyBySlug(slug);
 
   // Nếu slug không tồn tại trong hệ thống
   if (!currentPolicy) {
