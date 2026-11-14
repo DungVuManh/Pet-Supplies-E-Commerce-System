@@ -48,12 +48,13 @@ async function verifyIdToken(request, idToken) {
    "RECENT_LOGIN_REQUIRED",
   );
  }
+ const ALLOWED_SIGN_IN_PROVIDERS = new Set(["password", "google.com"]);
  if (
-  claims.firebase?.sign_in_provider !== "password" ||
+  !ALLOWED_SIGN_IN_PROVIDERS.has(claims.firebase?.sign_in_provider) ||
   typeof claims.email !== "string"
  ) {
   throw new AppError(
-   "Vui lòng sử dụng email và mật khẩu.",
+   "Phương thức đăng nhập không được hỗ trợ.",
    401,
    "UNAUTHENTICATED",
   );
@@ -161,6 +162,7 @@ export async function register(request, response) {
    email: claims.email,
    fullName: input.fullName,
    phone: input.phone,
+   ...(claims.picture ? { avatarUrl: claims.picture } : {}),
   }),
  );
  await sendSession(request, response, input, user);
