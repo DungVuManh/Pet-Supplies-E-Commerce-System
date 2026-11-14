@@ -24,6 +24,7 @@ import {
  voucherRefusalMessage,
 } from "../common/voucher-redemption.js";
 import { activeReturnStatuses, Order } from "../models/order.model.js";
+import { Payment } from "../models/payment.model.js";
 import { ReturnRequest } from "../models/return-request.model.js";
 import { Product } from "../models/product.model.js";
 import { User } from "../models/user.model.js";
@@ -207,6 +208,7 @@ export async function createOrder(request, response, next) {
   }
 
   const total = subtotal - discount + shippingFee;
+  const isOnlineAutoPaid = paymentMethod === "ONLINE" && total < 1000;
 
   // 3. Chuẩn hóa địa chỉ giao hàng
   const finalAddress = {
@@ -233,13 +235,17 @@ export async function createOrder(request, response, next) {
    shippingFee,
    total,
    paymentMethod,
-   paymentStatus: "unpaid",
+   paymentStatus: isOnlineAutoPaid ? "paid" : "unpaid",
+   paidAmount: isOnlineAutoPaid ? total : 0,
    orderStatus: "pending",
    channel: "online",
    statusHistory: [
     {
      to: "pending",
      at: new Date(),
+     ...(isOnlineAutoPaid
+      ? { note: "Đơn hàng dưới 1.000đ tự động hoàn tất thanh toán" }
+      : {}),
     },
    ],
   }).catch(async (orderError) => {
@@ -311,6 +317,27 @@ export async function createOrder(request, response, next) {
     }
    } catch (cartError) {
     console.error("Lỗi khi xóa sản phẩm đã mua khỏi giỏ hàng:", cartError);
+   }
+  }
+
+  // Tự động ghi nhận bản ghi Payment nếu đơn hàng trực tuyến dưới 1.000đ đã được hoàn tất thanh toán
+  if (isOnlineAutoPaid) {
+   try {
+    await Payment.create({
+     orderId: newOrder._id,
+     method: "ONLINE",
+     amount: total,
+     status: "paid",
+     transactionRef: `AUTO-PAID-${newOrder.orderCode}`,
+     rawResult: {
+      source: "system",
+      reason: "BYPASS_TRANSFER_UNDER_1000",
+      note: "Tự động hoàn tất thanh toán do giá trị đơn hàng nhỏ hơn 1.000đ",
+      autoCompletedAt: new Date(),
+     },
+    });
+   } catch (payErr) {
+    console.error("Lỗi tạo bản ghi thanh toán tự động:", payErr);
    }
   }
 

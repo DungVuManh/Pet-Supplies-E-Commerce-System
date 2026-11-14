@@ -4,6 +4,7 @@ import { createApp } from "../src/app.js";
 import { parseEnvironment } from "../src/config/env.js";
 import * as firebase from "../src/config/firebase.js";
 import { Order } from "../src/models/order.model.js";
+import { Payment } from "../src/models/payment.model.js";
 import { Product } from "../src/models/product.model.js";
 import { userRepository } from "../src/models/user.model.js";
 import {
@@ -335,6 +336,123 @@ describe("Customer order creation HTTP", () => {
       .expect(201);
 
     expect(updateManySpy).not.toHaveBeenCalled();
+  });
+
+  it("automatically marks order as paid and creates Payment record when paymentMethod is ONLINE and total < 1000", async () => {
+    const productId = "507f1f77bcf86cd799439011";
+    vi.spyOn(Product, "findById").mockResolvedValue({
+      _id: productId,
+      name: "Dây dắt mẫu",
+      price: 500,
+      variants: [{ sku: "PET-CHEAP", price: 500, stock: 10, reservedStock: 0 }],
+    });
+
+    const createOrderSpy = vi.spyOn(Order, "create").mockImplementation(async (doc) => ({
+      ...doc,
+      _id: "607f1f77bcf86cd799439011",
+      orderCode: "ORD-UNDER-1K",
+    }));
+    const createPaymentSpy = vi.spyOn(Payment, "create").mockResolvedValue({
+      _id: "707f1f77bcf86cd799439011",
+      status: "paid",
+    });
+
+    const response = await request(createApp(config))
+      .post("/api/v1/orders")
+      .send({
+        items: [{ productId, variantSku: "PET-CHEAP", qty: 1 }],
+        paymentMethod: "ONLINE",
+        guestInfo: { name: "Khách test", phone: "0901234567" },
+      })
+      .expect(201);
+
+    expect(createOrderSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        paymentMethod: "ONLINE",
+        paymentStatus: "paid",
+        paidAmount: 500,
+        total: 500,
+        statusHistory: expect.arrayContaining([
+          expect.objectContaining({
+            to: "pending",
+            note: "Đơn hàng dưới 1.000đ tự động hoàn tất thanh toán",
+          }),
+        ]),
+      }),
+    );
+    expect(createPaymentSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: "ONLINE",
+        amount: 500,
+        status: "paid",
+        rawResult: expect.objectContaining({
+          reason: "BYPASS_TRANSFER_UNDER_1000",
+        }),
+      }),
+    );
+    expect(response.body.data.order.paymentStatus).toBe("paid");
+  });
+
+  it("keeps paymentStatus unpaid and does not auto-create Payment when paymentMethod is ONLINE and total >= 1000", async () => {
+    const productId = "507f1f77bcf86cd799439011";
+    vi.spyOn(Product, "findById").mockResolvedValue({
+      _id: productId,
+      name: "Thức ăn cao cấp",
+      price: 150000,
+      variants: [{ sku: "PET-EXPENSIVE", price: 150000, stock: 10, reservedStock: 0 }],
+    });
+
+    const createOrderSpy = vi.spyOn(Order, "create").mockImplementation(async (doc) => ({
+      ...doc,
+      _id: "607f1f77bcf86cd799439012",
+      orderCode: "ORD-NORMAL",
+    }));
+    const createPaymentSpy = vi.spyOn(Payment, "create");
+
+    const response = await request(createApp(config))
+      .post("/api/v1/orders")
+      .send({
+        items: [{ productId, variantSku: "PET-EXPENSIVE", qty: 1 }],
+        paymentMethod: "ONLINE",
+        guestInfo: { name: "Khách test", phone: "0901234567" },
+      })
+      .expect(201);
+
+    expect(createOrderSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        paymentMethod: "ONLINE",
+        paymentStatus: "unpaid",
+        paidAmount: 0,
+        total: 150000,
+      }),
+    );
+    expect(createPaymentSpy).not.toHaveBeenCalled();
+    expect(response.body.data.order.paymentStatus).toBe("unpaid");
+  });
+});
+
+describe("Online Payment ineligibility check for auto-paid orders under 1000", () => {
+  it("rejects online payment resumption with ORDER_ALREADY_PAID for auto-paid orders", async () => {
+    const { getOnlinePaymentIneligibilityError, canResumeOnlinePayment } = await import(
+      "../src/common/order-payment.js"
+    );
+
+    const autoPaidOrder = {
+      orderCode: "ORD-UNDER-1K",
+      channel: "online",
+      paymentMethod: "ONLINE",
+      paymentStatus: "paid",
+      total: 500,
+      paidAmount: 500,
+      orderStatus: "pending",
+    };
+
+    expect(canResumeOnlinePayment(autoPaidOrder)).toBe(false);
+
+    const ineligibility = getOnlinePaymentIneligibilityError(autoPaidOrder);
+    expect(ineligibility).not.toBeNull();
+    expect(ineligibility.statusCode).toBe(409);
+    expect(ineligibility.code).toBe("ORDER_ALREADY_PAID");
   });
 });
 

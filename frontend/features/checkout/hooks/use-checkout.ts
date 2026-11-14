@@ -415,6 +415,7 @@ export function useCheckout() {
         paymentMethod: order?.paymentMethod || (paymentMethod === "cod" ? "COD" : "ONLINE"),
         createdAt: order?.createdAt || new Date().toISOString(),
         paymentProvider: paymentMethod,
+        isPaid: String(order?.paymentStatus === "paid"),
       });
       if (order?.promotionCode) {
         queryParams.set("promotionCode", order.promotionCode);

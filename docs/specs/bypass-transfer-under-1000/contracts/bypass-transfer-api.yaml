@@ -1,0 +1,137 @@
+openapi: 3.0.3
+info:
+  title: API Contract - Bỏ qua chuyển khoản cho đơn dưới 1000đ
+  version: 1.0.0
+  description: Hợp đồng giao tiếp giữa Frontend và Backend cho đơn hàng trực tuyến dưới 1.000 VNĐ.
+paths:
+  /api/v1/orders:
+    post:
+      summary: Tạo đơn hàng mới từ giỏ hàng hoặc Mua ngay
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - items
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - productId
+                      - variantSku
+                      - qty
+                    properties:
+                      productId:
+                        type: string
+                      variantSku:
+                        type: string
+                      qty:
+                        type: integer
+                        minimum: 1
+                paymentMethod:
+                  type: string
+                  enum: [COD, ONLINE]
+                  default: COD
+                shippingAddress:
+                  type: object
+                guestInfo:
+                  type: object
+                promotionCode:
+                  type: string
+                expectedDiscount:
+                  type: integer
+                isBuyNow:
+                  type: boolean
+      responses:
+        '201':
+          description: Đơn hàng được tạo thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      order:
+                        type: object
+                        properties:
+                          _id:
+                            type: string
+                          orderCode:
+                            type: string
+                            example: "PA261114001"
+                          total:
+                            type: integer
+                            description: Tổng tiền sau giảm giá
+                            example: 500
+                          paymentMethod:
+                            type: string
+                            example: "ONLINE"
+                          paymentStatus:
+                            type: string
+                            description: "Nếu total < 1000 và paymentMethod == ONLINE, trả về paid"
+                            example: "paid"
+                          paidAmount:
+                            type: integer
+                            example: 500
+                          orderStatus:
+                            type: string
+                            example: "pending"
+                          paymentExpiredAt:
+                            type: string
+                            nullable: true
+                            example: null
+
+  /api/v1/payments/status/{orderCode}:
+    get:
+      summary: Lấy trạng thái thanh toán thời gian thực của đơn hàng
+      parameters:
+        - name: orderCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Thông tin trạng thái thanh toán
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      orderCode:
+                        type: string
+                      paymentMethod:
+                        type: string
+                      paymentStatus:
+                        type: string
+                        example: "paid"
+                      total:
+                        type: integer
+                        example: 500
+                      paidAmount:
+                        type: integer
+                        example: 500
+                      remainingAmount:
+                        type: integer
+                        example: 0
+                      isPaid:
+                        type: boolean
+                        example: true
+                      isExpired:
+                        type: boolean
+                        example: false
