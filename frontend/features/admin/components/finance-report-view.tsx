@@ -369,13 +369,6 @@ export function FinanceReportView({ period = defaultReportPeriod }: { period?: R
               <Th className="w-36">Trạng thái</Th>
             </>
           }
-          footer={
-            <Pagination
-              from={paymentChannels.length > 0 ? 1 : 0}
-              to={paymentChannels.length}
-              total={paymentChannels.length}
-            />
-          }
         >
           {paymentChannels.length > 0 ? (
             paymentChannels.map((row) => (

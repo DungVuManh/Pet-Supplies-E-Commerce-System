@@ -327,13 +327,6 @@ export function StorePoliciesView() {
               <span className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Danh sách chính sách ({policies.length})
               </span>
-              <button
-                type="button"
-                onClick={handleOpenCreate}
-                className="text-xs font-semibold text-brand hover:underline inline-flex items-center gap-1"
-              >
-                <Plus className="h-3.5 w-3.5" /> Thêm mới
-              </button>
             </div>
 
             <div className="space-y-2.5 max-h-[calc(100vh-230px)] overflow-y-auto pr-1">
@@ -348,11 +341,10 @@ export function StorePoliciesView() {
                       setNotice("");
                       setError(null);
                     }}
-                    className={`w-full rounded-lg border p-3.5 text-left transition-all ${
-                      isSelected
-                        ? "border-brand bg-brand-subtle/30 shadow-sm"
-                        : "border-line bg-surface hover:border-brand/40 hover:bg-canvas/50"
-                    }`}
+                    className={`w-full rounded-lg border p-3.5 text-left transition-all ${isSelected
+                      ? "border-brand bg-brand-subtle/30 shadow-sm"
+                      : "border-line bg-surface hover:border-brand/40 hover:bg-canvas/50"
+                      }`}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <p className={`font-semibold text-sm ${isSelected ? "text-brand" : "text-ink"}`}>
@@ -364,7 +356,6 @@ export function StorePoliciesView() {
                         <span className="mr-1.5 size-1.5 rounded-full bg-emerald-500"></span>
                         Đã công bố
                       </span>
-                      <span className="text-[11px] font-mono text-muted">{p.code}</span>
                     </div>
                   </button>
                 );
@@ -456,60 +447,6 @@ export function StorePoliciesView() {
 
                 {/* Interactive Formatting Toolbar */}
                 <div className="mt-6 flex flex-wrap items-center gap-1 rounded-t-lg border border-b-0 border-line bg-canvas px-4 py-2 text-xs font-semibold text-muted">
-                  <button
-                    type="button"
-                    onClick={() => handleInsertFormat("**", "**")}
-                    className="rounded px-2.5 py-1 font-bold hover:bg-line hover:text-ink"
-                    title="In đậm"
-                  >
-                    B
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleInsertFormat("*", "*")}
-                    className="rounded px-2.5 py-1 italic hover:bg-line hover:text-ink"
-                    title="In nghiêng"
-                  >
-                    I
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleInsertFormat("<u>", "</u>")}
-                    className="rounded px-2.5 py-1 underline hover:bg-line hover:text-ink"
-                    title="Gạch chân"
-                  >
-                    U
-                  </button>
-                  <span className="text-line mx-1" aria-hidden="true">
-                    |
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleInsertFormat("\n- ")}
-                    className="rounded px-2.5 py-1 hover:bg-line hover:text-ink"
-                    title="Danh sách dấu gạch đầu dòng"
-                  >
-                    • Danh sách
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleInsertFormat("\n1. ")}
-                    className="rounded px-2.5 py-1 hover:bg-line hover:text-ink"
-                    title="Danh sách có số thứ tự"
-                  >
-                    1. Thứ tự
-                  </button>
-                  <span className="text-line mx-1" aria-hidden="true">
-                    |
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleInsertFormat("[", "](https://)")}
-                    className="rounded px-2.5 py-1 hover:bg-line hover:text-ink"
-                    title="Chèn liên kết"
-                  >
-                    Liên kết
-                  </button>
                 </div>
 
                 {/* Content Textarea */}
@@ -570,33 +507,6 @@ export function StorePoliciesView() {
                   placeholder="Ví dụ: Chính sách khách hàng thân thiết"
                   className={control}
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-ink mb-1.5">
-                    Mã chính sách
-                  </label>
-                  <input
-                    type="text"
-                    value={createCode}
-                    onChange={(e) => setCreateCode(e.target.value)}
-                    placeholder="POL-LOYALTY"
-                    className={control}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-ink mb-1.5">
-                    Đường dẫn (slug)
-                  </label>
-                  <input
-                    type="text"
-                    value={createSlug}
-                    onChange={(e) => setCreateSlug(e.target.value)}
-                    placeholder="chinh-sach-khach-hang"
-                    className={control}
-                  />
-                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
