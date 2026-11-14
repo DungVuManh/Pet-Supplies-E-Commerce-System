@@ -27,6 +27,7 @@ async function DetailProductsContent({
           name: p.name,
           brand: p.brand,
           description: p.description,
+          components: p.components || "",
           price: p.price,
           image: p.image,
           images: p.images,

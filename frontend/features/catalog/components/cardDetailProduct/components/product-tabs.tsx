@@ -124,7 +124,15 @@ export function ProductTabs({ product }: { product: Product }) {
         {activeTab === "ingredients" && (
           <div className="prose max-w-none text-sm leading-relaxed text-slate-600">
             {product.components ? (
-              <p className="whitespace-pre-line leading-relaxed">{product.components}</p>
+              <div className="space-y-4 not-prose">
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+                  <h4 className="font-semibold text-slate-800 text-sm mb-2">Thành phần chi tiết:</h4>
+                  <p className="whitespace-pre-line leading-relaxed text-slate-700">{product.components}</p>
+                </div>
+                <p className="text-xs text-slate-400 italic">
+                  * Vui lòng kiểm tra kỹ thành phần để phòng ngừa trường hợp thú cưng bị dị ứng.
+                </p>
+              </div>
             ) : (
               <p className="text-slate-500">
                 Thông tin thành phần dinh dưỡng và hướng dẫn sử dụng đang được cập nhật.
