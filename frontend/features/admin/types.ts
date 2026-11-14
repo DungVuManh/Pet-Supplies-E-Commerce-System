@@ -333,3 +333,23 @@ export type AdminAuditLogRow = {
   before?: Record<string, unknown> | null;
   after?: Record<string, unknown> | null;
 };
+
+export type StorePolicy = {
+  id: string;
+  code: string;
+  title: string;
+  status: "Đã công bố" | "Bản nháp" | "Tạm ngưng";
+  rawStatus?: "published" | "draft" | "suspended";
+  effectiveDate: string;
+  lastUpdated: string;
+  content: string;
+  updatedAt?: string;
+};
+
+export type UpdatePolicyPayload = {
+  title?: string;
+  content?: string;
+  status?: string;
+  effectiveDate?: string;
+};
+
