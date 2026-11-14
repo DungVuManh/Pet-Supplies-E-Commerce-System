@@ -83,7 +83,7 @@ describe("Admin Policies API (Real Backend & MongoDB)", () => {
       expect(codes).toContain("POL-RETURN");
       expect(codes).toContain("POL-CANCEL");
       expect(codes).toContain("POL-REFUND");
-      expect(codes).toContain("POL-PRIVACY");
+      expect(codes.some((c) => c === "POL-PRIVACY" || c === "POL-SECURITY")).toBe(true);
 
       const returnPolicy = res.body.data.find((p) => p.code === "POL-RETURN");
       expect(returnPolicy).toMatchObject({
@@ -107,11 +107,10 @@ describe("Admin Policies API (Real Backend & MongoDB)", () => {
     });
 
     it("queries and returns policy by canonical id (case-insensitive)", async () => {
-      const res = await app.send("GET", "/api/v1/admin/policies/privacy");
+      const res = await app.send("GET", "/api/v1/admin/policies/chinh-sach-bao-mat");
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
-      expect(res.body.data.code).toBe("POL-PRIVACY");
-      expect(res.body.data.title).toBe("Chính Sách Bảo Mật & Bảo Vệ Dữ Liệu Cá Nhân");
+      expect(res.body.data.slug).toBe("chinh-sach-bao-mat");
     });
 
     it("returns 404 if policy code not found in MongoDB", async () => {

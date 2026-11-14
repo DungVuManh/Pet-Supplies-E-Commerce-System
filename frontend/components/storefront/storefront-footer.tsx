@@ -43,13 +43,21 @@ export function StorefrontFooter() {
           return orderA - orderB;
         });
 
-        const links = sorted.map((p) => ({
-          slug: p.slug,
-          label: p.title,
-        }));
+        // Deduplicate policies by slug to avoid duplicate links and key collision
+        const seenSlugs = new Set<string>();
+        const uniqueLinks: Array<{ slug: string; label: string }> = [];
+        for (const p of sorted) {
+          if (!seenSlugs.has(p.slug)) {
+            seenSlugs.add(p.slug);
+            uniqueLinks.push({
+              slug: p.slug,
+              label: p.title,
+            });
+          }
+        }
 
-        if (links.length > 0) {
-          setFooterLinks(links);
+        if (uniqueLinks.length > 0) {
+          setFooterLinks(uniqueLinks);
         }
       } catch {
         // Fallback to initial static links
@@ -84,7 +92,7 @@ export function StorefrontFooter() {
           </Link>
           <span aria-hidden="true" className="text-line">·</span>
           {safeLinks.map((item, index) => (
-            <React.Fragment key={item.slug}>
+            <React.Fragment key={`${item.slug}-${index}`}>
               <Link
                 href={`/policy/${item.slug}`}
                 className="hover:text-brand transition-colors whitespace-nowrap"

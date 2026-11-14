@@ -171,7 +171,14 @@ export async function getMenuPolicies(): Promise<PolicyItem[]> {
       return orderA - orderB;
     });
 
-    return sorted.map((p) => {
+    const seenMenuSlugs = new Set<string>();
+    const uniqueSorted = sorted.filter((p) => {
+      if (seenMenuSlugs.has(p.slug)) return false;
+      seenMenuSlugs.add(p.slug);
+      return true;
+    });
+
+    return uniqueSorted.map((p) => {
       const staticItem = staticMap.get(p.slug);
       const sections = parseContentToSections(p.content);
       return {
@@ -248,7 +255,14 @@ export async function getDynamicFooterPolicyLinks(): Promise<Array<{ slug: strin
       return orderA - orderB;
     });
 
-    return sorted.map((p) => {
+    const seenMenuSlugs = new Set<string>();
+    const uniqueSorted = sorted.filter((p) => {
+      if (seenMenuSlugs.has(p.slug)) return false;
+      seenMenuSlugs.add(p.slug);
+      return true;
+    });
+
+    return uniqueSorted.map((p) => {
       const staticItem = staticMap.get(p.slug);
       return {
         slug: p.slug,
