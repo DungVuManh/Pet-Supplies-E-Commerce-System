@@ -19,7 +19,7 @@ import {
 } from "../controllers/admin-settings.controller.js";
 import { getAdminNotifications } from "../controllers/admin-notification.controller.js";
 import { getAuditLog, listAuditLogs } from "../controllers/admin/audit-log.controller.js";
-import { getPolicy, listPolicies, updatePolicy } from "../controllers/admin/policy.controller.js";
+import { createPolicy, deletePolicy, getPolicy, listPolicies, updatePolicy } from "../controllers/admin/policy.controller.js";
 
 // Mounted at /api/v1/admin. Every route requires an Admin session; mutations
 // also add `protectMutation` (JSON, allowed Origin, and the CSRF pair).
@@ -79,9 +79,11 @@ router.patch("/settings", protectMutation, updateStoreSettings);
 
 // Store Policies API
 router.get("/policies", listPolicies);
+router.post("/policies", protectMutation, createPolicy);
 router.get("/policies/:code", getPolicy);
 router.put("/policies/:code", protectMutation, updatePolicy);
 router.patch("/policies/:code", protectMutation, updatePolicy);
+router.delete("/policies/:code", protectMutation, deletePolicy);
 
 // System Audit Logs API (Read-only)
 router.get("/audit-logs", listAuditLogs);
