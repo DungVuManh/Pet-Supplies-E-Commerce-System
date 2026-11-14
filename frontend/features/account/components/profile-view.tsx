@@ -19,7 +19,7 @@ export function ProfileView({ profile, stats, onEdit }: ProfileViewProps) {
         month: "2-digit",
         year: "numeric",
       })
-    : "12/02/2026";
+    : "Chưa cập nhật";
 
   const dobText = profile.dob
     ? new Date(profile.dob).toLocaleDateString("vi-VN", {
@@ -27,14 +27,16 @@ export function ProfileView({ profile, stats, onEdit }: ProfileViewProps) {
         month: "2-digit",
         year: "numeric",
       })
-    : "18/06/1998";
+    : "Chưa cập nhật";
 
   const genderText =
     profile.gender === "male"
       ? "Nam"
+      : profile.gender === "female"
+      ? "Nữ"
       : profile.gender === "other"
       ? "Khác"
-      : "Nữ";
+      : "Chưa cập nhật";
 
   return (
     <div className="space-y-6">
@@ -88,7 +90,7 @@ export function ProfileView({ profile, stats, onEdit }: ProfileViewProps) {
             </div>
 
             <h2 className="mt-4 text-lg font-bold text-ink">
-              {profile.fullName || "Nguyễn Minh Anh"}
+              {profile.fullName || "Chưa cập nhật"}
             </h2>
             <p className="mt-0.5 text-xs text-muted">
               Thành viên từ {memberSince}
@@ -126,21 +128,21 @@ export function ProfileView({ profile, stats, onEdit }: ProfileViewProps) {
               <div className="flex flex-col py-3.5 sm:flex-row sm:justify-between">
                 <span className="text-muted">Họ và tên:</span>
                 <span className="font-semibold text-ink">
-                  {profile.fullName || "Nguyễn Minh Anh"}
+                  {profile.fullName || "Chưa cập nhật"}
                 </span>
               </div>
 
               <div className="flex flex-col py-3.5 sm:flex-row sm:justify-between">
                 <span className="text-muted">Số điện thoại:</span>
                 <span className="font-semibold text-ink">
-                  {profile.phone || "0974 175 587"}
+                  {profile.phone || "Chưa cập nhật"}
                 </span>
               </div>
 
               <div className="flex flex-col py-3.5 sm:flex-row sm:justify-between">
                 <span className="text-muted">Email:</span>
                 <span className="font-semibold text-ink">
-                  {profile.email || "minhanh.nguyen@gmail.com"}
+                  {profile.email || "Chưa cập nhật"}
                 </span>
               </div>
 

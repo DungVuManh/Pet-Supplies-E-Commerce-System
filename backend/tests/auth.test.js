@@ -104,7 +104,6 @@ describe("authentication HTTP boundary", () => {
    fullName: profile.fullName,
    phone: profile.phone,
    role: "customer",
-   gender: "female",
    avatarUrl: "/images/customer-avatar.jpg",
   });
   expect(JSON.stringify(response.body)).not.toMatch(
@@ -310,7 +309,7 @@ describe("authentication HTTP boundary", () => {
    if (role === requiredRole) {
     expect(response.body.data.user).toEqual({
      id: profile._id, email: profile.email, fullName: profile.fullName, phone: profile.phone, role,
-     gender: "female", avatarUrl: "/images/customer-avatar.jpg",
+     avatarUrl: "/images/customer-avatar.jpg",
     });
     expect(JSON.stringify(response.body)).not.toMatch(/never-return|firebaseUid|signed-session/);
    } else {

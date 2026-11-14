@@ -25,7 +25,14 @@ export const updateProfileSchema = z
         const parsed = new Date(val);
         return isNaN(parsed.getTime()) ? undefined : parsed;
       }),
-    gender: z.enum(["male", "female", "other"]).optional().default("female"),
+    gender: z
+      .union([z.enum(["male", "female", "other"]), z.literal("")])
+      .optional()
+      .nullable()
+      .transform((val) => {
+        if (!val) return undefined;
+        return val;
+      }),
     avatarUrl: z.string().optional(),
   })
   .strict();
