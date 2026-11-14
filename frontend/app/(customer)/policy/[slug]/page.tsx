@@ -10,7 +10,9 @@ import {
   PolicyView,
 } from "@/features/policy";
 
-// Cho phép route hoạt động trơn tru với Partial Prerendering / Instant Navigation trong Next.js 16
+// Dynamic server-side rendering for real-time policy content updates
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 export const instant = false;
 
 interface PageProps {
@@ -33,12 +35,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export async function generateStaticParams() {
-  const policies = await getAllPolicies();
-  return policies.map((p) => ({
-    slug: p.slug,
-  }));
-}
 
 async function PolicyDetailContent({ params }: PageProps) {
   const { slug } = await params;

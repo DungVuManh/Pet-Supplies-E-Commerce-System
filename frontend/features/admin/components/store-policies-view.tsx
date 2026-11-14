@@ -40,7 +40,7 @@ function slugify(text: string) {
 
 export function StorePoliciesView() {
   const [policies, setPolicies] = useState<StorePolicy[]>([]);
-  const [selectedId, setSelectedId] = useState<string>("return");
+  const [selectedCode, setSelectedCode] = useState<string>("");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -69,8 +69,8 @@ export function StorePoliciesView() {
       const data = await listPolicies();
       setPolicies(data);
       if (data.length > 0) {
-        setSelectedId((prev) =>
-          data.some((p) => p.id === prev || p.code === prev) ? prev : data[0].id
+        setSelectedCode((prev) =>
+          data.some((p) => p.code === prev) ? prev : data[0].code
         );
       }
     } catch (err) {
@@ -85,13 +85,13 @@ export function StorePoliciesView() {
   }, []);
 
   const selectedPolicy =
-    policies.find((p) => p.id === selectedId || p.code === selectedId) || policies[0];
+    policies.find((p) => p.code === selectedCode) || policies[0];
 
   const handleUpdatePolicy = (field: keyof StorePolicy, value: string) => {
     if (!selectedPolicy) return;
     setPolicies((prev) =>
       prev.map((p) =>
-        p.id === selectedPolicy.id || p.code === selectedPolicy.code ? { ...p, [field]: value } : p
+        p.code === selectedPolicy.code ? { ...p, [field]: value } : p
       )
     );
   };
@@ -126,16 +126,15 @@ export function StorePoliciesView() {
 
       const updated = await updatePolicy(selectedPolicy.code, {
         title: selectedPolicy.title,
-        content: selectedPolicy.content,
+        content: selectedPolicy.content || "",
         status: "published",
-        effectiveDate: selectedPolicy.effectiveDate,
+        effectiveDate: selectedPolicy.effectiveDate || "01/10/2026",
       });
 
       setPolicies((prev) =>
-        prev.map((p) =>
-          p.code === selectedPolicy.code || p.id === selectedPolicy.id ? updated : p
-        )
+        prev.map((p) => (p.code === selectedPolicy.code ? updated : p))
       );
+      setSelectedCode(updated.code);
 
       setNotice(`Đã lưu và công bố “${updated.title}” thành công.`);
     } catch (err) {
@@ -186,7 +185,7 @@ export function StorePoliciesView() {
       });
 
       setPolicies((prev) => [...prev, created]);
-      setSelectedId(created.id || created.code);
+      setSelectedCode(created.code);
       setIsCreateOpen(false);
       setNotice(`Đã thêm và công bố chính sách “${created.title}” thành công.`);
     } catch (err) {
@@ -204,17 +203,14 @@ export function StorePoliciesView() {
       setError(null);
       setNotice("");
 
-      const targetIdentifier = selectedPolicy.code || selectedPolicy.id;
-      await deletePolicy(targetIdentifier);
+      await deletePolicy(selectedPolicy.code);
 
-      const remaining = policies.filter(
-        (p) => p.code !== selectedPolicy.code && p.id !== selectedPolicy.id
-      );
+      const remaining = policies.filter((p) => p.code !== selectedPolicy.code);
       setPolicies(remaining);
       if (remaining.length > 0) {
-        setSelectedId(remaining[0].id || remaining[0].code);
+        setSelectedCode(remaining[0].code);
       } else {
-        setSelectedId("");
+        setSelectedCode("");
       }
       setIsDeleteOpen(false);
       setNotice(`Đã xóa chính sách “${selectedPolicy.title}” thành công.`);
@@ -342,13 +338,13 @@ export function StorePoliciesView() {
 
             <div className="space-y-2.5 max-h-[calc(100vh-230px)] overflow-y-auto pr-1">
               {policies.map((p) => {
-                const isSelected = p.id === selectedPolicy?.id || p.code === selectedPolicy?.code;
+                const isSelected = p.code === selectedPolicy?.code;
                 return (
                   <button
-                    key={p.code || p.id}
+                    key={p.code}
                     type="button"
                     onClick={() => {
-                      setSelectedId(p.id);
+                      setSelectedCode(p.code);
                       setNotice("");
                       setError(null);
                     }}

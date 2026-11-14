@@ -15,7 +15,7 @@ export function StorefrontFooter() {
 
     async function loadDynamicPolicies() {
       try {
-        const res = await fetch("/api/v1/policies");
+        const res = await fetch("/api/v1/policies", { cache: "no-store" });
         if (!res.ok) return;
         const json = await res.json();
         if (!isMounted || !json?.success || !Array.isArray(json?.data)) return;

@@ -43,7 +43,7 @@ const BACKEND_URL =
 export async function fetchPublishedPolicies(): Promise<PublicPolicyDto[]> {
   try {
     const res = await fetch(`${BACKEND_URL}/api/v1/policies`, {
-      next: { revalidate: 60 },
+      cache: "no-store",
     });
     if (!res.ok) return [];
     const json = await res.json();
@@ -207,7 +207,7 @@ export async function getPolicyBySlug(slug: string): Promise<PolicyItem | null> 
 
   try {
     const res = await fetch(`${BACKEND_URL}/api/v1/policies/${encodeURIComponent(normalized)}`, {
-      next: { revalidate: 60 },
+      cache: "no-store",
     });
 
     if (res.ok) {
@@ -223,7 +223,7 @@ export async function getPolicyBySlug(slug: string): Promise<PolicyItem | null> 
           showInMenu: staticPolicy ? staticPolicy.showInMenu : true,
           updatedAt: backendPolicy.effectiveDate || (backendPolicy.updatedAt ? new Date(backendPolicy.updatedAt).toLocaleDateString("vi-VN") : null),
           intro: staticPolicy?.intro,
-          sections: dynamicSections.length > 0 ? dynamicSections : staticPolicy?.sections || [],
+          sections: dynamicSections.length > 0 ? dynamicSections : (backendPolicy.content !== undefined ? [] : staticPolicy?.sections || []),
         };
       }
     }

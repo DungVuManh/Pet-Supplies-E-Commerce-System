@@ -8,7 +8,7 @@ const policySchema = new mongoose.Schema(
     id: { type: String, required: true, unique: true, trim: true, lowercase: true },
     slug: { type: String, trim: true, lowercase: true },
     title: { type: String, required: true, trim: true },
-    content: { type: String, required: true, maxlength: 20000, default: "" },
+    content: { type: String, required: false, maxlength: 20000, default: "" },
     status: { type: String, enum: POLICY_STATUSES, default: "published" },
     effectiveDate: { type: String, trim: true, default: "01/10/2026" },
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },

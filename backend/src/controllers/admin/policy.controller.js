@@ -148,7 +148,7 @@ export async function updatePolicy(request, response) {
   };
 
   if (title !== undefined) policy.title = title;
-  if (content !== undefined) policy.content = content;
+  if (content !== undefined) policy.content = content || "";
   if (status !== undefined) policy.status = VN_TO_STATUS[status] || status;
   if (effectiveDate !== undefined) policy.effectiveDate = effectiveDate;
   if (request.user?._id) policy.updatedBy = request.user._id;
