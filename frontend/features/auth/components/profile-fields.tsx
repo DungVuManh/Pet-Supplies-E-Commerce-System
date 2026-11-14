@@ -2,9 +2,9 @@ import { TextField } from "@/components/ui/text-field";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { AuthErrors } from "../validation";
 
-export function ProfileFields({ errors, prefix }: { errors: AuthErrors; prefix: string }) {
+export function ProfileFields({ errors, prefix, defaultFullName }: { errors: AuthErrors; prefix: string; defaultFullName?: string }) {
   return <>
-    <TextField id={`${prefix}-name`} name="fullName" label="Họ và tên" placeholder="Nhập họ và tên của bạn" autoComplete="name" maxLength={100} required error={errors.fullName} />
+    <TextField id={`${prefix}-name`} name="fullName" label="Họ và tên" placeholder="Nhập họ và tên của bạn" autoComplete="name" maxLength={100} required error={errors.fullName} defaultValue={defaultFullName} />
     <TextField id={`${prefix}-phone`} name="phone" label="Số điện thoại" type="tel" placeholder="Nhập số điện thoại" autoComplete="tel" maxLength={20} required error={errors.phone} />
   </>;
 }
