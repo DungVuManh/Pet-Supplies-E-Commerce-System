@@ -9,8 +9,8 @@ const statusLabels = {
   received: "Đang kiểm tra", completed: "Hoàn tất", rejected: "Đã từ chối", cancelled: "Đã hủy",
 };
 const reasons = {
-  damaged_or_missing: "Hàng có vấn đề hoặc thiếu hàng", damaged_or_defective: "Hàng có vấn đề",
-  not_received: "Chưa nhận được hàng", missing_items: "Thiếu hàng",
+  damaged_or_missing: "Hàng có vấn đề", damaged_or_defective: "Hàng có vấn đề",
+  not_received: "Chưa nhận được hàng hoặc thiếu hàng", missing_items: "Thiếu hàng",
 };
 const control = "min-h-11 rounded-lg border border-line px-3 text-sm font-semibold hover:bg-canvas disabled:opacity-50";
 

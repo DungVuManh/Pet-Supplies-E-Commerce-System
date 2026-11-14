@@ -241,14 +241,14 @@ describe("Order Returns Feature", () => {
       expect(res.body.data.returnRequest.status).toBe("pending");
     });
 
-    it("rejects return submission with not_received when order is already completed with 400", async () => {
+    it("accepts return submission with not_received when order is already completed within return window", async () => {
       order.orderStatus = "completed";
       const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
       order.statusHistory = [{ to: "completed", at: twoDaysAgo }];
       order.updatedAt = twoDaysAgo;
       order.createdAt = twoDaysAgo;
 
-      vi.spyOn(Order, "updateOne").mockResolvedValue({ modifiedCount: 0 });
+      vi.spyOn(Order, "updateOne").mockResolvedValue({ modifiedCount: 1 });
 
       const { agent, cookie, csrfToken } = await makeBrowser("customer", customerId);
       const res = await agent
@@ -265,9 +265,11 @@ describe("Order Returns Feature", () => {
             accountHolder: "NGUYEN VAN A",
           },
         })
-        .expect(400);
+        .expect(201);
 
-      expect(res.body.error.code).toBe("INVALID_RETURN_REASON");
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.returnRequest.status).toBe("pending");
+      expect(res.body.data.returnRequest.reason).toBe("not_received");
     });
 
     it("rejects upload when order already has a return request with 409", async () => {

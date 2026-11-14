@@ -804,9 +804,9 @@ export async function getOrderDetail(request, response, next) {
 
   const RETURN_REASON_LABELS = {
    damaged_or_defective: "Hàng có vấn đề",
-   not_received: "Chưa nhận được hàng",
+   not_received: "Chưa nhận được hàng hoặc thiếu hàng",
    missing_items: "Thiếu hàng",
-   damaged_or_missing: "Hàng có vấn đề hoặc thiếu hàng",
+   damaged_or_missing: "Hàng có vấn đề",
   };
   const RETURN_STATUS_LABELS = {
    pending: "Chờ xử lý",

@@ -21,9 +21,6 @@ export function getReturnEligibilityError(order, now = new Date(), reason) {
   if (!completedAt || now - completedAt > RETURN_WINDOW_MS) {
     return new AppError("Đơn hàng đã quá thời hạn yêu cầu hoàn trả (7 ngày kể từ khi nhận hàng).", 400, "RETURN_PERIOD_EXPIRED");
   }
-  if (reason === "not_received") {
-    return new AppError("Đơn hàng đã hoàn thành. Vui lòng chọn lý do khác.", 400, "INVALID_RETURN_REASON");
-  }
   return null;
 }
 

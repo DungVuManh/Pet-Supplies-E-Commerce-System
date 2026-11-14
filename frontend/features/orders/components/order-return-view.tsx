@@ -24,15 +24,16 @@ const RETURN_REASON_OPTIONS: {
  hint: string;
 }[] = [
  {
-  value: "damaged_or_missing",
-  label: "Hàng có vấn đề hoặc thiếu hàng",
+  value: "damaged_or_defective",
+  label: "Hàng có vấn đề (hư hỏng, bể vỡ hoặc lỗi)",
   hint:
-   "Sản phẩm bị hư hỏng, bể vỡ, bao bì rách, lỗi sản xuất hoặc thiếu sản phẩm, quà tặng kèm (Bắt buộc kèm ảnh).",
+   "Sản phẩm bị hư hỏng, bể vỡ, bao bì rách hoặc lỗi sản xuất từ nhà sản xuất (Bắt buộc kèm ảnh).",
  },
  {
   value: "not_received",
-  label: "Chưa nhận được hàng",
-  hint: "Đơn hàng ở trạng thái đang giao quá hạn nhưng bạn chưa nhận được.",
+  label: "Chưa nhận được hàng hoặc thiếu hàng",
+  hint:
+   "Đơn hàng chưa nhận được hoặc kiện hàng nhận được bị thiếu sản phẩm, phụ kiện, quà tặng kèm (Không bắt buộc ảnh).",
  },
 ];
 
@@ -311,10 +312,7 @@ export function OrderReturnView({ orderId = "" }: OrderReturnViewProps) {
          1. Chọn lý do hoàn trả <span className="text-rose-500">*</span>
         </label>
         <div className="space-y-3">
-         {(order.orderStatus === "completed" || order.status === "completed"
-          ? RETURN_REASON_OPTIONS.filter((opt) => opt.value !== "not_received")
-          : RETURN_REASON_OPTIONS
-         ).map((opt) => (
+         {RETURN_REASON_OPTIONS.map((opt) => (
           <label
            key={opt.value}
            className={`flex items-start gap-3 p-3.5 rounded-lg border cursor-pointer transition-colors ${
