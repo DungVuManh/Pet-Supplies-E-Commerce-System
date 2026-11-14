@@ -7,9 +7,9 @@ import { createAdminTestApp } from "./helpers/admin-app.js";
 
 const id = (suffix) => new mongoose.Types.ObjectId(`a0000000000000000000${suffix}`);
 
-const adminUser = { _id: id("0001"), fullName: "Quản trị viên", email: "admin@petly.vn", role: "admin" };
-const staffUser = { _id: id("0002"), fullName: "Vũ Đức Long", email: "duclong@petly.vn", role: "staff" };
-const customerUser = { _id: id("0003"), fullName: "Phạm Thu Hà", email: "thuha@gmail.com", role: "customer" };
+const adminUser = { _id: id("0001"), fullName: "Quản trị viên", email: "admin@petly.vn", role: "admin", phone: "0900000001" };
+const staffUser = { _id: id("0002"), fullName: "Vũ Đức Long", email: "duclong@petly.vn", role: "staff", phone: "0900000002" };
+const customerUser = { _id: id("0003"), fullName: "Phạm Thu Hà", email: "thuha@gmail.com", role: "customer", phone: "0900000003" };
 const users = [adminUser, staffUser, customerUser];
 
 const sampleLogs = [
@@ -68,6 +68,18 @@ const sampleLogs = [
     at: new Date("2026-10-08T09:00:00.000Z"),
     createdAt: new Date("2026-10-08T09:00:00.000Z"),
   },
+  {
+    _id: id("0106"),
+    actorId: staffUser,
+    action: "order.create.offline",
+    target: { collectionName: "orders", id: "PA261011099" },
+    summary: "",
+    after: { orderCode: "PA261011099", total: 150000, channel: "offline" },
+    ip: "127.0.0.1",
+    result: "success",
+    at: new Date("2026-10-07T14:20:00.000Z"),
+    createdAt: new Date("2026-10-07T14:20:00.000Z"),
+  },
 ];
 
 function matchesFilter(item, filter) {
@@ -103,6 +115,11 @@ let admin;
 beforeEach(() => {
   admin = createAdminTestApp();
   vi.spyOn(AuditLog, "find").mockImplementation(fakeAuditFind);
+  vi.spyOn(AuditLog, "findById").mockImplementation((queryId) => ({
+    populate: () => ({
+      lean: async () => sampleLogs.find((item) => String(item._id) === String(queryId)) || null,
+    }),
+  }));
   vi.spyOn(AuditLog, "countDocuments").mockImplementation(async (filter) => {
     return sampleLogs.filter((item) => matchesFilter(item, filter)).length;
   });
@@ -159,6 +176,14 @@ describe("GET /api/v1/admin/audit-logs", () => {
     expect(first.fullTime).toBeDefined();
   });
 
+  it("normalizes order.create.offline to Nhân viên tạo đơn hàng offline", async () => {
+    const response = await admin.send("GET", "/api/v1/admin/audit-logs").expect(200);
+    const offlineRow = response.body.data.items.find((item) => item.actionCode === "order.create.offline");
+    expect(offlineRow).toBeDefined();
+    expect(offlineRow.action).toBe("Nhân viên tạo đơn hàng offline");
+    expect(offlineRow.detail).toContain("Nhân viên tạo đơn hàng tại quầy PA261011099");
+  });
+
   it("handles audit log with missing or null actor as system", async () => {
     const response = await admin.send("GET", "/api/v1/admin/audit-logs").expect(200);
     const systemRow = response.body.data.items.find((item) => item.actionCode === "category.create");
@@ -185,6 +210,28 @@ describe("GET /api/v1/admin/audit-logs", () => {
     await admin.send("POST", "/api/v1/admin/audit-logs").expect(404);
     await admin.send("PUT", "/api/v1/admin/audit-logs").expect(404);
     await admin.send("DELETE", "/api/v1/admin/audit-logs").expect(404);
+  });
+});
+
+describe("GET /api/v1/admin/audit-logs/:id", () => {
+  it("returns 200 with single audit log detail", async () => {
+    const targetId = String(sampleLogs[0]._id);
+    const response = await admin.send("GET", `/api/v1/admin/audit-logs/${targetId}`).expect(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data).toMatchObject({
+      id: targetId,
+      action: "Khóa tài khoản",
+      actionCode: "user.lock",
+      actor: "Quản trị viên",
+      actorRole: "admin",
+      result: "Thành công",
+    });
+  });
+
+  it("returns 404 for non-existent audit log", async () => {
+    const nonExistentId = "000000000000000000000999";
+    const response = await admin.send("GET", `/api/v1/admin/audit-logs/${nonExistentId}`).expect(404);
+    expect(response.body.error.code).toBe("NOT_FOUND");
   });
 });
 

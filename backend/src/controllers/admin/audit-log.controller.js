@@ -1,3 +1,4 @@
+import { AppError } from "../../common/errors/app-error.js";
 import { pageDto } from "../../common/pagination.js";
 import { searchFilter } from "../../common/search.js";
 import { AuditLog } from "../../models/audit-log.model.js";
@@ -6,11 +7,13 @@ import { parseQuery } from "../../validators/admin/list-query.js";
 import { auditLogListQuerySchema } from "../../validators/admin/audit-log.validator.js";
 
 export const ACTION_LABELS = {
+  "order.create.offline": "Nhân viên tạo đơn hàng offline",
   "product.update": "Cập nhật sản phẩm",
   "product.create": "Tạo sản phẩm",
   "product.delete": "Xóa sản phẩm",
   "product.hide": "Ẩn sản phẩm",
   "product.show": "Hiện sản phẩm",
+  "product.export": "Xuất danh sách sản phẩm",
   "user.lock": "Khóa tài khoản",
   "user.unlock": "Mở khóa tài khoản",
   "user.update": "Cập nhật người dùng",
@@ -19,10 +22,14 @@ export const ACTION_LABELS = {
   "category.update": "Cập nhật danh mục",
   "category.delete": "Xóa danh mục",
   "order.status": "Cập nhật đơn hàng",
+  "order.export": "Xuất danh sách đơn hàng",
+  "admin.cancellation.approve": "Duyệt yêu cầu hủy",
+  "admin.cancellation.reject": "Từ chối yêu cầu hủy",
   "settings.update": "Cập nhật cấu hình",
+  "setting.update": "Cập nhật cấu hình",
   "policy.publish": "Công bố chính sách",
   "policies.update": "Công bố chính sách",
-  "admin.access": "Truy cập quản trị",
+  "admin.access": "Từ chối truy cập quản trị",
   "masterData.create": "Tạo dữ liệu danh mục",
   "masterData.update": "Cập nhật dữ liệu danh mục",
   "masterData.delete": "Xóa dữ liệu danh mục",
@@ -31,17 +38,25 @@ export const ACTION_LABELS = {
   "voucher.delete": "Xóa mã giảm giá",
   "voucher.enable": "Kích hoạt mã giảm giá",
   "voucher.disable": "Ngưng kích hoạt mã giảm giá",
+  "seed.sample-data": "Khởi tạo dữ liệu mẫu",
 };
 
 export const ACTION_CODE_MAP = {
+  "nhân viên tạo đơn hàng offline": ["order.create.offline"],
+  "tạo đơn hàng offline": ["order.create.offline"],
   "cập nhật tồn kho": ["inventory.update", "stock.update", "product.update"],
+  "cập nhật sản phẩm": ["product.update"],
   "khóa tài khoản": ["user.lock"],
   "mở khóa tài khoản": ["user.unlock"],
   "duyệt yêu cầu hủy": ["admin.cancellation.approve", "order.cancel.approve"],
+  "từ chối yêu cầu hủy": ["admin.cancellation.reject"],
   "công bố chính sách": ["policy.publish", "policies.update", "policy.update"],
   "xóa sản phẩm": ["product.delete"],
-  "cập nhật cấu hình": ["settings.update"],
+  "cập nhật cấu hình": ["setting.update", "settings.update"],
   "truy cập quản trị": ["admin.access"],
+  "từ chối truy cập quản trị": ["admin.access"],
+  "xuất danh sách đơn hàng": ["order.export"],
+  "xuất danh sách sản phẩm": ["product.export"],
 };
 
 /** Compute the destination link for a target resource in the admin dashboard */
@@ -58,7 +73,7 @@ export function auditTargetHref(collectionName, targetId) {
   if (col === "policies" || id.startsWith("POL-")) {
     return "/admin/system/policies";
   }
-  if (col === "settings" || id.startsWith("CFG-") || id === "store-settings") {
+  if (col === "settings" || id.startsWith("CFG-") || id === "store-settings" || id === "global") {
     return "/admin/system/settings";
   }
   if (col === "categories") {
@@ -116,8 +131,29 @@ export function formatAuditTime(date) {
   }
 }
 
-/** Formats a single audit log document for API response */
+export function getAuditSummary(log) {
+  if (log.summary) return log.summary;
+  if (log.action === "order.create.offline") {
+    const code = log.after?.orderCode || log.target?.id || "";
+    const total = log.after?.total ? ` (${Number(log.after.total).toLocaleString("vi-VN")} đ)` : "";
+    return `Nhân viên tạo đơn hàng tại quầy ${code}${total}`.trim();
+  }
+  if (log.action === "admin.access") {
+    return `Từ chối truy cập quản trị: ${log.target?.id || ""}`;
+  }
+  if (log.action === "setting.update" || log.action === "settings.update") {
+    return "Cập nhật cấu hình cửa hàng";
+  }
+  if (log.action === "order.export") {
+    return "Xuất danh sách đơn hàng ra file Excel/CSV";
+  }
+  if (log.action === "product.export") {
+    return "Xuất danh sách sản phẩm ra file Excel/CSV";
+  }
+  return ACTION_LABELS[log.action] || log.action;
+}
 
+/** Formats a single audit log document for API response */
 export function formatAuditLogRow(log) {
   const actorUser =
     log.actorId && typeof log.actorId === "object"
@@ -147,6 +183,8 @@ export function formatAuditLogRow(log) {
     targetLabel = "Cấu hình cửa hàng";
   }
 
+  const detailSummary = getAuditSummary(log);
+
   return {
     id: String(log._id),
     at: log.at || log.createdAt,
@@ -154,27 +192,24 @@ export function formatAuditLogRow(log) {
     fullTime,
     actor: actorName,
     actorRole,
+    actorEmail: actorUser?.email || "",
+    actorPhone: actorUser?.phone || "",
+    actorId: actorUser ? String(actorUser._id) : null,
     action: ACTION_LABELS[log.action] || log.action,
     actionCode: log.action,
-    detail: log.summary || "",
-    summary: log.summary || "",
+    detail: detailSummary,
+    summary: detailSummary,
     ip: log.ip || "—",
-
-    // Hiển thị tên đối tượng thay vì ID
     target: targetLabel,
-
-    // Vẫn giữ ID và collection để truy xuất
     targetId,
     targetCollection: collectionName,
     targetHref: auditTargetHref(collectionName, targetId),
-
     result: log.result === "denied" ? "Bị từ chối" : "Thành công",
     rawResult: log.result || "success",
-    before: log.before,
-    after: log.after,
+    before: log.before ?? null,
+    after: log.after ?? null,
   };
 }
-
 
 /**
  * Builds the MongoDB query filter for listing audit logs.
@@ -278,5 +313,26 @@ export async function listAuditLogs(request, response) {
   response.json({
     success: true,
     data: paged,
+  });
+}
+
+/**
+ * GET /api/v1/admin/audit-logs/:id
+ * Read-only endpoint returning detail of a single audit log entry.
+ */
+export async function getAuditLog(request, response) {
+  const { id } = request.params;
+  const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+  const log = isObjectId
+    ? await AuditLog.findById(id).populate("actorId", "fullName role email phone").lean()
+    : null;
+
+  if (!log) {
+    throw new AppError("Không tìm thấy bản ghi nhật ký hệ thống.", 404, "NOT_FOUND");
+  }
+
+  response.json({
+    success: true,
+    data: formatAuditLogRow(log),
   });
 }

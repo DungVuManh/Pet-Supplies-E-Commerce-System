@@ -1,39 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { CircleX, Download, ShieldCheck } from "lucide-react";
 import { AdminPageHeader, DataTable, StatusBadge, Stack, Td, Th } from "./admin-ui";
 import { SystemNav } from "./system-nav";
 import { ActionLink, Field, InfoCallout, ListState, Pagination, card, control, secondaryButton } from "@/components/workspace/workspace-ui";
-import { DemoNotice } from "@/components/workspace/demo-notice";
 import { useAuditLogList } from "../hooks/use-audit-log-list";
-import type { AuditLogFilter, AuditResult } from "../types";
+import type { AuditLogFilter } from "../types";
 
-const ACTION_OPTIONS = [
+const ACTIONS = [
   { value: "all", label: "Tất cả hành động" },
-  { value: "product.update", label: "Cập nhật tồn kho" },
+  { value: "order.create.offline", label: "Nhân viên tạo đơn hàng offline" },
+  { value: "cập nhật tồn kho", label: "Cập nhật tồn kho" },
   { value: "user.lock", label: "Khóa tài khoản" },
   { value: "user.unlock", label: "Mở khóa tài khoản" },
+  { value: "admin.cancellation.approve", label: "Duyệt yêu cầu hủy" },
+  { value: "admin.cancellation.reject", label: "Từ chối yêu cầu hủy" },
   { value: "policies.update", label: "Công bố chính sách" },
   { value: "product.delete", label: "Xóa sản phẩm" },
+  { value: "settings.update", label: "Cập nhật cấu hình" },
+  { value: "product.update", label: "Cập nhật sản phẩm" },
   { value: "product.create", label: "Tạo sản phẩm" },
   { value: "product.hide", label: "Ẩn sản phẩm" },
-  { value: "settings.update", label: "Cập nhật cấu hình" },
-  { value: "user.create", label: "Tạo người dùng" },
-  { value: "user.update", label: "Cập nhật người dùng" },
+  { value: "product.show", label: "Hiện sản phẩm" },
   { value: "category.create", label: "Tạo danh mục" },
   { value: "category.update", label: "Cập nhật danh mục" },
   { value: "category.delete", label: "Xóa danh mục" },
+  { value: "user.create", label: "Tạo người dùng" },
+  { value: "user.update", label: "Cập nhật người dùng" },
   { value: "voucher.create", label: "Tạo mã giảm giá" },
   { value: "voucher.update", label: "Cập nhật mã giảm giá" },
   { value: "voucher.delete", label: "Xóa mã giảm giá" },
-  { value: "admin.access", label: "Truy cập bị từ chối" },
+  { value: "masterData.create", label: "Tạo dữ liệu danh mục" },
+  { value: "order.export", label: "Xuất danh sách đơn hàng" },
+  { value: "product.export", label: "Xuất danh sách sản phẩm" },
+  { value: "admin.access", label: "Từ chối truy cập quản trị" },
 ];
 
-const RESULT_OPTIONS: { value: AuditResult; label: string }[] = [
-  { value: "all", label: "Tất cả kết quả" },
-  { value: "success", label: "Thành công" },
-  { value: "denied", label: "Bị từ chối" },
+const PERIOD_OPTIONS = [
+  { value: "all", label: "Tất cả thời gian" },
+  { value: "today", label: "Hôm nay" },
+  { value: "7days", label: "7 ngày qua" },
+  { value: "30days", label: "30 ngày qua" },
+  { value: "this-month", label: "Tháng này" },
+  { value: "last-month", label: "Tháng trước" },
 ];
 
 const ROLE_LABELS: Record<string, string> = {
@@ -43,69 +53,198 @@ const ROLE_LABELS: Record<string, string> = {
   system: "Hệ thống",
 };
 
+function formatIsoDate(d: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function calculateDatesForPeriod(period: string): { from?: string; to?: string } {
+  const now = new Date();
+  if (period === "today") {
+    const todayStr = formatIsoDate(now);
+    return { from: todayStr, to: todayStr };
+  }
+  if (period === "7days") {
+    const past = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    return { from: formatIsoDate(past), to: formatIsoDate(now) };
+  }
+  if (period === "30days") {
+    const past = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    return { from: formatIsoDate(past), to: formatIsoDate(now) };
+  }
+  if (period === "this-month") {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const firstDay = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-01`;
+    return { from: firstDay, to: formatIsoDate(now) };
+  }
+  if (period === "last-month") {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const year = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+    const month = now.getMonth() === 0 ? 12 : now.getMonth();
+    const lastDayOfMonth = new Date(year, month, 0).getDate();
+    return {
+      from: `${year}-${pad(month)}-01`,
+      to: `${year}-${pad(month)}-${pad(lastDayOfMonth)}`,
+    };
+  }
+  return {};
+}
+
 export function AuditLogView() {
-  const { filter, draft, setDraft, apply, reset, setPage, reload, items, pagination, from, to, loading, state } = useAuditLogList();
+  const { apply, reset, setPage, reload, items, pagination, from, to, state } = useAuditLogList();
 
-  // Draft state for filter form (applied only on button click)
-  const [draftAction, setDraftAction] = useState(draft.action);
-  const [draftResult, setDraftResult] = useState<AuditResult>(draft.result);
-  const [draftQ, setDraftQ] = useState(draft.q);
+  const [searchInput, setSearchInput] = useState("");
+  const [actionInput, setActionInput] = useState("all");
+  const [periodInput, setPeriodInput] = useState("all");
 
-  function applyFilters() {
-    const next: AuditLogFilter = { q: draftQ, action: draftAction, result: draftResult };
+  const handleApplyFilter = () => {
+    const { from: fromDate, to: toDate } = calculateDatesForPeriod(periodInput);
+    const next: AuditLogFilter = {
+      q: searchInput.trim(),
+      action: actionInput,
+      from: fromDate,
+      to: toDate,
+    };
     apply(next);
-  }
+  };
 
-  function handleReset() {
-    setDraftQ("");
-    setDraftAction("all");
-    setDraftResult("all");
+  const handleReset = () => {
+    setSearchInput("");
+    setActionInput("all");
+    setPeriodInput("all");
     reset();
-  }
+  };
+
+  const handleExportCsv = () => {
+    if (!items.length) {
+      alert("Không có bản ghi nhật ký nào để xuất.");
+      return;
+    }
+
+    const headers = [
+      "Mã bản ghi",
+      "Thời gian",
+      "Người thực hiện",
+      "Vai trò",
+      "Hành động",
+      "Chi tiết nội dung",
+      "Đối tượng tác động",
+      "Kết quả",
+      "Địa chỉ IP",
+    ];
+
+    const escapeCsv = (val: string | null | undefined) => {
+      const str = String(val ?? "");
+      if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const rows = items.map((r) => [
+      r.id,
+      r.fullTime,
+      r.actor,
+      ROLE_LABELS[r.actorRole] || r.actorRole,
+      r.action,
+      r.detail,
+      r.target,
+      r.result,
+      r.ip,
+    ]);
+
+    const csvContent = "\uFEFF" + [headers.map(escapeCsv).join(","), ...rows.map((row) => row.map(escapeCsv).join(","))].join("\r\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `nhat-ky-he-thong-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const actions = (
+    <button
+      type="button"
+      onClick={handleExportCsv}
+      className={`${secondaryButton} h-12 flex items-center gap-1.5`}
+    >
+      <Download className="h-4 w-4" aria-hidden="true" />
+      <span>Xuất nhật ký</span>
+    </button>
+  );
 
   return (
     <div className="space-y-6">
       <AdminPageHeader
-        breadcrumbs={["Hệ thống", "Nhật ký hệ thống"]}
+        breadcrumbs={["Quản trị", "Hệ thống", "Nhật ký hệ thống"]}
         title="Nhật ký hệ thống"
         subtitle="Theo dõi ai đã thay đổi dữ liệu, khi nào và nội dung thay đổi."
+        actions={actions}
       />
 
       <SystemNav />
 
       {/* Filter Section */}
       <section className={`${card} p-6`}>
-        <div className="grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_200px_180px_180px_auto]">
-          <Field label="Tìm kiếm" htmlFor="audit-search">
+        <div className="grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_220px_180px_auto]">
+          <div className="flex min-w-0 flex-col gap-2">
+            <label htmlFor="audit-search" className="font-medium">
+              Tìm kiếm
+            </label>
             <input
               id="audit-search"
               type="search"
-              value={draftQ}
-              onChange={(e) => setDraftQ(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && applyFilters()}
-              placeholder="Người thực hiện, IP hoặc mã bản ghi"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleApplyFilter()}
+              placeholder="Người thực hiện hoặc mã bản ghi"
               className={control}
             />
-          </Field>
+          </div>
 
-          <Field label="Hành động" htmlFor="audit-action">
+          <div className="flex min-w-0 flex-col gap-2">
+            <label htmlFor="audit-action" className="font-medium">
+              Hành động
+            </label>
             <select
               id="audit-action"
-              value={draftAction}
-              onChange={(e) => setDraftAction(e.target.value)}
+              value={actionInput}
+              onChange={(e) => setActionInput(e.target.value)}
               className={control}
             >
-              {ACTION_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
+              {ACTIONS.map((act) => (
+                <option key={act.value} value={act.value}>
+                  {act.label}
                 </option>
               ))}
             </select>
-          </Field>
+          </div>
+
+          <div className="flex min-w-0 flex-col gap-2">
+            <label htmlFor="audit-period" className="font-medium">
+              Khoảng thời gian
+            </label>
+            <select
+              id="audit-period"
+              value={periodInput}
+              onChange={(e) => setPeriodInput(e.target.value)}
+              className={control}
+            >
+              {PERIOD_OPTIONS.map((period) => (
+                <option key={period.value} value={period.value}>
+                  {period.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <button
             type="button"
-            onClick={applyFilters}
+            onClick={handleApplyFilter}
             className={`${secondaryButton} h-12`}
           >
             Lọc dữ liệu
@@ -113,15 +252,14 @@ export function AuditLogView() {
         </div>
       </section>
 
-      {/* Audit Log Table */}
-      {/* Audit Log Table */}
+      {/* Table Section */}
       <DataTable
         caption="Nhật ký hoạt động hệ thống chi tiết"
         head={
           <>
             <Th className="w-44">Thời gian</Th>
             <Th>Người thực hiện</Th>
-            <Th className="w-48">Hành động</Th>
+            <Th className="w-64">Hành động</Th>
             <Th className="w-36">Kết quả</Th>
             <Th className="w-32">Thao tác</Th>
           </>
@@ -149,7 +287,7 @@ export function AuditLogView() {
                 <ListState
                   kind="empty"
                   title="Không tìm thấy bản ghi"
-                  description="Không có bản ghi nhật ký khớp với bộ lọc. Thử thay đổi từ khóa hoặc xóa bộ lọc."
+                  description="Không có bản ghi nhật ký khớp với bộ lọc hiện tại. Thử đổi từ khóa hoặc bỏ bộ lọc."
                   action={
                     <button
                       type="button"
@@ -196,20 +334,27 @@ export function AuditLogView() {
                       </span>
                     )}
                   </p>
+                  <p className="mt-1 text-xs text-muted">
+                    {row.detail && row.detail !== row.action ? `${row.detail} · ` : ""}
+                    {row.ip && row.ip !== "—" ? `IP ${row.ip}` : ""}
+                  </p>
                 </div>
               </Td>
-              <Td className="font-semibold">{row.action}</Td>
+              <Td>
+                <span className="font-semibold">{row.action}</span>
+              </Td>
               <Td>
                 <StatusBadge status={row.result} />
               </Td>
               <Td>
-                <ActionLink href={row.targetHref}>Chi tiết</ActionLink>
+                <ActionLink href={`/admin/system/audit-log/${row.id}`}>Chi tiết</ActionLink>
               </Td>
             </tr>
           ))
         )}
       </DataTable>
-      {/* Read-only callout */}
+
+      {/* Nhật ký chỉ đọc callout */}
       <InfoCallout
         icon={<ShieldCheck className="h-5 w-5" aria-hidden="true" />}
         title="Nhật ký chỉ đọc"

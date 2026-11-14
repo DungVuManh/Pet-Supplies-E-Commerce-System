@@ -306,7 +306,7 @@ export type AdminVoucherRow = VoucherFields & { usedCount: number; state: Vouche
 export type AdminVoucherDetail = AdminVoucherRow & { updatedAt: string; used: boolean; lockedFields: ("code" | "type" | "value")[] };
 
 export type AuditResult = "success" | "denied" | "all";
-export type AuditLogFilter = { q: string; action: string; result: AuditResult; from?: string; to?: string };
+export type AuditLogFilter = { q: string; action: string; result?: AuditResult; from?: string; to?: string };
 
 /** One row of `GET /api/v1/admin/audit-logs`. */
 export type AdminAuditLogRow = {
@@ -316,14 +316,20 @@ export type AdminAuditLogRow = {
   fullTime: string;
   actor: string;
   actorRole: string;
+  actorEmail?: string;
+  actorPhone?: string;
+  actorId?: string | null;
   action: string;
   actionCode: string;
   detail: string;
   summary: string;
   ip: string;
   target: string;
+  targetId?: string;
   targetCollection: string;
   targetHref: string;
   result: "Thành công" | "Bị từ chối";
   rawResult: "success" | "denied";
+  before?: Record<string, unknown> | null;
+  after?: Record<string, unknown> | null;
 };
