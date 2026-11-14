@@ -31,14 +31,22 @@ export function validateProduct(values: ProductFormValues): FormErrors<ProductFo
   return errors;
 }
 
-export type CategoryFormValues = { name: string; slug: string; order: string; description?: string };
+/** A slug suggested from a Vietnamese name: "Đồ chơi cho mèo" gives "do-choi-cho-meo". */
+export function slugFromName(name: string) {
+  return name.toLowerCase().replace(/đ/g, "d").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 120).replace(/-+$/, "");
+}
+
+/** `orderOptional`: a new category may leave the order empty, and the server puts it last. */
+export type CategoryFormValues = { name: string; slug: string; order: string; description?: string; orderOptional?: boolean };
 
 export function validateCategory(values: CategoryFormValues): FormErrors<CategoryFormValues> {
   const errors: FormErrors<CategoryFormValues> = {};
   const name = values.name.trim();
   if (name.length < 2 || name.length > 100) errors.name = "Nhập tên danh mục, từ 2 đến 100 ký tự.";
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(values.slug.trim())) errors.slug = "Đường dẫn gồm chữ thường không dấu, số và dấu gạch ngang, ví dụ thuc-an-cho-cho.";
-  if (!/^[1-9]\d*$/.test(values.order.trim())) errors.order = "Thứ tự hiển thị là số nguyên từ 1.";
+  const order = values.order.trim();
+  if (!(values.orderOptional && !order) && !/^[1-9]\d*$/.test(order)) errors.order = "Thứ tự hiển thị là số nguyên từ 1.";
   if ((values.description?.trim().length ?? 0) > 500) errors.description = "Mô tả tối đa 500 ký tự.";
   return errors;
 }
@@ -84,4 +92,72 @@ export function validateVoucher(values: VoucherFormValues): FormErrors<VoucherFo
   if (!values.endDate) errors.endDate = "Chọn ngày kết thúc.";
   else if (values.startDate && values.endDate < values.startDate) errors.endDate = "Ngày kết thúc phải từ ngày bắt đầu trở đi.";
   return errors;
+}
+
+/** The master data modal's text inputs. `petTypeCode` is checked only for breeds and `fee` only for shipping methods. */
+export type MasterDataFormValues = { kind: "petType" | "breed" | "brand" | "unit" | "shippingMethod"; name: string; description: string; petTypeCode: string; fee: string };
+
+/** The same rules as the server's master data validator. */
+export function validateMasterData(values: MasterDataFormValues): FormErrors<MasterDataFormValues> {
+  const errors: FormErrors<MasterDataFormValues> = {};
+  const name = values.name.trim();
+  if (!name) errors.name = "Nhập tên.";
+  else if (name.length > 100) errors.name = "Tên tối đa 100 ký tự.";
+  if (values.description.trim().length > 300) errors.description = "Mô tả tối đa 300 ký tự.";
+  if (values.kind === "breed" && !values.petTypeCode) errors.petTypeCode = "Chọn loài thú cưng.";
+  if (values.kind === "shippingMethod" && Number.isNaN(parseAmount(values.fee))) errors.fee = "Phí là số nguyên từ 0.";
+  return errors;
+}
+
+/** One variant row of the new product form, as typed. */
+export type ProductVariantValues = { label: string; sku: string; price: string; cost: string; stock: string; threshold: string };
+export type ProductVariantErrors = Partial<Record<keyof ProductVariantValues, string>>;
+
+/**
+ * The same rules as the server's create schema. Variant errors are per row, and
+ * a SKU repeated in the form is reported on its later row, as the server does.
+ */
+export function validateProductCreate(values: { name: string; categoryCodes: string[]; variants: ProductVariantValues[] }) {
+  const errors: { name?: string; categoryCodes?: string; variants?: string } = {};
+  if (values.name.trim().length < 3) errors.name = "Nhập tên sản phẩm (ít nhất 3 ký tự).";
+  if (values.categoryCodes.length === 0) errors.categoryCodes = "Chọn ít nhất một danh mục.";
+  if (values.variants.length === 0) errors.variants = "Thêm ít nhất một phân loại.";
+  const seen = new Set<string>();
+  const variants = values.variants.map((variant) => {
+    const found: ProductVariantErrors = {};
+    const sku = variant.sku.trim();
+    if (!variant.label.trim()) found.label = "Nhập tên phân loại, ví dụ Túi 2 kg.";
+    if (!/^[A-Z0-9]+(-[A-Z0-9]+)*$/.test(sku)) found.sku = "SKU gồm chữ in hoa, số và dấu gạch ngang, ví dụ RC-MA-2KG.";
+    else if (seen.has(sku)) found.sku = "SKU bị trùng với phân loại khác.";
+    seen.add(sku);
+    if (!(parseAmount(variant.price) > 0)) found.price = "Giá bán phải là số lớn hơn 0.";
+    if (variant.cost.trim() && Number.isNaN(parseAmount(variant.cost))) found.cost = "Giá vốn phải là số không âm.";
+    if (variant.stock.trim() && Number.isNaN(parseAmount(variant.stock))) found.stock = "Tồn kho phải là số nguyên không âm.";
+    if (variant.threshold.trim() && Number.isNaN(parseAmount(variant.threshold))) found.threshold = "Ngưỡng cảnh báo phải là số nguyên không âm.";
+    return found;
+  });
+  return { errors, variants, valid: Object.keys(errors).length === 0 && variants.every((found) => Object.keys(found).length === 0) };
+}
+
+export type UserCreateValues = { fullName: string; email: string; phone: string; adminNote: string };
+
+/** The edit form's rules, plus an email, which only a new account has. */
+export function validateUserCreate(values: UserCreateValues): FormErrors<UserCreateValues> {
+  const errors: FormErrors<UserCreateValues> = validateUser(values);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim()) || values.email.trim().length > 254) errors.email = "Nhập email hợp lệ, ví dụ ten@petjoy.vn.";
+  return errors;
+}
+
+export const MAX_PRODUCT_IMAGES = 8;
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const imageTypes = ["image/jpeg", "image/png", "image/webp"];
+
+/** Why these files cannot be added to a product that already has `current` photos, or "". The server checks again. */
+export function productImagesError(files: { name: string; type: string; size: number }[], current: number) {
+  if (current + files.length > MAX_PRODUCT_IMAGES) return `Mỗi sản phẩm tối đa ${MAX_PRODUCT_IMAGES} ảnh; còn thêm được ${Math.max(0, MAX_PRODUCT_IMAGES - current)} ảnh.`;
+  const wrong = files.find((file) => !imageTypes.includes(file.type));
+  if (wrong) return `“${wrong.name}” không phải ảnh JPG, PNG hoặc WebP.`;
+  const big = files.find((file) => file.size > MAX_IMAGE_BYTES);
+  if (big) return `“${big.name}” lớn hơn 5 MB.`;
+  return "";
 }

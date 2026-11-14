@@ -1,4 +1,4 @@
-import { getClientAuth } from "./firebase-client";
+import { getClientAuth } from "@/lib/firebase-client";
 import { authApi, AuthApiError } from "./api";
 import type { RegistrationProfile } from "./types";
 
@@ -79,12 +79,5 @@ export async function clearFirebaseIdentity() {
   await signOut(auth);
 }
 
-export async function sendPasswordReset(email: string) {
-  const [auth, { sendPasswordResetEmail }] = await Promise.all([getClientAuth(), import("firebase/auth")]);
-  try {
-    await sendPasswordResetEmail(auth, email);
-  } catch (error) {
-    // Projects without enumeration protection may disclose an unknown address.
-    if (!(error && typeof error === "object" && "code" in error && error.code === "auth/user-not-found")) throw error;
-  }
-}
+// Kept here so existing imports work; the code lives in `lib/` because Admin uses it too.
+export { sendPasswordReset } from "@/lib/password-reset";

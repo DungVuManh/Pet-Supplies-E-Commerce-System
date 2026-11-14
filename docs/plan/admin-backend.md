@@ -261,6 +261,8 @@ UI it serves: `docs/specs/admin-workspace-ui.md` (complete on mock data in `fron
 
 ## 6. Cancellation requests: `/admin/cancellations`
 
+> **Dropped on 2026-11-11.** The user and their teammate decided that Staff handle cancellation requests, so Admin has no cancellations screen. The mock screen, its route, its sidebar entry, and `mock/cancellations.ts` were removed, and the bullets below will not be done.
+
 > **Voucher note:** approving a cancellation must also call `releaseVoucher(orderId)` from `common/voucher-redemption.js`, or the order's voucher use is never returned. See `docs/plan/voucher-system.md`.
 
 - [ ] `Order`: add the `cancellationRequest` subdocument (see the spec) and an index `{ "cancellationRequest.status": 1, "cancellationRequest.requestedAt": -1 }`
@@ -385,7 +387,7 @@ UI it serves: `docs/specs/admin-workspace-ui.md` (complete on mock data in `fron
 4. **The permission matrix is read-only.** Authorization stays in code (`requireRole`). Dynamic RBAC is out of scope.
 5. **Cancellation requests are embedded on the order**, not a new collection. Stock is given back only on approval and exactly once. Opening requests from the customer side needs the Customer orders owner (phase 6).
 6. **Stock history is a new `StockMovement` collection.** The inventory report's "out" uses order items, so it is complete even before the Staff and checkout flows record movements.
-7. **Master data is one collection with a `kind` field.** Products keep storing brand, pet type, and unit as names. Master data is read-only until a create/edit screen is designed.
+7. **Master data is one collection with a `kind` field.** Products keep storing brand, pet type, and unit as names. Master data is read-only until a create/edit screen is designed. Replaced on 2026-11-07 by `docs/specs/admin-create-export-actions.md` for the first six Admin screens, except image upload.
 8. **Users are addressed by MongoDB `_id`** in URLs. The `KH`/`NV` code is derived for display, not stored.
 9. **Reports default to the current month** and offer presets (this month, last month, this quarter). Revenue counts paid and completed orders only. Profit is never shown.
-10. **Creating users and products, uploads, exports, email sending, and promotions remain out of scope.** Their buttons keep the demo notice.
+10. **Creating users and products, uploads, exports, email sending, and promotions remain out of scope.** Their buttons keep the demo notice. Replaced on 2026-11-07 by `docs/specs/admin-create-export-actions.md` for the first six Admin screens, except image upload.

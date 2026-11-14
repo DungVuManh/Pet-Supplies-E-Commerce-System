@@ -114,8 +114,12 @@ async function saveSale(input, actorId, requestId, hash) {
  // Claim the unique request key before any stock/payment writes, including across processes.
  await order.save();
  const payment = new Payment({ orderId: order._id, method: "CASH", amount: subtotal, status: "paid" });
- const audit = new AuditLog({ actorId, action: "order.create.offline",
-  target: { collectionName: "orders", id: String(order._id) }, at: now,
+ const audit = new AuditLog({
+  actorId,
+  action: "order.create.offline",
+  target: { collectionName: "orders", id: order.orderCode },
+  summary: `Nhân viên tạo đơn hàng tại quầy ${order.orderCode} (${subtotal.toLocaleString("vi-VN")} đ)`,
+  at: now,
   after: { orderCode: order.orderCode, total: subtotal, channel: "offline" },
  });
  const deducted = [];

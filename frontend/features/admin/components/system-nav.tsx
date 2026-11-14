@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import { TabNav } from "@/components/workspace/workspace-ui";
 
 const links = [
-  { href: "/admin/system/settings", label: "Cấu hình" },
   { href: "/admin/system/policies", label: "Chính sách" },
   { href: "/admin/system/audit-log", label: "Nhật ký" },
 ];
