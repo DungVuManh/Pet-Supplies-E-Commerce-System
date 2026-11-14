@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuth } from "../common/middlewares/auth.middleware.js";
+import { readCookies, requireAuth } from "../common/middlewares/auth.middleware.js";
 import {
   getCustomerNotifications,
   markAllNotificationsAsRead,
@@ -8,7 +8,8 @@ import {
 
 const router = Router();
 
-// Toàn bộ API thông báo khách hàng yêu cầu đăng nhập
+// Toàn bộ API thông báo khách hàng yêu cầu đọc cookie và xác thực đăng nhập
+router.use(readCookies);
 router.use(requireAuth);
 
 router.get("/", getCustomerNotifications);
