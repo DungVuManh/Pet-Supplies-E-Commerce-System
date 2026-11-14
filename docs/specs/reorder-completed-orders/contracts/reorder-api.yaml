@@ -1,0 +1,161 @@
+openapi: 3.0.3
+info:
+  title: Reorder Completed Order API Contract
+  version: 1.0.0
+  description: Hợp đồng giao tiếp API cho tính năng Mua lại đơn hàng đã hoàn thành (Customer Reorder).
+paths:
+  /api/v1/orders/{id}/reorder:
+    post:
+      summary: Mua lại các sản phẩm từ đơn hàng đã hoàn thành và đưa vào giỏ hàng
+      security:
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID của đơn hàng trong MongoDB
+          schema:
+            type: string
+        - name: X-CSRF-Token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Thêm sản phẩm vào giỏ hàng thành công (toàn bộ hoặc một phần)
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - message
+                  - data
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Đã thêm 2 sản phẩm vào giỏ hàng thành công."
+                  data:
+                    type: object
+                    required:
+                      - orderCode
+                      - addedCount
+                      - unavailableCount
+                      - addedItems
+                      - unavailableItems
+                    properties:
+                      orderCode:
+                        type: string
+                        example: "PA261012018"
+                      addedCount:
+                        type: integer
+                        example: 2
+                      unavailableCount:
+                        type: integer
+                        example: 0
+                      addedItems:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            productId:
+                              type: string
+                            variantSku:
+                              type: string
+                            name:
+                              type: string
+                            quantity:
+                              type: integer
+                            price:
+                              type: integer
+                      unavailableItems:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            productId:
+                              type: string
+                            variantSku:
+                              type: string
+                            name:
+                              type: string
+                            reason:
+                              type: string
+                              enum: [OUT_OF_STOCK, PRODUCT_INACTIVE, VARIANT_NOT_FOUND]
+                      cart:
+                        type: object
+                        properties:
+                          summary:
+                            type: object
+                            properties:
+                              distinctCount:
+                                type: integer
+                              totalQuantity:
+                                type: integer
+                              total:
+                                type: integer
+        '400':
+          description: Đơn hàng không ở trạng thái hoàn thành hoặc tất cả sản phẩm đều hết hàng
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        enum: [ORDER_NOT_COMPLETED, ALL_ITEMS_UNAVAILABLE, INVALID_ORDER_ID]
+                      unavailableItems:
+                        type: array
+                        items:
+                          type: object
+        '401':
+          description: Chưa đăng nhập
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Yêu cầu đăng nhập."
+        '403':
+          description: Không có quyền thao tác trên đơn hàng của người khác
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Bạn không có quyền truy cập đơn hàng này."
+        '404':
+          description: Không tìm thấy đơn hàng
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Không tìm thấy đơn hàng."

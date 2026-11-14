@@ -8,6 +8,7 @@
 import Link from "next/link";
 import React from "react";
 import type { CustomerOrder } from "../types";
+import { useReorder } from "../hooks/use-reorder";
 
 type OrdersTableProps = {
   orders: CustomerOrder[];
@@ -117,9 +118,22 @@ export function OrdersTable({
   const startIndex = totalFilteredCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endIndex = Math.min(currentPage * pageSize, totalFilteredCount);
   const paginationItems = getPaginationItems(currentPage, totalPages);
+  const { isReordering, reorderingId, reorderError, clearReorderError, handleReorder } = useReorder();
 
   return (
     <div className="rounded-2xl border border-line bg-surface overflow-hidden shadow-sm">
+      {reorderError && (
+        <div className="bg-red-50 border-b border-red-200 px-6 py-3 text-xs text-red-700 flex items-center justify-between">
+          <span>{reorderError}</span>
+          <button
+            type="button"
+            onClick={clearReorderError}
+            className="text-xs font-semibold underline opacity-70 hover:opacity-100 cursor-pointer"
+          >
+            Đóng
+          </button>
+        </div>
+      )}
       {/* Header bảng */}
       <div className="grid grid-cols-12 items-center px-6 py-4 text-xs font-semibold tracking-wider text-muted border-b border-line">
         <div className="col-span-3 uppercase">MÃ ĐƠN / NGÀY ĐẶT</div>
@@ -169,8 +183,8 @@ export function OrdersTable({
                 {renderStatusBadge(order.status, order.statusLabel)}
               </div>
 
-              {/* Cột 5: Thao tác Chi tiết */}
-              <div className="col-span-1 text-right">
+              {/* Cột 5: Thao tác Chi tiết & Mua lại */}
+              <div className="col-span-1 text-right flex flex-col items-end gap-1.5">
                 <Link
                   href={`/orders/${order.id}`}
                   className="text-xs font-semibold text-blue-600 hover:underline inline-flex items-center gap-0.5"
@@ -178,6 +192,24 @@ export function OrdersTable({
                   <span>Chi tiết</span>
                   <span>→</span>
                 </Link>
+                {order.status === "completed" && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      void handleReorder(order.id);
+                    }}
+                    disabled={isReordering}
+                    className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 hover:underline inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                  >
+                    {reorderingId === order.id ? (
+                      <span className="inline-block size-3 animate-spin rounded-full border border-emerald-600 border-t-transparent" />
+                    ) : (
+                      <span>↻</span>
+                    )}
+                    <span>Mua lại</span>
+                  </button>
+                )}
               </div>
             </div>
           ))}

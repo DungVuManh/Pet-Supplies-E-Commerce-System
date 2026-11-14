@@ -1363,3 +1363,152 @@ export async function lookupOrder(request, response, next) {
   next(error);
  }
 }
+
+/**
+ * POST /api/v1/orders/:id/reorder
+ * Mua lại các sản phẩm từ đơn hàng đã hoàn thành và thêm vào giỏ hàng
+ */
+export async function reorderCompletedOrder(request, response, next) {
+ try {
+  const id = parseOrderId(request.params);
+  const customerId = request.user?._id;
+
+  const order = await Order.findOne({
+   _id: id,
+   customerId,
+   creationState: { $ne: "pending" },
+  }).lean();
+
+  if (!order) {
+   throw new AppError("Không tìm thấy đơn hàng.", 404, "ORDER_NOT_FOUND");
+  }
+
+  if (order.orderStatus !== "completed") {
+   throw new AppError(
+    "Chỉ có thể mua lại các đơn hàng đã hoàn thành.",
+    400,
+    "ORDER_NOT_COMPLETED",
+   );
+  }
+
+  if (!Array.isArray(order.items) || order.items.length === 0) {
+   throw new AppError(
+    "Đơn hàng này không chứa sản phẩm nào để mua lại.",
+    400,
+    "ORDER_ITEMS_EMPTY",
+   );
+  }
+
+  // Lấy thông tin các sản phẩm liên quan từ DB
+  const productIds = order.items.map((item) => item.productId).filter(Boolean);
+  const products = await Product.find({
+   _id: { $in: productIds },
+   isActive: true,
+  }).lean();
+
+  const productMap = new Map(products.map((p) => [String(p._id), p]));
+
+  // Lấy hoặc tạo giỏ hàng của khách hàng
+  let cart = await Cart.findOne({ userId: customerId });
+  if (!cart) {
+   cart = new Cart({ userId: customerId, items: [] });
+  }
+
+  const addedItems = [];
+  const unavailableItems = [];
+
+  for (const item of order.items) {
+   const prod = productMap.get(String(item.productId));
+   if (!prod) {
+    unavailableItems.push({
+     productId: item.productId,
+     variantSku: item.variantSku,
+     name: item.name || "Sản phẩm",
+     reason: "PRODUCT_INACTIVE",
+    });
+    continue;
+   }
+
+   const variant = prod.variants?.find((v) => v.sku === item.variantSku);
+   if (!variant) {
+    unavailableItems.push({
+     productId: item.productId,
+     variantSku: item.variantSku,
+     name: prod.name,
+     reason: "VARIANT_NOT_FOUND",
+    });
+    continue;
+   }
+
+   const physical = variant.stock ?? 0;
+   const reserved = variant.reservedStock ?? 0;
+   const availableStock = Math.max(0, physical - reserved);
+
+   // Kiểm tra xem sản phẩm này đã có sẵn trong giỏ của user chưa
+   const existingCartIndex = cart.items.findIndex(
+    (ci) =>
+     String(ci.productId) === String(item.productId) &&
+     ci.variantSku === item.variantSku,
+   );
+
+   const currentQtyInCart =
+    existingCartIndex >= 0 ? cart.items[existingCartIndex].quantity : 0;
+   const maxCanAdd = Math.max(0, availableStock - currentQtyInCart);
+
+   if (maxCanAdd <= 0) {
+    unavailableItems.push({
+     productId: item.productId,
+     variantSku: item.variantSku,
+     name: prod.name,
+     reason: "OUT_OF_STOCK",
+    });
+    continue;
+   }
+
+   const qtyToAdd = Math.min(item.qty, maxCanAdd);
+
+   if (existingCartIndex >= 0) {
+    cart.items[existingCartIndex].quantity += qtyToAdd;
+   } else {
+    cart.items.push({
+     productId: item.productId,
+     variantSku: item.variantSku,
+     quantity: qtyToAdd,
+    });
+   }
+
+   addedItems.push({
+    productId: item.productId,
+    variantSku: item.variantSku,
+    name: prod.name,
+    quantity: qtyToAdd,
+    price: variant.price ?? prod.price ?? 0,
+   });
+  }
+
+  if (addedItems.length === 0) {
+   throw new AppError(
+    "Rất tiếc, tất cả các sản phẩm trong đơn hàng này hiện đã hết hàng hoặc ngừng kinh doanh.",
+    400,
+    "ALL_ITEMS_UNAVAILABLE",
+    { unavailableItems },
+   );
+  }
+
+  await cart.save();
+
+  return response.status(200).json({
+   success: true,
+   message: `Đã thêm ${addedItems.length} sản phẩm vào giỏ hàng thành công.`,
+   data: {
+    orderCode: order.orderCode,
+    addedCount: addedItems.length,
+    unavailableCount: unavailableItems.length,
+    addedItems,
+    unavailableItems,
+   },
+  });
+ } catch (error) {
+  next(error);
+ }
+}
