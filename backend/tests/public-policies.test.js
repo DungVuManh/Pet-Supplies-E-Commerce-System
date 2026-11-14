@@ -13,7 +13,17 @@ describe("Public Store Policies API (Guest & Customer Flow)", () => {
     if (mongoose.connection.readyState === 0) {
       await mongoose.connect(MONGODB_URI);
     }
-    await ensureDefaultPolicies();
+    // Ensure policies required by test assertions exist
+    for (const testCode of ["POL-RETURN", "POL-PRIVACY", "POL-CANCEL", "POL-REFUND", "POL-SHIPPING", "POL-PRICE"]) {
+      const item = DEFAULT_POLICIES.find((p) => p.code === testCode);
+      if (item) {
+        await Policy.updateOne(
+          { code: item.code },
+          { $setOnInsert: item },
+          { upsert: true }
+        );
+      }
+    }
     app = createAdminTestApp();
   });
 

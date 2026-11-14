@@ -1,9 +1,5 @@
-import { StoreSettingsView } from "@/features/admin/components/store-settings-view";
-
-export const metadata = {
-  title: "Cấu hình hệ thống",
-};
+import { redirect } from "next/navigation";
 
 export default function AdminSettingsPage() {
-  return <StoreSettingsView />;
+  redirect("/admin/system/policies");
 }

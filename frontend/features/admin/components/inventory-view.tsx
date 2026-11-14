@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Package, XCircle } from "lucide-react";
+import { Download, Loader2, Package, XCircle } from "lucide-react";
 import { AdminPageHeader, StatusBadge, Stack, Td, Th } from "./admin-ui";
 import {
   ActionLink,
@@ -14,7 +14,9 @@ import {
   TabNav,
   card,
   control,
+  secondaryButton,
 } from "@/components/workspace/workspace-ui";
+import { downloadExcelCsv } from "../utils/export-excel";
 import { DemoNotice } from "@/components/workspace/demo-notice";
 import { useListState } from "@/components/workspace/use-list-state";
 
@@ -238,6 +240,95 @@ export function InventoryView() {
 
 
 
+  const [isExporting, setIsExporting] = useState<boolean>(false);
+
+  const handleExportExcel = async () => {
+    try {
+      setIsExporting(true);
+      let itemsToExport = items;
+
+      try {
+        const queryParams = new URLSearchParams();
+        const trimmedQuery = debouncedSearch.trim();
+        if (trimmedQuery) {
+          queryParams.set("query", trimmedQuery);
+          queryParams.set("q", trimmedQuery);
+        }
+
+        let apiStatus = "all";
+        if (statusFilter === "Đủ hàng") apiStatus = "available";
+        if (statusFilter === "Sắp hết" || activeTab === "low") apiStatus = "low";
+        if (statusFilter === "Hết hàng") apiStatus = "out";
+
+        if (apiStatus !== "all") {
+          queryParams.set("status", apiStatus);
+        }
+
+        queryParams.set("page", "1");
+        queryParams.set("pageSize", "5000");
+
+        const res = await fetch(`/api/v1/admin/inventory?${queryParams.toString()}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+          },
+          credentials: "same-origin",
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.data?.items && Array.isArray(json.data.items)) {
+            itemsToExport = json.data.items;
+          }
+        }
+      } catch {
+        // Fallback vào items hiện tại nếu API gặp sự cố mạng
+      }
+
+      if (itemsToExport.length === 0) {
+        alert("Không có dữ liệu tồn kho để xuất.");
+        return;
+      }
+
+      const today = new Date();
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const dateStr = `${pad(today.getDate())}/${pad(today.getMonth() + 1)}/${today.getFullYear()}`;
+
+      downloadExcelCsv({
+        filename: `Bao_cao_ton_kho_${today.toISOString().slice(0, 10)}`,
+        title: "BẢNG QUẢN LÝ TỒN KHO HÀNG HÓA",
+        period: `Ngày xuất: ${dateStr}`,
+        sections: [
+          {
+            headers: [
+              "Mã SKU",
+              "Tên sản phẩm",
+              "Danh mục",
+              "Thương hiệu",
+              "Số lượng khả dụng",
+              "Đơn vị tính",
+              "Định mức tối thiểu",
+              "Trạng thái tồn kho",
+            ],
+            rows: itemsToExport.map((item) => [
+              item.sku,
+              item.name,
+              item.category || "---",
+              item.brand || "---",
+              Math.max(0, item.available ?? 0),
+              item.unit || "cái",
+              item.threshold ?? 20,
+              getStockWarningStatus(item),
+            ]),
+          },
+        ],
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const fromIndex = pagination.total === 0 ? 0 : (page - 1) * pageSize + 1;
   const toIndex = Math.min(page * pageSize, pagination.total);
 
@@ -247,6 +338,21 @@ export function InventoryView() {
         breadcrumbs={["Kho hàng", "Danh sách tồn kho"]}
         title="Danh sách tồn kho"
         subtitle="Quản lý số lượng và ngưỡng cảnh báo."
+        actions={
+          <button
+            type="button"
+            onClick={handleExportExcel}
+            disabled={isExporting || (loading && items.length === 0)}
+            className={`${secondaryButton} h-12 flex items-center gap-2`}
+          >
+            {isExporting ? (
+              <Loader2 className="h-4 w-4 animate-spin text-brand" aria-hidden="true" />
+            ) : (
+              <Download className="h-4 w-4" aria-hidden="true" />
+            )}
+            <span>{isExporting ? "Đang xuất..." : "Xuất bảng Excel"}</span>
+          </button>
+        }
       />
 
       <TabNav items={tabs} label="Chế độ xem kho hàng" />

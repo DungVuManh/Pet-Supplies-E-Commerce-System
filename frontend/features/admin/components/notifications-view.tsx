@@ -216,9 +216,6 @@ export function NotificationsView() {
         <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} aria-hidden="true" />
         <span>Làm mới</span>
       </button>
-      <Link href="/admin/system/settings" className={`${secondaryButton} min-h-12`}>
-        Cài đặt thông báo
-      </Link>
     </div>
   );
 

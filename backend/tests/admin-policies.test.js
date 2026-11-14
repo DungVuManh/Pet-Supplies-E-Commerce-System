@@ -14,7 +14,17 @@ describe("Admin Policies API (Real Backend & MongoDB)", () => {
     if (mongoose.connection.readyState === 0) {
       await mongoose.connect(MONGODB_URI);
     }
-    await ensureDefaultPolicies();
+    // Ensure policies required by test assertions exist
+    for (const testCode of ["POL-RETURN", "POL-PRIVACY", "POL-CANCEL", "POL-REFUND"]) {
+      const item = DEFAULT_POLICIES.find((p) => p.code === testCode);
+      if (item) {
+        await Policy.updateOne(
+          { code: item.code },
+          { $setOnInsert: item },
+          { upsert: true }
+        );
+      }
+    }
   });
 
   afterAll(async () => {
