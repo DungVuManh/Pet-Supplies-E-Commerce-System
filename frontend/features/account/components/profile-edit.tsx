@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
+import { accountApi } from "../api";
 import type { CustomerProfile, ProfileFormValues } from "../types";
 
 interface ProfileEditProps {
@@ -55,6 +56,7 @@ export function ProfileEdit({
   }
 
   const [isNewAvatar, setIsNewAvatar] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   function handleAvatarFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -71,6 +73,8 @@ export function ProfileEdit({
       setAvatarError("Dung lượng ảnh tối đa là 5MB.");
       return;
     }
+
+    setSelectedFile(file);
 
     const reader = new FileReader();
     reader.onload = (uploadEvent) => {
@@ -125,12 +129,21 @@ export function ProfileEdit({
     event.preventDefault();
     if (!validate()) return;
 
+    let finalAvatarUrl = avatarUrl;
+    if (isNewAvatar && selectedFile) {
+      try {
+        finalAvatarUrl = await accountApi.uploadAvatar(selectedFile, "user");
+      } catch (uploadErr) {
+        console.warn("Cloudinary upload failed or not configured, using fallback:", uploadErr);
+      }
+    }
+
     await onSave({
       fullName: fullName.trim(),
       phone: phone.trim(),
       dob: dob || undefined,
       gender,
-      avatarUrl,
+      avatarUrl: finalAvatarUrl,
     });
   }
 

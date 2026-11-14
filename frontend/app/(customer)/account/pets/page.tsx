@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/auth-provider";
 import { AccountShell } from "@/features/account/components/account-shell";
 import { PetCard } from "@/features/account/components/pet-card";
+import { PetDetailModal } from "@/features/account/components/pet-detail-modal";
 import { PetFormView } from "@/features/account/components/pet-form-view";
 import { ConfirmDialog } from "@/features/account/components/confirm-dialog";
 import { accountApi } from "@/features/account/api";
@@ -23,6 +24,9 @@ export default function PetsPage() {
   const [isFormView, setIsFormView] = useState(false);
   const [petToEdit, setPetToEdit] = useState<PetProfile | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Detail Modal State
+  const [selectedDetailPet, setSelectedDetailPet] = useState<PetProfile | null>(null);
 
   // Delete Dialog State
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -213,10 +217,10 @@ export default function PetsPage() {
               <div className="flex flex-col gap-4 border-b border-line/60 pb-6 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h1 className="text-xl font-bold text-ink sm:text-2xl">
-                    Thú cưng của tôi
+                    Boss
                   </h1>
                   <p className="mt-1 text-sm text-muted">
-                    Lưu hồ sơ các bé cưng để nhận gợi ý phù hợp và ưu đãi riêng biệt
+                    Quản lý thông tin thú cưng của bạn
                   </p>
                 </div>
                 <button
@@ -225,7 +229,7 @@ export default function PetsPage() {
                   className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-brand-hover"
                 >
                   <span className="text-lg leading-none">+</span>
-                  <span>Thêm thú cưng</span>
+                  <span>Thêm Boss</span>
                 </button>
               </div>
 
@@ -242,7 +246,7 @@ export default function PetsPage() {
                       🐾
                     </div>
                     <h3 className="mt-4 text-base font-bold text-ink">
-                      Chưa có thú cưng nào được đăng ký
+                      Chưa có Boss nào được đăng ký
                     </h3>
                     <p className="mt-1 text-sm text-muted max-w-sm mx-auto">
                       Hãy cho Petjoy biết thêm về người bạn bốn chân của bạn để chúng tôi phục vụ tốt nhất.
@@ -252,7 +256,7 @@ export default function PetsPage() {
                       onClick={handleOpenCreate}
                       className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-brand px-6 text-sm font-semibold text-white hover:bg-brand-hover"
                     >
-                      Thêm thú cưng đầu tiên
+                      Thêm Boss đầu tiên
                     </button>
                   </div>
                 ) : (
@@ -263,6 +267,7 @@ export default function PetsPage() {
                         pet={pet}
                         onEdit={handleOpenEdit}
                         onDelete={(id) => setDeleteTargetId(id)}
+                        onViewDetail={(pet) => setSelectedDetailPet(pet)}
                       />
                     ))}
                   </div>
@@ -291,6 +296,17 @@ export default function PetsPage() {
             </div>
           </div>
         )}
+
+        {/* Pet Detail Modal */}
+        <PetDetailModal
+          isOpen={Boolean(selectedDetailPet)}
+          pet={selectedDetailPet}
+          onClose={() => setSelectedDetailPet(null)}
+          onEdit={(pet) => {
+            setSelectedDetailPet(null);
+            handleOpenEdit(pet);
+          }}
+        />
 
         {/* Delete Confirmation Dialog */}
         <ConfirmDialog

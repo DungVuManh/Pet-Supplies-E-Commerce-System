@@ -1,4 +1,4 @@
-﻿import { createHash } from "node:crypto";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -171,11 +171,12 @@ export async function seedSampleData() {
     });
   }
   for (const pet of [
-    { name: "Milo (mẫu)", species: "dog", breed: "Poodle", age: 730 },
-    { name: "Luna (mẫu)", species: "cat", breed: "Mèo Anh lông ngắn", age: 365 },
+    { name: "Milo (mẫu)", species: "dog", breed: "Poodle", age: 730, gender: "Đực", weight: 4.5 },
+    { name: "Luna (mẫu)", species: "cat", breed: "Mèo Anh lông ngắn", age: 365, gender: "Cái", weight: 3.8 },
   ]) {
     await ensureSample(PetProfile, { _id: sampleId(`pet:${ownerKey}:${pet.species}`) }, {
       userId: customer._id, name: pet.name, species: pet.species, breed: pet.breed,
+      gender: pet.gender, weight: pet.weight,
       dob: new Date(now.getTime() - pet.age * DAY),
     });
   }

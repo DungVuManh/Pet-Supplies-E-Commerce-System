@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import cloudinary, { configureCloudinary } from "../config/cloudinary.js";
 import { AppError } from "../common/errors/app-error.js";
 import { User, publicUser } from "../models/user.model.js";
 import { Address } from "../models/address.model.js";
@@ -90,6 +91,78 @@ export async function updateProfile(request, response) {
       },
     },
   });
+}
+
+/**
+ * POST /api/v1/account/upload-avatar
+ * Tải lên avatar người dùng hoặc thú cưng lên Cloudinary an toàn qua backend
+ */
+export async function uploadAvatar(request, response, next) {
+  try {
+    const userId = request.user?._id;
+    if (!userId) {
+      throw new AppError("Vui lòng đăng nhập để tải ảnh.", 401, "UNAUTHENTICATED");
+    }
+
+    const file = request.file;
+    if (!file) {
+      throw new AppError("Vui lòng chọn 1 ảnh để tải lên.", 400, "NO_FILE");
+    }
+
+    const config = configureCloudinary();
+    if (!config.cloud_name || !config.api_key || !config.api_secret) {
+      console.error("[Cloudinary] Thiếu cấu hình trong backend/.env:", config);
+      throw new AppError(
+        "Chưa cấu hình tài khoản Cloudinary (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET) trong backend/.env.",
+        500,
+        "CLOUDINARY_CONFIG_MISSING"
+      );
+    }
+
+    const targetType = request.body?.type === "pet" ? "pets" : "avatars";
+    const folder = `petjoy/${targetType}`;
+
+    const url = await new Promise((resolve, reject) => {
+      try {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder,
+            resource_type: "image",
+          },
+          (error, result) => {
+            if (error) {
+              console.error("[Cloudinary] Upload avatar error:", error);
+              const errorMsg =
+                error.message ||
+                (typeof error === "string" ? error : "Lỗi khi tải ảnh lên Cloudinary.");
+              return reject(
+                new AppError(`Lỗi Cloudinary: ${errorMsg}`, 400, "CLOUDINARY_UPLOAD_ERROR")
+              );
+            }
+            resolve(result.secure_url);
+          }
+        );
+        stream.end(file.buffer);
+      } catch (syncErr) {
+        console.error("[Cloudinary] Sync error:", syncErr);
+        reject(
+          new AppError(
+            syncErr.message || "Không thể khởi tạo kết nối Cloudinary.",
+            500,
+            "UPLOAD_INIT_FAILED"
+          )
+        );
+      }
+    });
+
+    response.json({
+      success: true,
+      message: "Tải ảnh lên Cloudinary thành công!",
+      data: { url },
+    });
+  } catch (error) {
+    next(error);
+  }
 }
 
 /* ==========================================================================
@@ -249,6 +322,11 @@ export async function createPet(request, response) {
     dob: input.dob || null,
     age: input.age || null,
     weight: input.weight !== undefined ? input.weight : null,
+    gender: input.gender || "",
+    isSterilized: input.isSterilized ?? false,
+    healthIssues: input.healthIssues || [],
+    identification: input.identification || "",
+    personality: input.personality || "",
     notes: input.notes || "",
     avatarUrl: input.avatarUrl || null,
   });
@@ -275,6 +353,11 @@ export async function updatePet(request, response) {
   pet.dob = input.dob || null;
   if (input.age !== undefined) pet.age = input.age;
   if (input.weight !== undefined) pet.weight = input.weight;
+  if (input.gender !== undefined) pet.gender = input.gender;
+  if (input.isSterilized !== undefined) pet.isSterilized = input.isSterilized;
+  if (input.healthIssues !== undefined) pet.healthIssues = input.healthIssues;
+  if (input.identification !== undefined) pet.identification = input.identification;
+  if (input.personality !== undefined) pet.personality = input.personality;
   if (input.notes !== undefined) pet.notes = input.notes;
   if (input.avatarUrl !== undefined) pet.avatarUrl = input.avatarUrl;
 

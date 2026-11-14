@@ -1,7 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { ShippingAddress, AddressFormValues } from "../types";
+import {
+  getAllProvinces,
+  getDistrictsByProvince,
+  getWardsByDistrict,
+} from "@/data/province";
 
 interface AddressFormViewProps {
   addressToEdit?: ShippingAddress | null;
@@ -9,21 +14,6 @@ interface AddressFormViewProps {
   onSave: (values: AddressFormValues) => Promise<void>;
   onCancel: () => void;
 }
-
-const COMMON_PROVINCES = [
-  "TP. Hồ Chí Minh",
-  "Hà Nội",
-  "Đà Nẵng",
-  "Hải Phòng",
-  "Cần Thơ",
-  "Bình Dương",
-  "Đồng Nai",
-  "Khánh Hòa",
-  "Lâm Đồng",
-  "Quảng Ninh",
-  "Thừa Thiên Huế",
-  "Bà Rịa - Vũng Tàu",
-];
 
 export function AddressFormView({
   addressToEdit,
@@ -36,7 +26,7 @@ export function AddressFormView({
   );
   const [phone, setPhone] = useState(addressToEdit?.phone ?? "");
   const [province, setProvince] = useState(
-    addressToEdit?.province ?? "TP. Hồ Chí Minh",
+    addressToEdit?.province ?? "",
   );
   const [district, setDistrict] = useState(addressToEdit?.district ?? "");
   const [ward, setWard] = useState(addressToEdit?.ward ?? "");
@@ -48,6 +38,16 @@ export function AddressFormView({
 
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
   const [apiError, setApiError] = useState("");
+
+  const provinces = useMemo(() => getAllProvinces(), []);
+
+  const districts = useMemo(() => {
+    return province ? getDistrictsByProvince(province) : [];
+  }, [province]);
+
+  const wards = useMemo(() => {
+    return province && district ? getWardsByDistrict(province, district) : [];
+  }, [province, district]);
 
   function validate(): boolean {
     const nextErrors: Record<string, string> = {};
@@ -64,13 +64,13 @@ export function AddressFormView({
     }
 
     if (!province.trim()) {
-      nextErrors.province = "Vui lòng chọn hoặc nhập Tỉnh / Thành phố.";
+      nextErrors.province = "Vui lòng chọn Tỉnh / Thành phố.";
     }
     if (!district.trim()) {
-      nextErrors.district = "Vui lòng nhập Quận / Huyện.";
+      nextErrors.district = "Vui lòng chọn Quận / Huyện.";
     }
     if (!ward.trim()) {
-      nextErrors.ward = "Vui lòng nhập Phường / Xã.";
+      nextErrors.ward = "Vui lòng chọn Phường / Xã.";
     }
     if (!street.trim()) {
       nextErrors.street = "Vui lòng nhập số nhà, tên đường cụ thể.";
@@ -202,41 +202,56 @@ export function AddressFormView({
                   </div>
                 </div>
 
-                {/* Row 2: Province */}
-                <div>
-                  <label
-                    htmlFor="addr-province"
-                    className="block text-xs font-semibold text-ink"
-                  >
-                    Tỉnh / Thành phố <span className="text-danger">*</span>
-                  </label>
-                  <select
-                    id="addr-province"
-                    disabled={isSaving}
-                    value={province}
-                    onChange={(e) => {
-                      setProvince(e.target.value);
-                      if (errors.province) {
-                        setErrors((prev) => ({ ...prev, province: undefined }));
-                      }
-                    }}
-                    className="mt-1.5 block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
-                  >
-                    {COMMON_PROVINCES.map((prov) => (
-                      <option key={prov} value={prov}>
-                        {prov}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.province && (
-                    <p className="mt-1 text-xs text-danger font-medium">
-                      {errors.province}
-                    </p>
-                  )}
-                </div>
+                {/* Row 2: Province, District, Ward */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  {/* Province */}
+                  <div>
+                    <label
+                      htmlFor="addr-province"
+                      className="block text-xs font-semibold text-ink"
+                    >
+                      Tỉnh / Thành phố <span className="text-danger">*</span>
+                    </label>
+                    <div className="relative mt-1.5">
+                      <select
+                        id="addr-province"
+                        disabled={isSaving}
+                        value={province}
+                        onChange={(e) => {
+                          const nextProvince = e.target.value;
+                          setProvince(nextProvince);
+                          setDistrict("");
+                          setWard("");
+                          if (errors.province) {
+                            setErrors((prev) => ({ ...prev, province: undefined }));
+                          }
+                        }}
+                        className="block w-full appearance-none min-h-11 rounded-xl border border-line bg-surface px-4 pr-10 text-sm text-ink focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand disabled:cursor-not-allowed disabled:bg-canvas disabled:text-muted"
+                      >
+                        <option value="">-- Chọn Tỉnh / Thành phố --</option>
+                        {province && !provinces.includes(province) && (
+                          <option value={province}>{province}</option>
+                        )}
+                        {provinces.map((prov) => (
+                          <option key={prov} value={prov}>
+                            {prov}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-muted">
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
+                    {errors.province && (
+                      <p className="mt-1 text-xs text-danger font-medium">
+                        {errors.province}
+                      </p>
+                    )}
+                  </div>
 
-                {/* Row 3: District & Ward */}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {/* District */}
                   <div>
                     <label
                       htmlFor="addr-district"
@@ -244,21 +259,39 @@ export function AddressFormView({
                     >
                       Quận / Huyện <span className="text-danger">*</span>
                     </label>
-                    <input
-                      id="addr-district"
-                      type="text"
-                      required
-                      disabled={isSaving}
-                      value={district}
-                      onChange={(e) => {
-                        setDistrict(e.target.value);
-                        if (errors.district) {
-                          setErrors((prev) => ({ ...prev, district: undefined }));
-                        }
-                      }}
-                      placeholder="Nhập quận / huyện"
-                      className="mt-1.5 block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
-                    />
+                    <div className="relative mt-1.5">
+                      <select
+                        id="addr-district"
+                        disabled={isSaving || !province}
+                        value={district}
+                        onChange={(e) => {
+                          const nextDistrict = e.target.value;
+                          setDistrict(nextDistrict);
+                          setWard("");
+                          if (errors.district) {
+                            setErrors((prev) => ({ ...prev, district: undefined }));
+                          }
+                        }}
+                        className="block w-full appearance-none min-h-11 rounded-xl border border-line bg-surface px-4 pr-10 text-sm text-ink focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand disabled:cursor-not-allowed disabled:bg-canvas disabled:text-muted"
+                      >
+                        <option value="">
+                          {province ? "-- Chọn Quận / Huyện --" : "-- Chọn Tỉnh trước --"}
+                        </option>
+                        {district && !districts.includes(district) && (
+                          <option value={district}>{district}</option>
+                        )}
+                        {districts.map((d) => (
+                          <option key={d} value={d}>
+                            {d}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-muted">
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                     {errors.district && (
                       <p className="mt-1 text-xs text-danger font-medium">
                         {errors.district}
@@ -266,6 +299,7 @@ export function AddressFormView({
                     )}
                   </div>
 
+                  {/* Ward */}
                   <div>
                     <label
                       htmlFor="addr-ward"
@@ -273,21 +307,38 @@ export function AddressFormView({
                     >
                       Phường / Xã <span className="text-danger">*</span>
                     </label>
-                    <input
-                      id="addr-ward"
-                      type="text"
-                      required
-                      disabled={isSaving}
-                      value={ward}
-                      onChange={(e) => {
-                        setWard(e.target.value);
-                        if (errors.ward) {
-                          setErrors((prev) => ({ ...prev, ward: undefined }));
-                        }
-                      }}
-                      placeholder="Nhập phường / xã"
-                      className="mt-1.5 block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
-                    />
+                    <div className="relative mt-1.5">
+                      <select
+                        id="addr-ward"
+                        disabled={isSaving || !district}
+                        value={ward}
+                        onChange={(e) => {
+                          const nextWard = e.target.value;
+                          setWard(nextWard);
+                          if (errors.ward) {
+                            setErrors((prev) => ({ ...prev, ward: undefined }));
+                          }
+                        }}
+                        className="block w-full appearance-none min-h-11 rounded-xl border border-line bg-surface px-4 pr-10 text-sm text-ink focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand disabled:cursor-not-allowed disabled:bg-canvas disabled:text-muted"
+                      >
+                        <option value="">
+                          {district ? "-- Chọn Phường / Xã --" : "-- Chọn Quận/Huyện trước --"}
+                        </option>
+                        {ward && !wards.includes(ward) && (
+                          <option value={ward}>{ward}</option>
+                        )}
+                        {wards.map((w) => (
+                          <option key={w} value={w}>
+                            {w}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-muted">
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                     {errors.ward && (
                       <p className="mt-1 text-xs text-danger font-medium">
                         {errors.ward}

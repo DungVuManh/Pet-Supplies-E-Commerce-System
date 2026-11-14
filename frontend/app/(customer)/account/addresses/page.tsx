@@ -235,7 +235,7 @@ export default function AddressesPage() {
                     Sổ địa chỉ
                   </h1>
                   <p className="mt-1 text-sm text-muted">
-                    Quản lý tối đa 5 địa chỉ để thanh toán nhanh hơn khi mua sắm
+                    Quản lý  địa chỉ để thanh toán nhanh hơn khi mua sắm
                   </p>
                 </div>
                 <button
