@@ -19,7 +19,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const policy = getPolicyBySlug(slug);
+  const policy = await getPolicyBySlug(slug);
 
   if (!policy) {
     return {
@@ -33,23 +33,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export async function generateStaticParams() {
-  const policies = getAllPolicies();
-  return policies.map((p) => ({
-    slug: p.slug,
-  }));
-}
 
 async function PolicyDetailContent({ params }: PageProps) {
   const { slug } = await params;
-  const currentPolicy = getPolicyBySlug(slug);
+  const currentPolicy = await getPolicyBySlug(slug);
 
   // Nếu slug không tồn tại trong hệ thống
   if (!currentPolicy) {
     notFound();
   }
 
-  const menuPolicies = getMenuPolicies();
+  const menuPolicies = await getMenuPolicies();
 
   return (
     <PolicyView

@@ -30,8 +30,8 @@ export function PolicySidebar({ menuPolicies, activeSlug }: PolicySidebarProps) 
             onChange={(e) => router.push(`/policy/${e.target.value}`)}
             className="flex-1 rounded-xl border border-line bg-surface py-2 px-3 text-xs font-semibold text-ink focus:border-brand focus:outline-none"
           >
-            {menuPolicies.map((item) => (
-              <option key={item.slug} value={item.slug}>
+            {menuPolicies.map((item, idx) => (
+              <option key={`${item.slug}-${idx}`} value={item.slug}>
                 {item.label}
               </option>
             ))}
@@ -40,11 +40,11 @@ export function PolicySidebar({ menuPolicies, activeSlug }: PolicySidebarProps) 
 
         {/* Tab cuộn ngang mượt mà cho tablet / mobile */}
         <div className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none]">
-          {menuPolicies.map((item) => {
+          {menuPolicies.map((item, idx) => {
             const isActive = activeSlug === item.slug;
             return (
               <Link
-                key={item.slug}
+                key={`${item.slug}-${idx}`}
                 href={`/policy/${item.slug}`}
                 className={`shrink-0 rounded-full px-4 py-2 text-xs transition-colors whitespace-nowrap ${
                   isActive
@@ -61,11 +61,11 @@ export function PolicySidebar({ menuPolicies, activeSlug }: PolicySidebarProps) 
 
       {/* 2. Phiên bản Desktop: Danh sách dọc dạng pill bo tròn (bám chuẩn bố cục ảnh mẫu) */}
       <nav className="hidden lg:flex flex-col gap-2.5 p-1 select-none">
-        {menuPolicies.map((item) => {
+        {menuPolicies.map((item, idx) => {
           const isActive = activeSlug === item.slug;
           return (
             <Link
-              key={item.slug}
+              key={`${item.slug}-${idx}`}
               href={`/policy/${item.slug}`}
               className={`flex items-center px-5 py-3.5 rounded-2xl text-[14.5px] transition-all duration-200 cursor-pointer ${
                 isActive

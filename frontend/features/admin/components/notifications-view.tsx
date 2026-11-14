@@ -216,9 +216,6 @@ export function NotificationsView() {
         <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} aria-hidden="true" />
         <span>Làm mới</span>
       </button>
-      <Link href="/admin/system/settings" className={`${secondaryButton} min-h-12`}>
-        Cài đặt thông báo
-      </Link>
     </div>
   );
 
@@ -370,15 +367,15 @@ export function NotificationsView() {
                   activeTab === "unread"
                     ? "Không có thông báo chưa đọc"
                     : activeTab === "saved"
-                    ? "Chưa có thông báo nào được lưu"
-                    : "Không tìm thấy thông báo nào"
+                      ? "Chưa có thông báo nào được lưu"
+                      : "Không tìm thấy thông báo nào"
                 }
                 description={
                   activeTab === "unread"
                     ? "Tất cả các thông báo cập nhật đơn hàng và tồn kho đã được đọc."
                     : activeTab === "saved"
-                    ? "Bấm 'Lưu' trên bất kỳ thông báo nào để lưu lại xem sau."
-                    : "Không có thông báo nào phù hợp với điều kiện tìm kiếm và bộ lọc hiện tại."
+                      ? "Bấm 'Lưu' trên bất kỳ thông báo nào để lưu lại xem sau."
+                      : "Không có thông báo nào phù hợp với điều kiện tìm kiếm và bộ lọc hiện tại."
                 }
                 action={
                   <button
@@ -400,19 +397,17 @@ export function NotificationsView() {
             {filteredList.map((item) => (
               <li
                 key={item.id}
-                className={`flex flex-col gap-4 p-6 transition-colors sm:flex-row sm:items-start sm:justify-between ${
-                  !item.read ? "bg-brand-subtle/30" : "hover:bg-canvas/50"
-                }`}
+                className={`flex flex-col gap-4 p-6 transition-colors sm:flex-row sm:items-start sm:justify-between ${!item.read ? "bg-brand-subtle/30" : "hover:bg-canvas/50"
+                  }`}
               >
                 <div className="flex gap-4">
                   <span
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
-                      item.type === "stock"
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${item.type === "stock"
                         ? "bg-warning-subtle"
                         : item.type === "order"
-                        ? "bg-brand-subtle"
-                        : "bg-canvas"
-                    }`}
+                          ? "bg-brand-subtle"
+                          : "bg-canvas"
+                      }`}
                   >
                     {typeIcon(item.type)}
                   </span>
@@ -438,12 +433,6 @@ export function NotificationsView() {
                       {item.targetHref && (
                         <>
                           <span>·</span>
-                          <Link
-                            href={item.targetHref}
-                            className="font-medium text-brand hover:underline"
-                          >
-                            Xem chi tiết →
-                          </Link>
                         </>
                       )}
                     </div>
@@ -464,11 +453,10 @@ export function NotificationsView() {
                   <button
                     type="button"
                     onClick={() => toggleSave(item.id)}
-                    className={`inline-flex min-h-8 items-center gap-1 rounded-lg border px-3 text-xs font-semibold ${
-                      item.saved
+                    className={`inline-flex min-h-8 items-center gap-1 rounded-lg border px-3 text-xs font-semibold ${item.saved
                         ? "border-brand/30 bg-brand-subtle text-brand"
                         : "border-line bg-surface text-muted hover:text-ink"
-                    }`}
+                      }`}
                     title={item.saved ? "Bỏ lưu" : "Lưu thông báo"}
                   >
                     {item.saved ? (

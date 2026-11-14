@@ -7,7 +7,6 @@ import { reportHref, type ReportPeriod } from "../report-period";
 const links = [
   { href: "/admin/reports/finance", label: "Tài chính" },
   { href: "/admin/reports/sales", label: "Bán hàng" },
-  { href: "/admin/reports/inventory", label: "Tồn kho" },
 ];
 
 export function ReportsNav({ period }: { period: ReportPeriod }) {
