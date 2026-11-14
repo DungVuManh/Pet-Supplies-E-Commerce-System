@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { recordAudit } from "../../common/audit.js";
 import { AppError } from "../../common/errors/app-error.js";
 import { Policy } from "../../models/policy.model.js";
@@ -18,77 +19,9 @@ const VN_TO_STATUS = {
   suspended: "suspended",
 };
 
-export const DEFAULT_POLICIES = [
-  {
-    id: "return",
-    code: "POL-RETURN",
-    slug: "chinh-sach-doi-tra-hang",
-    title: "Chính sách đổi trả",
-    status: "published",
-    effectiveDate: "01/10/2026",
-    content: `1. Điều kiện đổi trả
-Khách hàng có thể yêu cầu đổi trả trong 7 ngày kể từ ngày nhận hàng nếu sản phẩm bị lỗi, hư hỏng hoặc giao sai. Sản phẩm cần giữ nguyên bao bì, tem nhãn và kèm hóa đơn mua hàng.
-
-2. Sản phẩm không áp dụng
-Không nhận đổi trả thức ăn đã mở bao bì, sản phẩm đã sử dụng hoặc hư hỏng do bảo quản sai. Quy định này không áp dụng với lỗi phát sinh từ nhà sản xuất.
-
-3. Cách gửi yêu cầu
-Liên hệ hello@petjoy.vn hoặc 1900 6868, cung cấp mã đơn, hình ảnh sản phẩm và mô tả lỗi. Petjoy phản hồi trong 1 ngày làm việc.
-
-4. Phí vận chuyển và hoàn tiền
-Petjoy chịu phí vận chuyển nếu giao sai hoặc sản phẩm lỗi. Sau khi xác nhận, tiền được hoàn về phương thức thanh toán ban đầu trong 3–7 ngày làm việc.`,
-  },
-  {
-    id: "cancellation",
-    code: "POL-CANCEL",
-    slug: "chinh-sach-huy-don",
-    title: "Chính sách hủy đơn",
-    status: "published",
-    effectiveDate: "01/10/2026",
-    content: `1. Thời gian yêu cầu hủy đơn
-Khách hàng có thể gửi yêu cầu hủy đơn hàng trước khi đơn được đóng gói và bàn giao cho đơn vị vận chuyển.
-
-2. Hủy đơn đã thanh toán trước
-Đối với các đơn hàng đã thanh toán qua cổng VNPay hoặc chuyển khoản ngân hàng, yêu cầu hủy sau khi được duyệt sẽ được hoàn tiền tự động về tài khoản thanh toán ban đầu.
-
-3. Đơn hàng đang vận chuyển
-Sau khi đơn hàng đã xuất kho và có mã vận đơn, khách hàng không thể hủy trực tiếp trên hệ thống mà cần từ chối nhận hàng khi shipper giao tới.`,
-  },
-  {
-    id: "refund",
-    code: "POL-REFUND",
-    slug: "chinh-sach-hoan-tien",
-    title: "Chính sách hoàn tiền",
-    status: "published",
-    effectiveDate: "01/10/2026",
-    content: `1. Thời gian xử lý hoàn tiền
-Tiền hoàn sẽ được chuyển về tài khoản ban đầu trong thời gian từ 3 đến 7 ngày làm việc tùy thuộc vào ngân hàng thụ hưởng.
-
-2. Phương thức hoàn tiền
-- Thanh toán VNPay: Hoàn trực tiếp qua cổng thanh toán VNPay.
-- Thanh toán chuyển khoản: Chuyển khoản hoàn tiền theo số tài khoản khách hàng cung cấp.
-- Thanh toán COD: Hoàn tiền qua tài khoản ngân hàng chính chủ của khách.
-
-3. Phí hoàn tiền
-Petjoy miễn phí toàn bộ chi phí phát sinh trong quá trình xử lý hoàn tiền cho khách hàng.`,
-  },
-  {
-    id: "privacy",
-    code: "POL-PRIVACY",
-    slug: "chinh-sach-bao-mat",
-    title: "Chính sách bảo mật",
-    status: "published",
-    effectiveDate: "01/10/2026",
-    content: `1. Thu thập thông tin
-Chúng tôi chỉ thu thập các thông tin cần thiết phục vụ cho việc giao hàng và chăm sóc khách hàng: họ tên, số điện thoại, địa chỉ nhận hàng và email.
-
-2. Mục đích sử dụng
-Thông tin khách hàng chỉ được dùng để xác nhận đơn hàng, giao hàng và thông báo trạng thái vận đơn. Tuyệt đối không chia sẻ cho bên thứ ba vì mục đích quảng cáo khi chưa có sự đồng ý.
-
-3. Bảo mật thanh toán
-Mọi thông tin thẻ và tài khoản ngân hàng được xử lý bảo mật tuyệt đối qua cổng thanh toán đạt tiêu chuẩn PCI-DSS.`,
-  },
-];
+export const DEFAULT_POLICIES = JSON.parse(
+  readFileSync(new URL("./all-default-policies.json", import.meta.url), "utf8")
+);
 
 /** Ensures initial default policies exist in the database and have slug set */
 export async function ensureDefaultPolicies() {

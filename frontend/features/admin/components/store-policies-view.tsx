@@ -11,6 +11,7 @@ import { card, control, primaryLink, secondaryButton } from "@/components/worksp
 export function StorePoliciesView() {
   const [policies, setPolicies] = useState<StorePolicy[]>([]);
   const [selectedId, setSelectedId] = useState<string>("return");
+  const [filterQuery, setFilterQuery] = useState("");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,6 +41,12 @@ export function StorePoliciesView() {
   useEffect(() => {
     fetchPolicies();
   }, []);
+
+  const filteredPolicies = policies.filter(
+    (p) =>
+      p.title.toLowerCase().includes(filterQuery.toLowerCase()) ||
+      p.code.toLowerCase().includes(filterQuery.toLowerCase())
+  );
 
   const selectedPolicy =
     policies.find((p) => p.id === selectedId || p.code === selectedId) || policies[0];
@@ -196,8 +203,18 @@ export function StorePoliciesView() {
         <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
           {/* Left: Policy List */}
           <div className="space-y-4">
-            <div className="space-y-3">
-              {policies.map((p) => {
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Tìm kiếm chính sách..."
+                value={filterQuery}
+                onChange={(e) => setFilterQuery(e.target.value)}
+                className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs focus:border-brand focus:outline-none"
+              />
+            </div>
+
+            <div className="space-y-2.5 max-h-[calc(100vh-260px)] overflow-y-auto pr-1">
+              {filteredPolicies.map((p) => {
                 const isSelected = p.id === selectedPolicy?.id || p.code === selectedPolicy?.code;
                 return (
                   <button
@@ -208,14 +225,14 @@ export function StorePoliciesView() {
                       setNotice("");
                       setError(null);
                     }}
-                    className={`w-full rounded-lg border p-4 text-left transition-all ${
+                    className={`w-full rounded-lg border p-3.5 text-left transition-all ${
                       isSelected
                         ? "border-brand bg-brand-subtle/30 shadow-sm"
                         : "border-line bg-surface hover:border-brand/40 hover:bg-canvas/50"
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <p className={`font-semibold ${isSelected ? "text-brand" : "text-ink"}`}>
+                      <p className={`font-semibold text-sm ${isSelected ? "text-brand" : "text-ink"}`}>
                         {p.title}
                       </p>
                     </div>
@@ -226,6 +243,9 @@ export function StorePoliciesView() {
                   </button>
                 );
               })}
+              {filteredPolicies.length === 0 && (
+                <p className="py-6 text-center text-xs text-muted">Không tìm thấy chính sách phù hợp.</p>
+              )}
             </div>
 
             {selectedPolicy?.lastUpdated && (

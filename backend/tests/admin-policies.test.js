@@ -18,8 +18,9 @@ describe("Admin Policies API (Real Backend & MongoDB)", () => {
   });
 
   afterAll(async () => {
-    // Reset modified default policies in the database to canonical values
-    for (const item of DEFAULT_POLICIES) {
+    // Reset modified test policy in the database to canonical values
+    const item = DEFAULT_POLICIES.find((p) => p.code === "POL-RETURN");
+    if (item) {
       await Policy.updateOne(
         { code: item.code },
         {
@@ -34,10 +35,6 @@ describe("Admin Policies API (Real Backend & MongoDB)", () => {
     }
     // Clean up audit logs created during test
     await AuditLog.deleteMany({ action: "policies.update", "target.id": "POL-RETURN" });
-
-    if (mongoose.connection.readyState !== 0) {
-      await mongoose.disconnect();
-    }
   });
 
   beforeEach(() => {
@@ -82,10 +79,10 @@ describe("Admin Policies API (Real Backend & MongoDB)", () => {
       expect(returnPolicy).toMatchObject({
         id: "return",
         code: "POL-RETURN",
-        title: "Chính sách đổi trả",
+        title: "Chính Sách Đổi – Trả & Hoàn Tiền",
         status: "Đã công bố",
       });
-      expect(returnPolicy.content).toContain("Điều kiện đổi trả");
+      expect(returnPolicy.content).toContain("Chính sách này áp dụng cho đơn đặt");
     });
   });
 
@@ -95,8 +92,8 @@ describe("Admin Policies API (Real Backend & MongoDB)", () => {
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.code).toBe("POL-RETURN");
-      expect(res.body.data.title).toBe("Chính sách đổi trả");
-      expect(res.body.data.content).toContain("Điều kiện đổi trả");
+      expect(res.body.data.title).toBe("Chính Sách Đổi – Trả & Hoàn Tiền");
+      expect(res.body.data.content).toContain("Chính sách này áp dụng cho đơn đặt");
     });
 
     it("queries and returns policy by canonical id (case-insensitive)", async () => {
@@ -104,7 +101,7 @@ describe("Admin Policies API (Real Backend & MongoDB)", () => {
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.code).toBe("POL-PRIVACY");
-      expect(res.body.data.title).toBe("Chính sách bảo mật");
+      expect(res.body.data.title).toBe("Chính Sách Bảo Mật & Bảo Vệ Dữ Liệu Cá Nhân");
     });
 
     it("returns 404 if policy code not found in MongoDB", async () => {
