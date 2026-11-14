@@ -14,6 +14,26 @@ type SalesTab = "product" | "category" | "staff" | "time";
 
 const vnd = (value: number) => `${value.toLocaleString("vi-VN")} ₫`;
 
+function getPaginationMeta<T>(items: T[], page: number, pageSize: number) {
+  const total = items.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const currentPage = Math.min(Math.max(1, page), totalPages);
+  const startIndex = total === 0 ? 0 : (currentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, total);
+  const pagedItems = items.slice(startIndex, endIndex);
+  const from = total === 0 ? 0 : startIndex + 1;
+  const to = endIndex;
+
+  return {
+    total,
+    totalPages,
+    currentPage,
+    pagedItems,
+    from,
+    to,
+  };
+}
+
 interface SalesKpis {
   itemsSold: number;
   itemsSoldDetail: string;
@@ -78,6 +98,22 @@ export function SalesReportView({ period = defaultReportPeriod }: { period?: Rep
   const [staffSales, setStaffSales] = useState<StaffSalesRow[]>([]);
   const [timeSales, setTimeSales] = useState<TimeSalesRow[]>([]);
 
+  // Phân trang cho các bảng dữ liệu
+  const PAGE_SIZE = 10;
+  const [pages, setPages] = useState<Record<SalesTab, number>>({
+    product: 1,
+    category: 1,
+    staff: 1,
+    time: 1,
+  });
+
+  const handlePageChange = (tab: SalesTab, newPage: number) => {
+    setPages((prev) => ({
+      ...prev,
+      [tab]: newPage,
+    }));
+  };
+
   const fetchSalesData = useCallback(async (from: string, to: string) => {
     setLoading(true);
     setError(null);
@@ -136,6 +172,7 @@ export function SalesReportView({ period = defaultReportPeriod }: { period?: Rep
   }, [router]);
 
   useEffect(() => {
+    setPages({ product: 1, category: 1, staff: 1, time: 1 });
     fetchSalesData(appliedPeriod.from, appliedPeriod.to);
   }, [appliedPeriod, fetchSalesData]);
 
@@ -312,6 +349,11 @@ export function SalesReportView({ period = defaultReportPeriod }: { period?: Rep
     </div>
   );
 
+  const productMeta = getPaginationMeta(productSales, pages.product, PAGE_SIZE);
+  const categoryMeta = getPaginationMeta(categorySales, pages.category, PAGE_SIZE);
+  const staffMeta = getPaginationMeta(staffSales, pages.staff, PAGE_SIZE);
+  const timeMeta = getPaginationMeta(timeSales, pages.time, PAGE_SIZE);
+
   return (
     <div className="space-y-6">
       <AdminPageHeader
@@ -416,14 +458,17 @@ export function SalesReportView({ period = defaultReportPeriod }: { period?: Rep
           }
           footer={
             <Pagination
-              from={productSales.length > 0 ? 1 : 0}
-              to={productSales.length}
-              total={productSales.length}
+              from={productMeta.from}
+              to={productMeta.to}
+              total={productMeta.total}
+              page={productMeta.currentPage}
+              pages={productMeta.totalPages}
+              onPage={(p) => handlePageChange("product", p)}
             />
           }
         >
-          {productSales.length > 0 ? (
-            productSales.map((row) => (
+          {productMeta.pagedItems.length > 0 ? (
+            productMeta.pagedItems.map((row) => (
               <tr key={row.sku} className="hover:bg-canvas/50">
                 <Td>
                   <Link
@@ -475,14 +520,17 @@ export function SalesReportView({ period = defaultReportPeriod }: { period?: Rep
           }
           footer={
             <Pagination
-              from={categorySales.length > 0 ? 1 : 0}
-              to={categorySales.length}
-              total={categorySales.length}
+              from={categoryMeta.from}
+              to={categoryMeta.to}
+              total={categoryMeta.total}
+              page={categoryMeta.currentPage}
+              pages={categoryMeta.totalPages}
+              onPage={(p) => handlePageChange("category", p)}
             />
           }
         >
-          {categorySales.length > 0 ? (
-            categorySales.map((row) => (
+          {categoryMeta.pagedItems.length > 0 ? (
+            categoryMeta.pagedItems.map((row) => (
               <tr key={row.category} className="hover:bg-canvas/50">
                 <Td className="font-semibold">{row.category}</Td>
                 <Td className="font-semibold tabular-nums">{vnd(row.revenue)}</Td>
@@ -516,14 +564,17 @@ export function SalesReportView({ period = defaultReportPeriod }: { period?: Rep
           }
           footer={
             <Pagination
-              from={staffSales.length > 0 ? 1 : 0}
-              to={staffSales.length}
-              total={staffSales.length}
+              from={staffMeta.from}
+              to={staffMeta.to}
+              total={staffMeta.total}
+              page={staffMeta.currentPage}
+              pages={staffMeta.totalPages}
+              onPage={(p) => handlePageChange("staff", p)}
             />
           }
         >
-          {staffSales.length > 0 ? (
-            staffSales.map((row) => (
+          {staffMeta.pagedItems.length > 0 ? (
+            staffMeta.pagedItems.map((row) => (
               <tr key={row.staff} className="hover:bg-canvas/50">
                 <Td className="font-semibold">{row.staff}</Td>
                 <Td className="text-muted">{row.role}</Td>
@@ -556,14 +607,17 @@ export function SalesReportView({ period = defaultReportPeriod }: { period?: Rep
           }
           footer={
             <Pagination
-              from={timeSales.length > 0 ? 1 : 0}
-              to={timeSales.length}
-              total={timeSales.length}
+              from={timeMeta.from}
+              to={timeMeta.to}
+              total={timeMeta.total}
+              page={timeMeta.currentPage}
+              pages={timeMeta.totalPages}
+              onPage={(p) => handlePageChange("time", p)}
             />
           }
         >
-          {timeSales.length > 0 ? (
-            timeSales.map((row) => (
+          {timeMeta.pagedItems.length > 0 ? (
+            timeMeta.pagedItems.map((row) => (
               <tr key={row.period} className="hover:bg-canvas/50">
                 <Td className="font-semibold">{row.period}</Td>
                 <Td className="font-semibold tabular-nums">{vnd(row.revenue)}</Td>
