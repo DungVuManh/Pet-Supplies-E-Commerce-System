@@ -16,7 +16,7 @@ export function parseAmount(value: string) {
 }
 
 /** `skuChanged`: seed data has older SKUs that break the rule, so an unchanged SKU is not checked. */
-export type ProductFormValues = { name: string; sku: string; skuChanged?: boolean; categoryCodes: string[]; price: string; cost: string; stock: string; threshold: string };
+export type ProductFormValues = { name: string; sku: string; skuChanged?: boolean; categoryCodes: string[]; price: string; cost: string; stock: string; threshold: string; description?: string; components?: string };
 
 export function validateProduct(values: ProductFormValues): FormErrors<ProductFormValues> {
   const errors: FormErrors<ProductFormValues> = {};

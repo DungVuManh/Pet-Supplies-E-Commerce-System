@@ -68,6 +68,7 @@ export async function fetchHomeProductsApi(
       name: p.name,
       brand: p.brand || "Petjoy",
       description: p.description || "",
+      components: p.components || "",
       price: p.price,
       image:
         p.image ||

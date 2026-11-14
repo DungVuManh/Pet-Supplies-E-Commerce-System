@@ -62,9 +62,22 @@ export function ProductDetailView({ product }: { product: AdminProductDetail }) 
 
     <TabNav label="Thông tin chi tiết sản phẩm" items={tabs.map((item) => ({ label: item.label, active: tab === item.value, onSelect: () => setTab(item.value) }))} />
     <section aria-label={tabs.find((item) => item.value === tab)?.label} className={`${card} p-6`}>
-      {tab === "description" && (product.description
-        ? <p className="whitespace-pre-line leading-relaxed">{product.description}</p>
-        : <p className="text-muted">Sản phẩm chưa có mô tả.</p>)}
+      {tab === "description" && (
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-sm font-semibold text-ink mb-1">Mô tả sản phẩm</h3>
+            {product.description
+              ? <p className="whitespace-pre-line leading-relaxed">{product.description}</p>
+              : <p className="text-muted">Sản phẩm chưa có mô tả.</p>}
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-ink mb-1">Thành phần &amp; hướng dẫn</h3>
+            {product.components
+              ? <p className="whitespace-pre-line leading-relaxed">{product.components}</p>
+              : <p className="text-muted">Chưa có thông tin thành phần.</p>}
+          </div>
+        </div>
+      )}
       {tab === "extra" && <DetailList items={[
         { label: "Mã sản phẩm", value: product.code },
         { label: "Loài thú cưng", value: petTypeLabels[product.petType] ?? product.petType },

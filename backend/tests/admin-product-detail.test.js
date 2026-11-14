@@ -25,7 +25,7 @@ function query(rows) {
 
 beforeEach(() => {
  product = {
-  _id: id("a001"), name: "Royal Canin Mini", brand: "Royal Canin", unit: "Túi", petType: "dog", description: "Mô tả", images: ["/a.png", "/b.png"],
+  _id: id("a001"), name: "Royal Canin Mini", brand: "Royal Canin", unit: "Túi", petType: "dog", description: "Mô tả", components: "Thành phần", images: ["/a.png", "/b.png"],
   isActive: true, categoryIds: [food._id], updatedAt: new Date("2026-10-12T03:00:00Z"),
   variants: [
    { sku: "RC-1", label: "2 kg", price: 450000, cost: 325000, stock: 50, reservedStock: 5, lowStockThreshold: 10 },
@@ -59,7 +59,7 @@ describe("GET /api/v1/admin/products/:sku", () => {
   const { body } = await admin.send("GET", url("RC-1")).expect(200);
   expect(body.data).toEqual({
    sku: "RC-1", code: "SP00A001", label: "2 kg", name: "Royal Canin Mini", brand: "Royal Canin", unit: "Túi", petType: "dog",
-   description: "Mô tả", images: ["/a.png", "/b.png"], categories: [{ ref: "DM002", name: "Thức ăn", path: "Thức ăn" }],
+   description: "Mô tả", components: "Thành phần", images: ["/a.png", "/b.png"], categories: [{ ref: "DM002", name: "Thức ăn", path: "Thức ăn" }],
    price: 450000, cost: 325000, stock: 50, reservedStock: 5, available: 45, threshold: 10, ownThreshold: 10, status: "active",
    isActive: true, hasOrders: false, updatedAt: "2026-10-12T03:00:00.000Z", lastUpdate: null, history: [],
   });

@@ -73,6 +73,7 @@ export const authApi = {
     try {
       if (typeof window !== "undefined") {
         localStorage.removeItem("petly_auth_user");
+        window.dispatchEvent(new Event("cart-updated"));
       }
     } catch {}
     await mutate("session", "DELETE", {});

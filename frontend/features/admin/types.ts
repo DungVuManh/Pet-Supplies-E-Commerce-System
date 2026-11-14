@@ -188,6 +188,7 @@ export type AdminProductDetail = {
   unit: string;
   petType: string;
   description: string;
+  components?: string;
   images: string[];
   categories: ProductCategory[];
   price: number;
