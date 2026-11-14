@@ -1,100 +1,47 @@
 import mongoose from "mongoose";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { Policy } from "../src/models/policy.model.js";
 import { AuditLog } from "../src/models/audit-log.model.js";
+import { DEFAULT_POLICIES, ensureDefaultPolicies } from "../src/controllers/admin/policy.controller.js";
 import { createAdminTestApp } from "./helpers/admin-app.js";
 
-const id = (suffix) => new mongoose.Types.ObjectId(`a0000000000000000000${suffix}`);
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/pet_supplies";
 
-const initialPolicies = [
-  {
-    _id: id("0001"),
-    id: "return",
-    code: "POL-RETURN",
-    title: "Chính sách đổi trả",
-    status: "published",
-    effectiveDate: "01/10/2026",
-    content: "Nội dung chính sách đổi trả...",
-    updatedBy: null,
-    createdAt: new Date("2026-10-01T00:00:00Z"),
-    updatedAt: new Date("2026-10-01T00:00:00Z"),
-  },
-  {
-    _id: id("0002"),
-    id: "cancellation",
-    code: "POL-CANCEL",
-    title: "Chính sách hủy đơn",
-    status: "published",
-    effectiveDate: "01/10/2026",
-    content: "Nội dung chính sách hủy đơn...",
-    updatedBy: null,
-    createdAt: new Date("2026-10-01T00:00:00Z"),
-    updatedAt: new Date("2026-10-01T00:00:00Z"),
-  },
-];
-
-describe("Admin Policies API", () => {
+describe("Admin Policies API (Real Backend & MongoDB)", () => {
   let app;
-  let storedPolicies;
 
-  beforeEach(() => {
-    storedPolicies = JSON.parse(JSON.stringify(initialPolicies));
-    app = createAdminTestApp();
-
-    vi.spyOn(Policy, "countDocuments").mockImplementation(async () => storedPolicies.length);
-
-    vi.spyOn(Policy, "find").mockImplementation(() => ({
-      sort: () => ({
-        populate: () => ({
-          lean: async () => storedPolicies,
-        }),
-      }),
-    }));
-
-    vi.spyOn(Policy, "findOne").mockImplementation((query) => {
-      let found = null;
-      if (query.$or) {
-        found = storedPolicies.find((p) =>
-          query.$or.some((cond) => {
-            if (cond.code && p.code === cond.code) return true;
-            if (cond.id && p.id === cond.id) return true;
-            return false;
-          })
-        );
-      }
-      if (!found) {
-        return {
-          populate: () => ({
-            lean: async () => null,
-          }),
-        };
-      }
-      const doc = {
-        ...found,
-        save: async function () {
-          const idx = storedPolicies.findIndex((p) => p.code === this.code);
-          if (idx !== -1) {
-            storedPolicies[idx] = { ...this };
-          }
-          return this;
-        },
-        toObject: function () {
-          return { ...this };
-        },
-      };
-      return {
-        ...doc,
-        populate: () => ({
-          lean: async () => doc,
-        }),
-      };
-    });
-
-    vi.spyOn(AuditLog, "create").mockResolvedValue({});
+  beforeAll(async () => {
+    if (mongoose.connection.readyState === 0) {
+      await mongoose.connect(MONGODB_URI);
+    }
+    await ensureDefaultPolicies();
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
+  afterAll(async () => {
+    // Reset modified default policies in the database to canonical values
+    for (const item of DEFAULT_POLICIES) {
+      await Policy.updateOne(
+        { code: item.code },
+        {
+          $set: {
+            title: item.title,
+            content: item.content,
+            status: item.status,
+            effectiveDate: item.effectiveDate,
+          },
+        }
+      );
+    }
+    // Clean up audit logs created during test
+    await AuditLog.deleteMany({ action: "policies.update", "target.id": "POL-RETURN" });
+
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.disconnect();
+    }
+  });
+
+  beforeEach(() => {
+    app = createAdminTestApp();
   });
 
   describe("Access control", () => {
@@ -118,66 +65,101 @@ describe("Admin Policies API", () => {
   });
 
   describe("GET /api/v1/admin/policies", () => {
-    it("lists policies successfully", async () => {
+    it("returns real store policies from MongoDB", async () => {
       const res = await app.send("GET", "/api/v1/admin/policies");
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
-      expect(res.body.data).toHaveLength(2);
-      expect(res.body.data[0]).toMatchObject({
+      expect(Array.isArray(res.body.data)).toBe(true);
+      expect(res.body.data.length).toBeGreaterThanOrEqual(4);
+
+      const codes = res.body.data.map((p) => p.code);
+      expect(codes).toContain("POL-RETURN");
+      expect(codes).toContain("POL-CANCEL");
+      expect(codes).toContain("POL-REFUND");
+      expect(codes).toContain("POL-PRIVACY");
+
+      const returnPolicy = res.body.data.find((p) => p.code === "POL-RETURN");
+      expect(returnPolicy).toMatchObject({
         id: "return",
         code: "POL-RETURN",
         title: "Chính sách đổi trả",
         status: "Đã công bố",
       });
+      expect(returnPolicy.content).toContain("Điều kiện đổi trả");
     });
   });
 
   describe("GET /api/v1/admin/policies/:code", () => {
-    it("returns policy detail by code", async () => {
+    it("queries and returns real policy from MongoDB by code", async () => {
       const res = await app.send("GET", "/api/v1/admin/policies/POL-RETURN");
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.code).toBe("POL-RETURN");
       expect(res.body.data.title).toBe("Chính sách đổi trả");
+      expect(res.body.data.content).toContain("Điều kiện đổi trả");
     });
 
-    it("returns 404 if policy code not found", async () => {
-      const res = await app.send("GET", "/api/v1/admin/policies/POL-UNKNOWN");
+    it("queries and returns policy by canonical id (case-insensitive)", async () => {
+      const res = await app.send("GET", "/api/v1/admin/policies/privacy");
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.code).toBe("POL-PRIVACY");
+      expect(res.body.data.title).toBe("Chính sách bảo mật");
+    });
+
+    it("returns 404 if policy code not found in MongoDB", async () => {
+      const res = await app.send("GET", "/api/v1/admin/policies/POL-NONEXISTENT");
       expect(res.status).toBe(404);
       expect(res.body.success).toBe(false);
+      expect(res.body.message).toContain("Không tìm thấy");
     });
   });
 
   describe("PUT /api/v1/admin/policies/:code", () => {
-    it("updates policy content, status and creates an audit log", async () => {
-      const res = await app.send("PUT", "/api/v1/admin/policies/POL-RETURN", {
-        title: "Chính sách đổi trả cập nhật",
-        content: "Nội dung điều khoản mới...",
+    it("updates policy in MongoDB and records real audit log", async () => {
+      const updatePayload = {
+        title: "Chính sách đổi trả (Đã cập nhật)",
+        content: "Nội dung quy định đổi trả mới trong 14 ngày làm việc từ máy chủ thật.",
         status: "Bản nháp",
-        effectiveDate: "15/10/2026",
-      });
+        effectiveDate: "20/10/2026",
+      };
 
+      const res = await app.send("PUT", "/api/v1/admin/policies/POL-RETURN", updatePayload);
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
-      expect(res.body.data.title).toBe("Chính sách đổi trả cập nhật");
-      expect(res.body.data.content).toBe("Nội dung điều khoản mới...");
+      expect(res.body.data.title).toBe(updatePayload.title);
+      expect(res.body.data.content).toBe(updatePayload.content);
+      expect(res.body.data.status).toBe("Bản nháp");
 
-      expect(AuditLog.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          action: "policies.update",
-          target: { collectionName: "policies", id: "POL-RETURN" },
-          summary: "Cập nhật chính sách: Chính sách đổi trả cập nhật",
-        })
-      );
+      // Verify directly from real MongoDB collection `policies`
+      const dbDoc = await Policy.findOne({ code: "POL-RETURN" }).lean();
+      expect(dbDoc).toBeTruthy();
+      expect(dbDoc.title).toBe(updatePayload.title);
+      expect(dbDoc.content).toBe(updatePayload.content);
+      expect(dbDoc.status).toBe("draft");
+      expect(dbDoc.effectiveDate).toBe(updatePayload.effectiveDate);
+
+      // Verify real AuditLog created in MongoDB
+      const auditEntry = await AuditLog.findOne({
+        action: "policies.update",
+        "target.id": "POL-RETURN",
+      })
+        .sort({ createdAt: -1 })
+        .lean();
+
+      expect(auditEntry).toBeTruthy();
+      expect(auditEntry.summary).toBe(`Cập nhật chính sách: ${updatePayload.title}`);
+      expect(auditEntry.result).toBe("success");
     });
 
     it("validates maximum length of content (max 20,000 characters)", async () => {
       const res = await app.send("PUT", "/api/v1/admin/policies/POL-RETURN", {
-        content: "a".repeat(20001),
+        content: "x".repeat(20001),
       });
 
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
+      expect(res.body.error.code).toBe("VALIDATION_ERROR");
     });
   });
 });

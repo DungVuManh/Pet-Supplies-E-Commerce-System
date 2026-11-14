@@ -15,7 +15,4 @@ const policySchema = new mongoose.Schema(
   { collection: "policies", timestamps: true, bufferCommands: false }
 );
 
-policySchema.index({ code: 1 }, { unique: true });
-policySchema.index({ id: 1 }, { unique: true });
-
 export const Policy = mongoose.models.Policy || mongoose.model("Policy", policySchema);
