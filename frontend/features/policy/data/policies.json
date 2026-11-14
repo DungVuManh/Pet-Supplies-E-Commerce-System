@@ -22,78 +22,125 @@
         {
           "heading": "1. Phương thức giao hàng",
           "blocks": [
-            { "type": "p", "text": "Bạn có thể chọn:" },
-            { "type": "ul", "items": [
-              "**Giao hàng tận nơi:** chúng mình giao đến địa chỉ của bạn",
-              "**Nhận tại cửa hàng:** nhận trực tiếp tại 1 trong 5 cửa hàng Petjoy ở TP.HCM (miễn phí) — xem địa chỉ chi tiết tại [Hệ thống cửa hàng Petjoy](https://petjoy.vn/cua-hang)"
-            ] },
-            { "type": "p", "text": "Các phương thức khả dụng cho đơn của bạn được hiển thị ở bước thanh toán, tính theo địa chỉ nhận và giỏ hàng. Một phương thức không hiện nghĩa là nó không áp dụng được cho đơn đó — xem [Điều kiện & Hạn chế cung cấp hàng hoá](policy:dieu-kien-han-che-cung-cap)." }
+            {
+              "type": "p",
+              "text": "Bạn có thể chọn:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "**Giao hàng tận nơi:** chúng mình giao đến địa chỉ của bạn",
+                "**Nhận tại cửa hàng:** nhận trực tiếp tại 1 trong 5 cửa hàng Petjoy ở TP.HCM (miễn phí) — xem địa chỉ chi tiết tại [Hệ thống cửa hàng Petjoy](https://petjoy.vn/cua-hang)"
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Các phương thức khả dụng cho đơn của bạn được hiển thị ở bước thanh toán, tính theo địa chỉ nhận và giỏ hàng. Một phương thức không hiện nghĩa là nó không áp dụng được cho đơn đó — xem [Điều kiện & Hạn chế cung cấp hàng hoá](policy:dieu-kien-han-che-cung-cap)."
+            }
           ]
         },
         {
           "heading": "2. Thời gian giao hàng",
           "blocks": [
-            { "type": "h3", "text": "Nội thành TP.HCM (trong bán kính phục vụ 20km quanh cửa hàng gần bạn nhất)" },
-            { "type": "ul", "items": [
-              "**Giao hỏa tốc:** nhận hàng trong 2 tiếng, xử lý đơn từ 9h00 hằng ngày",
-              "**Giao trong ngày:** nhận hàng ngay trong ngày đặt — áp dụng cho đơn đặt trước 16h00",
-              "**Nhận tại cửa hàng:** sẵn sàng trong vòng 30 phút sau khi đơn được xác nhận"
-            ] },
-            { "type": "p", "text": "**Khu vực ngoài bán kính trên & các tỉnh/thành khác:** giao hàng nhanh qua đối tác vận chuyển, nhận hàng trong 2–5 ngày làm việc, tuỳ khu vực." },
-            { "type": "note", "text": "Lưu ý: Thời gian giao hàng có thể thay đổi trong các dịp lễ, Tết hoặc do yếu tố thời tiết, thiên tai." }
+            {
+              "type": "h3",
+              "text": "Nội thành TP.HCM (trong bán kính phục vụ 20km quanh cửa hàng gần bạn nhất)"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "**Giao hỏa tốc:** nhận hàng trong 2 tiếng, xử lý đơn từ 9h00 hằng ngày",
+                "**Giao trong ngày:** nhận hàng ngay trong ngày đặt — áp dụng cho đơn đặt trước 16h00",
+                "**Nhận tại cửa hàng:** sẵn sàng trong vòng 30 phút sau khi đơn được xác nhận"
+              ]
+            },
+            {
+              "type": "p",
+              "text": "**Khu vực ngoài bán kính trên & các tỉnh/thành khác:** giao hàng nhanh qua đối tác vận chuyển, nhận hàng trong 2–5 ngày làm việc, tuỳ khu vực."
+            },
+            {
+              "type": "note",
+              "text": "Lưu ý: Thời gian giao hàng có thể thay đổi trong các dịp lễ, Tết hoặc do yếu tố thời tiết, thiên tai."
+            }
           ]
         },
         {
           "heading": "3. Đối tác vận chuyển",
           "blocks": [
-            { "type": "p", "text": "Petjoy giao hàng qua Ahamove, Giao Hàng Nhanh (GHN) và Be, hoặc do nhân viên Petjoy giao trực tiếp với đơn nội thành. Đối tác phù hợp được chọn theo địa chỉ nhận, khối lượng đơn và phương thức bạn đã chọn. Đối tác vận chuyển nhận tên, số điện thoại và địa chỉ nhận hàng của bạn để thực hiện việc giao — xem [Chính sách Bảo mật](policy:chinh-sach-bao-mat)." }
+            {
+              "type": "p",
+              "text": "Petjoy giao hàng qua Ahamove, Giao Hàng Nhanh (GHN) và Be, hoặc do nhân viên Petjoy giao trực tiếp với đơn nội thành. Đối tác phù hợp được chọn theo địa chỉ nhận, khối lượng đơn và phương thức bạn đã chọn. Đối tác vận chuyển nhận tên, số điện thoại và địa chỉ nhận hàng của bạn để thực hiện việc giao — xem [Chính sách Bảo mật](policy:chinh-sach-bao-mat)."
+            }
           ]
         },
         {
           "heading": "4. Phí vận chuyển",
           "blocks": [
-            { "type": "p", "text": "Phí vận chuyển sẽ được hiển thị cụ thể tại bước thanh toán, trước khi bạn bấm đặt hàng. Phí ship được tính dựa trên: khu vực giao hàng, trọng lượng và kích thước đơn hàng, cũng như đơn vị vận chuyển phù hợp." },
-            { "type": "p", "text": "Đặc biệt, Petjoy hỗ trợ miễn phí vận chuyển cho thành viên Petjoy theo hạng — xem [Petjoy Club](https://petjoy.vn/pages/uu-dai-tich-luy-thanh-vien-Petjoy) để biết mức hỗ trợ và giá trị đơn tối thiểu của từng hạng." }
+            {
+              "type": "p",
+              "text": "Phí vận chuyển sẽ được hiển thị cụ thể tại bước thanh toán, trước khi bạn bấm đặt hàng. Phí ship được tính dựa trên: khu vực giao hàng, trọng lượng và kích thước đơn hàng, cũng như đơn vị vận chuyển phù hợp."
+            },
+            {
+              "type": "p",
+              "text": "Đặc biệt, Petjoy hỗ trợ miễn phí vận chuyển cho thành viên Petjoy theo hạng — xem [Petjoy Club](https://petjoy.vn/pages/uu-dai-tich-luy-thanh-vien-Petjoy) để biết mức hỗ trợ và giá trị đơn tối thiểu của từng hạng."
+            }
           ]
         },
         {
           "heading": "5. Theo dõi đơn hàng",
           "blocks": [
-            { "type": "p", "text": "Sau khi đơn hàng được gửi đi, bạn sẽ nhận được mã vận đơn qua SMS, email hoặc Zalo." },
-            { "type": "p", "text": "Bạn có thể theo dõi tại mục Tài khoản → Đơn hàng trên website và trên ứng dụng Petjoy, hoặc tra cứu không cần đăng nhập tại [Tra cứu đơn hàng](https://petjoy.vn/track-order)." }
+            {
+              "type": "p",
+              "text": "Sau khi đơn hàng được gửi đi, bạn sẽ nhận được mã vận đơn qua SMS, email hoặc Zalo."
+            },
+            {
+              "type": "p",
+              "text": "Bạn có thể theo dõi tại mục Tài khoản → Đơn hàng trên website và trên ứng dụng Petjoy, hoặc tra cứu không cần đăng nhập tại [Tra cứu đơn hàng](https://petjoy.vn/track-order)."
+            }
           ]
         },
         {
           "heading": "6. Lưu ý khi nhận hàng",
           "blocks": [
-            { "type": "p", "text": "Khi nhận hàng, bạn vui lòng:" },
-            { "type": "ul", "items": [
-              "Kiểm tra tình trạng kiện hàng trước khi nhận",
-              "Nếu thấy sản phẩm có dấu hiệu hư hỏng hoặc giao sai, bạn có thể từ chối nhận và báo lại cho Petjoy",
-              "Tụi mình khuyến khích quay video khi mở hàng để hỗ trợ xử lý nhanh hơn nếu có vấn đề phát sinh"
-            ] }
+            {
+              "type": "p",
+              "text": "Khi nhận hàng, bạn vui lòng:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Kiểm tra tình trạng kiện hàng trước khi nhận",
+                "Nếu thấy sản phẩm có dấu hiệu hư hỏng hoặc giao sai, bạn có thể từ chối nhận và báo lại cho Petjoy",
+                "Tụi mình khuyến khích quay video khi mở hàng để hỗ trợ xử lý nhanh hơn nếu có vấn đề phát sinh"
+              ]
+            }
           ]
         },
         {
           "heading": "7. Trường hợp giao hàng không thành công",
           "blocks": [
-            { "type": "ul", "items": [
-              "Đơn vị vận chuyển sẽ liên hệ trước khi giao hàng",
-              "Nếu không liên hệ được, đơn có thể được giao lại hoặc hoàn về",
-              "Với đơn đã thanh toán trước mà hoàn về do không giao được, Petjoy hoàn tiền theo [Chính sách Đổi – Trả & Hoàn tiền](policy:chinh-sach-doi-tra-hang)",
-              "Trong trường hợp cần hỗ trợ, bạn có thể liên hệ tụi mình để kiểm tra và xử lý nhanh nhất"
-            ] }
+            {
+              "type": "ul",
+              "items": [
+                "Đơn vị vận chuyển sẽ liên hệ trước khi giao hàng",
+                "Nếu không liên hệ được, đơn có thể được giao lại hoặc hoàn về",
+                "Với đơn đã thanh toán trước mà hoàn về do không giao được, Petjoy hoàn tiền theo [Chính sách Đổi – Trả & Hoàn tiền](policy:chinh-sach-doi-tra-hang)",
+                "Trong trường hợp cần hỗ trợ, bạn có thể liên hệ tụi mình để kiểm tra và xử lý nhanh nhất"
+              ]
+            }
           ]
         },
         {
           "heading": "8. Liên hệ hỗ trợ",
           "blocks": [
-            { "type": "p", "text": "Hotline và Zalo ******* (8h00–21h00) — Email *******" }
+            {
+              "type": "p",
+              "text": "Hotline và Zalo ******* (8h00–21h00) — Email *******"
+            }
           ]
         }
       ]
     },
-
     {
       "slug": "chinh-sach-doi-tra-hang",
       "label": "Chính Sách Đổi Trả Hàng",
@@ -105,116 +152,181 @@
         {
           "heading": "1. Đổi – trả miễn phí (trong 7 ngày)",
           "blocks": [
-            { "type": "p", "text": "Bạn được đổi hoặc trả hàng hoàn toàn miễn phí trong vòng 7 ngày kể từ khi nhận hàng nếu:" },
-            { "type": "ul", "items": [
-              "Sản phẩm chưa qua sử dụng, còn nguyên tem mác, bao bì",
-              "Có đầy đủ hoá đơn hoặc thông tin đơn hàng",
-              "Lỗi từ nhà sản xuất hoặc Petjoy giao sai sản phẩm"
-            ] }
+            {
+              "type": "p",
+              "text": "Bạn được đổi hoặc trả hàng hoàn toàn miễn phí trong vòng 7 ngày kể từ khi nhận hàng nếu:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Sản phẩm chưa qua sử dụng, còn nguyên tem mác, bao bì",
+                "Có đầy đủ hoá đơn hoặc thông tin đơn hàng",
+                "Lỗi từ nhà sản xuất hoặc Petjoy giao sai sản phẩm"
+              ]
+            }
           ]
         },
         {
           "heading": "2. Đổi – trả có tính phí (từ ngày 8 – 15)",
           "blocks": [
-            { "type": "p", "text": "Sau 7 ngày đầu tiên, nếu bạn vẫn muốn đổi hoặc trả vì nhu cầu cá nhân, Petjoy vẫn hỗ trợ với một khoản phí:" },
-            { "type": "ul", "items": [
-              "Sản phẩm chưa sử dụng: trả hàng phí 15–20% giá trị sản phẩm",
-              "Sản phẩm đã mở bao bì nhưng chưa sử dụng: đổi sản phẩm khác phí 15%, trả hàng phí 20–30%"
-            ] },
-            { "type": "p", "text": "Sau ngày thứ 15, Petjoy không còn nhận đổi – trả theo nhu cầu cá nhân. Riêng lỗi của nhà sản xuất vẫn được xử lý theo chính sách bảo hành của hãng, nếu sản phẩm có bảo hành." }
+            {
+              "type": "p",
+              "text": "Sau 7 ngày đầu tiên, nếu bạn vẫn muốn đổi hoặc trả vì nhu cầu cá nhân, Petjoy vẫn hỗ trợ với một khoản phí:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Sản phẩm chưa sử dụng: trả hàng phí 15–20% giá trị sản phẩm",
+                "Sản phẩm đã mở bao bì nhưng chưa sử dụng: đổi sản phẩm khác phí 15%, trả hàng phí 20–30%"
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Sau ngày thứ 15, Petjoy không còn nhận đổi – trả theo nhu cầu cá nhân. Riêng lỗi của nhà sản xuất vẫn được xử lý theo chính sách bảo hành của hãng, nếu sản phẩm có bảo hành."
+            }
           ]
         },
         {
           "heading": "3. Hàng hoá không áp dụng đổi – trả",
           "blocks": [
-            { "type": "ul", "items": [
-              "Thức ăn, bánh thưởng, sản phẩm tiêu dùng đã mở bao bì — vì yếu tố vệ sinh và sức khoẻ cho thú cưng, trừ trường hợp sản phẩm bị lỗi hỏng do nhà sản xuất",
-              "Sản phẩm đặt riêng theo yêu cầu như bảng tên khắc chữ"
-            ] }
+            {
+              "type": "ul",
+              "items": [
+                "Thức ăn, bánh thưởng, sản phẩm tiêu dùng đã mở bao bì — vì yếu tố vệ sinh và sức khoẻ cho thú cưng, trừ trường hợp sản phẩm bị lỗi hỏng do nhà sản xuất",
+                "Sản phẩm đặt riêng theo yêu cầu như bảng tên khắc chữ"
+              ]
+            }
           ]
         },
         {
           "heading": "4. Cách yêu cầu đổi – trả",
           "blocks": [
-            { "type": "ul", "items": [
-              "Gọi hotline hoặc nhắn Zalo ******* (8h00–21h00), hoặc email ******* kèm mã đơn hàng",
-              "Hoặc mang sản phẩm tới bất kỳ cửa hàng Petjoy nào tại TP.HCM"
-            ] },
-            { "type": "p", "text": "Với sản phẩm lỗi hoặc giao sai, gửi kèm hình ảnh hoặc video giúp tụi mình xử lý nhanh hơn. Tụi mình khuyến khích quay video khi mở hàng." },
-            { "type": "p", "text": "Petjoy phản hồi yêu cầu trong 24 giờ làm việc." }
+            {
+              "type": "ul",
+              "items": [
+                "Gọi hotline hoặc nhắn Zalo ******* (8h00–21h00), hoặc email ******* kèm mã đơn hàng",
+                "Hoặc mang sản phẩm tới bất kỳ cửa hàng Petjoy nào tại TP.HCM"
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Với sản phẩm lỗi hoặc giao sai, gửi kèm hình ảnh hoặc video giúp tụi mình xử lý nhanh hơn. Tụi mình khuyến khích quay video khi mở hàng."
+            },
+            {
+              "type": "p",
+              "text": "Petjoy phản hồi yêu cầu trong 24 giờ làm việc."
+            }
           ]
         },
         {
           "heading": "5. Chi phí vận chuyển khi đổi – trả",
           "blocks": [
-            { "type": "ul", "items": [
-              "Sản phẩm lỗi hoặc Petjoy giao sai: Petjoy chịu 100% phí vận chuyển hai chiều",
-              "Đổi – trả theo nhu cầu cá nhân: bạn vui lòng hỗ trợ phí vận chuyển giúp tụi mình nhé"
-            ] }
+            {
+              "type": "ul",
+              "items": [
+                "Sản phẩm lỗi hoặc Petjoy giao sai: Petjoy chịu 100% phí vận chuyển hai chiều",
+                "Đổi – trả theo nhu cầu cá nhân: bạn vui lòng hỗ trợ phí vận chuyển giúp tụi mình nhé"
+              ]
+            }
           ]
         },
         {
           "heading": "6. Hoàn tiền — phương thức",
           "blocks": [
-            { "type": "p", "text": "Tiền được hoàn về đúng phương thức bạn đã dùng để thanh toán, đây là nguyên tắc chung và không đổi:" },
-            { "type": "ul", "items": [
-              "**Đã thanh toán trực tuyến qua Payoo** (QR, thẻ nội địa, thẻ quốc tế, Apple Pay) — tiền được hoàn về đúng thẻ hoặc tài khoản đã dùng, qua cổng Payoo. Petjoy không hoàn bằng tiền mặt cho các giao dịch này",
-              "**Đã thanh toán COD hoặc tiền mặt tại cửa hàng** — hoàn bằng chuyển khoản tới tài khoản ngân hàng bạn cung cấp, hoặc tiền mặt tại cửa hàng nếu bạn tới trực tiếp",
-              "**Đã chuyển khoản** — hoàn về tài khoản đã chuyển"
-            ] },
-            { "type": "p", "text": "Petjoy không hoàn tiền vào tài khoản của người thứ ba, trừ khi bạn có văn bản uỷ quyền." }
+            {
+              "type": "p",
+              "text": "Tiền được hoàn về đúng phương thức bạn đã dùng để thanh toán, đây là nguyên tắc chung và không đổi:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "**Đã thanh toán trực tuyến qua Payoo** (QR, thẻ nội địa, thẻ quốc tế, Apple Pay) — tiền được hoàn về đúng thẻ hoặc tài khoản đã dùng, qua cổng Payoo. Petjoy không hoàn bằng tiền mặt cho các giao dịch này",
+                "**Đã thanh toán COD hoặc tiền mặt tại cửa hàng** — hoàn bằng chuyển khoản tới tài khoản ngân hàng bạn cung cấp, hoặc tiền mặt tại cửa hàng nếu bạn tới trực tiếp",
+                "**Đã chuyển khoản** — hoàn về tài khoản đã chuyển"
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Petjoy không hoàn tiền vào tài khoản của người thứ ba, trừ khi bạn có văn bản uỷ quyền."
+            }
           ]
         },
         {
           "heading": "7. Hoàn tiền — thời hạn",
           "blocks": [
-            { "type": "ul", "items": [
-              "Petjoy khởi tạo việc hoàn tiền trong 3 ngày làm việc kể từ khi yêu cầu đổi – trả được duyệt, hoặc kể từ khi Petjoy nhận lại được hàng trong trường hợp trả hàng",
-              "Hoàn về thẻ hoặc tài khoản qua cổng thanh toán: thường về trong 5–15 ngày làm việc sau khi Petjoy khởi tạo. Thời gian cụ thể phụ thuộc ngân hàng phát hành thẻ, Petjoy không chủ động được khoảng này",
-              "Hoàn bằng chuyển khoản: trong 3 ngày làm việc kể từ khi bạn cung cấp đủ thông tin tài khoản",
-              "Hoàn tiền mặt tại cửa hàng: ngay khi bạn tới, sau khi nhân viên kiểm tra sản phẩm"
-            ] },
-            { "type": "p", "text": "Petjoy thông báo cho bạn khi đã khởi tạo hoàn tiền. Nếu quá thời hạn trên mà bạn chưa nhận được, vui lòng liên hệ hotline để Petjoy tra soát cùng Payoo và ngân hàng." }
+            {
+              "type": "ul",
+              "items": [
+                "Petjoy khởi tạo việc hoàn tiền trong 3 ngày làm việc kể từ khi yêu cầu đổi – trả được duyệt, hoặc kể từ khi Petjoy nhận lại được hàng trong trường hợp trả hàng",
+                "Hoàn về thẻ hoặc tài khoản qua cổng thanh toán: thường về trong 5–15 ngày làm việc sau khi Petjoy khởi tạo. Thời gian cụ thể phụ thuộc ngân hàng phát hành thẻ, Petjoy không chủ động được khoảng này",
+                "Hoàn bằng chuyển khoản: trong 3 ngày làm việc kể từ khi bạn cung cấp đủ thông tin tài khoản",
+                "Hoàn tiền mặt tại cửa hàng: ngay khi bạn tới, sau khi nhân viên kiểm tra sản phẩm"
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Petjoy thông báo cho bạn khi đã khởi tạo hoàn tiền. Nếu quá thời hạn trên mà bạn chưa nhận được, vui lòng liên hệ hotline để Petjoy tra soát cùng Payoo và ngân hàng."
+            }
           ]
         },
         {
           "heading": "8. Hoàn tiền một phần",
           "blocks": [
-            { "type": "p", "text": "Khi bạn chỉ trả lại một phần đơn hàng, Petjoy hoàn đúng giá trị thực trả của phần sản phẩm đó — nghĩa là sau khi đã trừ các khoản giảm giá đã áp cho phần đó. Trạng thái đơn khi ấy được ghi nhận là đã hoàn tiền một phần." },
-            { "type": "p", "text": "Hai điều cần biết khi phần trả lại làm đơn hàng không còn đủ điều kiện của một chương trình:" },
-            { "type": "ul", "items": [
-              "Nếu đơn không còn đạt mức tối thiểu để được miễn phí vận chuyển hoặc để nhận quà tặng, phần ưu đãi đã nhận sẽ được tính lại. Petjoy sẽ trao đổi rõ với bạn trước khi chốt số tiền hoàn",
-              "Điểm Petjoy đã tích cho phần hàng trả lại sẽ được thu hồi tương ứng. Điểm bạn đã dùng để giảm giá cho phần đó được hoàn lại vào tài khoản"
-            ] }
+            {
+              "type": "p",
+              "text": "Khi bạn chỉ trả lại một phần đơn hàng, Petjoy hoàn đúng giá trị thực trả của phần sản phẩm đó — nghĩa là sau khi đã trừ các khoản giảm giá đã áp cho phần đó. Trạng thái đơn khi ấy được ghi nhận là đã hoàn tiền một phần."
+            },
+            {
+              "type": "p",
+              "text": "Hai điều cần biết khi phần trả lại làm đơn hàng không còn đủ điều kiện của một chương trình:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Nếu đơn không còn đạt mức tối thiểu để được miễn phí vận chuyển hoặc để nhận quà tặng, phần ưu đãi đã nhận sẽ được tính lại. Petjoy sẽ trao đổi rõ với bạn trước khi chốt số tiền hoàn",
+                "Điểm Petjoy đã tích cho phần hàng trả lại sẽ được thu hồi tương ứng. Điểm bạn đã dùng để giảm giá cho phần đó được hoàn lại vào tài khoản"
+              ]
+            }
           ]
         },
         {
           "heading": "9. Hoá đơn VAT",
           "blocks": [
-            { "type": "p", "text": "Nếu bạn đã nhận hoá đơn VAT cho đơn hàng, việc đổi – trả cần thực hiện thủ tục điều chỉnh hoặc thay thế hoá đơn theo quy định. Nhân viên Petjoy sẽ hướng dẫn bạn các bước cụ thể." }
+            {
+              "type": "p",
+              "text": "Nếu bạn đã nhận hoá đơn VAT cho đơn hàng, việc đổi – trả cần thực hiện thủ tục điều chỉnh hoặc thay thế hoá đơn theo quy định. Nhân viên Petjoy sẽ hướng dẫn bạn các bước cụ thể."
+            }
           ]
         },
         {
           "heading": "10. Đơn bị huỷ trước khi giao",
           "blocks": [
-            { "type": "p", "text": "Với đơn bị huỷ trước khi giao — do bạn yêu cầu, do hết hàng, hoặc do sai giá — Petjoy hoàn 100% số tiền đã nhận, theo phương thức và thời hạn tại mục 6 và 7. Không có khoản phí nào bị trừ trong trường hợp này." }
+            {
+              "type": "p",
+              "text": "Với đơn bị huỷ trước khi giao — do bạn yêu cầu, do hết hàng, hoặc do sai giá — Petjoy hoàn 100% số tiền đã nhận, theo phương thức và thời hạn tại mục 6 và 7. Không có khoản phí nào bị trừ trong trường hợp này."
+            }
           ]
         },
         {
           "heading": "11. Nếu bạn chưa hài lòng",
           "blocks": [
-            { "type": "p", "text": "Quy trình khiếu nại và thời hạn xử lý được công bố tại [Chính sách Tiếp nhận & Giải quyết Khiếu nại](policy:chinh-sach-khieu-nai)." }
+            {
+              "type": "p",
+              "text": "Quy trình khiếu nại và thời hạn xử lý được công bố tại [Chính sách Tiếp nhận & Giải quyết Khiếu nại](policy:chinh-sach-khieu-nai)."
+            }
           ]
         },
         {
           "heading": "12. Liên hệ hỗ trợ",
           "blocks": [
-            { "type": "p", "text": "Hotline và Zalo ******* (8h00–21h00) — Email *******" }
+            {
+              "type": "p",
+              "text": "Hotline và Zalo ******* (8h00–21h00) — Email *******"
+            }
           ]
         }
       ]
     },
-
     {
       "slug": "chinh-sach-bao-mat",
       "label": "Chính Sách Bảo Mật",
@@ -226,150 +338,239 @@
         {
           "heading": "1. Bên kiểm soát dữ liệu",
           "blocks": [
-            { "type": "kv", "items": [
-              { "label": "Công ty", "value": "Công Ty Cổ Phần TM & DV Petjoy" },
-              { "label": "Mã số thuế", "value": "0316459054" },
-              { "label": "Địa chỉ", "value": "36 Mạc Đĩnh Chi, Phường Tân Định, TP. Hồ Chí Minh, Việt Nam" },
-              { "label": "Hotline", "value": "*******" },
-              { "label": "Email", "value": "*******" }
-            ] }
+            {
+              "type": "kv",
+              "items": [
+                {
+                  "label": "Công ty",
+                  "value": "Công Ty Cổ Phần TM & DV Petjoy"
+                },
+                {
+                  "label": "Mã số thuế",
+                  "value": "0316459054"
+                },
+                {
+                  "label": "Địa chỉ",
+                  "value": "36 Mạc Đĩnh Chi, Phường Tân Định, TP. Hồ Chí Minh, Việt Nam"
+                },
+                {
+                  "label": "Hotline",
+                  "value": "*******"
+                },
+                {
+                  "label": "Email",
+                  "value": "*******"
+                }
+              ]
+            }
           ]
         },
         {
           "heading": "2. Dữ liệu Petjoy thu thập",
           "blocks": [
-            { "type": "h3", "text": "2.1. Bạn cung cấp trực tiếp" },
-            { "type": "ul", "items": [
-              "Họ tên, số điện thoại, email — khi đăng ký tài khoản hoặc đặt hàng",
-              "Địa chỉ nhận hàng — tỉnh/thành, phường/xã, số nhà và tên đường; điểm ghim trên bản đồ nếu bạn chọn ghim",
-              "Thông tin thú cưng — tên, loài, giống, ngày sinh, cân nặng, nếu bạn tự nhập để nhận tư vấn",
-              "Thông tin xuất hoá đơn — tên đơn vị, mã số thuế, địa chỉ thuế, khi bạn yêu cầu hoá đơn",
-              "Nội dung bạn gửi — đánh giá sản phẩm, tin nhắn hỗ trợ, biểu mẫu liên hệ"
-            ] },
-            { "type": "h3", "text": "2.2. Phát sinh từ việc bạn dùng nền tảng" },
-            { "type": "ul", "items": [
-              "Lịch sử đơn hàng, giỏ hàng, sản phẩm đã xem, sản phẩm yêu thích",
-              "Điểm và hạng thành viên Petjoy",
-              "Dữ liệu kỹ thuật — địa chỉ IP, loại thiết bị, hệ điều hành, phiên bản ứng dụng, trình duyệt"
-            ] },
-            { "type": "h3", "text": "2.3. Riêng trên ứng dụng Petjoy" },
-            { "type": "ul", "items": [
-              "Mã định danh thiết bị và mã thông báo đẩy (push token) — để gửi thông báo về đơn hàng của bạn. Bạn có thể tắt thông báo trong cài đặt hệ điều hành",
-              "Vị trí gần đúng — chỉ khi bạn cho phép, dùng để sắp xếp cửa hàng gần bạn nhất. Từ chối quyền này không ảnh hưởng đến việc mua hàng",
-              "Camera — chỉ khi bạn dùng tính năng quét mã sản phẩm. Hình ảnh từ camera được xử lý ngay trên thiết bị và không được gửi về Petjoy hay lưu lại",
-              "Dữ liệu chẩn đoán sự cố — khi ứng dụng gặp lỗi, để tụi mình sửa"
-            ] },
-            { "type": "note", "text": "Petjoy không thu thập số thẻ, mã CVV hay mật khẩu ngân hàng của bạn. Toàn bộ thông tin thẻ do cổng thanh toán Payoo xử lý trên hệ thống của họ." }
+            {
+              "type": "h3",
+              "text": "2.1. Bạn cung cấp trực tiếp"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Họ tên, số điện thoại, email — khi đăng ký tài khoản hoặc đặt hàng",
+                "Địa chỉ nhận hàng — tỉnh/thành, phường/xã, số nhà và tên đường; điểm ghim trên bản đồ nếu bạn chọn ghim",
+                "Thông tin thú cưng — tên, loài, giống, ngày sinh, cân nặng, nếu bạn tự nhập để nhận tư vấn",
+                "Thông tin xuất hoá đơn — tên đơn vị, mã số thuế, địa chỉ thuế, khi bạn yêu cầu hoá đơn",
+                "Nội dung bạn gửi — đánh giá sản phẩm, tin nhắn hỗ trợ, biểu mẫu liên hệ"
+              ]
+            },
+            {
+              "type": "h3",
+              "text": "2.2. Phát sinh từ việc bạn dùng nền tảng"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Lịch sử đơn hàng, giỏ hàng, sản phẩm đã xem, sản phẩm yêu thích",
+                "Điểm và hạng thành viên Petjoy",
+                "Dữ liệu kỹ thuật — địa chỉ IP, loại thiết bị, hệ điều hành, phiên bản ứng dụng, trình duyệt"
+              ]
+            },
+            {
+              "type": "h3",
+              "text": "2.3. Riêng trên ứng dụng Petjoy"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Mã định danh thiết bị và mã thông báo đẩy (push token) — để gửi thông báo về đơn hàng của bạn. Bạn có thể tắt thông báo trong cài đặt hệ điều hành",
+                "Vị trí gần đúng — chỉ khi bạn cho phép, dùng để sắp xếp cửa hàng gần bạn nhất. Từ chối quyền này không ảnh hưởng đến việc mua hàng",
+                "Camera — chỉ khi bạn dùng tính năng quét mã sản phẩm. Hình ảnh từ camera được xử lý ngay trên thiết bị và không được gửi về Petjoy hay lưu lại",
+                "Dữ liệu chẩn đoán sự cố — khi ứng dụng gặp lỗi, để tụi mình sửa"
+              ]
+            },
+            {
+              "type": "note",
+              "text": "Petjoy không thu thập số thẻ, mã CVV hay mật khẩu ngân hàng của bạn. Toàn bộ thông tin thẻ do cổng thanh toán Payoo xử lý trên hệ thống của họ."
+            }
           ]
         },
         {
           "heading": "3. Mục đích xử lý",
           "blocks": [
-            { "type": "ul", "items": [
-              "Xử lý, giao và chăm sóc sau bán cho đơn hàng của bạn",
-              "Xác thực danh tính khi đăng nhập bằng mã OTP",
-              "Xuất hoá đơn và thực hiện nghĩa vụ kế toán, thuế",
-              "Tiếp nhận và giải quyết phản ánh, khiếu nại",
-              "Vận hành chương trình Petjoy: tích điểm, xếp hạng, ưu đãi",
-              "Gửi thông tin khuyến mãi — chỉ khi bạn đồng ý, và bạn có thể huỷ nhận bất cứ lúc nào",
-              "Cải thiện nền tảng và đo lường hiệu quả quảng cáo — theo lựa chọn đồng ý của bạn ở mục 6"
-            ] }
+            {
+              "type": "ul",
+              "items": [
+                "Xử lý, giao và chăm sóc sau bán cho đơn hàng của bạn",
+                "Xác thực danh tính khi đăng nhập bằng mã OTP",
+                "Xuất hoá đơn và thực hiện nghĩa vụ kế toán, thuế",
+                "Tiếp nhận và giải quyết phản ánh, khiếu nại",
+                "Vận hành chương trình Petjoy: tích điểm, xếp hạng, ưu đãi",
+                "Gửi thông tin khuyến mãi — chỉ khi bạn đồng ý, và bạn có thể huỷ nhận bất cứ lúc nào",
+                "Cải thiện nền tảng và đo lường hiệu quả quảng cáo — theo lựa chọn đồng ý của bạn ở mục 6"
+              ]
+            }
           ]
         },
         {
           "heading": "4. Các bên nhận dữ liệu",
           "blocks": [
-            { "type": "p", "text": "Petjoy không bán dữ liệu cá nhân của bạn. Dữ liệu chỉ được chia sẻ ở mức tối thiểu cần thiết với:" },
-            { "type": "ul", "items": [
-              "**Đơn vị vận chuyển** — Ahamove, Giao Hàng Nhanh (GHN), Be. Nhận tên, số điện thoại và địa chỉ nhận hàng để giao đơn",
-              "**Cổng thanh toán** — Payoo, để xử lý giao dịch trực tuyến",
-              "**Dịch vụ gửi tin** — Zalo ZNS và eSMS, để gửi mã OTP và thông báo đơn hàng",
-              "**Dịch vụ bản đồ** — Goong, để gợi ý địa chỉ khi bạn nhập",
-              "**Hệ thống quản lý bán hàng và kế toán** — Sapo và MISA, để xử lý đơn, tồn kho và hoá đơn",
-              "**Hạ tầng lưu trữ và vận hành** — Supabase và Vercel",
-              "**Đo lường và quảng cáo** — Google Analytics, Google Ads, Meta. Chỉ theo mức đồng ý bạn chọn ở mục 6",
-              "**Cơ quan nhà nước có thẩm quyền** — khi có yêu cầu hợp pháp bằng văn bản"
-            ] }
+            {
+              "type": "p",
+              "text": "Petjoy không bán dữ liệu cá nhân của bạn. Dữ liệu chỉ được chia sẻ ở mức tối thiểu cần thiết với:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "**Đơn vị vận chuyển** — Ahamove, Giao Hàng Nhanh (GHN), Be. Nhận tên, số điện thoại và địa chỉ nhận hàng để giao đơn",
+                "**Cổng thanh toán** — Payoo, để xử lý giao dịch trực tuyến",
+                "**Dịch vụ gửi tin** — Zalo ZNS và eSMS, để gửi mã OTP và thông báo đơn hàng",
+                "**Dịch vụ bản đồ** — Goong, để gợi ý địa chỉ khi bạn nhập",
+                "**Hệ thống quản lý bán hàng và kế toán** — Sapo và MISA, để xử lý đơn, tồn kho và hoá đơn",
+                "**Hạ tầng lưu trữ và vận hành** — Supabase và Vercel",
+                "**Đo lường và quảng cáo** — Google Analytics, Google Ads, Meta. Chỉ theo mức đồng ý bạn chọn ở mục 6",
+                "**Cơ quan nhà nước có thẩm quyền** — khi có yêu cầu hợp pháp bằng văn bản"
+              ]
+            }
           ]
         },
         {
           "heading": "5. Chuyển dữ liệu ra nước ngoài",
           "blocks": [
-            { "type": "p", "text": "Một số nhà cung cấp hạ tầng và dịch vụ nêu trên đặt máy chủ ngoài lãnh thổ Việt Nam — trong đó hệ thống lưu trữ chính của Petjoy đặt tại Singapore. Việc này là cần thiết để nền tảng hoạt động. Petjoy chỉ làm việc với nhà cung cấp có cam kết bảo mật, và thực hiện các nghĩa vụ về chuyển dữ liệu cá nhân ra nước ngoài theo Nghị định 13/2023/NĐ-CP. Bằng việc sử dụng nền tảng và đặt hàng, bạn đồng ý với việc chuyển dữ liệu này cho các mục đích nêu tại mục 3." }
+            {
+              "type": "p",
+              "text": "Một số nhà cung cấp hạ tầng và dịch vụ nêu trên đặt máy chủ ngoài lãnh thổ Việt Nam — trong đó hệ thống lưu trữ chính của Petjoy đặt tại Singapore. Việc này là cần thiết để nền tảng hoạt động. Petjoy chỉ làm việc với nhà cung cấp có cam kết bảo mật, và thực hiện các nghĩa vụ về chuyển dữ liệu cá nhân ra nước ngoài theo Nghị định 13/2023/NĐ-CP. Bằng việc sử dụng nền tảng và đặt hàng, bạn đồng ý với việc chuyển dữ liệu này cho các mục đích nêu tại mục 3."
+            }
           ]
         },
         {
           "heading": "6. Cookie và lựa chọn đồng ý",
           "blocks": [
-            { "type": "p", "text": "Website dùng cookie để ghi nhớ giỏ hàng, phiên đăng nhập và tuỳ chọn của bạn. Bảng thông báo cookie cho bạn chọn riêng từng nhóm:" },
-            { "type": "ul", "items": [
-              "**Cần thiết** — luôn bật, vì không có nhóm này thì giỏ hàng và đăng nhập không hoạt động",
-              "**Phân tích** — giúp Petjoy hiểu trang nào hữu ích. Bật theo mặc định, bạn có thể tắt",
-              "**Quảng cáo cá nhân hoá** — tắt theo mặc định, chỉ bật khi bạn chủ động đồng ý"
-            ] },
-            { "type": "p", "text": "Bạn có thể thay đổi lựa chọn bất cứ lúc nào. Việc tắt nhóm phân tích hoặc quảng cáo không ảnh hưởng đến việc mua hàng." }
+            {
+              "type": "p",
+              "text": "Website dùng cookie để ghi nhớ giỏ hàng, phiên đăng nhập và tuỳ chọn của bạn. Bảng thông báo cookie cho bạn chọn riêng từng nhóm:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "**Cần thiết** — luôn bật, vì không có nhóm này thì giỏ hàng và đăng nhập không hoạt động",
+                "**Phân tích** — giúp Petjoy hiểu trang nào hữu ích. Bật theo mặc định, bạn có thể tắt",
+                "**Quảng cáo cá nhân hoá** — tắt theo mặc định, chỉ bật khi bạn chủ động đồng ý"
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Bạn có thể thay đổi lựa chọn bất cứ lúc nào. Việc tắt nhóm phân tích hoặc quảng cáo không ảnh hưởng đến việc mua hàng."
+            }
           ]
         },
         {
           "heading": "7. Thời gian lưu trữ",
           "blocks": [
-            { "type": "ul", "items": [
-              "**Dữ liệu tài khoản** — lưu trong thời gian tài khoản hoạt động, cho đến khi bạn yêu cầu xoá",
-              "**Đơn hàng, chứng từ và hoá đơn** — lưu theo thời hạn pháp luật kế toán và thuế yêu cầu, kể cả sau khi bạn xoá tài khoản. Trong trường hợp này, dữ liệu định danh của bạn trên các chứng từ được xử lý theo quy định về lưu trữ",
-              "**Hồ sơ khiếu nại** — tối thiểu 2 năm kể từ khi kết thúc xử lý",
-              "**Dữ liệu kỹ thuật và chẩn đoán sự cố** — tối đa 12 tháng"
-            ] }
+            {
+              "type": "ul",
+              "items": [
+                "**Dữ liệu tài khoản** — lưu trong thời gian tài khoản hoạt động, cho đến khi bạn yêu cầu xoá",
+                "**Đơn hàng, chứng từ và hoá đơn** — lưu theo thời hạn pháp luật kế toán và thuế yêu cầu, kể cả sau khi bạn xoá tài khoản. Trong trường hợp này, dữ liệu định danh của bạn trên các chứng từ được xử lý theo quy định về lưu trữ",
+                "**Hồ sơ khiếu nại** — tối thiểu 2 năm kể từ khi kết thúc xử lý",
+                "**Dữ liệu kỹ thuật và chẩn đoán sự cố** — tối đa 12 tháng"
+              ]
+            }
           ]
         },
         {
           "heading": "8. Quyền của bạn",
           "blocks": [
-            { "type": "p", "text": "Theo Nghị định 13/2023/NĐ-CP, bạn có các quyền sau đối với dữ liệu cá nhân của mình:" },
-            { "type": "ul", "items": [
-              "Được biết về việc dữ liệu của bạn được xử lý",
-              "Đồng ý hoặc không đồng ý, và rút lại sự đồng ý đã cho",
-              "Truy cập, xem và yêu cầu chỉnh sửa dữ liệu của bạn",
-              "Yêu cầu xoá dữ liệu",
-              "Yêu cầu hạn chế xử lý hoặc phản đối việc xử lý",
-              "Yêu cầu cung cấp bản sao dữ liệu của bạn",
-              "Khiếu nại, tố cáo, khởi kiện theo quy định pháp luật",
-              "Yêu cầu bồi thường thiệt hại theo quy định pháp luật"
-            ] },
-            { "type": "h3", "text": "Thực hiện quyền của bạn bằng cách nào" },
-            { "type": "ul", "items": [
-              "**Tự làm ngay trên nền tảng:** xem và sửa thông tin, địa chỉ tại mục Tài khoản; huỷ nhận email khuyến mãi tại Tài khoản → Tuỳ chọn email; tự xoá tài khoản tại Tài khoản → Xoá tài khoản, có trên cả website và ứng dụng",
-              "**Gửi yêu cầu cho Petjoy:** email ******* hoặc hotline *******. Petjoy phản hồi trong 72 giờ theo quy định"
-            ] }
+            {
+              "type": "p",
+              "text": "Theo Nghị định 13/2023/NĐ-CP, bạn có các quyền sau đối với dữ liệu cá nhân của mình:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Được biết về việc dữ liệu của bạn được xử lý",
+                "Đồng ý hoặc không đồng ý, và rút lại sự đồng ý đã cho",
+                "Truy cập, xem và yêu cầu chỉnh sửa dữ liệu của bạn",
+                "Yêu cầu xoá dữ liệu",
+                "Yêu cầu hạn chế xử lý hoặc phản đối việc xử lý",
+                "Yêu cầu cung cấp bản sao dữ liệu của bạn",
+                "Khiếu nại, tố cáo, khởi kiện theo quy định pháp luật",
+                "Yêu cầu bồi thường thiệt hại theo quy định pháp luật"
+              ]
+            },
+            {
+              "type": "h3",
+              "text": "Thực hiện quyền của bạn bằng cách nào"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "**Tự làm ngay trên nền tảng:** xem và sửa thông tin, địa chỉ tại mục Tài khoản; huỷ nhận email khuyến mãi tại Tài khoản → Tuỳ chọn email; tự xoá tài khoản tại Tài khoản → Xoá tài khoản, có trên cả website và ứng dụng",
+                "**Gửi yêu cầu cho Petjoy:** email ******* hoặc hotline *******. Petjoy phản hồi trong 72 giờ theo quy định"
+              ]
+            }
           ]
         },
         {
           "heading": "9. Bảo mật",
           "blocks": [
-            { "type": "p", "text": "Dữ liệu được truyền qua kết nối mã hoá HTTPS. Quyền truy cập dữ liệu khách hàng trong hệ thống nội bộ được phân theo vai trò và chỉ mở cho nhân viên có nhiệm vụ liên quan. Petjoy không lưu mật khẩu dưới dạng đọc được và không lưu thông tin thẻ thanh toán." }
+            {
+              "type": "p",
+              "text": "Dữ liệu được truyền qua kết nối mã hoá HTTPS. Quyền truy cập dữ liệu khách hàng trong hệ thống nội bộ được phân theo vai trò và chỉ mở cho nhân viên có nhiệm vụ liên quan. Petjoy không lưu mật khẩu dưới dạng đọc được và không lưu thông tin thẻ thanh toán."
+            }
           ]
         },
         {
           "heading": "10. Trẻ em",
           "blocks": [
-            { "type": "p", "text": "Nền tảng dành cho người từ 18 tuổi trở lên. Petjoy không chủ ý thu thập dữ liệu của trẻ em. Nếu bạn cho rằng con bạn đã cung cấp dữ liệu cho Petjoy, vui lòng liên hệ để tụi mình xoá." }
+            {
+              "type": "p",
+              "text": "Nền tảng dành cho người từ 18 tuổi trở lên. Petjoy không chủ ý thu thập dữ liệu của trẻ em. Nếu bạn cho rằng con bạn đã cung cấp dữ liệu cho Petjoy, vui lòng liên hệ để tụi mình xoá."
+            }
           ]
         },
         {
           "heading": "11. Thay đổi chính sách",
           "blocks": [
-            { "type": "p", "text": "Khi cập nhật chính sách này, Petjoy công bố bản mới trên nền tảng kèm ngày cập nhật. Nếu thay đổi làm mở rộng mục đích xử lý, Petjoy sẽ xin lại sự đồng ý của bạn." }
+            {
+              "type": "p",
+              "text": "Khi cập nhật chính sách này, Petjoy công bố bản mới trên nền tảng kèm ngày cập nhật. Nếu thay đổi làm mở rộng mục đích xử lý, Petjoy sẽ xin lại sự đồng ý của bạn."
+            }
           ]
         },
         {
           "heading": "12. Liên hệ về dữ liệu cá nhân",
           "blocks": [
-            { "type": "p", "text": "Email ******* — Hotline ******* (8h00–21h00)" },
-            { "type": "p", "text": "Hoặc gửi thư tới: 36 Mạc Đĩnh Chi, Phường Tân Định, TP. Hồ Chí Minh, Việt Nam" }
+            {
+              "type": "p",
+              "text": "Email ******* — Hotline ******* (8h00–21h00)"
+            },
+            {
+              "type": "p",
+              "text": "Hoặc gửi thư tới: 36 Mạc Đĩnh Chi, Phường Tân Định, TP. Hồ Chí Minh, Việt Nam"
+            }
           ]
         }
       ]
     },
-
     {
       "slug": "chinh-sach-gia",
       "label": "Chính Sách Giá",
@@ -381,70 +582,102 @@
         {
           "heading": "1. Đơn vị và thuế",
           "blocks": [
-            { "type": "ul", "items": [
-              "Mọi giá được niêm yết bằng Đồng Việt Nam (VND)",
-              "Giá niêm yết đã bao gồm thuế giá trị gia tăng (VAT) theo thuế suất áp dụng cho từng mặt hàng",
-              "Giá niêm yết chưa bao gồm phí vận chuyển"
-            ] }
+            {
+              "type": "ul",
+              "items": [
+                "Mọi giá được niêm yết bằng Đồng Việt Nam (VND)",
+                "Giá niêm yết đã bao gồm thuế giá trị gia tăng (VAT) theo thuế suất áp dụng cho từng mặt hàng",
+                "Giá niêm yết chưa bao gồm phí vận chuyển"
+              ]
+            }
           ]
         },
         {
           "heading": "2. Phí vận chuyển",
           "blocks": [
-            { "type": "p", "text": "Phí vận chuyển không nằm trong giá sản phẩm và được tính theo địa chỉ nhận, trọng lượng, kích thước đơn hàng và phương thức giao bạn chọn. Số tiền phí cụ thể luôn được hiển thị ở bước thanh toán, trước khi bạn bấm đặt hàng — bạn không bao giờ phải trả một khoản phí chưa từng hiện trên màn hình. Chi tiết tại [Chính sách Vận chuyển](policy:chinh-sach-van-chuyen)." }
+            {
+              "type": "p",
+              "text": "Phí vận chuyển không nằm trong giá sản phẩm và được tính theo địa chỉ nhận, trọng lượng, kích thước đơn hàng và phương thức giao bạn chọn. Số tiền phí cụ thể luôn được hiển thị ở bước thanh toán, trước khi bạn bấm đặt hàng — bạn không bao giờ phải trả một khoản phí chưa từng hiện trên màn hình. Chi tiết tại [Chính sách Vận chuyển](policy:chinh-sach-van-chuyen)."
+            }
           ]
         },
         {
           "heading": "3. Cách đọc giá khuyến mãi",
           "blocks": [
-            { "type": "ul", "items": [
-              "Khi một sản phẩm đang giảm giá, Petjoy hiển thị giá đang bán kèm giá gạch ngang. Giá gạch ngang là giá niêm yết thường của sản phẩm đó tại Petjoy, không phải giá tham chiếu của nơi khác",
-              "Mỗi chương trình khuyến mãi có điều kiện và thời hạn riêng, được ghi rõ tại trang sản phẩm hoặc trang chương trình",
-              "Các chương trình không tự động cộng dồn. Khi một giỏ hàng đủ điều kiện của nhiều chương trình, hệ thống áp dụng theo quy tắc kết hợp của từng chương trình và hiển thị số tiền giảm cuối cùng ở bước thanh toán",
-              "Tổng mức ưu đãi trên một đơn hàng có giới hạn theo quy định của từng chương trình; phần vượt giới hạn sẽ được hệ thống tự điều chỉnh và thể hiện trên màn hình thanh toán"
-            ] }
+            {
+              "type": "ul",
+              "items": [
+                "Khi một sản phẩm đang giảm giá, Petjoy hiển thị giá đang bán kèm giá gạch ngang. Giá gạch ngang là giá niêm yết thường của sản phẩm đó tại Petjoy, không phải giá tham chiếu của nơi khác",
+                "Mỗi chương trình khuyến mãi có điều kiện và thời hạn riêng, được ghi rõ tại trang sản phẩm hoặc trang chương trình",
+                "Các chương trình không tự động cộng dồn. Khi một giỏ hàng đủ điều kiện của nhiều chương trình, hệ thống áp dụng theo quy tắc kết hợp của từng chương trình và hiển thị số tiền giảm cuối cùng ở bước thanh toán",
+                "Tổng mức ưu đãi trên một đơn hàng có giới hạn theo quy định của từng chương trình; phần vượt giới hạn sẽ được hệ thống tự điều chỉnh và thể hiện trên màn hình thanh toán"
+              ]
+            }
           ]
         },
         {
           "heading": "4. Giá nào được áp dụng cho đơn hàng của bạn",
           "blocks": [
-            { "type": "p", "text": "Giá áp dụng là giá hiển thị tại thời điểm đơn hàng của bạn được xác lập — tức thời điểm bạn bấm đặt hàng và nhận được xác nhận đơn. Việc giá sản phẩm tăng hoặc giảm sau đó không làm thay đổi số tiền của đơn hàng đã xác lập." },
-            { "type": "p", "text": "Trước khi bấm đặt hàng, màn hình thanh toán luôn hiển thị đầy đủ: tiền hàng, số tiền giảm của từng chương trình và mã giảm giá, phí vận chuyển, và tổng số tiền phải trả." }
+            {
+              "type": "p",
+              "text": "Giá áp dụng là giá hiển thị tại thời điểm đơn hàng của bạn được xác lập — tức thời điểm bạn bấm đặt hàng và nhận được xác nhận đơn. Việc giá sản phẩm tăng hoặc giảm sau đó không làm thay đổi số tiền của đơn hàng đã xác lập."
+            },
+            {
+              "type": "p",
+              "text": "Trước khi bấm đặt hàng, màn hình thanh toán luôn hiển thị đầy đủ: tiền hàng, số tiền giảm của từng chương trình và mã giảm giá, phí vận chuyển, và tổng số tiền phải trả."
+            }
           ]
         },
         {
           "heading": "5. Khi hệ thống hiển thị sai giá",
           "blocks": [
-            { "type": "p", "text": "Sai sót về giá có thể xảy ra do lỗi kỹ thuật hoặc lỗi nhập liệu. Nếu Petjoy phát hiện một đơn hàng đã được đặt với giá sai rõ ràng, tụi mình sẽ:" },
-            { "type": "ul", "items": [
-              "Liên hệ với bạn trước khi giao hàng để thông báo giá đúng",
-              "Để bạn chọn: tiếp tục đơn hàng theo giá đúng, hoặc huỷ đơn",
-              "Nếu bạn huỷ và đã thanh toán, Petjoy hoàn 100% số tiền đã nhận theo [Chính sách Hoàn tiền](policy:chinh-sach-doi-tra-hang)"
-            ] },
-            { "type": "p", "text": "Petjoy không đơn phương thu thêm tiền của một đơn hàng đã xác nhận mà không có sự đồng ý của bạn." }
+            {
+              "type": "p",
+              "text": "Sai sót về giá có thể xảy ra do lỗi kỹ thuật hoặc lỗi nhập liệu. Nếu Petjoy phát hiện một đơn hàng đã được đặt với giá sai rõ ràng, tụi mình sẽ:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Liên hệ với bạn trước khi giao hàng để thông báo giá đúng",
+                "Để bạn chọn: tiếp tục đơn hàng theo giá đúng, hoặc huỷ đơn",
+                "Nếu bạn huỷ và đã thanh toán, Petjoy hoàn 100% số tiền đã nhận theo [Chính sách Hoàn tiền](policy:chinh-sach-doi-tra-hang)"
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Petjoy không đơn phương thu thêm tiền của một đơn hàng đã xác nhận mà không có sự đồng ý của bạn."
+            }
           ]
         },
         {
           "heading": "6. Giá có thể khác nhau giữa các kênh",
           "blocks": [
-            { "type": "p", "text": "Giá trên petjoy.vn và ứng dụng Petjoy là như nhau. Tuy nhiên giá tại cửa hàng và giá trên các sàn thương mại điện tử mà Petjoy có gian hàng có thể khác, do mỗi kênh có chương trình khuyến mãi và chi phí riêng. Giá của kênh nào áp dụng cho đơn hàng đặt trên kênh đó." }
+            {
+              "type": "p",
+              "text": "Giá trên petjoy.vn và ứng dụng Petjoy là như nhau. Tuy nhiên giá tại cửa hàng và giá trên các sàn thương mại điện tử mà Petjoy có gian hàng có thể khác, do mỗi kênh có chương trình khuyến mãi và chi phí riêng. Giá của kênh nào áp dụng cho đơn hàng đặt trên kênh đó."
+            }
           ]
         },
         {
           "heading": "7. Hoá đơn",
           "blocks": [
-            { "type": "p", "text": "Petjoy xuất hoá đơn giá trị gia tăng theo quy định. Nếu bạn cần hoá đơn cho đơn hàng, vui lòng cung cấp tên đơn vị, mã số thuế, địa chỉ thuế và email nhận hoá đơn khi đặt hàng hoặc liên hệ hotline ******* ngay sau khi đặt." }
+            {
+              "type": "p",
+              "text": "Petjoy xuất hoá đơn giá trị gia tăng theo quy định. Nếu bạn cần hoá đơn cho đơn hàng, vui lòng cung cấp tên đơn vị, mã số thuế, địa chỉ thuế và email nhận hoá đơn khi đặt hàng hoặc liên hệ hotline ******* ngay sau khi đặt."
+            }
           ]
         },
         {
           "heading": "8. Liên hệ",
           "blocks": [
-            { "type": "p", "text": "Mọi thắc mắc về giá: hotline ******* (8h00–21h00) hoặc email *******." }
+            {
+              "type": "p",
+              "text": "Mọi thắc mắc về giá: hotline ******* (8h00–21h00) hoặc email *******."
+            }
           ]
         }
       ]
     },
-
     {
       "slug": "chinh-sach-khieu-nai",
       "label": "Chính Sách Khiếu Nại",
@@ -456,80 +689,109 @@
         {
           "heading": "1. Kênh tiếp nhận",
           "blocks": [
-            { "type": "ul", "items": [
-              "**Hotline** ******* — 8h00 đến 21h00 hằng ngày, kể cả cuối tuần",
-              "**Zalo** ******* — trong giờ làm việc; trên ứng dụng Petjoy, nút Hỗ trợ mở trực tiếp kênh này",
-              "**Email** ******* — nhận 24/7",
-              "**Fanpage Facebook** Petjoy Pet Shop — trong giờ làm việc",
-              "**Biểu mẫu liên hệ** trên trang [Liên hệ](https://petjoy.vn/pages/lien-he) — chọn đúng chủ đề để yêu cầu tới thẳng bộ phận phụ trách",
-              "**Trực tiếp** tại 5 cửa hàng Petjoy ở TP.HCM — xem [Hệ thống cửa hàng](https://petjoy.vn/cua-hang)"
-            ] }
+            {
+              "type": "ul",
+              "items": [
+                "**Hotline** ******* — 8h00 đến 21h00 hằng ngày, kể cả cuối tuần",
+                "**Zalo** ******* — trong giờ làm việc; trên ứng dụng Petjoy, nút Hỗ trợ mở trực tiếp kênh này",
+                "**Email** ******* — nhận 24/7",
+                "**Fanpage Facebook** Petjoy Pet Shop — trong giờ làm việc",
+                "**Biểu mẫu liên hệ** trên trang [Liên hệ](https://petjoy.vn/pages/lien-he) — chọn đúng chủ đề để yêu cầu tới thẳng bộ phận phụ trách",
+                "**Trực tiếp** tại 5 cửa hàng Petjoy ở TP.HCM — xem [Hệ thống cửa hàng](https://petjoy.vn/cua-hang)"
+              ]
+            }
           ]
         },
         {
           "heading": "2. Những việc thuộc phạm vi tiếp nhận",
           "blocks": [
-            { "type": "ul", "items": [
-              "**Đơn hàng:** đặt sai, thiếu hàng, giao chậm, giao sai địa chỉ",
-              "**Sản phẩm:** lỗi, hư hỏng, hết hạn, không đúng mô tả",
-              "**Giá và khuyến mãi:** hiển thị sai giá, mã giảm giá không áp được, điểm Petjoy chưa cộng",
-              "**Thanh toán và hoàn tiền:** giao dịch lỗi, bị trừ tiền hai lần, tiền hoàn chưa về",
-              "**Dữ liệu cá nhân:** yêu cầu xem, sửa, xoá dữ liệu hoặc rút lại đồng ý",
-              "Thái độ phục vụ của nhân viên hoặc đối tác giao hàng"
-            ] }
+            {
+              "type": "ul",
+              "items": [
+                "**Đơn hàng:** đặt sai, thiếu hàng, giao chậm, giao sai địa chỉ",
+                "**Sản phẩm:** lỗi, hư hỏng, hết hạn, không đúng mô tả",
+                "**Giá và khuyến mãi:** hiển thị sai giá, mã giảm giá không áp được, điểm Petjoy chưa cộng",
+                "**Thanh toán và hoàn tiền:** giao dịch lỗi, bị trừ tiền hai lần, tiền hoàn chưa về",
+                "**Dữ liệu cá nhân:** yêu cầu xem, sửa, xoá dữ liệu hoặc rút lại đồng ý",
+                "Thái độ phục vụ của nhân viên hoặc đối tác giao hàng"
+              ]
+            }
           ]
         },
         {
           "heading": "3. Thông tin cần cung cấp",
           "blocks": [
-            { "type": "p", "text": "Để xử lý nhanh, bạn vui lòng cho tụi mình biết: mã đơn hàng, số điện thoại đặt hàng, mô tả việc đang xảy ra, và hình ảnh hoặc video nếu là lỗi sản phẩm hay hư hỏng khi nhận hàng." }
+            {
+              "type": "p",
+              "text": "Để xử lý nhanh, bạn vui lòng cho tụi mình biết: mã đơn hàng, số điện thoại đặt hàng, mô tả việc đang xảy ra, và hình ảnh hoặc video nếu là lỗi sản phẩm hay hư hỏng khi nhận hàng."
+            }
           ]
         },
         {
           "heading": "4. Thời hạn xử lý",
           "blocks": [
-            { "type": "ul", "items": [
-              "**Tiếp nhận:** ngay lập tức qua hotline và Zalo trong giờ làm việc; tối đa 24 giờ làm việc với email, biểu mẫu và tin nhắn ngoài giờ",
-              "**Phản hồi lần đầu:** trong 3 ngày làm việc kể từ khi tiếp nhận, kèm hướng xử lý dự kiến",
-              "**Hoàn tất xử lý:** trong 7 ngày làm việc. Với vụ việc cần xác minh với nhà sản xuất, đối tác vận chuyển hoặc cổng thanh toán, thời hạn tối đa là 15 ngày làm việc và Petjoy sẽ thông báo cho bạn lý do cần thêm thời gian"
-            ] }
+            {
+              "type": "ul",
+              "items": [
+                "**Tiếp nhận:** ngay lập tức qua hotline và Zalo trong giờ làm việc; tối đa 24 giờ làm việc với email, biểu mẫu và tin nhắn ngoài giờ",
+                "**Phản hồi lần đầu:** trong 3 ngày làm việc kể từ khi tiếp nhận, kèm hướng xử lý dự kiến",
+                "**Hoàn tất xử lý:** trong 7 ngày làm việc. Với vụ việc cần xác minh với nhà sản xuất, đối tác vận chuyển hoặc cổng thanh toán, thời hạn tối đa là 15 ngày làm việc và Petjoy sẽ thông báo cho bạn lý do cần thêm thời gian"
+              ]
+            }
           ]
         },
         {
           "heading": "5. Quy trình",
           "blocks": [
-            { "type": "ol", "items": [
-              "**Tiếp nhận.** Petjoy ghi nhận nội dung và xác nhận lại với bạn qua kênh bạn đã dùng",
-              "**Xác minh.** Đối chiếu đơn hàng, hồ sơ giao hàng, giao dịch thanh toán và bằng chứng bạn gửi",
-              "**Phương án.** Petjoy đề xuất cách xử lý: đổi hàng, trả hàng, hoàn tiền, bù điểm, hoặc giải thích nếu yêu cầu không thuộc phạm vi được hỗ trợ",
-              "**Thực hiện.** Sau khi bạn đồng ý, phương án được thực hiện theo [Chính sách Đổi – Trả & Hoàn tiền](policy:chinh-sach-doi-tra-hang)",
-              "**Kết thúc.** Petjoy thông báo kết quả và lưu hồ sơ vụ việc"
-            ] }
+            {
+              "type": "ol",
+              "items": [
+                "**Tiếp nhận.** Petjoy ghi nhận nội dung và xác nhận lại với bạn qua kênh bạn đã dùng",
+                "**Xác minh.** Đối chiếu đơn hàng, hồ sơ giao hàng, giao dịch thanh toán và bằng chứng bạn gửi",
+                "**Phương án.** Petjoy đề xuất cách xử lý: đổi hàng, trả hàng, hoàn tiền, bù điểm, hoặc giải thích nếu yêu cầu không thuộc phạm vi được hỗ trợ",
+                "**Thực hiện.** Sau khi bạn đồng ý, phương án được thực hiện theo [Chính sách Đổi – Trả & Hoàn tiền](policy:chinh-sach-doi-tra-hang)",
+                "**Kết thúc.** Petjoy thông báo kết quả và lưu hồ sơ vụ việc"
+              ]
+            }
           ]
         },
         {
           "heading": "6. Nếu bạn chưa hài lòng với kết quả",
           "blocks": [
-            { "type": "p", "text": "Bạn có thể yêu cầu xem xét lại bằng cách gửi email tới ******* với tiêu đề **Đề nghị xem xét lại** kèm mã đơn hàng. Yêu cầu này được chuyển lên cấp quản lý và trả lời trong 5 ngày làm việc." },
-            { "type": "p", "text": "Nếu hai bên vẫn không thống nhất được, bạn có quyền đưa vụ việc ra cơ quan bảo vệ quyền lợi người tiêu dùng, tổ chức hoà giải, trọng tài hoặc Toà án có thẩm quyền theo quy định của pháp luật Việt Nam. Petjoy cam kết hợp tác và cung cấp đầy đủ hồ sơ giao dịch cho các cơ quan này." }
+            {
+              "type": "p",
+              "text": "Bạn có thể yêu cầu xem xét lại bằng cách gửi email tới ******* với tiêu đề **Đề nghị xem xét lại** kèm mã đơn hàng. Yêu cầu này được chuyển lên cấp quản lý và trả lời trong 5 ngày làm việc."
+            },
+            {
+              "type": "p",
+              "text": "Nếu hai bên vẫn không thống nhất được, bạn có quyền đưa vụ việc ra cơ quan bảo vệ quyền lợi người tiêu dùng, tổ chức hoà giải, trọng tài hoặc Toà án có thẩm quyền theo quy định của pháp luật Việt Nam. Petjoy cam kết hợp tác và cung cấp đầy đủ hồ sơ giao dịch cho các cơ quan này."
+            }
           ]
         },
         {
           "heading": "7. Lưu hồ sơ",
           "blocks": [
-            { "type": "p", "text": "Hồ sơ phản ánh và khiếu nại được lưu tối thiểu 2 năm kể từ ngày kết thúc xử lý, phục vụ việc tra soát và làm việc với cơ quan có thẩm quyền." }
+            {
+              "type": "p",
+              "text": "Hồ sơ phản ánh và khiếu nại được lưu tối thiểu 2 năm kể từ ngày kết thúc xử lý, phục vụ việc tra soát và làm việc với cơ quan có thẩm quyền."
+            }
           ]
         },
         {
           "heading": "8. Chủ quản nền tảng",
           "blocks": [
-            { "type": "p", "text": "Công Ty Cổ Phần TM & DV Petjoy — Mã số thuế 0316459054" },
-            { "type": "p", "text": "36 Mạc Đĩnh Chi, Phường Tân Định, TP. Hồ Chí Minh, Việt Nam" }
+            {
+              "type": "p",
+              "text": "Công Ty Cổ Phần TM & DV Petjoy — Mã số thuế 0316459054"
+            },
+            {
+              "type": "p",
+              "text": "36 Mạc Đĩnh Chi, Phường Tân Định, TP. Hồ Chí Minh, Việt Nam"
+            }
           ]
         }
       ]
     },
-
     {
       "slug": "dieu-kien-han-che-cung-cap",
       "label": "Điều Kiện & Hạn Chế Cung Cấp",
@@ -541,78 +803,113 @@
         {
           "heading": "1. Đối tượng mua hàng",
           "blocks": [
-            { "type": "ul", "items": [
-              "Cá nhân từ 18 tuổi trở lên, có năng lực hành vi dân sự đầy đủ. Người dưới 18 tuổi vui lòng đặt hàng thông qua cha mẹ hoặc người đại diện",
-              "Tổ chức, doanh nghiệp được thành lập hợp pháp tại Việt Nam",
-              "Địa chỉ nhận hàng phải nằm trong lãnh thổ Việt Nam. Petjoy hiện không giao hàng ra nước ngoài"
-            ] }
+            {
+              "type": "ul",
+              "items": [
+                "Cá nhân từ 18 tuổi trở lên, có năng lực hành vi dân sự đầy đủ. Người dưới 18 tuổi vui lòng đặt hàng thông qua cha mẹ hoặc người đại diện",
+                "Tổ chức, doanh nghiệp được thành lập hợp pháp tại Việt Nam",
+                "Địa chỉ nhận hàng phải nằm trong lãnh thổ Việt Nam. Petjoy hiện không giao hàng ra nước ngoài"
+              ]
+            }
           ]
         },
         {
           "heading": "2. Hàng hoá Petjoy cung cấp",
           "blocks": [
-            { "type": "p", "text": "Petjoy kinh doanh thức ăn, phụ kiện, đồ dùng và sản phẩm chăm sóc dành cho thú cưng, chủ yếu là chó và mèo." },
-            { "type": "p", "text": "Petjoy không kinh doanh: hàng hoá thuộc danh mục cấm kinh doanh; thuốc thú y kê đơn và vắc-xin; động vật sống; và bất kỳ mặt hàng nào đòi hỏi giấy phép chuyên ngành mà Petjoy không có." }
+            {
+              "type": "p",
+              "text": "Petjoy kinh doanh thức ăn, phụ kiện, đồ dùng và sản phẩm chăm sóc dành cho thú cưng, chủ yếu là chó và mèo."
+            },
+            {
+              "type": "p",
+              "text": "Petjoy không kinh doanh: hàng hoá thuộc danh mục cấm kinh doanh; thuốc thú y kê đơn và vắc-xin; động vật sống; và bất kỳ mặt hàng nào đòi hỏi giấy phép chuyên ngành mà Petjoy không có."
+            }
           ]
         },
         {
           "heading": "3. Hạn chế theo khu vực và phương thức giao hàng",
           "blocks": [
-            { "type": "ul", "items": [
-              "Giao hàng toàn quốc qua đối tác vận chuyển, thời gian 2–5 ngày làm việc tuỳ khu vực",
-              "Giao hỏa tốc và Giao trong ngày chỉ áp dụng tại TP.HCM, trong bán kính 20km quanh cửa hàng Petjoy gần địa chỉ nhận nhất. Ngoài bán kính này, hai phương thức trên không khả dụng và hệ thống sẽ không hiển thị chúng ở bước thanh toán",
-              "Giao trong ngày nhận đơn đến 16h00 mỗi ngày. Sau giờ này phương thức không còn khả dụng cho ngày hôm đó",
-              "Nhận tại cửa hàng áp dụng tại 5 chi nhánh Petjoy ở TP.HCM — xem [Hệ thống cửa hàng](https://petjoy.vn/cua-hang)",
-              "Một số phương thức có giới hạn khối lượng theo quy định của đối tác vận chuyển. Đơn vượt giới hạn sẽ được hệ thống chuyển sang phương thức phù hợp",
-              "Từng chi nhánh có thể tạm ngưng một phương thức giao hàng trong thời gian ngắn. Khi đó phương thức đó không hiện ở bước thanh toán cho địa chỉ thuộc chi nhánh này"
-            ] }
+            {
+              "type": "ul",
+              "items": [
+                "Giao hàng toàn quốc qua đối tác vận chuyển, thời gian 2–5 ngày làm việc tuỳ khu vực",
+                "Giao hỏa tốc và Giao trong ngày chỉ áp dụng tại TP.HCM, trong bán kính 20km quanh cửa hàng Petjoy gần địa chỉ nhận nhất. Ngoài bán kính này, hai phương thức trên không khả dụng và hệ thống sẽ không hiển thị chúng ở bước thanh toán",
+                "Giao trong ngày nhận đơn đến 16h00 mỗi ngày. Sau giờ này phương thức không còn khả dụng cho ngày hôm đó",
+                "Nhận tại cửa hàng áp dụng tại 5 chi nhánh Petjoy ở TP.HCM — xem [Hệ thống cửa hàng](https://petjoy.vn/cua-hang)",
+                "Một số phương thức có giới hạn khối lượng theo quy định của đối tác vận chuyển. Đơn vượt giới hạn sẽ được hệ thống chuyển sang phương thức phù hợp",
+                "Từng chi nhánh có thể tạm ngưng một phương thức giao hàng trong thời gian ngắn. Khi đó phương thức đó không hiện ở bước thanh toán cho địa chỉ thuộc chi nhánh này"
+              ]
+            }
           ]
         },
         {
           "heading": "4. Tình trạng hàng hoá và tồn kho",
           "blocks": [
-            { "type": "p", "text": "Tồn kho hiển thị trên nền tảng được cập nhật liên tục nhưng vẫn có thể sai lệch trong thời gian ngắn, đặc biệt vào các dịp khuyến mãi. Nếu sau khi bạn đặt hàng mà sản phẩm không còn đủ, Petjoy sẽ liên hệ trong 24 giờ làm việc để bạn chọn: đổi sang sản phẩm khác, chờ hàng về, giao trước phần có sẵn, hoặc huỷ phần thiếu và hoàn lại tiền tương ứng." }
+            {
+              "type": "p",
+              "text": "Tồn kho hiển thị trên nền tảng được cập nhật liên tục nhưng vẫn có thể sai lệch trong thời gian ngắn, đặc biệt vào các dịp khuyến mãi. Nếu sau khi bạn đặt hàng mà sản phẩm không còn đủ, Petjoy sẽ liên hệ trong 24 giờ làm việc để bạn chọn: đổi sang sản phẩm khác, chờ hàng về, giao trước phần có sẵn, hoặc huỷ phần thiếu và hoàn lại tiền tương ứng."
+            }
           ]
         },
         {
           "heading": "5. Giới hạn số lượng",
           "blocks": [
-            { "type": "p", "text": "Petjoy có thể giới hạn số lượng trên một đơn hàng hoặc một khách hàng đối với sản phẩm khuyến mãi sâu, hàng số lượng có hạn, hoặc quà tặng của chương trình. Giới hạn được ghi tại trang chương trình khi có áp dụng." },
-            { "type": "p", "text": "Hàng hoá trên nền tảng được bán cho mục đích sử dụng cá nhân. Việc mua với số lượng lớn để bán lại cần thoả thuận riêng với Petjoy — vui lòng liên hệ hotline." }
+            {
+              "type": "p",
+              "text": "Petjoy có thể giới hạn số lượng trên một đơn hàng hoặc một khách hàng đối với sản phẩm khuyến mãi sâu, hàng số lượng có hạn, hoặc quà tặng của chương trình. Giới hạn được ghi tại trang chương trình khi có áp dụng."
+            },
+            {
+              "type": "p",
+              "text": "Hàng hoá trên nền tảng được bán cho mục đích sử dụng cá nhân. Việc mua với số lượng lớn để bán lại cần thoả thuận riêng với Petjoy — vui lòng liên hệ hotline."
+            }
           ]
         },
         {
           "heading": "6. Trường hợp Petjoy có thể từ chối hoặc huỷ đơn hàng",
           "blocks": [
-            { "type": "ul", "items": [
-              "Sản phẩm hết hàng và bạn không chọn phương án thay thế",
-              "Giá hoặc thông tin sản phẩm hiển thị sai rõ ràng do lỗi hệ thống — xử lý theo [Chính sách Giá](policy:chinh-sach-gia)",
-              "Địa chỉ nhận hàng nằm ngoài vùng phục vụ, hoặc thông tin liên hệ không chính xác khiến Petjoy không xác nhận được đơn",
-              "Không liên hệ được với bạn sau 3 lần trong 2 ngày làm việc đối với đơn cần xác nhận",
-              "Có dấu hiệu gian lận, lạm dụng chương trình khuyến mãi, hoặc vi phạm [Điều kiện giao dịch chung](policy:dieu-khoan-su-dung)"
-            ] },
-            { "type": "p", "text": "Khi Petjoy huỷ một đơn đã thanh toán, toàn bộ số tiền đã nhận được hoàn lại theo [Chính sách Hoàn tiền](policy:chinh-sach-doi-tra-hang)." }
+            {
+              "type": "ul",
+              "items": [
+                "Sản phẩm hết hàng và bạn không chọn phương án thay thế",
+                "Giá hoặc thông tin sản phẩm hiển thị sai rõ ràng do lỗi hệ thống — xử lý theo [Chính sách Giá](policy:chinh-sach-gia)",
+                "Địa chỉ nhận hàng nằm ngoài vùng phục vụ, hoặc thông tin liên hệ không chính xác khiến Petjoy không xác nhận được đơn",
+                "Không liên hệ được với bạn sau 3 lần trong 2 ngày làm việc đối với đơn cần xác nhận",
+                "Có dấu hiệu gian lận, lạm dụng chương trình khuyến mãi, hoặc vi phạm [Điều kiện giao dịch chung](policy:dieu-khoan-su-dung)"
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Khi Petjoy huỷ một đơn đã thanh toán, toàn bộ số tiền đã nhận được hoàn lại theo [Chính sách Hoàn tiền](policy:chinh-sach-doi-tra-hang)."
+            }
           ]
         },
         {
           "heading": "7. Hàng hoá không áp dụng đổi – trả",
           "blocks": [
-            { "type": "ul", "items": [
-              "Thức ăn, bánh thưởng và sản phẩm tiêu dùng đã mở bao bì — vì yếu tố vệ sinh và an toàn cho thú cưng, trừ trường hợp lỗi của nhà sản xuất",
-              "Sản phẩm đặt riêng theo yêu cầu như bảng tên khắc chữ"
-            ] },
-            { "type": "p", "text": "Chi tiết tại [Chính sách Đổi – Trả & Hoàn tiền](policy:chinh-sach-doi-tra-hang)." }
+            {
+              "type": "ul",
+              "items": [
+                "Thức ăn, bánh thưởng và sản phẩm tiêu dùng đã mở bao bì — vì yếu tố vệ sinh và an toàn cho thú cưng, trừ trường hợp lỗi của nhà sản xuất",
+                "Sản phẩm đặt riêng theo yêu cầu như bảng tên khắc chữ"
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Chi tiết tại [Chính sách Đổi – Trả & Hoàn tiền](policy:chinh-sach-doi-tra-hang)."
+            }
           ]
         },
         {
           "heading": "8. Liên hệ",
           "blocks": [
-            { "type": "p", "text": "Hotline ******* (8h00–21h00) hoặc email *******." }
+            {
+              "type": "p",
+              "text": "Hotline ******* (8h00–21h00) hoặc email *******."
+            }
           ]
         }
       ]
     },
-
     {
       "slug": "dieu-khoan-su-dung",
       "label": "Điều Kiện Giao Dịch Chung",
@@ -624,110 +921,175 @@
         {
           "heading": "1. Chủ quản nền tảng",
           "blocks": [
-            { "type": "kv", "items": [
-              { "label": "Công ty", "value": "Công Ty Cổ Phần TM & DV Petjoy" },
-              { "label": "Mã số thuế", "value": "0316459054" },
-              { "label": "Địa chỉ", "value": "36 Mạc Đĩnh Chi, Phường Tân Định, TP. Hồ Chí Minh, Việt Nam" },
-              { "label": "Hotline", "value": "*******" },
-              { "label": "Email", "value": "*******" }
-            ] },
-            { "type": "p", "text": "Petjoy là nền tảng thương mại điện tử bán hàng trực tiếp: hàng hoá trên nền tảng do chính Petjoy cung cấp. Petjoy không phải sàn giao dịch và không có người bán thứ ba." }
+            {
+              "type": "kv",
+              "items": [
+                {
+                  "label": "Công ty",
+                  "value": "Công Ty Cổ Phần TM & DV Petjoy"
+                },
+                {
+                  "label": "Mã số thuế",
+                  "value": "0316459054"
+                },
+                {
+                  "label": "Địa chỉ",
+                  "value": "36 Mạc Đĩnh Chi, Phường Tân Định, TP. Hồ Chí Minh, Việt Nam"
+                },
+                {
+                  "label": "Hotline",
+                  "value": "*******"
+                },
+                {
+                  "label": "Email",
+                  "value": "*******"
+                }
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Petjoy là nền tảng thương mại điện tử bán hàng trực tiếp: hàng hoá trên nền tảng do chính Petjoy cung cấp. Petjoy không phải sàn giao dịch và không có người bán thứ ba."
+            }
           ]
         },
         {
           "heading": "2. Tài khoản",
           "blocks": [
-            { "type": "ul", "items": [
-              "Bạn có thể xem hàng mà không cần tài khoản. Việc đặt hàng, tích điểm Petjoy và lưu địa chỉ cần đăng nhập",
-              "Đăng nhập bằng số điện thoại và mã OTP gửi qua Zalo hoặc SMS. Bạn có trách nhiệm giữ kín mã này",
-              "Mỗi khách hàng dùng một tài khoản. Thông tin bạn cung cấp phải chính xác và được cập nhật khi có thay đổi",
-              "Bạn có thể tự xoá tài khoản bất cứ lúc nào tại mục Tài khoản, trên cả hai nền tảng",
-              "Petjoy có thể tạm ngưng một tài khoản có dấu hiệu gian lận hoặc lạm dụng chương trình khuyến mãi, và sẽ thông báo lý do"
-            ] }
+            {
+              "type": "ul",
+              "items": [
+                "Bạn có thể xem hàng mà không cần tài khoản. Việc đặt hàng, tích điểm Petjoy và lưu địa chỉ cần đăng nhập",
+                "Đăng nhập bằng số điện thoại và mã OTP gửi qua Zalo hoặc SMS. Bạn có trách nhiệm giữ kín mã này",
+                "Mỗi khách hàng dùng một tài khoản. Thông tin bạn cung cấp phải chính xác và được cập nhật khi có thay đổi",
+                "Bạn có thể tự xoá tài khoản bất cứ lúc nào tại mục Tài khoản, trên cả hai nền tảng",
+                "Petjoy có thể tạm ngưng một tài khoản có dấu hiệu gian lận hoặc lạm dụng chương trình khuyến mãi, và sẽ thông báo lý do"
+              ]
+            }
           ]
         },
         {
           "heading": "3. Đơn hàng được xác lập khi nào",
           "blocks": [
-            { "type": "p", "text": "Việc bạn bấm đặt hàng là đề nghị giao kết hợp đồng. Hợp đồng được xác lập khi Petjoy xác nhận đơn hàng qua tin nhắn, email hoặc trạng thái đơn trên nền tảng. Trước thời điểm đó, Petjoy có thể từ chối đơn theo [Điều kiện & Hạn chế cung cấp hàng hoá](policy:dieu-kien-han-che-cung-cap)." },
-            { "type": "p", "text": "Trước khi bấm đặt hàng, bạn luôn có cơ hội xem lại toàn bộ đơn: sản phẩm, số lượng, tiền hàng, các khoản giảm, phí vận chuyển và tổng số tiền phải trả. Bạn có thể sửa hoặc huỷ giỏ hàng ở bất kỳ bước nào trước khi xác nhận." }
+            {
+              "type": "p",
+              "text": "Việc bạn bấm đặt hàng là đề nghị giao kết hợp đồng. Hợp đồng được xác lập khi Petjoy xác nhận đơn hàng qua tin nhắn, email hoặc trạng thái đơn trên nền tảng. Trước thời điểm đó, Petjoy có thể từ chối đơn theo [Điều kiện & Hạn chế cung cấp hàng hoá](policy:dieu-kien-han-che-cung-cap)."
+            },
+            {
+              "type": "p",
+              "text": "Trước khi bấm đặt hàng, bạn luôn có cơ hội xem lại toàn bộ đơn: sản phẩm, số lượng, tiền hàng, các khoản giảm, phí vận chuyển và tổng số tiền phải trả. Bạn có thể sửa hoặc huỷ giỏ hàng ở bất kỳ bước nào trước khi xác nhận."
+            }
           ]
         },
         {
           "heading": "4. Giá, thanh toán, giao hàng, đổi trả",
           "blocks": [
-            { "type": "p", "text": "Bốn nội dung này được công bố tại các trang riêng và là bộ phận không tách rời của điều kiện giao dịch chung:" },
-            { "type": "ul", "items": [
-              "[Chính sách Giá](policy:chinh-sach-gia)",
-              "[Chính sách & Phương thức Thanh toán](policy:huong-dan-thanh-toan)",
-              "[Chính sách Vận chuyển](policy:chinh-sach-van-chuyen)",
-              "[Chính sách Đổi – Trả & Hoàn tiền](policy:chinh-sach-doi-tra-hang)"
-            ] }
+            {
+              "type": "p",
+              "text": "Bốn nội dung này được công bố tại các trang riêng và là bộ phận không tách rời của điều kiện giao dịch chung:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "[Chính sách Giá](policy:chinh-sach-gia)",
+                "[Chính sách & Phương thức Thanh toán](policy:huong-dan-thanh-toan)",
+                "[Chính sách Vận chuyển](policy:chinh-sach-van-chuyen)",
+                "[Chính sách Đổi – Trả & Hoàn tiền](policy:chinh-sach-doi-tra-hang)"
+              ]
+            }
           ]
         },
         {
           "heading": "5. Quyền huỷ đơn của bạn",
           "blocks": [
-            { "type": "p", "text": "Bạn có thể huỷ đơn hàng miễn phí trước khi đơn được chuyển cho đơn vị vận chuyển, bằng cách gọi hotline hoặc nhắn Zalo kèm mã đơn. Nếu đơn đã thanh toán, Petjoy hoàn lại toàn bộ số tiền đã nhận. Sau khi hàng đã giao, việc trả hàng thực hiện theo [Chính sách Đổi – Trả & Hoàn tiền](policy:chinh-sach-doi-tra-hang)." }
+            {
+              "type": "p",
+              "text": "Bạn có thể huỷ đơn hàng miễn phí trước khi đơn được chuyển cho đơn vị vận chuyển, bằng cách gọi hotline hoặc nhắn Zalo kèm mã đơn. Nếu đơn đã thanh toán, Petjoy hoàn lại toàn bộ số tiền đã nhận. Sau khi hàng đã giao, việc trả hàng thực hiện theo [Chính sách Đổi – Trả & Hoàn tiền](policy:chinh-sach-doi-tra-hang)."
+            }
           ]
         },
         {
           "heading": "6. Chương trình khách hàng thân thiết Petjoy",
           "blocks": [
-            { "type": "ul", "items": [
-              "Điểm Petjoy được tích trên giá trị hàng hoá thực trả, không tính phí vận chuyển",
-              "Điểm và hạng thành viên không có giá trị quy đổi thành tiền mặt và không chuyển nhượng được",
-              "Tỷ lệ tích điểm, ngưỡng hạng, quyền lợi và thời hạn hiệu lực của điểm được công bố tại trang [Petjoy Club](https://petjoy.vn/pages/uu-dai-tich-luy-thanh-vien-Petjoy) và có thể được điều chỉnh; Petjoy thông báo trước khi thay đổi có hiệu lực",
-              "Khi một đơn hàng bị huỷ hoặc trả lại, điểm đã tích cho đơn đó được thu hồi tương ứng"
-            ] }
+            {
+              "type": "ul",
+              "items": [
+                "Điểm Petjoy được tích trên giá trị hàng hoá thực trả, không tính phí vận chuyển",
+                "Điểm và hạng thành viên không có giá trị quy đổi thành tiền mặt và không chuyển nhượng được",
+                "Tỷ lệ tích điểm, ngưỡng hạng, quyền lợi và thời hạn hiệu lực của điểm được công bố tại trang [Petjoy Club](https://petjoy.vn/pages/uu-dai-tich-luy-thanh-vien-Petjoy) và có thể được điều chỉnh; Petjoy thông báo trước khi thay đổi có hiệu lực",
+                "Khi một đơn hàng bị huỷ hoặc trả lại, điểm đã tích cho đơn đó được thu hồi tương ứng"
+              ]
+            }
           ]
         },
         {
           "heading": "7. Nội dung bạn đăng lên nền tảng",
           "blocks": [
-            { "type": "p", "text": "Với đánh giá, hình ảnh và bình luận bạn đăng, bạn cam kết nội dung là của mình hoặc bạn có quyền sử dụng, không vi phạm pháp luật và không xâm phạm quyền của người khác. Bạn cho phép Petjoy hiển thị nội dung đó trên nền tảng. Petjoy có thể ẩn nội dung vi phạm hoặc không liên quan đến sản phẩm." }
+            {
+              "type": "p",
+              "text": "Với đánh giá, hình ảnh và bình luận bạn đăng, bạn cam kết nội dung là của mình hoặc bạn có quyền sử dụng, không vi phạm pháp luật và không xâm phạm quyền của người khác. Bạn cho phép Petjoy hiển thị nội dung đó trên nền tảng. Petjoy có thể ẩn nội dung vi phạm hoặc không liên quan đến sản phẩm."
+            }
           ]
         },
         {
           "heading": "8. Quyền sở hữu trí tuệ",
           "blocks": [
-            { "type": "p", "text": "Thương hiệu, logo, thiết kế, hình ảnh và nội dung do Petjoy tạo ra trên nền tảng thuộc quyền của Petjoy hoặc của đối tác đã cấp phép cho Petjoy. Bạn được xem và chia sẻ nội dung cho mục đích cá nhân; việc sao chép để kinh doanh cần Petjoy đồng ý bằng văn bản." }
+            {
+              "type": "p",
+              "text": "Thương hiệu, logo, thiết kế, hình ảnh và nội dung do Petjoy tạo ra trên nền tảng thuộc quyền của Petjoy hoặc của đối tác đã cấp phép cho Petjoy. Bạn được xem và chia sẻ nội dung cho mục đích cá nhân; việc sao chép để kinh doanh cần Petjoy đồng ý bằng văn bản."
+            }
           ]
         },
         {
           "heading": "9. Dữ liệu cá nhân",
           "blocks": [
-            { "type": "p", "text": "Việc thu thập và xử lý dữ liệu cá nhân của bạn được thực hiện theo [Chính sách Bảo mật](policy:chinh-sach-bao-mat), trong đó nêu rõ dữ liệu được thu thập, mục đích, thời gian lưu, các bên nhận dữ liệu và quyền của bạn." }
+            {
+              "type": "p",
+              "text": "Việc thu thập và xử lý dữ liệu cá nhân của bạn được thực hiện theo [Chính sách Bảo mật](policy:chinh-sach-bao-mat), trong đó nêu rõ dữ liệu được thu thập, mục đích, thời gian lưu, các bên nhận dữ liệu và quyền của bạn."
+            }
           ]
         },
         {
           "heading": "10. Giới hạn trách nhiệm",
           "blocks": [
-            { "type": "p", "text": "Petjoy chịu trách nhiệm về chất lượng hàng hoá, tính chính xác của thông tin sản phẩm và giá công bố, và việc thực hiện đơn hàng đã xác nhận. Petjoy không chịu trách nhiệm với thiệt hại phát sinh từ: việc bạn cung cấp thông tin nhận hàng không chính xác; việc bạn để lộ mã OTP hoặc thông tin tài khoản; sự cố đường truyền, thiên tai, dịch bệnh và các trường hợp bất khả kháng khác. Trong mọi trường hợp, trách nhiệm của Petjoy đối với một đơn hàng không vượt quá giá trị đơn hàng đó." },
-            { "type": "p", "text": "Nội dung tư vấn về chăm sóc thú cưng trên nền tảng mang tính tham khảo và không thay thế chẩn đoán hay chỉ định của bác sĩ thú y." }
+            {
+              "type": "p",
+              "text": "Petjoy chịu trách nhiệm về chất lượng hàng hoá, tính chính xác của thông tin sản phẩm và giá công bố, và việc thực hiện đơn hàng đã xác nhận. Petjoy không chịu trách nhiệm với thiệt hại phát sinh từ: việc bạn cung cấp thông tin nhận hàng không chính xác; việc bạn để lộ mã OTP hoặc thông tin tài khoản; sự cố đường truyền, thiên tai, dịch bệnh và các trường hợp bất khả kháng khác. Trong mọi trường hợp, trách nhiệm của Petjoy đối với một đơn hàng không vượt quá giá trị đơn hàng đó."
+            },
+            {
+              "type": "p",
+              "text": "Nội dung tư vấn về chăm sóc thú cưng trên nền tảng mang tính tham khảo và không thay thế chẩn đoán hay chỉ định của bác sĩ thú y."
+            }
           ]
         },
         {
           "heading": "11. Khiếu nại",
           "blocks": [
-            { "type": "p", "text": "Quy trình, kênh tiếp nhận và thời hạn xử lý được công bố tại [Chính sách Tiếp nhận & Giải quyết Khiếu nại](policy:chinh-sach-khieu-nai)." }
+            {
+              "type": "p",
+              "text": "Quy trình, kênh tiếp nhận và thời hạn xử lý được công bố tại [Chính sách Tiếp nhận & Giải quyết Khiếu nại](policy:chinh-sach-khieu-nai)."
+            }
           ]
         },
         {
           "heading": "12. Thay đổi điều kiện giao dịch chung",
           "blocks": [
-            { "type": "p", "text": "Petjoy có thể cập nhật nội dung này và sẽ công bố bản mới trên nền tảng kèm ngày cập nhật. Đơn hàng đã xác lập được thực hiện theo phiên bản có hiệu lực tại thời điểm xác lập." }
+            {
+              "type": "p",
+              "text": "Petjoy có thể cập nhật nội dung này và sẽ công bố bản mới trên nền tảng kèm ngày cập nhật. Đơn hàng đã xác lập được thực hiện theo phiên bản có hiệu lực tại thời điểm xác lập."
+            }
           ]
         },
         {
           "heading": "13. Luật áp dụng và giải quyết tranh chấp",
           "blocks": [
-            { "type": "p", "text": "Điều kiện giao dịch chung này được điều chỉnh bởi pháp luật Việt Nam. Hai bên ưu tiên giải quyết tranh chấp bằng thương lượng. Nếu không thành, tranh chấp được đưa ra cơ quan bảo vệ quyền lợi người tiêu dùng, tổ chức hoà giải hoặc Toà án có thẩm quyền tại Việt Nam." }
+            {
+              "type": "p",
+              "text": "Điều kiện giao dịch chung này được điều chỉnh bởi pháp luật Việt Nam. Hai bên ưu tiên giải quyết tranh chấp bằng thương lượng. Nếu không thành, tranh chấp được đưa ra cơ quan bảo vệ quyền lợi người tiêu dùng, tổ chức hoà giải hoặc Toà án có thẩm quyền tại Việt Nam."
+            }
           ]
         }
       ]
     },
-
     {
       "slug": "ho-tro-truc-tuyen",
       "label": "Hỗ Trợ Trực Tuyến",
@@ -739,73 +1101,105 @@
         {
           "heading": "1. Hotline",
           "blocks": [
-            { "type": "p", "text": "******* — 8h00 đến 21h00 hằng ngày, kể cả cuối tuần và ngày lễ. Đây là kênh nhanh nhất cho việc gấp: đơn đang giao, sai địa chỉ, cần huỷ đơn." }
+            {
+              "type": "p",
+              "text": "******* — 8h00 đến 21h00 hằng ngày, kể cả cuối tuần và ngày lễ. Đây là kênh nhanh nhất cho việc gấp: đơn đang giao, sai địa chỉ, cần huỷ đơn."
+            }
           ]
         },
         {
           "heading": "2. Zalo",
           "blocks": [
-            { "type": "p", "text": "******* — 8h00 đến 21h00, phản hồi trong giờ làm việc. Trên ứng dụng Petjoy, nút Hỗ trợ mở trực tiếp kênh này. Zalo là kênh phù hợp nhất khi bạn cần gửi hình ảnh hoặc video sản phẩm." }
+            {
+              "type": "p",
+              "text": "******* — 8h00 đến 21h00, phản hồi trong giờ làm việc. Trên ứng dụng Petjoy, nút Hỗ trợ mở trực tiếp kênh này. Zalo là kênh phù hợp nhất khi bạn cần gửi hình ảnh hoặc video sản phẩm."
+            }
           ]
         },
         {
           "heading": "3. Email",
           "blocks": [
-            { "type": "p", "text": "******* — nhận 24/7, trả lời trong 24 giờ làm việc. Dùng email cho các việc cần lưu vết: khiếu nại, yêu cầu hoá đơn, yêu cầu về dữ liệu cá nhân." }
+            {
+              "type": "p",
+              "text": "******* — nhận 24/7, trả lời trong 24 giờ làm việc. Dùng email cho các việc cần lưu vết: khiếu nại, yêu cầu hoá đơn, yêu cầu về dữ liệu cá nhân."
+            }
           ]
         },
         {
           "heading": "4. Mạng xã hội",
           "blocks": [
-            { "type": "ul", "items": [
-              "Facebook — [Petjoy Pet Shop](https://www.facebook.com/PetjoyPetShop), trả lời trong giờ làm việc",
-              "Instagram — [@PetjoyPetShop](https://instagram.com/PetjoyPetShop)",
-              "TikTok — [@PetjoyPetShop](https://tiktok.com/@PetjoyPetShop)"
-            ] }
+            {
+              "type": "ul",
+              "items": [
+                "Facebook — [Petjoy Pet Shop](https://www.facebook.com/PetjoyPetShop), trả lời trong giờ làm việc",
+                "Instagram — [@PetjoyPetShop](https://instagram.com/PetjoyPetShop)",
+                "TikTok — [@PetjoyPetShop](https://tiktok.com/@PetjoyPetShop)"
+              ]
+            }
           ]
         },
         {
           "heading": "5. Biểu mẫu liên hệ trên website",
           "blocks": [
-            { "type": "p", "text": "Trang [Liên hệ](https://petjoy.vn/pages/lien-he) có biểu mẫu cho phép chọn chủ đề: sản phẩm, đơn hàng, đổi trả, hợp tác, góp ý. Yêu cầu gửi qua biểu mẫu được trả lời trong 24 giờ làm việc." }
+            {
+              "type": "p",
+              "text": "Trang [Liên hệ](https://petjoy.vn/pages/lien-he) có biểu mẫu cho phép chọn chủ đề: sản phẩm, đơn hàng, đổi trả, hợp tác, góp ý. Yêu cầu gửi qua biểu mẫu được trả lời trong 24 giờ làm việc."
+            }
           ]
         },
         {
           "heading": "6. Tự phục vụ trên nền tảng",
           "blocks": [
-            { "type": "p", "text": "Nhiều việc bạn có thể tự xử lý mà không cần chờ nhân viên:" },
-            { "type": "ul", "items": [
-              "Theo dõi đơn hàng — mục Tài khoản → Đơn hàng, trên cả website và ứng dụng",
-              "Tra cứu đơn không cần đăng nhập — trang [Tra cứu đơn hàng](https://petjoy.vn/track-order)",
-              "Xem và sửa thông tin cá nhân, địa chỉ nhận hàng — mục Tài khoản",
-              "Xem điểm và ưu đãi Petjoy — mục Tài khoản → Điểm thưởng",
-              "Yêu cầu xoá tài khoản — mục Tài khoản → Xoá tài khoản, trên cả hai nền tảng",
-              "Câu hỏi thường gặp — trang [FAQ](policy:faq)"
-            ] }
+            {
+              "type": "p",
+              "text": "Nhiều việc bạn có thể tự xử lý mà không cần chờ nhân viên:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Theo dõi đơn hàng — mục Tài khoản → Đơn hàng, trên cả website và ứng dụng",
+                "Tra cứu đơn không cần đăng nhập — trang [Tra cứu đơn hàng](https://petjoy.vn/track-order)",
+                "Xem và sửa thông tin cá nhân, địa chỉ nhận hàng — mục Tài khoản",
+                "Xem điểm và ưu đãi Petjoy — mục Tài khoản → Điểm thưởng",
+                "Yêu cầu xoá tài khoản — mục Tài khoản → Xoá tài khoản, trên cả hai nền tảng",
+                "Câu hỏi thường gặp — trang [FAQ](policy:faq)"
+              ]
+            }
           ]
         },
         {
           "heading": "7. Hỗ trợ tại cửa hàng",
           "blocks": [
-            { "type": "p", "text": "Bạn có thể tới trực tiếp 5 cửa hàng Petjoy tại TP.HCM để được hỗ trợ đổi trả, tư vấn sản phẩm và nhận đơn. Địa chỉ và số điện thoại từng chi nhánh tại [Hệ thống cửa hàng](https://petjoy.vn/cua-hang)." }
+            {
+              "type": "p",
+              "text": "Bạn có thể tới trực tiếp 5 cửa hàng Petjoy tại TP.HCM để được hỗ trợ đổi trả, tư vấn sản phẩm và nhận đơn. Địa chỉ và số điện thoại từng chi nhánh tại [Hệ thống cửa hàng](https://petjoy.vn/cua-hang)."
+            }
           ]
         },
         {
           "heading": "8. Lưu ý về an toàn",
           "blocks": [
-            { "type": "note", "text": "Nhân viên Petjoy không bao giờ yêu cầu bạn cung cấp mật khẩu, mã OTP, mã CVV trên mặt sau thẻ, hoặc yêu cầu bạn chuyển tiền vào tài khoản cá nhân. Petjoy chỉ nhận chuyển khoản vào tài khoản mang tên Công Ty Cổ Phần TM & DV Petjoy. Nếu nhận được yêu cầu như vậy, vui lòng ngừng lại và gọi hotline để xác minh." }
+            {
+              "type": "note",
+              "text": "Nhân viên Petjoy không bao giờ yêu cầu bạn cung cấp mật khẩu, mã OTP, mã CVV trên mặt sau thẻ, hoặc yêu cầu bạn chuyển tiền vào tài khoản cá nhân. Petjoy chỉ nhận chuyển khoản vào tài khoản mang tên Công Ty Cổ Phần TM & DV Petjoy. Nếu nhận được yêu cầu như vậy, vui lòng ngừng lại và gọi hotline để xác minh."
+            }
           ]
         },
         {
           "heading": "9. Chủ quản nền tảng",
           "blocks": [
-            { "type": "p", "text": "Công Ty Cổ Phần TM & DV Petjoy — Mã số thuế 0316459054" },
-            { "type": "p", "text": "36 Mạc Đĩnh Chi, Phường Tân Định, TP. Hồ Chí Minh, Việt Nam" }
+            {
+              "type": "p",
+              "text": "Công Ty Cổ Phần TM & DV Petjoy — Mã số thuế 0316459054"
+            },
+            {
+              "type": "p",
+              "text": "36 Mạc Đĩnh Chi, Phường Tân Định, TP. Hồ Chí Minh, Việt Nam"
+            }
           ]
         }
       ]
     },
-
     {
       "slug": "faq",
       "label": "Câu Hỏi Thường Gặp",
@@ -816,7 +1210,6 @@
       "todo": "CHƯA CÓ NỘI DUNG — bổ sung sau. Gợi ý cấu trúc: sections[].blocks[] dùng khối p, hoặc thêm khối mới { type: 'qa', q, a } nếu muốn dạng accordion.",
       "sections": []
     },
-
     {
       "slug": "huong-dan-thanh-toan",
       "label": "Phương Thức Thanh Toán",
@@ -828,100 +1221,156 @@
         {
           "heading": "1. Nguyên tắc chung",
           "blocks": [
-            { "type": "ul", "items": [
-              "Mọi giao dịch thực hiện bằng Đồng Việt Nam (VND)",
-              "Số tiền phải trả được hiển thị đầy đủ ở bước thanh toán trước khi bạn bấm đặt hàng: tiền hàng, các khoản giảm, phí vận chuyển và tổng cộng",
-              "Petjoy không thu thêm phụ phí nào khi bạn chọn thanh toán trực tuyến. Phí cổng thanh toán do Petjoy chịu",
-              "Các phương thức khả dụng được hiển thị ngay tại bước thanh toán trên nền tảng bạn đang dùng. Danh sách có thể khác nhau giữa website và ứng dụng, và giữa các phương thức giao hàng"
-            ] }
+            {
+              "type": "ul",
+              "items": [
+                "Mọi giao dịch thực hiện bằng Đồng Việt Nam (VND)",
+                "Số tiền phải trả được hiển thị đầy đủ ở bước thanh toán trước khi bạn bấm đặt hàng: tiền hàng, các khoản giảm, phí vận chuyển và tổng cộng",
+                "Petjoy không thu thêm phụ phí nào khi bạn chọn thanh toán trực tuyến. Phí cổng thanh toán do Petjoy chịu",
+                "Các phương thức khả dụng được hiển thị ngay tại bước thanh toán trên nền tảng bạn đang dùng. Danh sách có thể khác nhau giữa website và ứng dụng, và giữa các phương thức giao hàng"
+              ]
+            }
           ]
         },
         {
           "heading": "2. Thanh toán khi nhận hàng (COD)",
           "blocks": [
-            { "type": "p", "text": "Bạn thanh toán bằng tiền mặt cho nhân viên giao hàng sau khi đã kiểm tra kiện hàng. Áp dụng cho phần lớn đơn giao tận nơi. Với đơn có giá trị lớn hoặc địa chỉ ngoài vùng phục vụ thường xuyên, Petjoy có thể đề nghị bạn thanh toán trước — nhân viên sẽ liên hệ trao đổi trước khi giao." }
+            {
+              "type": "p",
+              "text": "Bạn thanh toán bằng tiền mặt cho nhân viên giao hàng sau khi đã kiểm tra kiện hàng. Áp dụng cho phần lớn đơn giao tận nơi. Với đơn có giá trị lớn hoặc địa chỉ ngoài vùng phục vụ thường xuyên, Petjoy có thể đề nghị bạn thanh toán trước — nhân viên sẽ liên hệ trao đổi trước khi giao."
+            }
           ]
         },
         {
           "heading": "3. Thanh toán trực tuyến qua cổng Payoo",
           "blocks": [
-            { "type": "p", "text": "Petjoy tích hợp cổng thanh toán Payoo. Toàn bộ thao tác nhập thông tin thẻ hoặc xác thực ngân hàng diễn ra trên hệ thống của Payoo; Petjoy không nhìn thấy và không lưu số thẻ, mã CVV hay mật khẩu ngân hàng của bạn." },
-            { "type": "ul", "items": [
-              "Quét mã QR bằng ứng dụng ngân hàng hoặc ví điện tử",
-              "Thẻ ATM nội địa đã đăng ký thanh toán trực tuyến",
-              "Thẻ tín dụng và thẻ ghi nợ quốc tế — Visa, Mastercard, JCB",
-              "Apple Pay — trên website, với thiết bị và trình duyệt hỗ trợ"
-            ] }
+            {
+              "type": "p",
+              "text": "Petjoy tích hợp cổng thanh toán Payoo. Toàn bộ thao tác nhập thông tin thẻ hoặc xác thực ngân hàng diễn ra trên hệ thống của Payoo; Petjoy không nhìn thấy và không lưu số thẻ, mã CVV hay mật khẩu ngân hàng của bạn."
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Quét mã QR bằng ứng dụng ngân hàng hoặc ví điện tử",
+                "Thẻ ATM nội địa đã đăng ký thanh toán trực tuyến",
+                "Thẻ tín dụng và thẻ ghi nợ quốc tế — Visa, Mastercard, JCB",
+                "Apple Pay — trên website, với thiết bị và trình duyệt hỗ trợ"
+              ]
+            }
           ]
         },
         {
           "heading": "4. Chuyển khoản ngân hàng",
           "blocks": [
-            { "type": "p", "text": "Áp dụng cho đơn đặt qua hotline, Zalo hoặc fanpage, và khi mua tại cửa hàng. Đây không phải một lựa chọn ở bước thanh toán trực tuyến trên website và ứng dụng — ở đó bạn dùng COD hoặc cổng Payoo." },
-            { "type": "kv", "items": [
-              { "label": "Ngân hàng", "value": "Techcombank (TMCP Kỹ Thương Việt Nam) — Chi nhánh TP. Hồ Chí Minh" },
-              { "label": "Số tài khoản", "value": "19036499523012" },
-              { "label": "Chủ tài khoản", "value": "Công Ty Cổ Phần TM & DV Petjoy" },
-              { "label": "Nội dung chuyển khoản", "value": "[Số điện thoại] - [Mã đơn hàng]" }
-            ] },
-            { "type": "note", "text": "Petjoy chỉ nhận chuyển khoản vào tài khoản mang tên công ty như trên. Nếu ai đó yêu cầu bạn chuyển vào tài khoản cá nhân, vui lòng ngừng lại và gọi hotline để xác minh." }
+            {
+              "type": "p",
+              "text": "Áp dụng cho đơn đặt qua hotline, Zalo hoặc fanpage, và khi mua tại cửa hàng. Đây không phải một lựa chọn ở bước thanh toán trực tuyến trên website và ứng dụng — ở đó bạn dùng COD hoặc cổng Payoo."
+            },
+            {
+              "type": "kv",
+              "items": [
+                {
+                  "label": "Ngân hàng",
+                  "value": "Techcombank (TMCP Kỹ Thương Việt Nam) — Chi nhánh TP. Hồ Chí Minh"
+                },
+                {
+                  "label": "Số tài khoản",
+                  "value": "19036499523012"
+                },
+                {
+                  "label": "Chủ tài khoản",
+                  "value": "Công Ty Cổ Phần TM & DV Petjoy"
+                },
+                {
+                  "label": "Nội dung chuyển khoản",
+                  "value": "[Số điện thoại] - [Mã đơn hàng]"
+                }
+              ]
+            },
+            {
+              "type": "note",
+              "text": "Petjoy chỉ nhận chuyển khoản vào tài khoản mang tên công ty như trên. Nếu ai đó yêu cầu bạn chuyển vào tài khoản cá nhân, vui lòng ngừng lại và gọi hotline để xác minh."
+            }
           ]
         },
         {
           "heading": "5. Thanh toán tại cửa hàng",
           "blocks": [
-            { "type": "p", "text": "Tại 5 chi nhánh Petjoy ở TP.HCM, bạn có thể thanh toán bằng tiền mặt, quẹt thẻ (POS), quét mã QR hoặc chuyển khoản." }
+            {
+              "type": "p",
+              "text": "Tại 5 chi nhánh Petjoy ở TP.HCM, bạn có thể thanh toán bằng tiền mặt, quẹt thẻ (POS), quét mã QR hoặc chuyển khoản."
+            }
           ]
         },
         {
           "heading": "6. Khi nào đơn hàng được coi là đã thanh toán",
           "blocks": [
-            { "type": "ul", "items": [
-              "**Thanh toán trực tuyến:** đơn được ghi nhận đã thanh toán khi Petjoy nhận được xác nhận thành công từ cổng Payoo. Trạng thái đơn trên nền tảng cập nhật theo xác nhận này, không theo việc bạn quay lại trang hay không",
-              "**Nếu bạn đóng cửa sổ thanh toán giữa lúc thanh toán:** tình trạng đơn được quyết định bởi xác nhận từ Payoo. Nếu tiền đã bị trừ, đơn sẽ tự chuyển sang đã thanh toán trong vài phút — bạn không cần trả lần nữa",
-              "**COD:** đơn được ghi nhận đã thanh toán khi bạn trả tiền cho nhân viên giao hàng",
-              "**Chuyển khoản:** đơn được ghi nhận sau khi Petjoy đối chiếu được tiền vào tài khoản"
-            ] },
-            { "type": "p", "text": "Việc đơn hàng được xác nhận và việc đơn hàng đã thanh toán là hai mốc khác nhau; trạng thái của cả hai đều hiển thị tại mục Tài khoản → Đơn hàng." }
+            {
+              "type": "ul",
+              "items": [
+                "**Thanh toán trực tuyến:** đơn được ghi nhận đã thanh toán khi Petjoy nhận được xác nhận thành công từ cổng Payoo. Trạng thái đơn trên nền tảng cập nhật theo xác nhận này, không theo việc bạn quay lại trang hay không",
+                "**Nếu bạn đóng cửa sổ thanh toán giữa lúc thanh toán:** tình trạng đơn được quyết định bởi xác nhận từ Payoo. Nếu tiền đã bị trừ, đơn sẽ tự chuyển sang đã thanh toán trong vài phút — bạn không cần trả lần nữa",
+                "**COD:** đơn được ghi nhận đã thanh toán khi bạn trả tiền cho nhân viên giao hàng",
+                "**Chuyển khoản:** đơn được ghi nhận sau khi Petjoy đối chiếu được tiền vào tài khoản"
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Việc đơn hàng được xác nhận và việc đơn hàng đã thanh toán là hai mốc khác nhau; trạng thái của cả hai đều hiển thị tại mục Tài khoản → Đơn hàng."
+            }
           ]
         },
         {
           "heading": "7. Thời hạn thanh toán của liên kết trực tuyến",
           "blocks": [
-            { "type": "p", "text": "Liên kết thanh toán của mỗi đơn có thời hạn hiệu lực. Nếu hết hạn mà chưa thanh toán, đơn sẽ không được xử lý và bạn có thể đặt lại, hoặc gọi hotline để Petjoy tạo lại liên kết. Không có khoản tiền nào bị trừ với một liên kết đã hết hạn." }
+            {
+              "type": "p",
+              "text": "Liên kết thanh toán của mỗi đơn có thời hạn hiệu lực. Nếu hết hạn mà chưa thanh toán, đơn sẽ không được xử lý và bạn có thể đặt lại, hoặc gọi hotline để Petjoy tạo lại liên kết. Không có khoản tiền nào bị trừ với một liên kết đã hết hạn."
+            }
           ]
         },
         {
           "heading": "8. Giao dịch lỗi và các tình huống về tiền",
           "blocks": [
-            { "type": "ul", "items": [
-              "**Thanh toán không thành công:** đơn hàng không được xử lý và không có khoản nào bị trừ. Bạn có thể thanh toán lại hoặc chọn phương thức khác",
-              "**Bị trừ tiền nhưng đơn không được tạo, hoặc bị trừ hai lần:** vui lòng liên hệ hotline ******* hoặc email ******* kèm ảnh biên lai hoặc thông báo trừ tiền. Petjoy tra soát với Payoo và ngân hàng, phản hồi trong 3 ngày làm việc và hoàn lại toàn bộ khoản thu sai",
-              "**Đơn bị huỷ sau khi đã thanh toán:** Petjoy hoàn lại toàn bộ số tiền đã nhận theo mục Hoàn tiền trong [Chính sách Đổi – Trả & Hoàn tiền](policy:chinh-sach-doi-tra-hang)"
-            ] }
+            {
+              "type": "ul",
+              "items": [
+                "**Thanh toán không thành công:** đơn hàng không được xử lý và không có khoản nào bị trừ. Bạn có thể thanh toán lại hoặc chọn phương thức khác",
+                "**Bị trừ tiền nhưng đơn không được tạo, hoặc bị trừ hai lần:** vui lòng liên hệ hotline ******* hoặc email ******* kèm ảnh biên lai hoặc thông báo trừ tiền. Petjoy tra soát với Payoo và ngân hàng, phản hồi trong 3 ngày làm việc và hoàn lại toàn bộ khoản thu sai",
+                "**Đơn bị huỷ sau khi đã thanh toán:** Petjoy hoàn lại toàn bộ số tiền đã nhận theo mục Hoàn tiền trong [Chính sách Đổi – Trả & Hoàn tiền](policy:chinh-sach-doi-tra-hang)"
+              ]
+            }
           ]
         },
         {
           "heading": "9. Hoàn tiền",
           "blocks": [
-            { "type": "p", "text": "Nguyên tắc, phương thức và thời hạn hoàn tiền được công bố tại [Chính sách Đổi – Trả & Hoàn tiền](policy:chinh-sach-doi-tra-hang). Nguyên tắc chung: tiền được hoàn về đúng phương thức bạn đã thanh toán, và Petjoy hỗ trợ được cả hoàn một phần khi chỉ trả lại một phần đơn hàng." }
+            {
+              "type": "p",
+              "text": "Nguyên tắc, phương thức và thời hạn hoàn tiền được công bố tại [Chính sách Đổi – Trả & Hoàn tiền](policy:chinh-sach-doi-tra-hang). Nguyên tắc chung: tiền được hoàn về đúng phương thức bạn đã thanh toán, và Petjoy hỗ trợ được cả hoàn một phần khi chỉ trả lại một phần đơn hàng."
+            }
           ]
         },
         {
           "heading": "10. Hoá đơn",
           "blocks": [
-            { "type": "p", "text": "Petjoy xuất hoá đơn giá trị gia tăng theo quy định. Nếu cần hoá đơn, vui lòng cung cấp tên đơn vị, mã số thuế, địa chỉ thuế và email nhận hoá đơn khi đặt hàng, hoặc liên hệ hotline ngay sau khi đặt." }
+            {
+              "type": "p",
+              "text": "Petjoy xuất hoá đơn giá trị gia tăng theo quy định. Nếu cần hoá đơn, vui lòng cung cấp tên đơn vị, mã số thuế, địa chỉ thuế và email nhận hoá đơn khi đặt hàng, hoặc liên hệ hotline ngay sau khi đặt."
+            }
           ]
         },
         {
           "heading": "11. Liên hệ",
           "blocks": [
-            { "type": "p", "text": "Mọi thắc mắc về thanh toán: hotline ******* (8h00–21h00) hoặc email *******." }
+            {
+              "type": "p",
+              "text": "Mọi thắc mắc về thanh toán: hotline ******* (8h00–21h00) hoặc email *******."
+            }
           ]
         }
       ]
     },
-
     {
       "slug": "huong-dan-mua-hang",
       "label": "Hướng Dẫn Mua Hàng",
@@ -933,37 +1382,239 @@
         {
           "heading": "Bước 1: Tìm kiếm sản phẩm",
           "blocks": [
-            { "type": "p", "text": "Sử dụng thanh tìm kiếm hoặc duyệt theo danh mục (Cho Chó, Cho Mèo) để tìm sản phẩm cần mua. Bạn có thể lọc theo thương hiệu, giá hoặc loại sản phẩm để tìm nhanh hơn." }
+            {
+              "type": "p",
+              "text": "Sử dụng thanh tìm kiếm hoặc duyệt theo danh mục (Cho Chó, Cho Mèo) để tìm sản phẩm cần mua. Bạn có thể lọc theo thương hiệu, giá hoặc loại sản phẩm để tìm nhanh hơn."
+            }
           ]
         },
         {
           "heading": "Bước 2: Chọn sản phẩm và thêm vào giỏ hàng",
           "blocks": [
-            { "type": "p", "text": "Chọn phân loại (kích cỡ, trọng lượng, hương vị) nếu có, sau đó nhấn “Thêm vào giỏ hàng”. Bạn có thể tiếp tục mua sắm hoặc nhấn vào biểu tượng giỏ hàng để kiểm tra." }
+            {
+              "type": "p",
+              "text": "Chọn phân loại (kích cỡ, trọng lượng, hương vị) nếu có, sau đó nhấn “Thêm vào giỏ hàng”. Bạn có thể tiếp tục mua sắm hoặc nhấn vào biểu tượng giỏ hàng để kiểm tra."
+            }
           ]
         },
         {
           "heading": "Bước 3: Kiểm tra giỏ hàng và nhập mã giảm giá",
           "blocks": [
-            { "type": "p", "text": "Tại trang giỏ hàng, bạn kiểm tra lại số lượng sản phẩm. Đừng quên nhập mã giảm giá (nếu có) để nhận ưu đãi từ Petjoy nhé." }
+            {
+              "type": "p",
+              "text": "Tại trang giỏ hàng, bạn kiểm tra lại số lượng sản phẩm. Đừng quên nhập mã giảm giá (nếu có) để nhận ưu đãi từ Petjoy nhé."
+            }
           ]
         },
         {
           "heading": "Bước 4: Điền thông tin giao hàng",
           "blocks": [
-            { "type": "p", "text": "Nhập họ tên, số điện thoại và địa chỉ nhận hàng chính xác. Nếu bạn đã đăng nhập, thông tin này sẽ được tự động điền giúp tiết kiệm thời gian." }
+            {
+              "type": "p",
+              "text": "Nhập họ tên, số điện thoại và địa chỉ nhận hàng chính xác. Nếu bạn đã đăng nhập, thông tin này sẽ được tự động điền giúp tiết kiệm thời gian."
+            }
           ]
         },
         {
           "heading": "Bước 5: Chọn phương thức vận chuyển và thanh toán",
           "blocks": [
-            { "type": "p", "text": "Chọn đơn vị vận chuyển phù hợp và hình thức thanh toán tiện lợi nhất cho bạn (COD, Chuyển khoản, Ví điện tử hoặc Thẻ)." }
+            {
+              "type": "p",
+              "text": "Chọn đơn vị vận chuyển phù hợp và hình thức thanh toán tiện lợi nhất cho bạn (COD, Chuyển khoản, Ví điện tử hoặc Thẻ)."
+            }
           ]
         },
         {
           "heading": "Bước 6: Xác nhận và đặt hàng",
           "blocks": [
-            { "type": "p", "text": "Kiểm tra lại toàn bộ thông tin lần cuối và nhấn “Đặt hàng”. Hệ thống sẽ gửi xác nhận đơn hàng cho bạn qua SMS hoặc Email ngay lập tức." }
+            {
+              "type": "p",
+              "text": "Kiểm tra lại toàn bộ thông tin lần cuối và nhấn “Đặt hàng”. Hệ thống sẽ gửi xác nhận đơn hàng cho bạn qua SMS hoặc Email ngay lập tức."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "dieu-khoan-bao-ve-du-lieu-ca-nhan",
+      "label": "Bảo Vệ Dữ Liệu Cá Nhân (Luật 91/2025/QH15)",
+      "title": "Điều Khoản Bảo Vệ Dữ Liệu Cá Nhân (Luật số 91/2025/QH15)",
+      "showInMenu": true,
+      "updatedAt": "01/01/2026",
+      "intro": "Điều khoản này được xây dựng và áp dụng tuân thủ nghiêm ngặt Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 do Quốc hội thông qua ngày 26/6/2025 (có hiệu lực từ ngày 01/01/2026). Petjoy cam kết bảo đảm tối đa quyền và lợi ích hợp pháp của Quý khách hàng đối với dữ liệu cá nhân trong toàn bộ quá trình trải nghiệm dịch vụ 🐾",
+      "sections": [
+        {
+          "heading": "1. Khái niệm và nguyên tắc xử lý dữ liệu (Điều 1–3)",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Dữ liệu cá nhân là dữ liệu số hoặc thông tin dưới dạng ký hiệu, chữ viết, chữ số, hình ảnh, âm thanh hoặc dạng tương tự giúp xác định hoặc có thể xác định một con người cụ thể. Dữ liệu cá nhân bao gồm dữ liệu cơ bản và dữ liệu nhạy cảm theo danh mục do Chính phủ ban hành."
+            },
+            {
+              "type": "ul",
+              "items": [
+                "**Dữ liệu đã khử nhận dạng:** Dữ liệu đã qua quá trình xử lý kỹ thuật để không thể xác định danh tính chủ thể thì không còn được coi là dữ liệu cá nhân.",
+                "**Nguyên tắc hợp pháp & đúng mục đích:** Chỉ thu thập, xử lý đúng phạm vi và mục đích cụ thể, rõ ràng đã được thông báo trước cho chủ thể dữ liệu.",
+                "**Nguyên tắc chính xác & giới hạn lưu trữ:** Dữ liệu phải được cập nhật chính xác và chỉ lưu trữ trong thời hạn phù hợp với mục đích đã đăng ký hoặc theo quy định pháp luật.",
+                "**Phân định vai trò:** Petjoy đóng vai trò là Bên kiểm soát đồng thời là Bên xử lý dữ liệu cá nhân đối với thông tin khách hàng cung cấp trên nền tảng."
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "2. Quyền và nghĩa vụ của chủ thể dữ liệu (Điều 4)",
+          "blocks": [
+            {
+              "type": "h3",
+              "text": "2.1. Quyền của Quý khách hàng"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Quyền được biết về toàn bộ hoạt động xử lý dữ liệu cá nhân của mình.",
+                "Quyền đồng ý, không đồng ý hoặc rút lại sự đồng ý đã cung cấp bất kỳ lúc nào.",
+                "Quyền truy cập, xem, chỉnh sửa hoặc yêu cầu chỉnh sửa thông tin cá nhân.",
+                "Quyền yêu cầu cung cấp bản sao dữ liệu của mình dưới định dạng có thể đọc được.",
+                "Quyền yêu cầu xóa dữ liệu, hạn chế xử lý hoặc phản đối việc xử lý dữ liệu.",
+                "Quyền khiếu nại, tố cáo, khởi kiện và yêu cầu bồi thường thiệt hại theo quy định pháp luật khi có vi phạm."
+              ]
+            },
+            {
+              "type": "h3",
+              "text": "2.2. Nghĩa vụ của Quý khách hàng"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Tự bảo vệ dữ liệu cá nhân của mình; bảo mật thông tin tài khoản, mật khẩu và mã OTP.",
+                "Tôn trọng và bảo vệ dữ liệu cá nhân của người khác, không chia sẻ trái phép dữ liệu của bên thứ ba.",
+                "Cung cấp thông tin đầy đủ, chính xác khi thực hiện giao dịch hoặc gửi yêu cầu đổi trả, hoàn tiền."
+              ]
+            },
+            {
+              "type": "note",
+              "text": "Petjoy có trách nhiệm tiếp nhận và thực hiện các quyền của chủ thể dữ liệu trong thời hạn luật định (tối đa không quá 72 giờ làm việc kể từ khi nhận được yêu cầu hợp lệ)."
+            }
+          ]
+        },
+        {
+          "heading": "3. Các hành vi nghiêm cấm (Điều 7)",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Nghiêm cấm xử lý dữ liệu cá nhân trái với quy định của Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15.",
+                "Nghiêm cấm mua bán, chuyển giao trái phép dữ liệu cá nhân dưới mọi hình thức.",
+                "Nghiêm cấm chiếm đoạt, cố ý làm lộ, làm mất hoặc phá hủy dữ liệu cá nhân của khách hàng.",
+                "Nghiêm cấm sử dụng dữ liệu của người khác hoặc cho người khác mượn dữ liệu để thực hiện hành vi vi phạm pháp luật."
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "4. Chế tài và mức xử phạt vi phạm (Điều 8)",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Mọi hành vi vi phạm quy định về bảo vệ dữ liệu cá nhân tùy theo tính chất, mức độ sẽ bị xử phạt vi phạm hành chính hoặc truy cứu trách nhiệm hình sự:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "**Hành vi mua bán dữ liệu cá nhân:** Phạt tiền tối đa đến 10 lần tổng khoản thu có được từ hành vi vi phạm.",
+                "**Vi phạm chuyển dữ liệu xuyên biên giới:** Phạt tiền tối đa đến 5% tổng doanh thu năm trước liền kề của tổ chức vi phạm.",
+                "**Các hành vi vi phạm khác:** Phạt tiền tối đa đến 3 tỷ đồng đối với tổ chức (cá nhân vi phạm bị phạt tối đa bằng một nửa mức phạt của tổ chức).",
+                "Bên cạnh phạt tiền, bên vi phạm còn phải chịu các hình thức xử phạt bổ sung, buộc tiêu hủy dữ liệu và bồi thường toàn bộ thiệt hại thực tế phát sinh."
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "5. Xử lý dữ liệu và nguyên tắc đồng ý tự nguyện (Điều 9–18)",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "**Hiệu lực của sự đồng ý (Điều 9):** Sự đồng ý chỉ có hiệu lực khi Quý khách hoàn toàn tự nguyện và đã được thông báo đầy đủ về loại dữ liệu, mục đích xử lý, bên xử lý cùng các quyền và nghĩa vụ liên quan.",
+                "**Phương thức thể hiện:** Sự đồng ý phải được thể hiện qua hành động chủ động, rõ ràng, có thể kiểm chứng (ví dụ: đánh dấu vào ô checkbox đồng ý), và phải được đồng ý riêng biệt cho từng mục đích.",
+                "**Không ràng buộc dịch vụ:** Petjoy không áp đặt hoặc ép buộc khách hàng phải đồng ý chia sẻ dữ liệu cho các mục đích không thiết yếu để đổi lấy dịch vụ mua sắm cơ bản. Sự im lặng hoặc không phản hồi tuyệt đối không được coi là đồng ý.",
+                "**Rút lại sự đồng ý (Điều 10):** Quý khách có quyền rút lại sự đồng ý hoặc yêu cầu hạn chế xử lý bất cứ lúc nào thông qua tính năng trong trang cá nhân hoặc gửi yêu cầu văn bản/điện tử. Việc rút lại không ảnh hưởng đến tính hợp pháp của các hoạt động xử lý đã thực hiện trước đó.",
+                "**Quy trình kỹ thuật (Điều 11–18):** Mọi công đoạn thu thập, mã hóa, lưu trữ, chỉnh sửa, xóa/hủy, khử nhận dạng và cung cấp dữ liệu đều được quản lý tự động, ghi log và bảo vệ đa lớp."
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "6. Các trường hợp xử lý dữ liệu không cần sự đồng ý (Điều 19)",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Theo quy định tại Điều 19 Luật số 91/2025/QH15, Petjoy chỉ được phép xử lý dữ liệu mà không cần sự đồng ý trước của chủ thể trong các trường hợp ngoại lệ sau:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Trường hợp khẩn cấp, cấp bách nhằm bảo vệ tính mạng, sức khỏe của chủ thể dữ liệu hoặc người khác.",
+                "Trong tình trạng khẩn cấp về quốc phòng, an ninh quốc gia, trật tự an toàn xã hội, phòng chống tội phạm.",
+                "Theo yêu cầu của cơ quan quản lý nhà nước có thẩm quyền theo quy định của pháp luật.",
+                "Để thực hiện nghĩa vụ theo thỏa thuận hoặc hợp đồng đã xác lập với chủ thể dữ liệu (ví dụ: cung cấp tên, địa chỉ, số điện thoại cho đơn vị giao hàng để hoàn thành giao đơn hàng Quý khách đã đặt).",
+                "Petjoy duy trì cơ chế giám sát nghiêm ngặt: có quy trình kiểm soát nội bộ, đánh giá rủi ro định kỳ và kênh tiếp nhận phản ánh độc lập khi áp dụng điều khoản này."
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "7. Hồ sơ đánh giá tác động và thông báo vi phạm (Điều 20–23)",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "**Đánh giá tác động xử lý dữ liệu (Điều 21):** Petjoy thiết lập hồ sơ đánh giá tác động xử lý dữ liệu cá nhân và gửi cơ quan chuyên trách trong thời hạn 60 ngày kể từ khi tiến hành xử lý dữ liệu.",
+                "**Chuyển dữ liệu xuyên biên giới (Điều 20):** Khi sử dụng các dịch vụ hạ tầng điện toán đám mây hoặc công cụ quốc tế phục vụ vận hành, Petjoy lập hồ sơ đánh giá tác động riêng biệt và tuân thủ các quy định miễn trừ hợp pháp theo luật định.",
+                "**Cập nhật hồ sơ định kỳ (Điều 22):** Định kỳ 6 tháng hoặc khi có sự thay đổi lớn về cơ cấu tổ chức, công nghệ, Petjoy thực hiện rà soát và cập nhật hồ sơ lưu trữ.",
+                "**Thông báo sự cố an toàn dữ liệu (Điều 23):** Khi phát hiện nguy cơ lộ lọt dữ liệu hoặc dữ liệu bị xử lý sai mục đích, Petjoy sẽ lập biên bản sự cố, khắc phục khẩn cấp và thông báo ngay tới cơ quan chuyên trách cùng Quý khách hàng bị ảnh hưởng."
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "8. Bảo vệ dữ liệu đặc thù và tài chính (Điều 24–32)",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "**Bảo vệ dữ liệu trẻ em:** Nền tảng không chủ ý thu thập dữ liệu của trẻ vị thành niên nếu không có sự đồng ý của cha mẹ hoặc người đại diện hợp pháp.",
+                "**Dữ liệu tài khoản ngân hàng & hoàn tiền:** Khi Quý khách gửi yêu cầu đổi trả/hoàn tiền, thông tin tài khoản ngân hàng (tên ngân hàng, số tài khoản, tên chủ thẻ) chỉ được dùng duy nhất cho mục đích đối soát chuyển khoản tiền hoàn và được bảo mật tuyệt đối.",
+                "**Dữ liệu vị trí & định vị:** Chỉ được kích hoạt khi Quý khách cấp quyền để xác định địa chỉ nhận hàng hoặc cửa hàng gần nhất.",
+                "**Dữ liệu tuyển dụng & nhân sự:** Phân tách hoàn toàn với cơ sở dữ liệu khách hàng, chỉ thu thập thông tin cần thiết phục vụ tuyển dụng khi có sự đồng ý."
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "9. Tổ chức bảo vệ dữ liệu và trách nhiệm bồi thường (Điều 33–37)",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Petjoy thiết lập bộ phận chuyên trách bảo vệ dữ liệu cá nhân (DPO) theo Điều 33 Luật số 91/2025/QH15, chịu sự quản lý và phối hợp nghiệp vụ với Cơ quan chuyên trách thuộc Bộ Công an."
+            },
+            {
+              "type": "p",
+              "text": "Petjoy chịu trách nhiệm toàn diện trước Quý khách hàng về mọi thiệt hại phát sinh do lỗi vi phạm quy định bảo vệ dữ liệu, đồng thời ràng buộc các đối tác xử lý dữ liệu bằng hợp đồng bảo mật nghiêm ngặt (Điều 37)."
+            }
+          ]
+        },
+        {
+          "heading": "10. Hiệu lực thi hành và liên hệ (Điều 38–39)",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Điều khoản này có hiệu lực chính thức từ ngày 01/01/2026 đồng hành cùng Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15. Các hoạt động xử lý dữ liệu đã được Quý khách đồng ý trước đó được chuyển tiếp và tiếp tục bảo đảm theo tiêu chuẩn mới."
+            },
+            {
+              "type": "note",
+              "text": "Mọi yêu cầu thực hiện quyền chủ thể dữ liệu, phản ánh hoặc thắc mắc, Quý khách vui lòng liên hệ Bộ phận Bảo vệ Dữ liệu Cá nhân Petjoy qua email: hotro@petjoy.vn hoặc Hotline: 1900 xxxx (8h00 - 21h00 hàng ngày)."
+            }
           ]
         }
       ]

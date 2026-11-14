@@ -69,6 +69,7 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
  const [isSubmitting, setIsSubmitting] = useState(false);
  const [actionError, setActionError] = useState<string | null>(null);
  const [copied, setCopied] = useState(false);
+ const [agreedPrivacy, setAgreedPrivacy] = useState(true);
 
  function refreshOnConflict(error: unknown) {
   if (error instanceof StaffReturnApiError && error.status === 409) {
@@ -840,6 +841,29 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
           {req.bankAccount.accountHolder}
          </span>
         </div>
+       </div>
+
+       {/* Cam kết / Đồng ý chia sẻ dữ liệu cá nhân theo Luật số 91/2025/QH15 */}
+       <div className="pt-3 border-t border-blue-200/60 mt-1">
+        <label className="flex items-start gap-2.5 text-xs text-ink cursor-pointer select-none">
+         <input
+          type="checkbox"
+          checked={agreedPrivacy}
+          onChange={(e) => setAgreedPrivacy(e.target.checked)}
+          className="mt-0.5 h-4 w-4 rounded border-line text-brand focus:ring-brand accent-brand cursor-pointer"
+         />
+         <span className="leading-relaxed">
+          Tôi đồng ý chia sẻ dữ liệu cá nhân với cửa hàng theo{" "}
+          <Link
+           href="/policy/dieu-khoan-bao-ve-du-lieu-ca-nhan"
+           target="_blank"
+           className="text-brand font-semibold underline hover:text-brand-hover inline-flex items-center gap-0.5"
+          >
+           Điều khoản bảo vệ dữ liệu cá nhân
+          </Link>{" "}
+          (Luật số 91/2025/QH15).
+         </span>
+        </label>
        </div>
       </section>
      )}

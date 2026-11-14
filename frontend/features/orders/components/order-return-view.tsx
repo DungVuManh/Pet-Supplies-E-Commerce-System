@@ -6,7 +6,7 @@
 // =============================================================
 
 import Link from "next/link";
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import Image from "next/image";
 import { AccountSidebar } from "./account-sidebar";
 import { useOrderDetail } from "../hooks/use-order-detail";
@@ -79,6 +79,8 @@ export function OrderReturnView({ orderId = "" }: OrderReturnViewProps) {
     handleRemoveFile,
     submitReturn,
   } = useOrderReturn(orderId);
+
+  const [agreedPrivacy, setAgreedPrivacy] = useState(true);
 
   if (isOrderLoading) {
     return (
@@ -504,6 +506,29 @@ export function OrderReturnView({ orderId = "" }: OrderReturnViewProps) {
                 )}
               </div>
 
+              {/* Đồng ý chia sẻ dữ liệu cá nhân theo Luật số 91/2025/QH15 */}
+              <div className="pt-3 pb-1 border-t border-line">
+                <label className="flex items-start gap-2.5 text-xs text-ink cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={agreedPrivacy}
+                    onChange={(e) => setAgreedPrivacy(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-line text-brand focus:ring-brand accent-brand cursor-pointer"
+                  />
+                  <span className="leading-relaxed">
+                    Tôi đồng ý chia sẻ dữ liệu cá nhân với cửa hàng theo{" "}
+                    <Link
+                      href="/policy/dieu-khoan-bao-ve-du-lieu-ca-nhan"
+                      target="_blank"
+                      className="text-brand font-semibold underline hover:text-brand-hover inline-flex items-center gap-0.5"
+                    >
+                      Điều khoản bảo vệ dữ liệu cá nhân
+                    </Link>{" "}
+                    (Luật số 91/2025/QH15).
+                  </span>
+                </label>
+              </div>
+
               {/* Actions */}
               <div className="pt-4 border-t border-line flex flex-col sm:flex-row items-center justify-end gap-3">
                 <Link
@@ -515,7 +540,7 @@ export function OrderReturnView({ orderId = "" }: OrderReturnViewProps) {
                 <button
                   type="button"
                   onClick={submitReturn}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !agreedPrivacy}
                   className="w-full sm:w-auto inline-flex items-center justify-center min-h-11 px-6 rounded-lg bg-brand text-on-brand text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-all shadow-sm cursor-pointer"
                 >
                   {isUploading ? (
