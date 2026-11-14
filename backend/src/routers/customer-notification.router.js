@@ -1,9 +1,12 @@
 import { Router } from "express";
-import { readCookies, requireAuth } from "../common/middlewares/auth.middleware.js";
 import {
-  getCustomerNotifications,
-  markAllNotificationsAsRead,
-  markNotificationAsRead,
+ readCookies,
+ requireAuth,
+} from "../common/middlewares/auth.middleware.js";
+import {
+ getCustomerNotifications,
+ markAllNotificationsAsRead,
+ markNotificationAsRead,
 } from "../controllers/customer-notification.controller.js";
 
 const router = Router();
@@ -17,4 +20,3 @@ router.patch("/:id/read", markNotificationAsRead);
 router.post("/read-all", markAllNotificationsAsRead);
 
 export default router;
-

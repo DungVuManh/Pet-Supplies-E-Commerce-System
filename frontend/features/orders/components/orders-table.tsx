@@ -12,10 +12,54 @@ import type { CustomerOrder } from "../types";
 type OrdersTableProps = {
   orders: CustomerOrder[];
   totalOrders: number;
+  totalFilteredOrders?: number;
+  currentPage?: number;
+  totalPages?: number;
+  pageSize?: number;
+  onPageChange?: (page: number) => void;
 };
 
 function formatVND(value: number): string {
   return value.toLocaleString("vi-VN") + " đ";
+}
+
+// Hàm tính toán các trang cần hiển thị trên thanh phân trang
+function getPaginationItems(
+  currentPage: number,
+  totalPages: number,
+): (number | string)[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  // Ở gần đầu: 1 2 3 4 5 ... totalPages
+  if (currentPage <= 4) {
+    return [1, 2, 3, 4, 5, "...", totalPages];
+  }
+
+  // Ở gần cuối: 1 ... (totalPages - 4) ... totalPages
+  if (currentPage >= totalPages - 3) {
+    return [
+      1,
+      "...",
+      totalPages - 4,
+      totalPages - 3,
+      totalPages - 2,
+      totalPages - 1,
+      totalPages,
+    ];
+  }
+
+  // Ở giữa: 1 ... (c - 1) c (c + 1) ... totalPages
+  return [
+    1,
+    "...",
+    currentPage - 1,
+    currentPage,
+    currentPage + 1,
+    "...",
+    totalPages,
+  ];
 }
 
 // Hàm render màu sắc badge trạng thái
@@ -60,7 +104,20 @@ function renderStatusBadge(status: CustomerOrder["status"], label: string) {
   }
 }
 
-export function OrdersTable({ orders, totalOrders }: OrdersTableProps) {
+export function OrdersTable({
+  orders,
+  totalOrders,
+  totalFilteredOrders,
+  currentPage = 1,
+  totalPages = 1,
+  pageSize = 10,
+  onPageChange,
+}: OrdersTableProps) {
+  const totalFilteredCount = totalFilteredOrders ?? orders.length;
+  const startIndex = totalFilteredCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endIndex = Math.min(currentPage * pageSize, totalFilteredCount);
+  const paginationItems = getPaginationItems(currentPage, totalPages);
+
   return (
     <div className="rounded-2xl border border-line bg-surface overflow-hidden shadow-sm">
       {/* Header bảng */}
@@ -127,14 +184,77 @@ export function OrdersTable({ orders, totalOrders }: OrdersTableProps) {
         </div>
       )}
 
-      {/* Footer bảng */}
-      <div className="flex items-center justify-between px-6 py-4 border-t border-line text-xs text-muted bg-gray-50/30">
-        <span>
-          Hiển thị {orders.length} trong {totalOrders} đơn hàng
-        </span>
-        <span className="rounded-md border border-line bg-surface px-2.5 py-1 text-xs font-medium text-ink">
-          Trang 1 / 1
-        </span>
+      {/* Footer bảng & phân trang */}
+      <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-line text-xs text-muted bg-gray-50/30 gap-4">
+        <div>
+          {totalFilteredCount === 0 ? (
+            <span>Không có đơn hàng nào</span>
+          ) : (
+            <span>
+              Hiển thị <span className="font-semibold text-ink">{startIndex} - {endIndex}</span> trong tổng số{" "}
+              <span className="font-semibold text-ink">{totalFilteredCount}</span> đơn hàng
+            </span>
+          )}
+        </div>
+
+        {totalPages > 1 && onPageChange ? (
+          <nav aria-label="Phân trang đơn hàng" className="flex items-center gap-1.5">
+            {/* Nút Trước */}
+            <button
+              type="button"
+              disabled={currentPage <= 1}
+              onClick={() => onPageChange(currentPage - 1)}
+              className="px-3 py-1.5 rounded-lg border border-line bg-surface text-xs font-medium text-ink hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              ← Trước
+            </button>
+
+            {/* Các trang */}
+            {paginationItems.map((item, idx) => {
+              if (typeof item === "string") {
+                return (
+                  <span
+                    key={`ellipsis-${idx}`}
+                    className="flex items-center justify-center min-w-8 px-1.5 py-1.5 text-xs text-muted font-medium select-none"
+                  >
+                    ...
+                  </span>
+                );
+              }
+
+              const isCurrent = item === currentPage;
+              return (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => onPageChange(item)}
+                  aria-current={isCurrent ? "page" : undefined}
+                  className={`min-w-8 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${
+                    isCurrent
+                      ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                      : "border-line bg-surface text-ink hover:bg-slate-100"
+                  }`}
+                >
+                  {item}
+                </button>
+              );
+            })}
+
+            {/* Nút Sau */}
+            <button
+              type="button"
+              disabled={currentPage >= totalPages}
+              onClick={() => onPageChange(currentPage + 1)}
+              className="px-3 py-1.5 rounded-lg border border-line bg-surface text-xs font-medium text-ink hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Sau →
+            </button>
+          </nav>
+        ) : (
+          <span className="rounded-md border border-line bg-surface px-2.5 py-1 text-xs font-medium text-ink">
+            Trang {currentPage} / {totalPages}
+          </span>
+        )}
       </div>
     </div>
   );

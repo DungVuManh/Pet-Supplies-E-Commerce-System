@@ -3,11 +3,14 @@
 // Hook xử lý logic cho trang "Đơn hàng của tôi"
 // - Gọi API lấy danh sách đơn hàng từ backend (useEffect)
 // - Lọc theo tab trạng thái và từ khóa tìm kiếm
+// - Phân trang 10 đơn hàng / trang
 // =============================================================
 
 import { useEffect, useMemo, useState } from "react";
 import { getMyOrdersApi } from "../services/order.service";
 import type { CustomerOrder, CustomerOrderStatus } from "../types";
+
+export const ORDERS_PAGE_SIZE = 10;
 
 export function useOrdersPage() {
   // Danh sách đơn hàng thực từ API
@@ -18,6 +21,13 @@ export function useOrdersPage() {
   // Trạng thái tab đang chọn và từ khóa tìm kiếm
   const [activeStatus, setActiveStatus] = useState<CustomerOrderStatus>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = ORDERS_PAGE_SIZE;
+
+  // Tự động chuyển về trang 1 khi đổi tab hoặc đổi từ khóa tìm kiếm
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeStatus, searchQuery]);
 
   // Gọi API khi vào trang lần đầu
   useEffect(() => {
@@ -68,15 +78,40 @@ export function useOrdersPage() {
     });
   }, [orders, activeStatus, searchQuery]);
 
+  // Tổng số đơn sau lọc & tổng số trang
+  const totalFilteredOrders = filteredOrders.length;
+  const totalPages = Math.max(1, Math.ceil(totalFilteredOrders / pageSize));
+
+  // Đảm bảo currentPage không vượt quá totalPages nếu danh sách bị thu hẹp
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  // Cắt danh sách đơn hàng hiển thị theo trang
+  const paginatedOrders = useMemo(() => {
+    const startIndex = (safeCurrentPage - 1) * pageSize;
+    return filteredOrders.slice(startIndex, startIndex + pageSize);
+  }, [filteredOrders, safeCurrentPage, pageSize]);
+
+  const goToPage = (page: number) => {
+    const targetPage = Math.max(1, Math.min(page, totalPages));
+    setCurrentPage(targetPage);
+  };
+
   return {
     isLoading,
     error,
+    orders: paginatedOrders,
     filteredOrders,
+    paginatedOrders,
     counts,
     activeStatus,
     setActiveStatus,
     searchQuery,
     setSearchQuery,
     totalOrders: orders.length,
+    totalFilteredOrders,
+    currentPage: safeCurrentPage,
+    totalPages,
+    pageSize,
+    goToPage,
   };
 }

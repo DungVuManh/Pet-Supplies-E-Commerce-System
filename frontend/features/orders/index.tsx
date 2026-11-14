@@ -16,17 +16,22 @@ import { ChevronRight } from "lucide-react";
 
 
 export function OrdersView() {
-  // Lấy toàn bộ logic từ hook: gọi API, lọc, đếm, loading...
+  // Lấy toàn bộ logic từ hook: gọi API, lọc, đếm, loading, phân trang...
   const {
     isLoading,
     error,
-    filteredOrders,
+    paginatedOrders,
     counts,
     activeStatus,
     setActiveStatus,
     searchQuery,
     setSearchQuery,
     totalOrders,
+    totalFilteredOrders,
+    currentPage,
+    totalPages,
+    pageSize,
+    goToPage,
   } = useOrdersPage();
 
   return (
@@ -88,8 +93,13 @@ export function OrdersView() {
             </div>
           ) : (
             <OrdersTable
-              orders={filteredOrders}
+              orders={paginatedOrders}
               totalOrders={totalOrders}
+              totalFilteredOrders={totalFilteredOrders}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              onPageChange={goToPage}
             />
           )}
         </div>
