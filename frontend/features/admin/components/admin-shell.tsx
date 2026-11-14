@@ -4,9 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type FormEvent, type ReactNode } from "react";
 import {
-  Bell, ChartNoAxesCombined, Database, LayoutGrid, ListTree, Package, PawPrint, RotateCcw, Search, Settings, ShoppingBag, Users, Warehouse,
+  Bell, ChartNoAxesCombined, LayoutGrid, ListTree, MessageSquareText, Package, Search, Settings, ShoppingBag, Tag, TicketPercent, Users, Warehouse,
   type LucideIcon,
 } from "lucide-react";
+import { Logo as PetjoyLogo } from "@/components/ui/logo";
 import { AccountMenu } from "@/features/auth/components/account-menu";
 
 const nav: { href: string; label: string; icon: LucideIcon }[] = [
@@ -14,9 +15,10 @@ const nav: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/admin/users", label: "Người dùng", icon: Users },
   { href: "/admin/products", label: "Sản phẩm", icon: Package },
   { href: "/admin/categories", label: "Danh mục", icon: ListTree },
-  { href: "/admin/master-data", label: "Dữ liệu nền", icon: Database },
+  { href: "/admin/brands", label: "Thương hiệu", icon: Tag },
   { href: "/admin/orders", label: "Đơn hàng", icon: ShoppingBag },
-  { href: "/admin/cancellations", label: "Yêu cầu hủy", icon: RotateCcw },
+  { href: "/admin/reviews", label: "Đánh giá", icon: MessageSquareText },
+  { href: "/admin/vouchers", label: "Voucher", icon: TicketPercent },
   { href: "/admin/inventory", label: "Kho hàng", icon: Warehouse },
   { href: "/admin/reports", label: "Báo cáo", icon: ChartNoAxesCombined },
   { href: "/admin/notifications", label: "Thông báo", icon: Bell },
@@ -28,9 +30,9 @@ function isActive(pathname: string, href: string) {
 }
 
 function Logo() {
-  return <Link href="/admin/dashboard" className="inline-flex items-center gap-2 text-[26px] font-bold tracking-[-0.5px] text-brand">
-    <PawPrint className="h-6 w-6" strokeWidth={1.8} aria-hidden="true" />petly
-  </Link>;
+  return <div className="flex items-center gap-2">
+    <PetjoyLogo href="/admin/dashboard" size="md" />
+  </div>;
 }
 
 function GlobalSearch() {
@@ -68,11 +70,14 @@ export function AdminShell({ children }: { children: ReactNode }) {
     <div className="min-w-0">
       <header className="sticky top-0 z-30 border-b border-line bg-surface">
         <div className="flex min-h-20 items-center gap-6 px-4 sm:px-8">
-          <Link href="/admin/dashboard" className="shrink-0 text-xl font-bold tracking-[-0.5px] text-brand">petly / admin</Link>
+          <div className="flex shrink-0 items-center gap-2">
+            <PetjoyLogo href="/admin/dashboard" size="sm" />
+            <span className="text-sm font-semibold text-brand">/ admin</span>
+          </div>
           <GlobalSearch />
           <div className="ml-auto flex shrink-0 items-center gap-4 sm:gap-8">
             <Link href="/admin/notifications" className="hidden text-brand hover:underline sm:inline">Thông báo</Link>
-            <a href="mailto:support@petly.vn" className="hidden hover:text-brand sm:inline">Hỗ trợ</a>
+            <a href="mailto:support@petjoy.vn" className="hidden hover:text-brand sm:inline">Hỗ trợ</a>
             <AccountMenu roleLabel="Admin" />
           </div>
         </div>

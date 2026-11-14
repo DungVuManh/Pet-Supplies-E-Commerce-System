@@ -1,36 +1,184 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Package, XCircle } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Download, Loader2, Package, XCircle } from "lucide-react";
 import { AdminPageHeader, StatusBadge, Stack, Td, Th } from "./admin-ui";
-import { ActionLink, Badge, ListState, listStatePill, Pagination, TabNav, card, control } from "@/features/workspace/components/workspace-ui";
-import { DemoNotice } from "@/features/workspace/components/demo-notice";
-import { useListState } from "@/features/workspace/components/use-list-state";
 import {
-  filterStockHistory,
-  filterStockLevels,
-  getStockWarning,
-  isLowStock,
-  stockHistory,
-  stockLevels,
-} from "../mock/inventory";
-
+  ActionLink,
+  Badge,
+  ListState,
+  listStatePill,
+  Pagination,
+  TabNav,
+  card,
+  control,
+  secondaryButton,
+} from "@/components/workspace/workspace-ui";
+import { downloadExcelCsv } from "../utils/export-excel";
+import { DemoNotice } from "@/components/workspace/demo-notice";
+import { useListState } from "@/components/workspace/use-list-state";
 
 type InventoryTab = "all" | "low" | "history";
 
+interface InventoryItem {
+  sku: string;
+  name: string;
+  category?: string;
+  brand?: string;
+  available: number;
+  threshold?: number;
+  unit?: string;
+  status?: string;
+}
+
+interface PaginationMeta {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
 export function InventoryView() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const forcedState = useListState();
 
-  const [activeTab, setActiveTab] = useState<InventoryTab>("all");
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("Tất cả");
+  const urlQuery =
+    searchParams?.get("q") ||
+    searchParams?.get("query") ||
+    searchParams?.get("search") ||
+    "";
+  const urlStatus = searchParams?.get("status") || "";
 
-  // Tab change
+  const [activeTab, setActiveTab] = useState<InventoryTab>(() => {
+    return urlStatus === "low" ? "low" : "all";
+  });
+  const [search, setSearch] = useState<string>(urlQuery);
+  const [debouncedSearch, setDebouncedSearch] = useState<string>(urlQuery);
+  const [statusFilter, setStatusFilter] = useState<string>(() => {
+    if (urlStatus === "low") return "Sắp hết";
+    if (urlStatus === "available") return "Đủ hàng";
+    if (urlStatus === "out") return "Hết hàng";
+    return "Tất cả";
+  });
+
+  // State phân trang (mỗi trang 6 sản phẩm)
+  const [page, setPage] = useState<number>(1);
+  const [pageSize] = useState<number>(6);
+  const [pagination, setPagination] = useState<PaginationMeta>({
+    page: 1,
+    pageSize: 6,
+    total: 0,
+    totalPages: 0,
+  });
+
+  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Debounce gọi API khi nhập từ khóa tìm kiếm (300ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Đồng bộ khi URL search params thay đổi (ví dụ click từ trang thông báo)
+  useEffect(() => {
+    const q =
+      searchParams?.get("q") ||
+      searchParams?.get("query") ||
+      searchParams?.get("search");
+    if (q !== null && q !== undefined && q !== search) {
+      setSearch(q);
+      setDebouncedSearch(q);
+      setPage(1);
+    }
+  }, [searchParams]);
+
+  // Gọi API thực tế từ Backend
+  const fetchInventoryData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const queryParams = new URLSearchParams();
+      const trimmedQuery = debouncedSearch.trim();
+      if (trimmedQuery) {
+        queryParams.set("query", trimmedQuery);
+        queryParams.set("q", trimmedQuery);
+      }
+
+      let apiStatus = "all";
+      if (statusFilter === "Đủ hàng") apiStatus = "available";
+      if (statusFilter === "Sắp hết" || activeTab === "low") apiStatus = "low";
+      if (statusFilter === "Hết hàng") apiStatus = "out";
+
+      if (apiStatus !== "all") {
+        queryParams.set("status", apiStatus);
+      }
+
+      queryParams.set("page", page.toString());
+      queryParams.set("pageSize", pageSize.toString());
+
+      const res = await fetch(
+        `/api/v1/admin/inventory?${queryParams.toString()}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+          },
+          credentials: "same-origin",
+          cache: "no-store",
+        },
+      );
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.push("/login");
+          return;
+        }
+        throw new Error("Không thể tải dữ liệu từ máy chủ");
+      }
+
+      const json = await res.json();
+      setItems(json.data?.items || []);
+      if (json.data?.pagination) {
+        setPagination(json.data.pagination);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Đã xảy ra lỗi kết nối");
+    } finally {
+      setLoading(false);
+    }
+  }, [debouncedSearch, statusFilter, activeTab, page, pageSize, router]);
+
+  useEffect(() => {
+    fetchInventoryData();
+  }, [fetchInventoryData]);
+
+  // Nhập từ khóa tìm kiếm: cập nhật input ngay lập tức và reset về trang 1
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  // Nhấn Enter trong ô tìm kiếm: kích hoạt tìm kiếm ngay mà không cần chờ debounce
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      setDebouncedSearch(search);
+    }
+  };
+
+  // Chọn Tab
   const handleTabSelect = (tab: InventoryTab) => {
     setActiveTab(tab);
+    setPage(1);
     if (tab === "low") {
       setStatusFilter("Sắp hết");
     } else if (statusFilter === "Sắp hết" && tab === "all") {
@@ -38,9 +186,10 @@ export function InventoryView() {
     }
   };
 
-  // Status dropdown change
+  // Chọn Dropdown trạng thái
   const handleStatusChange = (val: string) => {
     setStatusFilter(val);
+    setPage(1);
     if (val === "Sắp hết" && activeTab !== "history") {
       setActiveTab("low");
     } else if (val === "Tất cả" && activeTab === "low") {
@@ -48,58 +197,162 @@ export function InventoryView() {
     }
   };
 
-  // Reset filters
+  // Reset bộ lọc
   const resetFilters = () => {
     setSearch("");
+    setDebouncedSearch("");
     setStatusFilter("Tất cả");
     setActiveTab("all");
+    setPage(1);
   };
 
-  // Filtered stock list
-  const filteredStock = useMemo(() => {
-    return filterStockLevels(stockLevels, {
-      search,
-      status: statusFilter,
-      lowStockOnly: activeTab === "low",
-    });
-  }, [search, statusFilter, activeTab]);
+  // Helper hiển thị nhãn cảnh báo dựa trên status do Backend tính
+  const getStockWarningStatus = (item: InventoryItem) => {
+    if (item.status === "out" || (item.available ?? 0) <= 0) return "Hết hàng";
+    if (item.status === "low") return "Sắp hết";
+    if (item.status === "available") return "Đủ hàng";
 
-  // Filtered history list
-  const filteredHistory = useMemo(() => {
-    return filterStockHistory(stockHistory, search);
-  }, [search]);
+    const available = item.available ?? 0;
+    const threshold = item.threshold ?? 20;
+    if (available <= threshold) return "Sắp hết";
+    return "Đủ hàng";
+  };
 
-  const isEmpty = forcedState === "empty" || (activeTab === "history" ? filteredHistory.length === 0 : filteredStock.length === 0);
+  const showInitialLoading =
+    forcedState === "loading" || (loading && items.length === 0);
+  const isCurrentError =
+    forcedState === "error" || (!!error && items.length === 0);
+  const isEmpty =
+    forcedState === "empty" || (!loading && !error && items.length === 0);
 
   const tabs = [
-    { label: "Tất cả sản phẩm", active: activeTab === "all", onSelect: () => handleTabSelect("all") },
-    { label: "Sắp hết hàng", active: activeTab === "low", onSelect: () => handleTabSelect("low") },
-    { label: "Lịch sử nhập xuất", active: activeTab === "history", onSelect: () => handleTabSelect("history") },
+    {
+      label: "Tất cả sản phẩm",
+      active: activeTab === "all",
+      onSelect: () => handleTabSelect("all"),
+    },
+    {
+      label: "Sắp hết hàng",
+      active: activeTab === "low",
+      onSelect: () => handleTabSelect("low"),
+    },
   ];
 
-  const exportAction = forcedState === "loading" ? (
-    <button
-      type="button"
-      disabled
-      className="inline-flex min-h-10 items-center justify-center rounded-lg bg-brand px-6 font-semibold text-white opacity-40"
-    >
-      + Tạo phiếu nhập
-    </button>
-  ) : (
-    <DemoNotice
-      label="+ Tạo phiếu nhập"
-      variant="primary"
-      message="Chức năng tạo phiếu nhập kho chưa kết nối backend."
-    />
-  );
+
+
+  const [isExporting, setIsExporting] = useState<boolean>(false);
+
+  const handleExportExcel = async () => {
+    try {
+      setIsExporting(true);
+      let itemsToExport = items;
+
+      try {
+        const queryParams = new URLSearchParams();
+        const trimmedQuery = debouncedSearch.trim();
+        if (trimmedQuery) {
+          queryParams.set("query", trimmedQuery);
+          queryParams.set("q", trimmedQuery);
+        }
+
+        let apiStatus = "all";
+        if (statusFilter === "Đủ hàng") apiStatus = "available";
+        if (statusFilter === "Sắp hết" || activeTab === "low") apiStatus = "low";
+        if (statusFilter === "Hết hàng") apiStatus = "out";
+
+        if (apiStatus !== "all") {
+          queryParams.set("status", apiStatus);
+        }
+
+        queryParams.set("page", "1");
+        queryParams.set("pageSize", "5000");
+
+        const res = await fetch(`/api/v1/admin/inventory?${queryParams.toString()}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+          },
+          credentials: "same-origin",
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.data?.items && Array.isArray(json.data.items)) {
+            itemsToExport = json.data.items;
+          }
+        }
+      } catch {
+        // Fallback vào items hiện tại nếu API gặp sự cố mạng
+      }
+
+      if (itemsToExport.length === 0) {
+        alert("Không có dữ liệu tồn kho để xuất.");
+        return;
+      }
+
+      const today = new Date();
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const dateStr = `${pad(today.getDate())}/${pad(today.getMonth() + 1)}/${today.getFullYear()}`;
+
+      downloadExcelCsv({
+        filename: `Bao_cao_ton_kho_${today.toISOString().slice(0, 10)}`,
+        title: "BẢNG QUẢN LÝ TỒN KHO HÀNG HÓA",
+        period: `Ngày xuất: ${dateStr}`,
+        sections: [
+          {
+            headers: [
+              "Mã SKU",
+              "Tên sản phẩm",
+              "Danh mục",
+              "Thương hiệu",
+              "Số lượng khả dụng",
+              "Đơn vị tính",
+              "Định mức tối thiểu",
+              "Trạng thái tồn kho",
+            ],
+            rows: itemsToExport.map((item) => [
+              item.sku,
+              item.name,
+              item.category || "---",
+              item.brand || "---",
+              Math.max(0, item.available ?? 0),
+              item.unit || "cái",
+              item.threshold ?? 20,
+              getStockWarningStatus(item),
+            ]),
+          },
+        ],
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const fromIndex = pagination.total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const toIndex = Math.min(page * pageSize, pagination.total);
 
   return (
     <div className="space-y-6">
       <AdminPageHeader
         breadcrumbs={["Kho hàng", "Danh sách tồn kho"]}
         title="Danh sách tồn kho"
-        subtitle="Kho TP. Hồ Chí Minh · Quản lý số lượng và ngưỡng cảnh báo."
-        actions={exportAction}
+        subtitle="Quản lý số lượng và ngưỡng cảnh báo."
+        actions={
+          <button
+            type="button"
+            onClick={handleExportExcel}
+            disabled={isExporting || (loading && items.length === 0)}
+            className={`${secondaryButton} h-12 flex items-center gap-2`}
+          >
+            {isExporting ? (
+              <Loader2 className="h-4 w-4 animate-spin text-brand" aria-hidden="true" />
+            ) : (
+              <Download className="h-4 w-4" aria-hidden="true" />
+            )}
+            <span>{isExporting ? "Đang xuất..." : "Xuất bảng Excel"}</span>
+          </button>
+        }
       />
 
       <TabNav items={tabs} label="Chế độ xem kho hàng" />
@@ -111,7 +364,9 @@ export function InventoryView() {
           <h2 className="text-xl font-semibold">Quản lý tồn kho</h2>
           <div>
             {forcedState ? (
-              <Badge tone={listStatePill[forcedState].tone}>{listStatePill[forcedState].label}</Badge>
+              <Badge tone={listStatePill[forcedState].tone}>
+                {listStatePill[forcedState].label}
+              </Badge>
             ) : isEmpty ? (
               <Badge tone="neutral">Rỗng</Badge>
             ) : null}
@@ -128,8 +383,9 @@ export function InventoryView() {
               id="inventory-search"
               type="search"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Nhập từ khóa tìm kiếm"
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              placeholder="Nhập từ khóa tìm kiếm (SKU, Tên sản phẩm...)"
               disabled={forcedState === "loading"}
               className={control}
             />
@@ -154,8 +410,8 @@ export function InventoryView() {
           </div>
         </div>
 
-        {/* Card Body depending on forcedState / real data */}
-        {forcedState === "loading" ? (
+        {/* Card Body */}
+        {showInitialLoading ? (
           <>
             <div className="p-6">
               <ListState
@@ -166,21 +422,23 @@ export function InventoryView() {
               />
             </div>
             <div className="border-t border-line px-6 py-4 text-xs text-muted">
-              Đang đồng bộ · Vui lòng chờ trong giây lát
+              Đang đồng bộ từ máy chủ · Vui lòng chờ trong giây lát
             </div>
           </>
-        ) : forcedState === "error" ? (
+        ) : isCurrentError ? (
           <>
             <div className="p-6">
               <ListState
                 kind="error"
                 icon={<XCircle className="h-12 w-12 text-danger stroke-1" />}
                 title="Không thể tải dữ liệu tồn kho"
-                description="Kết nối đến hệ thống bị gián đoạn. Bộ lọc của bạn được giữ lại. Kiểm tra kết nối và thử lại."
+                description={
+                  error || "Kết nối đến hệ thống bị gián đoạn. Thử lại sau."
+                }
                 action={
                   <button
                     type="button"
-                    onClick={() => router.push("/admin/inventory")}
+                    onClick={fetchInventoryData}
                     className="inline-flex min-h-10 items-center justify-center rounded-lg bg-brand px-6 font-semibold text-white hover:bg-brand-hover"
                   >
                     Thử lại
@@ -200,9 +458,9 @@ export function InventoryView() {
                 icon={<Package className="h-12 w-12 text-muted stroke-1" />}
                 title="Không tìm thấy sản phẩm"
                 description={
-                  search
-                    ? `Không có sản phẩm khớp SKU "${search}" tại kho TP. Hồ Chí Minh. Xóa bộ lọc để xem toàn bộ tồn kho.`
-                    : "Không có sản phẩm nào khớp với điều kiện lọc tại kho TP. Hồ Chí Minh. Xóa bộ lọc để xem toàn bộ tồn kho."
+                  debouncedSearch
+                    ? `Không có sản phẩm khớp từ khóa "${debouncedSearch}". Xóa bộ lọc để xem toàn bộ.`
+                    : "Không có sản phẩm nào khớp với điều kiện lọc."
                 }
                 action={
                   <button
@@ -219,61 +477,14 @@ export function InventoryView() {
               0 kết quả · Bộ lọc hiện tại được giữ nguyên
             </div>
           </>
-        ) : activeTab === "history" ? (
-          <>
-            {/* History Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] border-collapse text-left">
-                <caption className="sr-only">Lịch sử nhập xuất kho hàng</caption>
-                <thead className="bg-canvas text-xs uppercase text-muted">
-                  <tr>
-                    <Th className="w-48">Mã phiếu / Thời gian</Th>
-                    <Th>Sản phẩm</Th>
-                    <Th className="w-36">Loại phiếu</Th>
-                    <Th className="w-32">Số lượng</Th>
-                    <Th>Ghi chú / Người thực hiện</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredHistory.map((entry) => (
-                    <tr key={entry.id} className="hover:bg-canvas/50">
-                      <Td>
-                        <Stack primary={entry.id} secondary={entry.date} strong />
-                      </Td>
-                      <Td>
-                        <Stack primary={entry.productName} secondary={`SKU: ${entry.sku}`} />
-                      </Td>
-                      <Td>
-                        <Badge tone={entry.type === "Nhập kho" ? "info" : "warning"}>
-                          {entry.type}
-                        </Badge>
-                      </Td>
-                      <Td className="font-semibold tabular-nums">
-                        <span className={entry.quantity > 0 ? "text-success" : "text-ink"}>
-                          {entry.quantity > 0 ? `+${entry.quantity}` : entry.quantity}
-                        </span>
-                      </Td>
-                      <Td>
-                        <Stack primary={entry.note} secondary={entry.performer} />
-                      </Td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <Pagination
-              from={1}
-              to={filteredHistory.length}
-              total={filteredHistory.length}
-            />
-          </>
         ) : (
-          <>
-            {/* Populated Stock Table */}
+          <div className={loading ? "opacity-60 transition-opacity" : "transition-opacity"}>
+            {/* Table */}
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] border-collapse text-left">
-                <caption className="sr-only">Danh sách tồn kho sản phẩm</caption>
+                <caption className="sr-only">
+                  Danh sách tồn kho sản phẩm
+                </caption>
                 <thead className="bg-canvas text-xs uppercase text-muted">
                   <tr>
                     <Th className="w-44">SKU / Ngưỡng</Th>
@@ -284,57 +495,85 @@ export function InventoryView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredStock.map((item) => (
-                    <tr key={item.sku} className="hover:bg-canvas/50">
-                      <Td>
-                        <Link
-                          href={`/admin/products/${item.sku}`}
-                          className="font-semibold text-brand hover:underline"
-                        >
-                          {item.sku}
-                        </Link>
-                        <p className="mt-1 text-xs text-muted">Tối thiểu: {item.threshold}</p>
-                      </Td>
-                      <Td>
-                        <Stack primary={item.name} secondary={`${item.category} · ${item.brand}`} />
-                      </Td>
-                      <Td className="font-semibold tabular-nums">
-                        <span className={isLowStock(item) ? "text-warning" : ""}>
-                          {item.available} {item.unit}
-                        </span>
-                      </Td>
-                      <Td>
-                        <StatusBadge status={getStockWarning(item)} />
-                      </Td>
-                      <Td>
-                        <ActionLink href={`/admin/products/${item.sku}`}>Chi tiết</ActionLink>
-                      </Td>
-                    </tr>
-                  ))}
+                  {items.map((item) => {
+                    const threshold = item.threshold ?? 20;
+                    const available = item.available ?? 0;
+
+                    const isLowStock = item.status === "low";
+                    const isOutOfStock =
+                      item.status === "out" || available <= 0;
+
+                    return (
+                      <tr key={item.sku} className="hover:bg-canvas/50">
+                        <Td>
+                          <Link
+                            href={`/admin/products/${item.sku}`}
+                            className="font-semibold text-brand hover:underline"
+                          >
+                            {item.sku}
+                          </Link>
+                          <p className="mt-1 text-xs text-muted">
+                            Tối thiểu: {threshold}
+                          </p>
+                        </Td>
+
+                        <Td>
+                          <Stack
+                            primary={item.name}
+                            secondary={`${item.category || "---"} · ${item.brand || "---"}`}
+                          />
+                        </Td>
+
+                        <Td className="font-semibold tabular-nums">
+                          <span
+                            className={
+                              isOutOfStock
+                                ? "text-danger"
+                                : isLowStock
+                                  ? "text-warning"
+                                  : "text-ink"
+                            }
+                          >
+                            {Math.max(0, available)} {item.unit || "cái"}
+                          </span>
+                        </Td>
+
+                        <Td>
+                          <StatusBadge status={getStockWarningStatus(item)} />
+                        </Td>
+
+                        <Td>
+                          <ActionLink href={`/admin/products/${item.sku}`}>
+                            Chi tiết
+                          </ActionLink>
+                        </Td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
 
             <Pagination
-              from={1}
-              to={filteredStock.length}
-              total={filteredStock.length}
+              from={fromIndex}
+              to={toIndex}
+              total={pagination.total}
+              page={page}
+              pages={pagination.totalPages}
+              onPage={(newPage) => setPage(newPage)}
             />
-          </>
+          </div>
         )}
       </section>
 
-      {/* Page Footnote matching Inventory.png */}
       <footer className="text-xs text-muted">
-        {forcedState === "loading" ? (
-          "Đang đối chiếu dữ liệu nhập – xuất – tồn. Vui lòng không đóng trang."
-        ) : forcedState === "error" ? (
-          "Không có thay đổi số lượng tồn kho. Liên hệ support@petly.vn nếu lỗi tiếp tục xảy ra."
-        ) : isEmpty ? (
-          "Không có kết quả cho bộ lọc hiện tại. Dữ liệu tồn kho vẫn được giữ nguyên."
-        ) : (
-          "Kho TP. Hồ Chí Minh · Cập nhật theo thời gian thực mỗi khi có đơn xuất hoặc phiếu nhập."
-        )}
+        {showInitialLoading
+          ? "Đang đối chiếu dữ liệu nhập – xuất – tồn. Vui lòng không đóng trang."
+          : isCurrentError
+            ? "Không có thay đổi số lượng tồn kho. Liên hệ support@petjoy.vn nếu lỗi tiếp tục xảy ra."
+            : isEmpty
+              ? "Không có kết quả cho bộ lọc hiện tại. Dữ liệu tồn kho vẫn được giữ nguyên."
+              : "Kho TP. Hồ Chí Minh · Cập nhật theo thời gian thực mỗi khi có đơn xuất hoặc phiếu nhập."}
       </footer>
     </div>
   );

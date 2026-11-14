@@ -3,7 +3,7 @@
 Models implement the proposed structure in `docs/SRS.md` sections 5.2 and 5.3.
 The user requested all models, including the backlog PetProfile and Wishlist.
 Firebase manages credentials; there are no local password hashes, reset-token
-fields, account-status changes, or separate Role collection. `User.role` accepts
+fields, or separate Role collection. `User.role` accepts
 `customer`, `staff`, and `admin`, defaults to `customer`, and remains immutable
 through Mongoose. See [manual role assignment](../../../docs/authentication.md)
 for direct MongoDB updates and the backend authorization rules.
@@ -16,7 +16,7 @@ import { Product, Order, Setting } from "./models/index.js";
 
 | Export | Collection | Main contents |
 | --- | --- | --- |
-| User | users | Firebase UID, public profile, and customer/staff/admin role |
+| User | users | Firebase UID, public profile, customer/staff/admin role, and Admin-managed status |
 | Address | addresses | User reference, recipient/address details, default flag |
 | PetProfile | petProfiles | User reference, name, species, breed, date of birth |
 | Category | categories | Unique name/slug, active flag |
@@ -24,11 +24,12 @@ import { Product, Order, Setting } from "./models/index.js";
 | Cart | carts | Exactly one customer/guest owner, product/SKU quantities |
 | Order | orders | Customer/guest contact, item/address snapshots, totals, statuses, history |
 | Payment | payments | Order reference, method, amount, transaction reference, QR/result |
-| Promotion | promotions | Code, percentage/fixed value, minimum order, validity, eligibility |
+| Promotion | promotions | Code, name, percentage/fixed value, cap, minimum order, validity, usage limit and count, once-per-customer and public flags, eligibility |
+| PromotionRedemption | promotionRedemptions | One voucher use: voucher, order, customer key, discount, active/released status |
 | Review | reviews | Product/user references, whole rating from 1 to 5, published comment |
 | Wishlist | wishlists | One list per user with product references |
 | Notification | notifications | User/order reference, type/channel, delivery status/error/time |
-| AuditLog | auditLogs | Actor, action, target, before/after snapshots, event time |
+| AuditLog | auditLogs | Actor, action, target, before/after snapshots, IP, result, summary, event time |
 | Setting | settings | Global low-stock threshold and flat shipping fee |
 
 All models use timestamps and disable buffered commands. References to users
@@ -68,7 +69,10 @@ does not authenticate payment callbacks or enforce order-state transitions.
 Promotion codes are trimmed/uppercased. Percent discounts are greater than zero
 and at most 100; fixed discounts are positive integer VND amounts. End dates must
 follow start dates. `eligibility` remains provider-independent Mixed data because
-the SRS does not define its shape. Notification delivery statuses are `pending`,
+the SRS does not define its shape. A document with no `usedCount` counts as zero.
+`PromotionRedemption` has a unique `orderId` and a partial unique
+`{ promotionId, customerKey }` covering active once-per-customer uses, which is what
+enforces those rules under concurrent orders without transactions. Notification delivery statuses are `pending`,
 `sent`, and `failed`; type and channel remain strings for future integrations.
 
 Settings use `_id: "global"`, `lowStockThreshold: 5`, and `shippingFee: 0` by
@@ -76,6 +80,15 @@ default. Defaults apply when constructing a document; startup does not seed a
 settings document. Audit targets use `{ collectionName, id }`; `id` is a string
 so it can represent both ObjectIds and the settings ID `global`. Callers must
 remove secrets from audit snapshots, payment results, and notification errors.
+Admin actions write audit entries through `recordAudit()` in `src/common/audit.js`,
+which strips secret-looking fields and records the request IP. `result` is
+`success` (default) or `denied`; a Customer or Staff session refused on an
+`/api/v1/admin` route is logged as `admin.access` with result `denied`.
+
+`User.status` is `active` or `locked`. A missing value means active, so queries
+use `{ status: { $ne: "locked" } }`, and `npm run migrate:admin` backfills it.
+`status`, `lockedAt`, `lockedBy`, `lockReason`, and `adminNote` are managed by
+Admin and never appear in `publicUser()`.
 
 `createModelIndexes()` in `src/config/database.js` explicitly creates declared
 indexes before startup listens, since the connection disables `autoIndex`. It
@@ -100,7 +113,11 @@ It reads existing User IDs/roles without creating or modifying users and require
 at least one Customer plus one Staff or Admin. It selects the lowest `_id` per
 role. If prerequisites are missing, it stops before index creation or data writes.
 
-The seed covers every non-User collection: 10 categories, 52 products, 2 addresses,
+`npm run seed:admin` (development/test only) adds Admin sample data on top of
+this seed, and `npm run migrate:admin` idempotently upgrades existing documents
+for the Admin backend in any environment. Neither creates users.
+
+The seed covers every non-User, non-Admin collection: 10 categories, 52 products, 2 addresses,
 2 pets, customer/guest carts, a wishlist, 4 promotions, 8 online orders (all seven
 order statuses plus a guest order), corresponding payments, 2 reviews of completed
 purchases, 3 notification delivery statuses, an audit log and global settings.

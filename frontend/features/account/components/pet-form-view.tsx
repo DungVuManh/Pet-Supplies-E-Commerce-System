@@ -22,22 +22,13 @@ export function PetFormView({
     petToEdit?.species === "cat" || petToEdit?.species === "mèo" ? "cat" : "dog",
   );
   const [breed, setBreed] = useState(petToEdit?.breed ?? "");
-  const [age, setAge] = useState(
-    petToEdit?.age ?? (petToEdit?.species === "cat" ? "1 tuổi" : "2 tuổi"),
-  );
+  const [age, setAge] = useState(petToEdit?.age ?? "");
   const [weight, setWeight] = useState<string>(
     petToEdit?.weight !== undefined && petToEdit?.weight !== null
       ? String(petToEdit.weight)
-      : petToEdit?.species === "cat"
-      ? "4.2"
-      : "28",
+      : "",
   );
-  const [notes, setNotes] = useState(
-    petToEdit?.notes ??
-      (petToEdit?.species === "cat"
-        ? "Rất thích ăn pate cá hồi, đã tiêm phòng dại đầy đủ"
-        : "Thích gặm xương, dị ứng với thức ăn có hạt nhân..."),
-  );
+  const [notes, setNotes] = useState(petToEdit?.notes ?? "");
 
   const defaultAvatar =
     species === "cat" ? "/images/pets/luna.jpg" : "/images/pets/milo.jpg";
@@ -169,7 +160,7 @@ export function PetFormView({
           {petToEdit ? `Chỉnh sửa hồ sơ ${petToEdit.name}` : "Thêm thú cưng mới"}
         </h1>
         <p className="mt-1 text-sm text-muted">
-          Thông tin giúp Petly gợi ý sản phẩm và dịch vụ phù hợp nhất
+          Thông tin giúp Petjoy gợi ý sản phẩm và dịch vụ phù hợp nhất
         </p>
 
         {apiError && (
@@ -211,7 +202,7 @@ export function PetFormView({
                         setErrors((prev) => ({ ...prev, name: undefined }));
                       }
                     }}
-                    placeholder="Ví dụ: Milo, Luna, Bông..."
+                    placeholder="Nhập tên thú cưng"
                     className="mt-1.5 block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
                   />
                   {errors.name && (
@@ -266,7 +257,7 @@ export function PetFormView({
                       disabled={isSaving}
                       value={breed}
                       onChange={(e) => setBreed(e.target.value)}
-                      placeholder="Ví dụ: Golden Retriever, Mèo Anh lông ngắn..."
+                      placeholder="Nhập giống loài (ví dụ: Poodle, Corgi, Mèo Mướp...)"
                       className="mt-1.5 block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
                     />
                   </div>
@@ -287,7 +278,7 @@ export function PetFormView({
                       disabled={isSaving}
                       value={age}
                       onChange={(e) => setAge(e.target.value)}
-                      placeholder="Ví dụ: 2 tuổi, 8 tháng..."
+                      placeholder="Nhập tuổi (ví dụ: 2 tuổi, 8 tháng...)"
                       className="mt-1.5 block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
                     />
                   </div>
@@ -310,7 +301,7 @@ export function PetFormView({
                           setErrors((prev) => ({ ...prev, weight: undefined }));
                         }
                       }}
-                      placeholder="Ví dụ: 28 hoặc 4.2"
+                      placeholder="Nhập cân nặng (ví dụ: 5.5)"
                       className="mt-1.5 block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
                     />
                     {errors.weight && (
@@ -335,11 +326,11 @@ export function PetFormView({
                     disabled={isSaving}
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Ví dụ: Thói quen gặm xương, dị ứng với thức ăn có hạt nhân..."
+                    placeholder="Thói quen ăn uống, dị ứng hoặc lưu ý đặc biệt của bé..."
                     className="mt-1.5 block w-full rounded-xl border border-line bg-surface p-3.5 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
                   />
                   <p className="mt-1 text-xs text-muted">
-                    Thông tin giúp Petly gợi ý khẩu phần ăn và phụ kiện an toàn
+                    Thông tin giúp Petjoy gợi ý khẩu phần ăn và phụ kiện an toàn
                   </p>
                 </div>
 

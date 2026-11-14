@@ -40,7 +40,15 @@ export function parseAuthUser(body: unknown): AuthUser {
     || (user.role !== "customer" && user.role !== "staff" && user.role !== "admin")) {
     throw new AuthApiError("INVALID_RESPONSE", 502);
   }
-  return { id: user.id, email: user.email, fullName: user.fullName, phone: user.phone, role: user.role };
+  return {
+    id: user.id,
+    email: user.email,
+    fullName: user.fullName,
+    phone: user.phone,
+    role: user.role,
+    ...(typeof user.avatarUrl === "string" ? { avatarUrl: user.avatarUrl } : {}),
+    ...(typeof user.createdAt === "string" ? { createdAt: user.createdAt } : {}),
+  };
 }
 
 async function mutate(path: string, method: "POST" | "DELETE", payload: object) {
@@ -61,7 +69,14 @@ export const authApi = {
   async register(idToken: string, profile: RegistrationProfile, remember = false) {
     return parseAuthUser(await mutate("register", "POST", { idToken, ...profile, remember }));
   },
-  async logout() { await mutate("session", "DELETE", {}); },
+  async logout() {
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("petly_auth_user");
+      }
+    } catch {}
+    await mutate("session", "DELETE", {});
+  },
 };
 
 // The server supplies the configured backend origin and only the session cookie.

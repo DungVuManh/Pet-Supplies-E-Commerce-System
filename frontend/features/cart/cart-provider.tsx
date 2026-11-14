@@ -39,11 +39,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // useEffect lấy dữ liệu khi khởi động và lắng nghe event cart-updated
   useEffect(() => {
-    syncCartFromDb();
-
     const handleCartUpdated = () => {
       syncCartFromDb();
     };
+    handleCartUpdated();
 
     window.addEventListener("cart-updated", handleCartUpdated);
     return () => {

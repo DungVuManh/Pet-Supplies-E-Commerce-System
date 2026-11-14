@@ -72,9 +72,7 @@ export default async function OrderDetailPage({
   throw error;
  }
 
- const totalQty = order.items.reduce((sum, item) => sum + item.qty, 0);
-
- return (
+  return (
   <>
    <PageHeader
     title={`Đơn hàng #${order.orderCode}`}
@@ -130,7 +128,7 @@ export default async function OrderDetailPage({
        <dd className="text-right font-medium">{money(order.subtotal)}</dd>
        {order.discount > 0 && (
         <>
-         <dt className="text-muted">Giảm giá</dt>
+         <dt className="text-muted">Giảm giá{order.promotionCode ? ` (${order.promotionCode})` : ""}</dt>
          <dd className="text-right font-medium text-success">
           −{money(order.discount)}
          </dd>
@@ -215,36 +213,41 @@ export default async function OrderDetailPage({
         </>
        )}
       </div>
-
-      {order.shipping && (
-       <div className="mt-4 border-t border-line pt-4">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
-         Đơn vị vận chuyển
-        </h3>
-        <p className="mt-1 text-sm font-medium">
-         {order.shipping.carrier || "Chưa cung cấp"}
-        </p>
-        <p className="mt-1 text-xs text-muted">
-         Mã vận đơn: {order.shipping.trackingNumber || "Chưa cung cấp"}
-        </p>
-       </div>
-      )}
      </section>
 
      {/* Payment */}
      <section className={`${card} p-6`}>
       <h2 className="text-xl font-semibold">Thanh toán</h2>
-      <div className="mt-4">
+      <div className="mt-4 flex flex-wrap items-center gap-2">
        <Badge tone={paymentStatusTones[order.paymentStatus]}>
         {paymentStatusLabels[order.paymentStatus]}
        </Badge>
+       {order.needsReview && (
+        <Badge tone="warning">⚠️ Cần đối soát</Badge>
+       )}
       </div>
+
+      {order.needsReview && (
+       <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800 font-medium">
+        Đơn hàng có chênh lệch tiền hoặc chuyển khoản sau khi đổi phương thức. Vui lòng đối soát giao dịch ngân hàng.
+       </div>
+      )}
 
       <dl className="mt-5 grid grid-cols-2 gap-4 text-sm">
        <dt className="text-muted">Phương thức</dt>
        <dd className="text-right font-medium">
-        {paymentMethodLabels[order.paymentMethod] || order.paymentMethod}
+        {order.paymentMethod === "ONLINE"
+         ? "Chuyển khoản VietQR (SePay)"
+         : paymentMethodLabels[order.paymentMethod] || order.paymentMethod}
        </dd>
+       {Boolean(order.paidAmount && order.paidAmount > 0) && (
+        <>
+         <dt className="text-muted">Đã thanh toán</dt>
+         <dd className="text-right font-bold text-emerald-600">
+          {money(order.paidAmount || 0)}
+         </dd>
+        </>
+       )}
        {order.paymentMethod === "COD" && order.paymentStatus === "unpaid" && (
         <>
          <dt className="text-muted">Cần thu khi giao</dt>

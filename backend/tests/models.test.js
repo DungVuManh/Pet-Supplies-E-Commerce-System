@@ -9,6 +9,7 @@ import { Wishlist } from "../src/models/wishlist.model.js";
 import { Order } from "../src/models/order.model.js";
 import { Payment } from "../src/models/payment.model.js";
 import { Promotion } from "../src/models/promotion.model.js";
+import { PromotionRedemption } from "../src/models/promotion-redemption.model.js";
 import { Review } from "../src/models/review.model.js";
 import { Notification } from "../src/models/notification.model.js";
 import { AuditLog } from "../src/models/audit-log.model.js";
@@ -21,7 +22,7 @@ const address = {
  district: "District 1", ward: "Ward 1", street: "1 Test Street",
 };
 const productData = () => ({
- name: "Cat food", petType: "cat", categoryId: new mongoose.Types.ObjectId(),
+ name: "Cat food", petType: "cat", categoryIds: [new mongoose.Types.ObjectId()],
  variants: [{ sku: "CAT-1", label: "1 kg", price: 100000, stock: 10 }],
 });
 const orderData = () => ({
@@ -76,6 +77,28 @@ describe("products and shopping models", () => {
   const data = productData();
   data.variants.push({ ...data.variants[0] });
   await expect(new Product(data).validate()).rejects.toThrow("distinct SKUs");
+ });
+
+ it("supports multiple categoryIds and deduplicates them", async () => {
+  const cat1 = new mongoose.Types.ObjectId();
+  const cat2 = new mongoose.Types.ObjectId();
+  const product = new Product({
+   name: "Multi-cat food",
+   petType: "cat",
+   categoryIds: [cat1, cat2, cat1],
+   variants: [{ sku: "MULTI-1", label: "1 kg", price: 50000, stock: 5 }],
+  });
+  await expect(product.validate()).resolves.toBeUndefined();
+  expect(product.categoryIds).toHaveLength(2);
+  expect(product.categoryIds[0].toString()).toBe(cat1.toString());
+  expect(product.categoryIds[1].toString()).toBe(cat2.toString());
+
+  await expect(new Product({
+   name: "No-cat food",
+   petType: "cat",
+   categoryIds: [],
+   variants: [{ sku: "NO-CAT-1", label: "1 kg", price: 50000, stock: 5 }],
+  }).validate()).rejects.toThrow("at least one category");
  });
 
  it("requires exactly one cart owner and positive whole quantities", async () => {
@@ -174,6 +197,37 @@ describe("checkout models", () => {
   }
   await expect(new Promotion({ ...data, type: "fixed", value: 10000 }).validate()).resolves.toBeUndefined();
  });
+
+ it("defaults voucher fields and validates their limits", async () => {
+  const data = { code: "SALE", type: "percent", value: 10, startAt: new Date("2026-01-01"), endAt: new Date("2026-12-31") };
+  const promotion = new Promotion(data);
+  await expect(promotion.validate()).resolves.toBeUndefined();
+  expect(promotion).toMatchObject({ usedCount: 0, oncePerCustomer: true, isPublic: false });
+  expect(promotion.usageLimit).toBeUndefined();
+  expect(promotion.maxDiscount).toBeUndefined();
+  for (const patch of [
+   { name: "x".repeat(101) }, { maxDiscount: 0 }, { maxDiscount: 1.5 }, { usageLimit: 0 }, { usageLimit: 1.5 }, { usedCount: -1 },
+  ]) {
+   await expect(new Promotion({ ...data, ...patch }).validate()).rejects.toThrow();
+  }
+  await expect(new Promotion({ ...data, name: "Giảm 10%", maxDiscount: 50000, usageLimit: 100 }).validate()).resolves.toBeUndefined();
+ });
+
+ it("enforces one redemption per order and one active use per once-only customer", async () => {
+  const id = () => new mongoose.Types.ObjectId();
+  const redemption = { promotionId: id(), code: "sale", orderId: id(), customerKey: "guest:0912345678", discount: 1000, oncePerCustomer: true };
+  const document = new PromotionRedemption(redemption);
+  await expect(document.validate()).resolves.toBeUndefined();
+  expect(document).toMatchObject({ code: "SALE", status: "active" });
+  for (const patch of [{ status: "other" }, { discount: -1 }, { discount: 1.5 }, { customerKey: "" }, { oncePerCustomer: undefined }]) {
+   await expect(new PromotionRedemption({ ...redemption, ...patch }).validate()).rejects.toThrow();
+  }
+  expect(PromotionRedemption.schema.indexes()).toContainEqual([{ orderId: 1 }, expect.objectContaining({ unique: true })]);
+  expect(PromotionRedemption.schema.indexes()).toContainEqual([
+   { promotionId: 1, customerKey: 1 },
+   expect.objectContaining({ unique: true, partialFilterExpression: { status: "active", oncePerCustomer: true } }),
+  ]);
+ });
 });
 
 describe("supporting models", () => {
@@ -212,6 +266,28 @@ describe("supporting models", () => {
   await expect(new AuditLog({ action: "order.confirm" }).validate()).rejects.toThrow();
  });
 
+ it("records audit results, IPs and summaries, newest first", async () => {
+  const data = { actorId: userId, action: "admin.access", target: { collectionName: "routes", id: "GET /api/v1/admin/users" } };
+  const audit = new AuditLog({ ...data, ip: "127.0.0.1", summary: "Từ chối truy cập" });
+  await expect(audit.validate()).resolves.toBeUndefined();
+  expect(audit.result).toBe("success");
+  await expect(new AuditLog({ ...data, result: "denied" }).validate()).resolves.toBeUndefined();
+  await expect(new AuditLog({ ...data, result: "failed" }).validate()).rejects.toThrow("result");
+  expect(AuditLog.schema.indexes()).toContainEqual([{ at: -1 }, expect.anything()]);
+ });
+
+ it("defaults accounts to active and limits the Admin-managed fields", async () => {
+  const data = { firebaseUid: "uid-1", email: "a@example.test", fullName: "Test User", phone: "0912345678", termsAcceptedAt: new Date() };
+  const user = new models.User(data);
+  await expect(user.validate()).resolves.toBeUndefined();
+  expect(user.status).toBe("active");
+  await expect(new models.User({ ...data, status: "locked", lockReason: "x".repeat(200), adminNote: "x".repeat(1000) }).validate()).resolves.toBeUndefined();
+  for (const patch of [{ status: "banned" }, { lockReason: "x".repeat(201) }, { adminNote: "x".repeat(1001) }]) {
+   await expect(new models.User({ ...data, ...patch }).validate()).rejects.toThrow();
+  }
+  expect(models.User.schema.indexes()).toContainEqual([{ role: 1, status: 1, createdAt: -1 }, expect.anything()]);
+ });
+
  it("provides singleton settings with the SRS defaults and validates counts/fees", async () => {
   const settings = new Setting();
   await expect(settings.validate()).resolves.toBeUndefined();
@@ -225,8 +301,8 @@ describe("supporting models", () => {
 
  it("exports all SRS models without changing Firebase users", () => {
   expect(Object.keys(models).sort()).toEqual([
-   "Address", "AuditLog", "Cart", "Category", "Notification", "Order", "Payment",
-   "PetProfile", "Product", "Promotion", "Review", "Setting", "User", "Wishlist",
+   "Address", "AuditLog", "Cart", "Category", "CustomerVoucher", "MasterData", "Notification", "Order", "Payment",
+   "PetProfile", "Policy", "Product", "Promotion", "PromotionRedemption", "Review", "Setting", "StockMovement", "User", "Wishlist",
   ]);
   expect(models.User.schema.path("firebaseUid").options.unique).toBe(true);
   expect(models.User.schema.path("passwordHash")).toBeUndefined();

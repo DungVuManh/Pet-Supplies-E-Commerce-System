@@ -1,4 +1,5 @@
 import { AppError } from "../common/errors/app-error.js";
+import { releaseVoucher } from "../common/voucher-redemption.js";
 import { Order } from "../models/order.model.js";
 import { Product } from "../models/product.model.js";
 import { parseOrderId, parseStaffOrderStatus, staffOrderTransitions } from "../validators/order.validator.js";
@@ -59,9 +60,42 @@ export async function updateStaffOrderStatus(request, response) {
     if (result.modifiedCount !== 1) {
       throw new AppError("Đơn hàng đã thay đổi. Hãy tải lại trước khi cập nhật.", 409, "ORDER_STATUS_CONFLICT");
     }
+    if (input.orderStatus === "cancelled") await releaseVoucher(id);
     response.json({ success: true, data: { order: { id, orderStatus: input.orderStatus } } });
   } catch (error) {
     if (error instanceof AppError) throw error;
     throw new AppError("Chưa thể xác nhận kết quả cập nhật. Hãy tải lại đơn hàng.", 503, "ORDERS_UNAVAILABLE");
+  }
+}
+
+export async function confirmCustomerOrderReceipt(request, response) {
+  const id = parseOrderId(request.params);
+  try {
+    const order = await Order.findOne({ _id: id, customerId: request.user._id }).lean();
+    if (!order || order.creationState === "pending") {
+      throw new AppError("Không tìm thấy đơn hàng.", 404, "ORDER_NOT_FOUND");
+    }
+    if (order.channel !== "online" || order.orderStatus !== "shipping") {
+      throw new AppError("Đơn hàng chưa thể xác nhận đã nhận.", 409, "INVALID_ORDER_TRANSITION");
+    }
+
+    const result = await Order.updateOne({
+      _id: id,
+      customerId: request.user._id,
+      channel: "online",
+      orderStatus: "shipping",
+      creationState: { $ne: "pending" },
+    }, {
+      $set: { orderStatus: "completed", paymentStatus: "paid" },
+      $push: { statusHistory: { from: "shipping", to: "completed", by: request.user._id, at: new Date() } },
+    }, { runValidators: true });
+    if (result.modifiedCount !== 1) {
+      throw new AppError("Trạng thái đơn đã thay đổi. Hãy tải lại đơn hàng.", 409, "ORDER_STATUS_CONFLICT");
+    }
+
+    response.json({ success: true, data: { order: { id, orderStatus: "completed" } } });
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError("Chưa thể xác nhận đã nhận hàng. Hãy tải lại đơn hàng.", 503, "ORDERS_UNAVAILABLE");
   }
 }

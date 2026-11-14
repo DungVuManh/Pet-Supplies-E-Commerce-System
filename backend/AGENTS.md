@@ -14,9 +14,7 @@ These instructions apply to `backend/`. Keep this file aligned with the code and
   Staff can PATCH `/api/v1/staff/orders/:id/status` with JSON/Origin/CSRF to move
   online orders pending → confirmed → processing → shipping → completed, or cancel pending/confirmed.
   Status/history update atomically in Order using expectedStatus; no stock/payment
-  mutation. Shipping metadata is optional. Staff can complete shipping orders.
-  Staff list/detail/history display legacy delivered as completed; completed filters/counts
-  include both stored values without rewriting old orders or audit history.
+  mutation. Shipping metadata is optional.
   See `../docs/specs/staff-order-status.md` for confirmation guards and the API contract.
   Staff can PATCH `/api/v1/staff/products/:sku` with JSON/Origin/CSRF to edit the
   SKU's physical stock and the Product's shared status/description. An expected
@@ -155,6 +153,18 @@ response)`); routers import those handlers and export the Express router.
   Preserve incomplete-profile recovery when changing the registration flow.
 
 ## Verification
+
+- GET `/api/v1/staff/analytics/overview`, `/sales`, and `/performance` are
+  read-only, exact-Staff and no-store. Keep the existing profile-only
+  `/api/v1/staff/dashboard` contract unchanged. Personal actor scope comes from
+  `request.user`, never query parameters. Metrics and date eligibility are
+  defined in `../docs/specs/staff-dashboard.md`; do not infer cashflow or SLA
+  from order totals/history.
+- `npm test -- tests/staff-analytics.test.js` verifies mocked HTTP/validation
+  boundaries. `node tests/staff-analytics-integration.mjs` verifies real MongoDB
+  aggregation using `MONGOD_BINARY` or explicit `STAFF_ANALYTICS_TEST_MONGODB_URI`.
+  It creates/drops only a UUID test database and never loads application `.env`.
+  Small-fixture explain results do not justify production index changes.
 
 - `tests/env.test.js`, `tests/app.test.js`, and `tests/database.test.js` cover
   configuration, HTTP middleware/error behavior, and mocked

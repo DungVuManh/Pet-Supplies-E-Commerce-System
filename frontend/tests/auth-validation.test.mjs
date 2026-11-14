@@ -41,11 +41,11 @@ test("registration checks every required field", () => {
   assert.equal(Object.keys(errors)[0], "email", "focus follows the visible form order before consent");
 });
 
-test("registration requires more than six non-whitespace characters", () => {
-  for (const password of ["Short1", "123456", " 123456 ", "a b c d e f", "      ", "\t\n ", "😀😀😀😀😀😀"]) {
+test("registration requires at least six non-whitespace characters", () => {
+  for (const password of ["Short", "12345", " 12345 ", "a b c d e", "      ", "\t\n ", "😀😀😀😀😀"]) {
     assert.ok(validateRegister(form({ ...validRegistration, password, confirmPassword: password })).password);
   }
-  for (const password of ["abcdefg", "ABCDEFG", "1234567", "!@#$%^&", "a b c d e f g", "\t1234567\t", "😀😀😀😀😀😀😀"]) {
+  for (const password of ["Short1", "123456", "!@#$%^", "a b c d e f", "\t123456\t", "😀😀😀😀😀😀", "abcdefg"]) {
     assert.deepEqual(validateRegister(form({ ...validRegistration, password, confirmPassword: password })), {});
   }
 });

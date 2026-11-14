@@ -3,6 +3,7 @@
 // =============================================================
 // features/catalog/components/cardDetailProduct/detailProduct.tsx
 // Component chính: Màn hình chi tiết sản phẩm kết hợp các sub-components
+// Bố cục grid cân đối giữa cột ảnh (đã căn gần giữa và phóng to vừa phải) và thông tin mua hàng
 // =============================================================
 
 import { useRouter } from "next/navigation";
@@ -14,7 +15,7 @@ import { ProductInfo } from "./components/product-info";
 import { ProductTabs } from "./components/product-tabs";
 import { ProductVariants } from "./components/product-variants";
 import { useProductDetail } from "./hooks/use-product-detail";
-import { createOrderApi } from "@/features/orders/services/order.service";
+import { previewBuyNowApi, saveBuyNowSession } from "@/features/orders/services/order.service";
 
 export function DetailProduct({ product }: { product: Product }) {
   const router = useRouter();
@@ -48,7 +49,7 @@ export function DetailProduct({ product }: { product: Product }) {
     message: string;
   } | null>(null);
 
-  // 1. Bấm Mua ngay: Lưu đơn hàng trực tiếp vào MongoDB (orders collection)
+  // 1. Bấm Mua ngay: Validate ở server (còn hàng, số lượng, lấy giá server), ghi đè session, vào checkout
   const handleBuyNow = async () => {
     try {
       setIsBuyingNow(true);
@@ -56,22 +57,20 @@ export function DetailProduct({ product }: { product: Product }) {
 
       const sku = variants[selectedVariantIndex]?.sku || product.variants?.[0]?.sku || "default";
 
-      const res = await createOrderApi({
-        items: [
-          {
-            productId: product.id,
-            variantSku: sku,
-            qty: quantity,
-          },
-        ],
+      const res = await previewBuyNowApi({
+        productId: product.id,
+        variantSku: sku,
+        quantity,
       });
 
-      const orderId = res.data?.order?._id;
-      if (!orderId) {
-        throw new Error("Không nhận được mã đơn hàng để chuyển đến thanh toán.");
+      if (!res.data?.item) {
+        throw new Error(res.message || "Không thể tạo phiên Mua ngay.");
       }
 
-      router.push(`/checkout?orderId=${encodeURIComponent(orderId)}`);
+      // Ghi đè session cũ, không cộng dồn
+      saveBuyNowSession(res.data);
+
+      router.push("/checkout?buyNow=1");
     } catch (err) {
       setOrderFeedback({
         type: "error",
@@ -83,18 +82,20 @@ export function DetailProduct({ product }: { product: Product }) {
   };
 
   return (
-    <div>
-      <article className="grid grid-cols-1 gap-10 md:grid-cols-[1.1fr_1fr]">
+    <div className="w-full max-w-6xl mx-auto">
+      <article className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-12 items-start">
         {/* Cột trái: Thư viện ảnh sản phẩm */}
-        <ProductGallery
-          productName={product.name}
-          images={images}
-          activeImage={activeImage}
-          onSelectImage={setActiveImage}
-        />
+        <div className="w-full min-w-0 flex justify-center md:justify-end">
+          <ProductGallery
+            productName={product.name}
+            images={images}
+            activeImage={activeImage}
+            onSelectImage={setActiveImage}
+          />
+        </div>
 
         {/* Cột phải: Thông tin, biến thể & hành động mua hàng */}
-        <div>
+        <div className="w-full min-w-0">
           {/* Thông tin sản phẩm, thương hiệu, đánh giá, giá, mô tả */}
           <ProductInfo
             brand={product.brand}
@@ -103,6 +104,7 @@ export function DetailProduct({ product }: { product: Product }) {
             description={product.description}
             ratingAvg={ratingAvg}
             ratingCount={ratingCount}
+            soldCount={product.soldCount}
           />
 
           {/* Chọn biến thể khối lượng & trạng thái tồn kho */}
@@ -116,6 +118,7 @@ export function DetailProduct({ product }: { product: Product }) {
           {/* Thao tác chọn số lượng, thêm giỏ hàng, mua ngay & lưu yêu thích */}
           <ProductActions
             quantity={quantity}
+            currentStock={currentStock}
             isLove={isLove}
             isOutOfStock={isOutOfStock}
             isAddingToCart={isAddingToCart}

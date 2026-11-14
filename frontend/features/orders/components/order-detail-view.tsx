@@ -12,6 +12,8 @@ import { OrderDetailItems } from "./order-detail-items";
 import { OrderSummarySidebar } from "./order-summary-sidebar";
 import { OrderTimeline } from "./order-timeline";
 import { useOrderDetail } from "../hooks/use-order-detail";
+import { ChevronRight } from "lucide-react";
+
 
 type OrderDetailViewProps = {
   orderId?: string;
@@ -19,10 +21,10 @@ type OrderDetailViewProps = {
 
 export function OrderDetailView({ orderId }: OrderDetailViewProps) {
   // Gọi API lấy chi tiết đơn hàng theo ID
-  const { order, isLoading, error } = useOrderDetail(orderId);
+  const { order, isLoading, error, reload } = useOrderDetail(orderId);
 
   return (
-    <div className="container">
+    <div className="container mx-auto px-4 py-6 md:py-8">
       <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
         {/* Cột trái: Sidebar tài khoản */}
         <AccountSidebar />
@@ -30,16 +32,16 @@ export function OrderDetailView({ orderId }: OrderDetailViewProps) {
         {/* Cột phải: Chi tiết đơn hàng */}
         <div className="flex-1 min-w-0">
           {/* Breadcrumb */}
-          <nav aria-label="Breadcrumb" className="text-xs text-muted mb-2 flex items-center gap-1.5">
-            <Link href="/" className="hover:text-ink transition-colors">
+          <nav aria-label="Đường dẫn" className="mb-6 flex items-center gap-1.5 text-xs text-muted">
+            <Link href="/" className="hover:text-brand transition-colors">
               Trang chủ
             </Link>
-            <span>/</span>
-            <Link href="/orders" className="hover:text-ink transition-colors">
-              Đơn hàng
+            <ChevronRight className="size-3.5 text-slate-400" />
+            <Link href="/account/profile" className="hover:text-brand transition-colors">
+              Tài khoản
             </Link>
-            <span>/</span>
-            <span className="text-ink font-medium">Chi tiết</span>
+            <ChevronRight className="size-3.5 text-slate-400" />
+            <span className="font-semibold text-ink">Đánh giá của tôi</span>
           </nav>
 
           {/* Đang tải */}
@@ -72,15 +74,14 @@ export function OrderDetailView({ orderId }: OrderDetailViewProps) {
 
                 {/* Badge trạng thái */}
                 <span
-                  className={`inline-block rounded-full px-3 py-1 text-xs font-semibold border ${
-                    order.status === "pending"
-                      ? "bg-amber-50 text-amber-700 border-amber-200"
-                      : order.status === "completed"
+                  className={`inline-block rounded-full px-3 py-1 text-xs font-semibold border ${order.status === "pending"
+                    ? "bg-amber-50 text-amber-700 border-amber-200"
+                    : order.status === "completed"
                       ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                       : order.status === "cancelled"
-                      ? "bg-rose-50 text-rose-700 border-rose-200"
-                      : "bg-blue-50 text-blue-600 border-blue-200"
-                  }`}
+                        ? "bg-rose-50 text-rose-700 border-rose-200"
+                        : "bg-blue-50 text-blue-600 border-blue-200"
+                    }`}
                 >
                   {order.statusLabel}
                 </span>
@@ -99,9 +100,12 @@ export function OrderDetailView({ orderId }: OrderDetailViewProps) {
                   />
                 </div>
 
-                {/* Cột phải (5 cột): Tóm tắt tiền, phương thức & nút hủy đơn */}
+                {/* Cột phải (5 cột): Tóm tắt tiền, phương thức & nút xác nhận nhận hàng / hủy đơn */}
                 <div className="lg:col-span-5">
-                  <OrderSummarySidebar order={order} />
+                  <OrderSummarySidebar
+                    order={order}
+                    onReceiptConfirmed={reload}
+                  />
                 </div>
               </div>
             </>
@@ -121,5 +125,3 @@ export function OrderDetailView({ orderId }: OrderDetailViewProps) {
     </div>
   );
 }
-
-export default OrderDetailView;

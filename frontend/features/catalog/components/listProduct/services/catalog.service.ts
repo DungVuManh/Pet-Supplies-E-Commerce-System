@@ -1,4 +1,3 @@
-
 import type {
   CatalogFilter,
   GetBrandsResponse,
@@ -7,18 +6,31 @@ import type {
   GetProductsResponse,
 } from "../types";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-
+// Trình duyệt (Client) dùng relative URL để qua Next.js rewrite proxy
+// Máy chủ (Server Component / SSR) dùng absolute URL (BACKEND_ORIGIN) vì Node fetch không hỗ trợ relative URL
+function getApiBase(): string {
+  if (typeof window !== "undefined") {
+    return "/api/v1/catalog";
+  }
+  const origin =
+    process.env.BACKEND_ORIGIN ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://127.0.0.1:3001";
+  return `${origin.replace(/\/+$/, "")}/api/v1/catalog`;
+}
 
 export async function getProductsApi(
-  filter: CatalogFilter
+  filter: CatalogFilter,
+  signal?: AbortSignal
 ): Promise<GetProductsResponse> {
   const params = new URLSearchParams();
 
   if (filter.search) params.set("search", filter.search);
   if (filter.category && filter.category !== "all") {
     params.set("category", filter.category);
+  }
+  if (filter.petType && filter.petType !== "all") {
+    params.set("petType", filter.petType);
   }
   if (filter.brands.length > 0) {
     params.set("brands", filter.brands.join(","));
@@ -29,14 +41,22 @@ export async function getProductsApi(
   if (filter.sort && filter.sort !== "default") {
     params.set("sort", filter.sort);
   }
+  if (filter.minPrice !== undefined && filter.minPrice !== null && filter.minPrice > 0) {
+    params.set("minPrice", String(filter.minPrice));
+  }
+  if (filter.maxPrice !== undefined && filter.maxPrice !== null && filter.maxPrice < 10000000) {
+    params.set("maxPrice", String(filter.maxPrice));
+  }
   params.set("page", String(filter.page));
+  params.set("limit", String(filter.limit || 20));
 
-  const url = `${BASE_URL}/api/v1/catalog/products?${params.toString()}`;
+  const url = `${getApiBase()}/products?${params.toString()}`;
   console.log("[CatalogService] GET Products URL:", url);
 
   const response = await fetch(url, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
+    signal,
   });
 
   if (!response.ok) {
@@ -49,17 +69,15 @@ export async function getProductsApi(
   }
 
   const data: GetProductsResponse = await response.json();
-  console.log(
-    `[CatalogService] Nhận được ${data.data.pagination.totalProducts} sản phẩm | Trang ${data.data.pagination.currentPage}/${data.data.pagination.totalPages}`
-  );
   return data;
 }
 
 /**
  * 2. Gọi API lấy danh sách danh mục cho bộ lọc sidebar
  */
-export async function getCategoriesApi(): Promise<GetCategoriesResponse> {
-  const url = `${BASE_URL}/api/v1/catalog/categories`;
+export async function getCategoriesApi(petType?: string): Promise<GetCategoriesResponse> {
+  const query = petType && petType !== "all" ? `?petType=${encodeURIComponent(petType)}` : "";
+  const url = `${getApiBase()}/categories${query}`;
   console.log("[CatalogService] GET Categories URL:", url);
 
   const response = await fetch(url, {
@@ -77,7 +95,6 @@ export async function getCategoriesApi(): Promise<GetCategoriesResponse> {
   }
 
   const data: GetCategoriesResponse = await response.json();
-  console.log("[CatalogService] Danh mục nhận được:", data.data.categories);
   return data;
 }
 
@@ -85,7 +102,7 @@ export async function getCategoriesApi(): Promise<GetCategoriesResponse> {
  * 3. Gọi API lấy danh sách thương hiệu cho bộ lọc sidebar
  */
 export async function getBrandsApi(): Promise<GetBrandsResponse> {
-  const url = `${BASE_URL}/api/v1/catalog/brands`;
+  const url = `${getApiBase()}/brands`;
   console.log("[CatalogService] GET Brands URL:", url);
 
   const response = await fetch(url, {
@@ -103,7 +120,6 @@ export async function getBrandsApi(): Promise<GetBrandsResponse> {
   }
 
   const data: GetBrandsResponse = await response.json();
-  console.log("[CatalogService] Thương hiệu nhận được:", data.data.brands);
   return data;
 }
 
@@ -113,7 +129,7 @@ export async function getBrandsApi(): Promise<GetBrandsResponse> {
 export async function getProductDetailApi(
   id: string
 ): Promise<GetProductDetailResponse> {
-  const url = `${BASE_URL}/api/v1/catalog/products/${encodeURIComponent(id)}`;
+  const url = `${getApiBase()}/products/${encodeURIComponent(id)}`;
   console.log("[CatalogService] GET Product Detail URL:", url);
 
   const response = await fetch(url, {
@@ -132,6 +148,5 @@ export async function getProductDetailApi(
   }
 
   const data: GetProductDetailResponse = await response.json();
-  console.log("[CatalogService] Chi tiết sản phẩm nhận được:", data.data.product);
   return data;
 }

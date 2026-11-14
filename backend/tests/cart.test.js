@@ -78,6 +78,8 @@ describe("Cart API", () => {
     };
 
     vi.spyOn(Product, "findOne").mockResolvedValue(mockProduct);
+    // The cart is loaded before the stock check; a new guest has none.
+    vi.spyOn(Cart, "findOne").mockResolvedValue(null);
 
     const response = await request(app)
       .post("/api/v1/cart/items")

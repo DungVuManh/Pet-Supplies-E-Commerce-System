@@ -8,12 +8,16 @@ import {
   removeCartItem,
   updateCartItemQuantity,
 } from "../controllers/cart.controller.js";
-import { readCookies } from "../common/middlewares/auth.middleware.js";
+import {
+  optionalAuth,
+  readCookies,
+} from "../common/middlewares/auth.middleware.js";
 
 const router = Router();
 
 // Hỗ trợ đọc cookies để nhận diện session của user nếu đã đăng nhập
 router.use(readCookies);
+router.use(optionalAuth);
 
 // 1. POST /api/v1/cart/items - Thêm sản phẩm vào giỏ
 router.post("/items", addToCart);

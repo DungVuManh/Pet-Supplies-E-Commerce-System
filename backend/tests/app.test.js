@@ -65,6 +65,12 @@ describe("application foundation", () => {
   expect(response.status).toBe(413);
   expect(response.body.error.code).toBe("PAYLOAD_TOO_LARGE");
  });
+ it("accepts base64 avatar-sized bodies only on account routes", async () => {
+  const response = await request(createApp(config))
+   .put("/api/v1/account/profile")
+   .send({ avatarUrl: "x".repeat(500_000) });
+  expect(response.status).not.toBe(413);
+ });
  it("limits API traffic using a standard HTTP 429 response", async () => {
   const app = createApp(config);
   for (let index = 0; index < 100; index++) {

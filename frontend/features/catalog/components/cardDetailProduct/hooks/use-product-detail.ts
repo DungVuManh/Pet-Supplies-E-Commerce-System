@@ -1,11 +1,13 @@
 // =============================================================
 // features/catalog/components/cardDetailProduct/hooks/use-product-detail.ts
 // Hook quản lý toàn bộ logic và state của màn hình chi tiết sản phẩm
+// Hỗ trợ chọn biến thể, tự động cập nhật giá và số lượng tồn kho tương ứng
 // =============================================================
 
 import { useState } from "react";
 import type { Product, ProductVariantItem } from "../types";
 import { addToCartApi } from "../services/cart.service";
+import { useWishlist } from "@/features/wishlist";
 
 export function useProductDetail(product: Product) {
   // 1. Mảng ảnh sản phẩm
@@ -22,12 +24,16 @@ export function useProductDetail(product: Product) {
   const [activeImage, setActiveImage] = useState(0);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [isLove, setIsLove] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [cartFeedback, setCartFeedback] = useState<{
     type: "success" | "error";
     message: string;
   } | null>(null);
+
+  // Danh sách yêu thích đồng bộ với backend MongoDB
+  const { isSaved, toggleSave, toasts, removeToast } = useWishlist();
+  const productId = String(product.id || (product as any)._id || "");
+  const isLove = isSaved(productId);
 
   // Tính toán biến thể hiện tại và giá/tồn kho tương ứng
   const currentVariant = variants[selectedVariantIndex] || variants[0];
@@ -39,9 +45,38 @@ export function useProductDetail(product: Product) {
   const ratingAvg = product.ratingAvg ?? 0;
   const ratingCount = product.ratingCount ?? 0;
 
-  const increaseQuantity = () => setQuantity((q) => q + 1);
+  // Khi người dùng chọn biến thể mới, nếu số lượng đang chọn lớn hơn tồn kho của biến thể đó thì giảm về tồn kho
+  const handleSelectVariant = (index: number) => {
+    setSelectedVariantIndex(index);
+    const newVariant = variants[index];
+    const newStock = newVariant?.availableStock ?? newVariant?.stock ?? 0;
+    if (newStock > 0 && quantity > newStock) {
+      setQuantity(newStock);
+    } else if (newStock <= 0) {
+      setQuantity(1);
+    }
+  };
+
+  const increaseQuantity = () =>
+    setQuantity((q) => (currentStock > 0 ? Math.min(q + 1, currentStock) : 1));
   const decreaseQuantity = () => setQuantity((q) => Math.max(1, q - 1));
-  const toggleLove = () => setIsLove((prev) => !prev);
+  const toggleLove = async () => {
+    await toggleSave({
+      id: productId,
+      _id: productId,
+      name: product.name,
+      brand: product.brand,
+      description: product.description,
+      image: images[0] || product.image || "/images/products/royal-canin-mini-adult.png",
+      images: images,
+      price: currentPrice,
+      ratingAvg: product.ratingAvg,
+      ratingCount: product.ratingCount,
+      soldCount: product.soldCount,
+      inStock: currentStock > 0,
+      sku: currentVariant?.sku,
+    });
+  };
 
   // Xử lý gửi API thêm vào giỏ hàng và lưu vào DB
   const handleAddToCart = async () => {
@@ -58,6 +93,13 @@ export function useProductDetail(product: Product) {
         productId: product.id,
         variantSku,
         quantity,
+        name: product.name,
+        price: currentPrice,
+        image: images[0] || product.image,
+        brand: product.brand,
+        label: currentVariant?.label,
+        description: product.description,
+        stock: currentStock,
       });
 
       setCartFeedback({
@@ -93,7 +135,7 @@ export function useProductDetail(product: Product) {
     setActiveImage,
     variants,
     selectedVariantIndex,
-    setSelectedVariantIndex,
+    setSelectedVariantIndex: handleSelectVariant,
     currentVariant,
     currentPrice,
     currentStock,
@@ -104,6 +146,8 @@ export function useProductDetail(product: Product) {
     decreaseQuantity,
     isLove,
     toggleLove,
+    toasts,
+    removeToast,
     isAddingToCart,
     cartFeedback,
     handleAddToCart,

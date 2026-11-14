@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 export const USER_ROLES = ["customer", "staff", "admin"];
+export const USER_STATUSES = ["active", "locked"];
 
 const userSchema = new mongoose.Schema(
  {
@@ -18,9 +19,18 @@ const userSchema = new mongoose.Schema(
   dob: { type: Date },
   gender: { type: String, enum: ["male", "female", "other"], default: "female" },
   avatarUrl: { type: String, default: "/images/customer-avatar.jpg" },
+  // Admin-managed and never part of publicUser(). Documents from before this
+  // field have no status, so queries treat a missing value as active.
+  status: { type: String, enum: USER_STATUSES, default: "active" },
+  lockedAt: { type: Date },
+  lockedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  lockReason: { type: String, trim: true, maxlength: 200 },
+  adminNote: { type: String, trim: true, maxlength: 1000 },
  },
  { timestamps: true, bufferCommands: false },
 );
+
+userSchema.index({ role: 1, status: 1, createdAt: -1 });
 
 export const User = mongoose.models.User || mongoose.model("User", userSchema);
 

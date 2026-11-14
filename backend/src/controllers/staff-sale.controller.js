@@ -113,8 +113,12 @@ async function saveSale(input, actorId, requestId, hash) {
  // Claim the unique request key before any stock/payment writes, including across processes.
  await order.save();
  const payment = new Payment({ orderId: order._id, method: "CASH", amount: subtotal, status: "paid" });
- const audit = new AuditLog({ actorId, action: "order.create.offline",
-  target: { collectionName: "orders", id: String(order._id) }, at: now,
+ const audit = new AuditLog({
+  actorId,
+  action: "order.create.offline",
+  target: { collectionName: "orders", id: order.orderCode },
+  summary: `Nhân viên tạo đơn hàng tại quầy ${order.orderCode} (${subtotal.toLocaleString("vi-VN")} đ)`,
+  at: now,
   after: { orderCode: order.orderCode, total: subtotal, channel: "offline" },
  });
  const deducted = [];
@@ -127,7 +131,7 @@ async function saveSale(input, actorId, requestId, hash) {
    const updated = await Product.updateOne({ _id: item.productId, isActive: true,
     variants: { $elemMatch: { sku: item.variantSku, price: item.unitPrice,
      stock: { $gte: item.qty + variant.reservedStock }, reservedStock: variant.reservedStock } },
-   }, { $inc: { "variants.$.stock": -item.qty } });
+   }, { $inc: { "variants.$.stock": -item.qty, soldCount: item.qty } });
    stockWriteUncertain = false;
    if (updated.modifiedCount !== 1) throw new AppError("Tồn kho đã thay đổi. Hãy kiểm tra lại sản phẩm.", 409, "OUT_OF_STOCK");
    deducted.push(item);
@@ -140,7 +144,7 @@ async function saveSale(input, actorId, requestId, hash) {
   for (const item of deducted.reverse()) {
    try {
     const result = await Product.updateOne({ _id: item.productId, "variants.sku": item.variantSku },
-     { $inc: { "variants.$.stock": item.qty } });
+     { $inc: { "variants.$.stock": item.qty, soldCount: -item.qty } });
     if (result.modifiedCount !== 1) restored = false;
    } catch { restored = false; }
   }

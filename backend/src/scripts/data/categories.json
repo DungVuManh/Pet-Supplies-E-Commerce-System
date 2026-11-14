@@ -1,102 +1,380 @@
 [
-  {
-    "_id": {
-      "$oid": "d0c819886b75e27b14a79c9b"
-    },
-    "name": "Dành cho chó",
-    "slug": "danh-cho-cho",
-    "petType": "dog",
-    "description": "",
-    "image": "https://paddy.vn/collection-icons/dog.png"
+ {
+  "_id": {
+   "$oid": "9226f33fafb5ccde115802be"
   },
-  {
-    "_id": {
-      "$oid": "256c6fdc728096bef7d7df5e"
-    },
-    "name": "Dành cho mèo",
-    "slug": "danh-cho-meo",
-    "petType": "cat",
-    "description": "",
-    "image": "https://paddy.vn/collection-icons/dryfood.png"
+  "name": "Tất cả thức ăn cho chó",
+  "slug": "thuc-an-cho-cho",
+  "petType": "dog",
+  "description": "Tất cả thức ăn cho chó dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "ac2066facb24ba7f955cb4f3"
   },
-  {
-    "_id": {
-      "$oid": "87a044d446e33d87b0e11980"
-    },
-    "name": "Dây dắt, phụ kiện",
-    "slug": "day-dat-phu-kien",
-    "petType": "both",
-    "description": "",
-    "image": "https://paddy.vn/collection-icons/leash.png"
+  "name": "Hạt cho chó",
+  "slug": "hat-cho-cho",
+  "petType": "dog",
+  "description": "Hạt cho chó dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "d0ba063c48d5f17d72fd6044"
   },
-  {
-    "_id": {
-      "$oid": "05968ccf4df0e1b19218cc59"
-    },
-    "name": "Quần áo",
-    "slug": "quan-ao",
-    "petType": "both",
-    "description": "",
-    "image": ""
+  "name": "Pate cho chó",
+  "slug": "pate-cho",
+  "petType": "dog",
+  "description": "Pate cho chó dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "b34de17ffc13f74d5aa79fb4"
   },
-  {
-    "_id": {
-      "$oid": "7f9a4cbaea10a2c367d6c3a2"
-    },
-    "name": "Bát bình chứa đựng",
-    "slug": "bat-binh-chua-dung",
-    "petType": "both",
-    "description": "",
-    "image": "https://paddy.vn/collection-icons/bowl.png"
+  "name": "Bánh thưởng",
+  "slug": "banh-thuong-cho-cho",
+  "petType": "dog",
+  "description": "Bánh thưởng dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "cbd89bdd0a582cc6fac6eb61"
   },
-  {
-    "_id": {
-      "$oid": "f4ff338557649a8b9c9de23b"
-    },
-    "name": "Đồ vận chuyển, nuôi nhốt",
-    "slug": "do-van-chuyen-nuoi-nhot",
-    "petType": "both",
-    "description": "",
-    "image": "https://paddy.vn/collection-icons/carrier.png"
+  "name": "Thức ăn cao cấp",
+  "slug": "thuc-an-cao-cap-cho-cho",
+  "petType": "dog",
+  "description": "Thức ăn cao cấp dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "ccd618cae564e6ab316eebda"
   },
-  {
-    "_id": {
-      "$oid": "dccd78bd9b7efd2a9d73459c"
-    },
-    "name": "Sữa tắm, Khử mùi",
-    "slug": "sua-tam-khu-mui",
-    "petType": "both",
-    "description": "",
-    "image": "https://paddy.vn/collection-icons/hygiene.png"
+  "name": "Thức ăn cho chó con",
+  "slug": "thuc-an-hat-cho-cho-con",
+  "petType": "dog",
+  "description": "Thức ăn cho chó con dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "0913bb8d05781e074ac8a3ce"
   },
-  {
-    "_id": {
-      "$oid": "c4b1a948c8beba8a027dca13"
-    },
-    "name": "Hỗ trợ chăm sóc",
-    "slug": "ho-tro-cham-soc",
-    "petType": "both",
-    "description": "",
-    "image": "https://paddy.vn/collection-icons/health.png"
+  "name": "Thức ăn thú y cho chó",
+  "slug": "thuc-an-cho-cho-thu-y",
+  "petType": "dog",
+  "description": "Thức ăn thú y dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "8255b8f9209f638b18b20223"
   },
-  {
-    "_id": {
-      "$oid": "2e1a3f33568f173ed2f6c947"
-    },
-    "name": "Bổ sung dinh dưỡng",
-    "slug": "bo-sung-dinh-duong",
-    "petType": "both",
-    "description": "",
-    "image": "https://paddy.vn/collection-icons/milk.png"
+  "name": "Sữa cho chó mèo",
+  "slug": "sua-cho-cho-meo",
+  "petType": "dog",
+  "description": "Sữa cho chó mèo dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "64e6f4f50f137b5ee661f041"
   },
-  {
-    "_id": {
-      "$oid": "06916c6d39be37007dfaa95c"
-    },
-    "name": "Thú Y",
-    "slug": "thu-y",
-    "petType": "both",
-    "description": "",
-    "image": "https://paddy.vn/collection-icons/pill.png"
-  }
+  "name": "Thú nhồi bông",
+  "slug": "do-choi-cho-cho-thu-nhoi-bong",
+  "petType": "dog",
+  "description": "Thú nhồi bông dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "6609c02d4ce533de1954279b"
+  },
+  "name": "Xương gặm",
+  "slug": "do-choi-xuong-gam-cho-cho",
+  "petType": "dog",
+  "description": "Xương gặm dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "4e7ad259c570e5fc7400a863"
+  },
+  "name": "Bánh quy gặm",
+  "slug": "banh-quy-cho-cho",
+  "petType": "dog",
+  "description": "Bánh quy gặm dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "4b651ba0f66859889566c0d0"
+  },
+  "name": "Vòng cổ & dây dắt",
+  "slug": "phu-kien-thu-cung",
+  "petType": "dog",
+  "description": "Vòng cổ & dây dắt dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "a959e3c04301fa15ee648ab1"
+  },
+  "name": "Nệm & chuồng",
+  "slug": "nem-va-chuong-cho-cho",
+  "petType": "dog",
+  "description": "Nệm & chuồng dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "3790bd4b926b07383fed4e81"
+  },
+  "name": "Dụng cụ ăn uống",
+  "slug": "dung-cu-an-uong-cho-meo",
+  "petType": "dog",
+  "description": "Dụng cụ ăn uống dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "0e84e8a68d141707d039189d"
+  },
+  "name": "Tã & khay vệ sinh",
+  "slug": "ta-khay-ve-sinh-cho-cho",
+  "petType": "dog",
+  "description": "Tã & khay vệ sinh dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "18938eb4c8c9e3165c1c6f06"
+  },
+  "name": "Sữa tắm cho chó",
+  "slug": "sua-tam-cho-cho",
+  "petType": "dog",
+  "description": "Sữa tắm cho chó dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "4fde2226fc20f7605863f0a9"
+  },
+  "name": "Trị ve rận & xổ giun",
+  "slug": "tri-ve-ran-va-xo-giun-cho-cho",
+  "petType": "dog",
+  "description": "Trị ve rận & xổ giun dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "b48218d1f17d26c65d4d5cb2"
+  },
+  "name": "Vệ sinh răng miệng",
+  "slug": "ve-sinh-rang-mieng-cho-cho",
+  "petType": "dog",
+  "description": "Vệ sinh răng miệng dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "f32f57f8619dee0c3c9c3dda"
+  },
+  "name": "Vệ sinh tai mắt cho chó",
+  "slug": "cham-soc-ve-sinh-cho-cho",
+  "petType": "dog",
+  "description": "Vệ sinh tai mắt dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "7189d8744e65939ceeb8f532"
+  },
+  "name": "Vitamin & bổ sung cho chó",
+  "slug": "thuc-pham-chuc-nang-cho-cho",
+  "petType": "dog",
+  "description": "Vitamin & bổ sung dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "7299b7043ac96d66eb5ca011"
+  },
+  "name": "Tất cả thức ăn cho mèo",
+  "slug": "thuc-an-cho-meo",
+  "petType": "cat",
+  "description": "Tất cả thức ăn cho mèo dành cho mèo"
+ },
+ {
+  "_id": {
+   "$oid": "467de28a54802346c1985e59"
+  },
+  "name": "Hạt cho mèo",
+  "slug": "hat-cho-meo",
+  "petType": "cat",
+  "description": "Hạt cho mèo dành cho mèo"
+ },
+ {
+  "_id": {
+   "$oid": "cee1576882ad6429870d7c75"
+  },
+  "name": "Pate cho mèo",
+  "slug": "pate-meo",
+  "petType": "cat",
+  "description": "Pate cho mèo dành cho mèo"
+ },
+ {
+  "_id": {
+   "$oid": "55b657835e6d1839f6a20fc2"
+  },
+  "name": "Bánh thưởng cho mèo",
+  "slug": "banh-thuong-cho-meo",
+  "petType": "cat",
+  "description": "Bánh thưởng cho mèo dành cho mèo"
+ },
+ {
+  "_id": {
+   "$oid": "8509480a22686af8bd6641d8"
+  },
+  "name": "Súp thưởng cho mèo",
+  "slug": "sup-thuong-cho-meo",
+  "petType": "cat",
+  "description": "Súp thưởng cho mèo dành cho mèo"
+ },
+ {
+  "_id": {
+   "$oid": "042d82976575117acd85913b"
+  },
+  "name": "Thức ăn cho mèo con",
+  "slug": "thuc-an-cho-meo-con-kitten",
+  "petType": "cat",
+  "description": "Thức ăn cho mèo con dành cho mèo"
+ },
+ {
+  "_id": {
+   "$oid": "ebc380b5e07f4ef26875d319"
+  },
+  "name": "Thức ăn thú y cho mèo",
+  "slug": "thuc-an-thu-y-cho-meo",
+  "petType": "cat",
+  "description": "Thức ăn thú y dành cho mèo"
+ },
+ {
+  "_id": {
+   "$oid": "74b60293acb03382bd6b0d45"
+  },
+  "name": "Đồ chơi cho mèo",
+  "slug": "do-choi-cho-meo",
+  "petType": "cat",
+  "description": "Đồ chơi cho mèo dành cho mèo"
+ },
+ {
+  "_id": {
+   "$oid": "4013134bc62b1afb03aa6bd4"
+  },
+  "name": "Bàn cào móng",
+  "slug": "ban-cao-mong-cho-meo",
+  "petType": "cat",
+  "description": "Bàn cào móng dành cho mèo"
+ },
+ {
+  "_id": {
+   "$oid": "542fa1205860b8320585e93e"
+  },
+  "name": "Balo & túi vận chuyển",
+  "slug": "balo-meo",
+  "petType": "cat",
+  "description": "Balo & túi vận chuyển dành cho mèo"
+ },
+ {
+  "_id": {
+   "$oid": "4c96a256438c04929245ff84"
+  },
+  "name": "Sữa tắm cho mèo",
+  "slug": "sua-tam-cho-meo",
+  "petType": "cat",
+  "description": "Sữa tắm cho mèo dành cho mèo"
+ },
+ {
+  "_id": {
+   "$oid": "4e12fc0b13b082409fad069a"
+  },
+  "name": "Vệ sinh tai mắt cho mèo",
+  "slug": "cham-soc-ve-sinh-tai-mat-cho-meo",
+  "petType": "cat",
+  "description": "Vệ sinh tai mắt dành cho mèo"
+ },
+ {
+  "_id": {
+   "$oid": "27bf936646805763f2d19719"
+  },
+  "name": "Chăm sóc vệ sinh",
+  "slug": "cham-soc-ve-sinh-cho-meo",
+  "petType": "cat",
+  "description": "Chăm sóc vệ sinh dành cho mèo"
+ },
+ {
+  "_id": {
+   "$oid": "1af8db27bfda483369608f20"
+  },
+  "name": "Cát vệ sinh",
+  "slug": "cat-meo",
+  "petType": "cat",
+  "description": "Cát vệ sinh dành cho mèo"
+ },
+ {
+  "_id": {
+   "$oid": "88cd2d0ba51d8b09ff569541"
+  },
+  "name": "Vitamin & bổ sung cho mèo",
+  "slug": "thuc-pham-chuc-nang-cho-meo",
+  "petType": "cat",
+  "description": "Vitamin & bổ sung dành cho mèo"
+ },
+ {
+  "_id": {
+   "$oid": "71f8d799413be862c5d8afc8"
+  },
+  "name": "Chăm sóc sức khỏe",
+  "slug": "cham-soc-suc-khoe-cho-meo",
+  "petType": "cat",
+  "description": "Chăm sóc sức khỏe dành cho mèo"
+ },
+ {
+  "_id": {
+   "$oid": "3be487cd6b402a544bdf2ac4"
+  },
+  "name": "Đồ Chơi",
+  "slug": "do-choi-cho-cho",
+  "petType": "dog",
+  "description": "Đồ Chơi dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "e37b4ce15c52c6fa0a7f08f0"
+  },
+  "name": "Quần Áo",
+  "slug": "thoi-trang-cho-meo",
+  "petType": "dog",
+  "description": "Quần Áo dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "062e6fc8e6846727379dc2f3"
+  },
+  "name": "Nệm & Chuồng",
+  "slug": "nem-chuong-cho",
+  "petType": "dog",
+  "description": "Nệm & Chuồng dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "31c38f861c8980dcf45248c2"
+  },
+  "name": "Vệ Sinh",
+  "slug": "ve-sinh-cho",
+  "petType": "dog",
+  "description": "Vệ Sinh dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "71f191a4a6378ee9847540bb"
+  },
+  "name": "Sức Khỏe",
+  "slug": "suc-khoe-cho",
+  "petType": "dog",
+  "description": "Sức Khỏe dành cho chó"
+ },
+ {
+  "_id": {
+   "$oid": "753ab9bafb3871aa9655b16c"
+  },
+  "name": "Tã & Bỉm",
+  "slug": "ta-bim-cho",
+  "petType": "dog",
+  "description": "Tã & Bỉm dành cho chó"
+ }
 ]

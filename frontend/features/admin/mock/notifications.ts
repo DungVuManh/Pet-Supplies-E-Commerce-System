@@ -39,13 +39,13 @@ export const initialNotifications: NotificationItem[] = [
   {
     id: "NT-003",
     type: "order",
-    title: "Yêu cầu hủy đơn hàng cho đơn #PA261012016",
-    detail: "Khách hàng Lê Quốc Bảo yêu cầu hủy đơn với lý do: Đặt nhầm địa chỉ giao hàng và phương thức thanh toán.",
+    title: "Đơn hàng #PA261012016 đã hủy",
+    detail: "Khách hàng Lê Quốc Bảo đã hủy đơn với lý do: Đặt nhầm địa chỉ giao hàng và phương thức thanh toán.",
     createdAt: "12/10/2026 · 09:45",
     read: false,
     saved: false,
-    targetHref: "/admin/cancellations",
-    reference: "YC002",
+    targetHref: "/admin/orders?q=PA261012016",
+    reference: "PA261012016",
   },
   {
     id: "NT-004",

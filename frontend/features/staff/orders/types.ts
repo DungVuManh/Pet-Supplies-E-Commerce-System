@@ -7,7 +7,7 @@ export type OrderStatus =
   | "cancelled";
 
 export type PaymentMethod = "COD" | "ONLINE" | "CASH";
-export type StaffEditableOrderStatus = "confirmed" | "processing" | "shipping" | "completed" | "cancelled";
+export type StaffEditableOrderStatus = "confirmed" | "processing" | "shipping" | "cancelled";
 export type StaffOrderStatusUpdate = {
   expectedStatus: OrderStatus;
   orderStatus: StaffEditableOrderStatus;
@@ -34,6 +34,8 @@ export interface StaffOrderListItem {
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
   channel: OrderChannel;
+  paidAmount?: number;
+  needsReview?: boolean;
 }
 
 export interface StaffOrdersPagination {
@@ -113,6 +115,8 @@ export interface StaffOrderDetail {
   items: StaffOrderDetailItem[];
   statusHistory: StaffOrderStatusHistoryItem[];
   allowedNextStatuses: StaffEditableOrderStatus[];
+  paidAmount?: number;
+  needsReview?: boolean;
 }
 
 export interface StaffOrdersFilterState {

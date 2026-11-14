@@ -7,71 +7,85 @@ import { ProductPagination } from "./components/product-pagination";
 import { ProductToolbar } from "./components/product-toolbar";
 import { useProductList } from "./hooks/use-product-list";
 
-export function AllProduct() {
-  const {
-    products,
-    categories,
-    brands,
-    pagination,
-    filter,
-    searchInput,
-    loadingProducts,
-    loadingFilters,
-    error,
-    setSearchInput,
-    handleCategoryChange,
-    handlePriceRangeChange,
-    handleBrandChange,
-    handleSortChange,
-    handleDeleteFilter,
-    handlePageChange,
-  } = useProductList();
+type AllProductProps = {
+  defaultCategory?: string;
+  defaultPetType?: string;
+  defaultSearch?: string;
+};
 
-  return (
-    <main>
-      <div className="flex items-start">
-        {/* Sidebar bộ lọc */}
-        <FilterSidebar
-          categories={categories}
-          brands={brands}
-          selectedCategory={filter.category}
-          selectedPrices={filter.priceRanges}
-          selectedBrands={filter.brands}
-          loadingFilters={loadingFilters}
-          onCategoryChange={handleCategoryChange}
-          onPriceRangeChange={handlePriceRangeChange}
-          onBrandChange={handleBrandChange}
-          onDeleteFilter={handleDeleteFilter}
-        />
+export function AllProduct({
+  defaultCategory,
+  defaultPetType,
+  defaultSearch,
+}: AllProductProps = {}) {
+ const {
+  products,
+  categories,
+  brands,
+  pagination,
+  filter,
+  searchInput,
+  loadingProducts,
+  loadingFilters,
+  error,
+  setSearchInput,
+  handleCategoryChange,
+  handlePriceRangeChange,
+  handlePriceChange,
+  handleBrandChange,
+  handleSortChange,
+  handleDeleteFilter,
+  handlePageChange,
+ } = useProductList(defaultCategory, defaultPetType, defaultSearch);
 
-        {/* Nội dung danh sách sản phẩm */}
-        <div className="w-3/4 flex-1 ml-5">
-          {/* Thanh tìm kiếm & sắp xếp */}
-          <ProductToolbar
-            searchInput={searchInput}
-            onSearchChange={setSearchInput}
-            totalProducts={pagination?.totalProducts ?? 0}
-            loadingProducts={loadingProducts}
-            sort={filter.sort}
-            onSortChange={handleSortChange}
-          />
+ return (
+  <main>
+   <div className="flex items-start">
+    {/* Sidebar bộ lọc */}
+    <FilterSidebar
+     categories={categories}
+     brands={brands}
+     selectedCategory={filter.category}
+     selectedPrices={filter.priceRanges}
+     minPrice={filter.minPrice ?? 0}
+     maxPrice={filter.maxPrice ?? 10000000}
+     onPriceChange={handlePriceChange}
+     selectedBrands={filter.brands}
+     loadingFilters={loadingFilters}
+     onCategoryChange={handleCategoryChange}
+     onPriceRangeChange={handlePriceRangeChange}
+     onBrandChange={handleBrandChange}
+     onDeleteFilter={handleDeleteFilter}
+    />
 
-          {/* Lưới sản phẩm */}
-          <ProductGrid
-            products={products}
-            loadingProducts={loadingProducts}
-            error={error}
-          />
+    {/* Nội dung danh sách sản phẩm */}
+    <div className="w-3/4 flex-1 ml-5">
+     {/* Thanh tìm kiếm & sắp xếp */}
+     <ProductToolbar
+      searchInput={searchInput}
+      onSearchChange={setSearchInput}
+      totalProducts={pagination?.totalProducts ?? 0}
+      loadingProducts={loadingProducts}
+      sort={filter.sort}
+      onSortChange={handleSortChange}
+     />
 
-          {/* Phân trang */}
-          <ProductPagination
-            pagination={pagination}
-            onPageChange={handlePageChange}
-          />
-        </div>
-      </div>
-    </main>
-  );
+     {/* Lưới sản phẩm */}
+     <ProductGrid
+      products={products}
+      loadingProducts={loadingProducts}
+      error={error}
+     />
+
+     {/* Phân trang */}
+     <ProductPagination
+      pagination={pagination}
+      onPageChange={handlePageChange}
+     />
+    </div>
+   </div>
+  </main>
+ );
 }
 
 export default AllProduct;

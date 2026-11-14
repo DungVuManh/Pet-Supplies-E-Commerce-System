@@ -12,6 +12,8 @@ import { OrdersSearchBar } from "./components/orders-search-bar";
 import { OrdersStatusTabs } from "./components/orders-status-tabs";
 import { OrdersTable } from "./components/orders-table";
 import { useOrdersPage } from "./hooks/use-orders-page";
+import { ChevronRight } from "lucide-react";
+
 
 export function OrdersView() {
   // Lấy toàn bộ logic từ hook: gọi API, lọc, đếm, loading...
@@ -28,23 +30,26 @@ export function OrdersView() {
   } = useOrdersPage();
 
   return (
-    <div className="container">
+    <div className="container mx-auto px-4 py-6 md:py-8">
+      {/* Breadcrumb */}
+      <nav aria-label="Đường dẫn" className="mb-6 flex items-center gap-1.5 text-xs text-muted">
+        <Link href="/" className="hover:text-brand transition-colors">
+          Trang chủ
+        </Link>
+        <ChevronRight className="size-3.5 text-slate-400" />
+        <Link href="/account/profile" className="hover:text-brand transition-colors">
+          Tài khoản
+        </Link>
+        <ChevronRight className="size-3.5 text-slate-400" />
+        <span className="font-semibold text-ink">Đơn hàng </span>
+      </nav>
       <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
         {/* Cột trái: Sidebar tài khoản */}
         <AccountSidebar />
 
         {/* Cột phải: Nội dung Đơn hàng của tôi */}
         <div className="flex-1 min-w-0">
-          {/* Breadcrumb */}
-          <nav aria-label="Breadcrumb" className="text-xs text-muted mb-2 flex items-center gap-1.5">
-            <Link href="/" className="hover:text-ink transition-colors">
-              Trang chủ
-            </Link>
-            <span>/</span>
-            <span className="hover:text-ink transition-colors">Tài khoản</span>
-            <span>/</span>
-            <span className="text-ink font-medium">Đơn hàng</span>
-          </nav>
+
 
           {/* Tiêu đề trang */}
           <div className="mb-6">
@@ -96,3 +101,4 @@ export function OrdersView() {
 export default OrdersView;
 export { OrderDetailView } from "./components/order-detail-view";
 export { OrderCancelView } from "./components/order-cancel-view";
+export { OrderTrackingView } from "./components/order-tracking-view";

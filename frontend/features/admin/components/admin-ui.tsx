@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Badge, Breadcrumbs, card } from "@/features/workspace/components/workspace-ui";
+import { ActionLink, Badge, Breadcrumbs, card } from "@/components/workspace/workspace-ui";
 import { adminStatusTone, type AdminStatus } from "../status";
 
 export function AdminPageHeader({ breadcrumbs, title, subtitle, actions }: { breadcrumbs: string[]; title: string; subtitle?: ReactNode; actions?: ReactNode }) {
@@ -12,12 +12,13 @@ export function AdminPageHeader({ breadcrumbs, title, subtitle, actions }: { bre
   </div>;
 }
 
-export function KpiCard({ label, value, detail, tone = "default" }: { label: string; value: string; detail: string; tone?: "default" | "warning" }) {
+export function KpiCard({ label, value, detail, tone = "default", link }: { label: string; value: string; detail: string; tone?: "default" | "warning"; link?: { href: string; label: string } }) {
   const warning = tone === "warning";
   return <article className={`min-w-0 rounded-lg border p-6 ${warning ? "border-warning-subtle bg-warning-subtle" : "border-line bg-surface"}`}>
     <p>{label}</p>
     <p className={`mt-2 break-words text-[26px] font-semibold ${warning ? "text-warning" : ""}`}>{value}</p>
     <p className="mt-2 text-xs text-muted">{detail}</p>
+    {link && <p className="mt-2 text-sm"><ActionLink href={link.href}>{link.label}</ActionLink></p>}
   </article>;
 }
 
@@ -39,8 +40,8 @@ export function DataTable({ head, children, footer, caption }: { head: ReactNode
 export function Th({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <th scope="col" className={`px-6 py-4 font-semibold ${className}`}>{children}</th>;
 }
-export function Td({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <td className={`border-t border-line px-6 py-4 align-middle ${className}`}>{children}</td>;
+export function Td({ children, className = "", colSpan }: { children: ReactNode; className?: string; colSpan?: number }) {
+  return <td colSpan={colSpan} className={`border-t border-line px-6 py-4 align-middle ${className}`}>{children}</td>;
 }
 /** Primary line plus muted secondary line, as in every Admin list row. */
 export function Stack({ primary, secondary, strong = false }: { primary: ReactNode; secondary?: ReactNode; strong?: boolean }) {
@@ -48,10 +49,6 @@ export function Stack({ primary, secondary, strong = false }: { primary: ReactNo
 }
 
 /** Read-only period chip; period selection arrives with the reports backend. */
-export function PeriodChip({ period }: { period: string }) {
-  return <p className="inline-flex min-h-12 items-center rounded-lg border border-line bg-surface px-10 font-semibold" aria-label={`Kỳ báo cáo ${period}`}>{period}</p>;
-}
-
 export function Panel({ title, children, className = "" }: { title?: string; children: ReactNode; className?: string }) {
   return <section className={`${card} min-w-0 p-6 ${className}`}>{title && <h2 className="mb-4 text-xl font-semibold">{title}</h2>}{children}</section>;
 }

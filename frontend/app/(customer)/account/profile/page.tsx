@@ -1,23 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/auth-provider";
+import type { Role } from "@/features/auth/types";
 import { AccountShell } from "@/features/account/components/account-shell";
 import { ProfileView } from "@/features/account/components/profile-view";
 import { ProfileEdit } from "@/features/account/components/profile-edit";
 import { accountApi } from "@/features/account/api";
 import type { CustomerProfile, ProfileStats, ProfileFormValues } from "@/features/account/types";
 
-export default function ProfilePage() {
+function ProfileContent() {
   const router = useRouter();
   const { user, status, acceptUser } = useAuth();
 
   const [profile, setProfile] = useState<CustomerProfile | null>(null);
   const [stats, setStats] = useState<ProfileStats>({
-    orders: 5,
-    pets: 2,
-    addresses: 2,
+    orders: 0,
+    pets: 0,
+    addresses: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -33,22 +34,27 @@ export default function ProfilePage() {
 
   useEffect(() => {
     let active = true;
-    async function load() {
-      setIsLoading(true);
-      setErrorMessage("");
-      try {
-        const data = await accountApi.getProfile();
+    accountApi
+      .getProfile()
+      .then((data) => {
         if (active) {
           setProfile(data.user);
           if (data.stats) setStats(data.stats);
-          if (user && data.user.avatarUrl && user.avatarUrl !== data.user.avatarUrl) {
+          setIsLoading(false);
+          if (data.user) {
             acceptUser({
-              ...user,
+              id: data.user.id,
+              email: data.user.email,
+              role: (data.user.role as Role) || "customer",
+              fullName: data.user.fullName,
+              phone: data.user.phone,
               avatarUrl: data.user.avatarUrl,
+              createdAt: data.user.createdAt,
             });
           }
         }
-      } catch (err: unknown) {
+      })
+      .catch((err: unknown) => {
         if (active) {
           if (user) {
             // Fallback to auth user
@@ -56,7 +62,7 @@ export default function ProfilePage() {
               id: user.id,
               email: user.email,
               fullName: user.fullName,
-              phone: user.phone || "0974 175 587",
+              phone: user.phone || "",
               role: user.role,
               avatarUrl: user.avatarUrl || "/images/customer-avatar.jpg",
             });
@@ -67,19 +73,22 @@ export default function ProfilePage() {
                 : "Không thể tải thông tin hồ sơ tài khoản.",
             );
           }
+          setIsLoading(false);
         }
-      } finally {
-        if (active) setIsLoading(false);
-      }
-    }
+      });
 
-    if (status === "ready") {
-      void load();
-    }
     return () => {
       active = false;
     };
-  }, [status, user, acceptUser]);
+  }, [acceptUser]);
+
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => {
+      setToastMessage("");
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
 
   async function handleSaveProfile(values: ProfileFormValues) {
     setIsSaving(true);
@@ -95,14 +104,17 @@ export default function ProfilePage() {
       setToastMessage("Thông tin của bạn đã được cập nhật.");
       setIsEditing(false);
 
-      if (user) {
-        acceptUser({
-          ...user,
-          fullName: updated.fullName,
-          phone: updated.phone,
-          avatarUrl: nextAvatar,
-        });
-      }
+      acceptUser({
+        ...(user || {
+          id: updated.id,
+          email: updated.email,
+          role: (updated.role as Role) || "customer",
+        }),
+        fullName: updated.fullName,
+        phone: updated.phone,
+        avatarUrl: nextAvatar,
+        createdAt: user?.createdAt || updated.createdAt,
+      });
     } catch (err: unknown) {
       setErrorMessage(
         err instanceof Error
@@ -116,27 +128,57 @@ export default function ProfilePage() {
 
   const currentProfile: CustomerProfile = profile || {
     id: user?.id || "",
-    email: user?.email || "minhanh.nguyen@gmail.com",
-    fullName: user?.fullName || "Nguyễn Minh Anh",
-    phone: user?.phone || "0974 175 587",
+    email: user?.email || "",
+    fullName: user?.fullName || "",
+    phone: user?.phone || "",
     role: user?.role || "customer",
-    dob: "1998-06-18",
-    gender: "female",
+    dob: "",
+    gender: "other",
     avatarUrl: user?.avatarUrl || "/images/customer-avatar.jpg",
-    createdAt:
-      user?.createdAt ||
-      "2026-02-12T00:00:00.000Z",
+    createdAt: user?.createdAt || new Date().toISOString(),
   };
 
   return (
-    <AccountShell activeTab="profile">
-      {/* Toast Alert */}
-      {toastMessage && (
-        <div
-          role="status"
-          className="mb-6 flex items-center justify-between rounded-2xl border border-success/30 bg-success-subtle p-4 text-sm font-semibold text-success shadow-xs"
-        >
-          <div className="flex items-center gap-3">
+    <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col px-4 py-6 outline-none sm:px-6 xl:px-16">
+      <AccountShell activeTab="profile">
+        {/* Toast Alert */}
+        {toastMessage && (
+          <div
+            role="status"
+            className="mb-6 flex items-center justify-between rounded-2xl border border-success/30 bg-success-subtle p-4 text-sm font-semibold text-success shadow-xs"
+          >
+            <div className="flex items-center gap-3">
+              <svg
+                className="h-5 w-5 shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="2"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                />
+              </svg>
+              <span>{toastMessage}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setToastMessage("")}
+              className="text-xs hover:underline"
+            >
+              Đóng
+            </button>
+          </div>
+        )}
+
+        {/* Error Alert */}
+        {errorMessage && (
+          <div
+            role="alert"
+            className="mb-6 flex items-center gap-3 rounded-2xl border border-danger/30 bg-danger-subtle p-4 text-sm font-semibold text-danger shadow-xs"
+          >
             <svg
               className="h-5 w-5 shrink-0"
               fill="none"
@@ -147,63 +189,52 @@ export default function ProfilePage() {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
               />
             </svg>
-            <span>{toastMessage}</span>
+            <span>{errorMessage}</span>
           </div>
-          <button
-            type="button"
-            onClick={() => setToastMessage("")}
-            className="text-xs hover:underline"
-          >
-            Đóng
-          </button>
-        </div>
-      )}
+        )}
 
-      {/* Error Alert */}
-      {errorMessage && (
-        <div
-          role="alert"
-          className="mb-6 flex items-center gap-3 rounded-2xl border border-danger/30 bg-danger-subtle p-4 text-sm font-semibold text-danger shadow-xs"
-        >
-          <svg
-            className="h-5 w-5 shrink-0"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="2"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
-            />
-          </svg>
-          <span>{errorMessage}</span>
-        </div>
-      )}
+        {isLoading ? (
+          <div className="rounded-2xl border border-line bg-surface p-12 text-center text-sm text-muted shadow-xs">
+            <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-brand border-r-transparent" />
+            <p className="mt-3">Đang tải thông tin tài khoản…</p>
+          </div>
+        ) : isEditing ? (
+          <ProfileEdit
+            profile={currentProfile}
+            onSave={handleSaveProfile}
+            onCancel={() => setIsEditing(false)}
+            isSaving={isSaving}
+          />
+        ) : (
+          <ProfileView
+            profile={currentProfile}
+            stats={stats}
+            onEdit={() => setIsEditing(true)}
+          />
+        )}
+      </AccountShell>
+    </div>
+  );
+}
 
-      {isLoading ? (
-        <div className="rounded-2xl border border-line bg-surface p-12 text-center text-sm text-muted shadow-xs">
-          <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-brand border-r-transparent" />
-          <p className="mt-3">Đang tải thông tin tài khoản…</p>
+export default function ProfilePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col px-4 py-6 outline-none sm:px-6 xl:px-16">
+          <AccountShell activeTab="profile">
+            <div className="rounded-2xl border border-line bg-surface p-12 text-center text-sm text-muted shadow-xs">
+              <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-brand border-r-transparent" />
+              <p className="mt-3">Đang tải thông tin tài khoản…</p>
+            </div>
+          </AccountShell>
         </div>
-      ) : isEditing ? (
-        <ProfileEdit
-          profile={currentProfile}
-          onSave={handleSaveProfile}
-          onCancel={() => setIsEditing(false)}
-          isSaving={isSaving}
-        />
-      ) : (
-        <ProfileView
-          profile={currentProfile}
-          stats={stats}
-          onEdit={() => setIsEditing(true)}
-        />
-      )}
-    </AccountShell>
+      }
+    >
+      <ProfileContent />
+    </Suspense>
   );
 }
