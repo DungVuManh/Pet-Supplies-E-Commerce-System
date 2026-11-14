@@ -21,6 +21,7 @@ export const productPatchSchema = z.object({
  petType: z.enum(["dog", "cat", "all"], { error: "Loài thú cưng không hợp lệ." }).optional(),
  categoryCodes: z.array(z.string().trim().min(1).max(100), { error: "Danh mục không hợp lệ." }).min(1, "Chọn ít nhất một danh mục.").max(30, "Chọn tối đa 30 danh mục.").optional(),
  description: z.string({ error: "Mô tả không hợp lệ." }).trim().max(20000, "Mô tả tối đa 20.000 ký tự.").optional(),
+ components: z.string({ error: "Thành phần không hợp lệ." }).trim().max(20000, "Thành phần tối đa 20.000 ký tự.").optional(),
  unit: z.string({ error: "Đơn vị không hợp lệ." }).trim().max(50, "Đơn vị tối đa 50 ký tự.").optional(),
  isActive: z.boolean({ error: "Trạng thái không hợp lệ." }).optional(),
  price: integer("Giá bán phải là số nguyên lớn hơn 0.").min(1, "Giá bán phải là số nguyên lớn hơn 0.").optional(),

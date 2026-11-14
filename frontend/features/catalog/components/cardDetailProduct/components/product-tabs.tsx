@@ -122,9 +122,15 @@ export function ProductTabs({ product }: { product: Product }) {
 
         {/* Tab 2: Thành phần & Hướng dẫn */}
         {activeTab === "ingredients" && (
-          <p className="text-sm text-slate-500">
-            Thông tin thành phần dinh dưỡng và hướng dẫn sử dụng đang được cập nhật.
-          </p>
+          <div className="prose max-w-none text-sm leading-relaxed text-slate-600">
+            {product.components ? (
+              <p className="whitespace-pre-line leading-relaxed">{product.components}</p>
+            ) : (
+              <p className="text-slate-500">
+                Thông tin thành phần dinh dưỡng và hướng dẫn sử dụng đang được cập nhật.
+              </p>
+            )}
+          </div>
         )}
 
         {/* Tab 3: Khối Đánh giá sản phẩm (Bố cục 2 cột mượn từ ảnh mẫu, màu xanh thương hiệu) */}

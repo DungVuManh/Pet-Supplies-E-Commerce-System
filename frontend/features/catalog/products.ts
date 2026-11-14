@@ -18,6 +18,7 @@ export type Product = {
   brand: string;
   name: string;
   description: string;
+  components?: string;
   price: number;
   image: string;
   categories: readonly CategoryId[];

@@ -49,6 +49,7 @@ async function seedProduct(filter, data) {
     const product = await ensureSample(Product, filter, data);
     const changes = {};
     if (product.description !== data.description) changes.description = data.description;
+    if (data.components !== undefined && product.components !== data.components) changes.components = data.components;
     const variants = product.variants.map((variant, index) => {
       const source = data.variants.find((item) => item.sku === variant.sku);
       if (!source) return variant;

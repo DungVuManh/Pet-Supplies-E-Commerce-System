@@ -122,6 +122,7 @@ async function productDetail(product, variant) {
   unit: product.unit ?? "",
   petType: product.petType,
   description: product.description ?? "",
+  components: product.components ?? "",
   images: product.images ?? [],
   categories: productCategories(product, index),
   price: variant.price,
@@ -183,10 +184,10 @@ export function showProduct(request, response) {
 }
 
 const PRODUCT_LABELS = {
- name: "tên", brand: "thương hiệu", petType: "loài", description: "mô tả", unit: "đơn vị", isActive: "trạng thái", categoryIds: "danh mục",
+ name: "tên", brand: "thương hiệu", petType: "loài", description: "mô tả", components: "thành phần", unit: "đơn vị", isActive: "trạng thái", categoryIds: "danh mục",
  sku: "SKU", price: "giá bán", cost: "giá vốn", stock: "tồn kho", lowStockThreshold: "ngưỡng cảnh báo",
 };
-const PRODUCT_FIELDS = ["name", "brand", "petType", "description", "unit", "isActive"];
+const PRODUCT_FIELDS = ["name", "brand", "petType", "description", "components", "unit", "isActive"];
 const VARIANT_FIELDS = ["sku", "price", "cost", "stock", "lowStockThreshold"];
 
 const sameCategories = (a, b) => a.length === b.length && [...a].sort().join() === [...b].sort().join();

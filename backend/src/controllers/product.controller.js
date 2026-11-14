@@ -165,6 +165,7 @@ export async function getProductBySku(request, response, next) {
       updated: formatTimestamp(product.updatedAt),
       shortDescription: product.description || "",
       description: product.description || "",
+      components: product.components || "",
       content: product.description || "",
       ratingAvg: product.ratingAvg || 0,
       ratingCount: product.ratingCount || 0,
