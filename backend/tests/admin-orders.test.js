@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuditLog } from "../src/models/audit-log.model.js";
 import { Order } from "../src/models/order.model.js";
+import { ReturnRequest } from "../src/models/return-request.model.js";
 import { User } from "../src/models/user.model.js";
 import { createAdminTestApp } from "./helpers/admin-app.js";
 
@@ -38,7 +39,15 @@ const seed = () => [
 ];
 
 let orders;
+let returns;
 let admin;
+
+// PA-SHIP's goods are back and waiting for a refund; PA-DONE was refunded; PA-GUEST's return was rejected.
+const seedReturns = (rows) => [
+ { orderId: rows.find((item) => item.orderCode === "PA-SHIP")?._id, status: "received", refundStatus: "none" },
+ { orderId: rows.find((item) => item.orderCode === "PA-DONE")?._id, status: "completed", refundStatus: "refunded" },
+ { orderId: rows.find((item) => item.orderCode === "PA-GUEST")?._id, status: "rejected", refundStatus: "none" },
+].filter((entry) => entry.orderId);
 
 function get(document, path) {
  return path.split(".").reduce((value, key) => value?.[key], document);
@@ -74,7 +83,9 @@ const row = (data, code) => data.items.find((item) => item.orderCode === code);
 
 beforeEach(() => {
  orders = seed();
+ returns = seedReturns(orders);
  admin = createAdminTestApp();
+ vi.spyOn(ReturnRequest, "distinct").mockImplementation(async (field, filter) => returns.filter((entry) => matches(entry, filter)).map((entry) => entry[field]));
  vi.spyOn(Order, "find").mockImplementation((filter) => fakeFind(orders, filter));
  vi.spyOn(Order, "countDocuments").mockImplementation(async (filter) => orders.filter((item) => matches(item, filter)).length);
  vi.spyOn(Order, "aggregate").mockImplementation(async ([{ $match }]) => {
@@ -133,9 +144,28 @@ describe("GET /api/v1/admin/orders", () => {
   });
 
   it("counts each tab, ignoring the filters and hidden sales", async () => {
-   const counts = { all: 10, processing: 3, shipping: 1, completed: 5, cancelled: 1 };
+   const counts = { all: 10, processing: 3, shipping: 1, completed: 5, cancelled: 1, pending_refund: 1, refunded: 1 };
    expect((await list()).counts).toEqual(counts);
    expect((await list({ tab: "shipping", q: "PA-SHIP" })).counts).toEqual(counts);
+  });
+
+  it.each([
+   ["pending_refund", ["PA-SHIP"]],
+   ["refunded", ["PA-DONE"]],
+  ])("groups %s by the order's return", async (tab, expected) => {
+   expect(codes(await list({ tab }))).toEqual(expected);
+  });
+
+  it("counts an explicit pending_refund and an older embedded return", async () => {
+   returns.push({ orderId: orders.find((item) => item.orderCode === "PA-ACCOUNT")._id, status: "completed", refundStatus: "pending_refund" });
+   orders.find((item) => item.orderCode === "PA-CANCEL").returnRequest = { refundStatus: "refunded" };
+   const data = await list({ tab: "refunded" });
+   expect(codes(data)).toEqual(["PA-DONE", "PA-CANCEL"]);
+   expect(data.counts).toMatchObject({ pending_refund: 2, refunded: 2 });
+  });
+
+  it("combines a refund tab with the search", async () => {
+   expect(codes(await list({ tab: "refunded", q: "PA-SHIP" }))).toEqual([]);
   });
 
   it("shows a legacy delivered order as completed", async () => {
@@ -201,7 +231,7 @@ describe("GET /api/v1/admin/orders", () => {
   orders = [];
   const data = await list();
   expect(data.items).toEqual([]);
-  expect(data.counts).toEqual({ all: 0, processing: 0, shipping: 0, completed: 0, cancelled: 0 });
+  expect(data.counts).toEqual({ all: 0, processing: 0, shipping: 0, completed: 0, cancelled: 0, pending_refund: 0, refunded: 0 });
  });
 
  it.each([["tab", "archived"], ["status", "delivered"], ["page", "0"]])("rejects %s=%s with 400", async (name, value) => {

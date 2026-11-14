@@ -4,6 +4,7 @@ import { paginate } from "../../common/pagination.js";
 import { searchFilter } from "../../common/search.js";
 import { Order } from "../../models/order.model.js";
 import { Product } from "../../models/product.model.js";
+import { ReturnRequest } from "../../models/return-request.model.js";
 import { User } from "../../models/user.model.js";
 import { orderCodeSchema, orderListQuerySchema } from "../../validators/admin/order.validator.js";
 import { parseQuery } from "../../validators/admin/list-query.js";
@@ -16,6 +17,14 @@ const TAB_STATUSES = {
  shipping: ["shipping"],
  completed: ["completed", "delivered"],
  cancelled: ["cancelled"],
+};
+/**
+ * Refund tabs cut across the status tabs. Staff confirm a refund once the goods are back,
+ * so a received return is still waiting for its refund; nothing writes `pending_refund` yet.
+ */
+const REFUND_TABS = {
+ pending_refund: { $or: [{ refundStatus: "pending_refund" }, { status: "received" }] },
+ refunded: { refundStatus: "refunded" },
 };
 // The status filter follows the badges: "Chờ xử lý" covers both pending and confirmed.
 const FILTER_STATUSES = {
@@ -62,22 +71,39 @@ function orderRow(order, accounts) {
  };
 }
 
+/** Orders whose return is at this refund stage, including older orders that embed their return. */
+async function refundTabFilter(tab) {
+ const orderIds = await ReturnRequest.distinct("orderId", REFUND_TABS[tab]);
+ return { $or: [{ _id: { $in: orderIds } }, { "returnRequest.refundStatus": tab }] };
+}
+
+async function refundTabCount(tab) {
+ return Order.countDocuments({ $and: [visibleOrders, await refundTabFilter(tab)] });
+}
+
 async function tabCounts() {
- const groups = await Order.aggregate([
-  { $match: visibleOrders },
-  { $group: { _id: "$orderStatus", count: { $sum: 1 } } },
+ const [groups, pendingRefund, refunded] = await Promise.all([
+  Order.aggregate([
+   { $match: visibleOrders },
+   { $group: { _id: "$orderStatus", count: { $sum: 1 } } },
+  ]),
+  refundTabCount("pending_refund"),
+  refundTabCount("refunded"),
  ]);
  const sum = (statuses) => groups.filter((group) => statuses.includes(group._id)).reduce((total, group) => total + group.count, 0);
  return {
   all: groups.reduce((total, group) => total + group.count, 0),
   ...Object.fromEntries(Object.entries(TAB_STATUSES).map(([tab, statuses]) => [tab, sum(statuses)])),
+  pending_refund: pendingRefund,
+  refunded,
  };
 }
 
 /** The tab, status, and search as one filter, leaving out Staff sales still being created. */
 async function orderFilter(query) {
  const conditions = [visibleOrders];
- if (query.tab !== "all") conditions.push({ orderStatus: { $in: TAB_STATUSES[query.tab] } });
+ if (REFUND_TABS[query.tab]) conditions.push(await refundTabFilter(query.tab));
+ else if (query.tab !== "all") conditions.push({ orderStatus: { $in: TAB_STATUSES[query.tab] } });
  if (query.status !== "all") conditions.push({ orderStatus: { $in: FILTER_STATUSES[query.status] } });
  const search = await searchOrders(query.q);
  if (Object.keys(search).length > 0) conditions.push(search);

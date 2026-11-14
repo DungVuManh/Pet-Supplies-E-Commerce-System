@@ -212,7 +212,7 @@ export type ProductOptions = { petTypes: { code: string; name: string }[]; brand
 export type ProductVisibilityResult = Pick<AdminProductDetail, "sku" | "isActive" | "status">;
 
 export type OrderStatus = "pending" | "confirmed" | "processing" | "shipping" | "completed" | "cancelled" | "returned";
-export type OrderTab = "all" | "processing" | "shipping" | "completed" | "cancelled";
+export type OrderTab = "all" | "processing" | "shipping" | "completed" | "cancelled" | "pending_refund" | "refunded";
 export type OrderStatusFilter = "all" | "pending" | "processing" | "shipping" | "completed" | "cancelled" | "returned";
 export type OrderFilter = { tab: OrderTab; q: string; status: OrderStatusFilter };
 export type OrderCounts = Record<OrderTab, number>;

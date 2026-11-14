@@ -16,6 +16,7 @@ import { AdminPageHeader, StatusBadge, Stack, Td, Th } from "./admin-ui";
 const tabs: { value: OrderTab; label: string }[] = [
   { value: "all", label: "Tất cả đơn" }, { value: "processing", label: "Chờ xử lý" }, { value: "shipping", label: "Đang giao" },
   { value: "completed", label: "Hoàn thành" }, { value: "cancelled", label: "Đã hủy" },
+  { value: "pending_refund", label: "Chờ hoàn tiền" }, { value: "refunded", label: "Đã hoàn tiền" },
 ];
 const statusOptions: { value: Exclude<OrderStatusFilter, "all">; label: string }[] = [
   { value: "pending", label: orderStatusLabels.pending }, { value: "processing", label: orderStatusLabels.processing }, { value: "shipping", label: orderStatusLabels.shipping },
