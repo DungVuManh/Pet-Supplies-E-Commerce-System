@@ -10,9 +10,7 @@ import {
   PolicyView,
 } from "@/features/policy";
 
-// Dynamic server-side rendering for real-time policy content updates
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+// Cho phép route hoạt động trơn tru với Partial Prerendering / Instant Navigation trong Next.js 16
 export const instant = false;
 
 interface PageProps {
