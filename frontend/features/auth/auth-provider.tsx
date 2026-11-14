@@ -39,6 +39,8 @@ export function AuthProvider({ children, initialUser }: { children: ReactNode; i
     if (user) {
       void syncGuestCartToBackend();
       void syncGuestVouchersToBackend();
+    } else if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("cart-updated"));
     }
   }, []);
 
@@ -60,6 +62,9 @@ export function AuthProvider({ children, initialUser }: { children: ReactNode; i
       setState((previous) => ({ status: guest ? "ready" : "error", user: guest ? null : previous.user }));
       if (guest) {
         syncAuthStorage(null);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("cart-updated"));
+        }
       }
     });
   }, []);

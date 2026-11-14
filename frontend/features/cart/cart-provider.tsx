@@ -5,8 +5,9 @@
 // Context quản lý giỏ hàng toàn ứng dụng, đồng bộ dữ liệu với MongoDB bằng useEffect
 // =============================================================
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { addToCartApi, getCartApi } from "./services/cart.service";
+import { useAuth } from "@/features/auth/auth-provider";
 
 type CartContextValue = {
   quantity: number;
@@ -20,35 +21,45 @@ const CartContext = createContext<CartContextValue | null>(null);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [quantity, setQuantity] = useState<number>(0);
   const [total, setTotal] = useState<number>(0);
+  const { user, status } = useAuth();
 
-  // Gọi API lấy số lượng và tổng tiền từ DB
-  const syncCartFromDb = async () => {
+  // Gọi API lấy số lượng và tổng tiền từ DB (hoặc localStorage cho guest)
+  const syncCartFromDb = useCallback(async () => {
     try {
       const res = await getCartApi();
       const cartSummary = res.data?.cart?.summary;
       if (cartSummary) {
         setQuantity(cartSummary.totalQuantity ?? 0);
         setTotal(cartSummary.total ?? 0);
+      } else {
+        setQuantity(0);
+        setTotal(0);
       }
     } catch {
       // Khi chưa có cart trong DB thì giữ 0
       setQuantity(0);
       setTotal(0);
     }
-  };
+  }, []);
 
-  // useEffect lấy dữ liệu khi khởi động và lắng nghe event cart-updated
+  // Tự động đồng bộ giỏ hàng khi trạng thái đăng nhập thay đổi (login / logout / switch account)
+  useEffect(() => {
+    if (status !== "loading") {
+      void syncCartFromDb();
+    }
+  }, [user?.id, status, syncCartFromDb]);
+
+  // Lắng nghe event cart-updated khi có thay đổi giỏ hàng từ bất kỳ đâu trong app
   useEffect(() => {
     const handleCartUpdated = () => {
-      syncCartFromDb();
+      void syncCartFromDb();
     };
-    handleCartUpdated();
 
     window.addEventListener("cart-updated", handleCartUpdated);
     return () => {
       window.removeEventListener("cart-updated", handleCartUpdated);
     };
-  }, []);
+  }, [syncCartFromDb]);
 
   const addItem = async (product: { id: string; variants?: Array<{ sku: string }> }) => {
     try {
