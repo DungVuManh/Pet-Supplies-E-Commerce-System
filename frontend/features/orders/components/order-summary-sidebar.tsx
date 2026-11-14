@@ -19,6 +19,7 @@ import {
 } from "../services/order-return.service";
 import { ReceiptConfirmedModal } from "./receipt-confirmed-modal";
 import { CancelReturnRequest } from "./cancel-return-request";
+import { useReorder } from "../hooks/use-reorder";
 
 type OrderSummarySidebarProps = {
  order: OrderDetail;
@@ -35,6 +36,7 @@ export function OrderSummarySidebar({
  onRequestCancel,
  onReceiptConfirmed,
 }: OrderSummarySidebarProps) {
+ const { isReordering, reorderError, handleReorder } = useReorder();
  const canCancel = order.status === "pending";
  const returnReq = order.returnRequest;
  const isReturnPending = returnReq?.status === "pending";
@@ -382,6 +384,33 @@ export function OrderSummarySidebar({
 
    {/* Khối 3: Thao tác Tiếp tục thanh toán, Xác nhận nhận hàng, Hoàn trả, Hủy đơn & Hỗ trợ */}
    <div className="space-y-3">
+    {(order.status === "completed" || order.orderStatus === "completed") && (
+     <div className="space-y-2">
+      {reorderError && (
+       <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+        {reorderError}
+       </p>
+      )}
+      <button
+       type="button"
+       onClick={() => void handleReorder(order.id)}
+       disabled={isReordering}
+       className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-sm"
+      >
+       {isReordering ? (
+        <>
+         <span className="inline-block size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+         <span>Đang xử lý mua lại...</span>
+        </>
+       ) : (
+        <>
+         <span>↻</span>
+         <span>Mua lại đơn hàng</span>
+        </>
+       )}
+      </button>
+     </div>
+    )}
     {canResumePayment && (
      <div className="space-y-2 rounded-2xl border border-brand/20 bg-brand-subtle/60 p-4">
       <Link

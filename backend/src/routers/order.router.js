@@ -14,6 +14,7 @@ import {
   getOrderDetail,
   previewBuyNow,
   lookupOrder,
+  reorderCompletedOrder,
 } from "../controllers/order.controller.js";
 import { confirmCustomerOrderReceipt } from "../controllers/order-status.controller.js";
 import {
@@ -113,6 +114,16 @@ router.patch(
   requireRole("customer"),
   protectMutation,
   confirmCustomerOrderReceipt,
+);
+
+// Reorder a completed order
+router.post(
+  "/:id/reorder",
+  noStore,
+  requireAuth,
+  requireRole("customer"),
+  protectMutation,
+  reorderCompletedOrder,
 );
 
 // Customer return requests: upload proof images and submit request

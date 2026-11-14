@@ -228,9 +228,11 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
    ? "success"
    : req.status === "approved" || req.status === "customer_shipped"
      ? "info"
-     : req.status === "cancelled" ? "neutral" : req.status === "rejected"
-       ? "danger"
-       : "warning";
+     : req.status === "cancelled"
+       ? "neutral"
+       : req.status === "rejected"
+         ? "danger"
+         : "warning";
 
  return (
   <div className="space-y-6">
@@ -928,7 +930,10 @@ export function ReturnDecisionPanel({ detail }: ReturnDecisionPanelProps) {
          {detail.paymentStatus === "paid" ? "Đã thanh toán" : "Chưa thanh toán"}
         </Badge>
        </div>
-       {isOnlinePaid && (req.refundStatus === "refunded" || req.refundStatus === "pending_refund" || req.status === "received") &&
+       {isOnlinePaid &&
+        (req.refundStatus === "refunded" ||
+         req.refundStatus === "pending_refund" ||
+         req.status === "received") &&
         (req.refundStatus === "refunded" ? (
          <div className="mt-3 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-1">
           <p className="font-bold flex items-center gap-1.5 text-xs">

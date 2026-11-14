@@ -21,6 +21,19 @@ export function CartView() {
 
     const [selectedItems, setSelectedItems] = useState<Record<string, boolean>>({});
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+    const [reorderNotice, setReorderNotice] = useState<{ type: string; message: string } | null>(null);
+
+    useEffect(() => {
+        try {
+            const raw = sessionStorage.getItem("petly_reorder_notice");
+            if (raw) {
+                setReorderNotice(JSON.parse(raw));
+                sessionStorage.removeItem("petly_reorder_notice");
+            }
+        } catch {
+            // ignore
+        }
+    }, []);
 
     const handleToggleSelect = (id: string) => {
         setSelectedItems((prev) => ({
@@ -84,6 +97,25 @@ export function CartView() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {/* CỘT TRÁI (8/12): Bảng sản phẩm + nút mua sắm + banner */}
                 <div className="lg:col-span-8 flex flex-col gap-6">
+                    {reorderNotice && (
+                        <div
+                            role="status"
+                            className={`rounded-2xl border p-4 text-sm flex items-start justify-between gap-3 shadow-xs ${
+                                reorderNotice.type === "warning"
+                                    ? "bg-amber-50 border-amber-200 text-amber-900"
+                                    : "bg-emerald-50 border-emerald-200 text-emerald-900"
+                            }`}
+                        >
+                            <span className="font-medium leading-relaxed">{reorderNotice.message}</span>
+                            <button
+                                type="button"
+                                onClick={() => setReorderNotice(null)}
+                                className="text-xs font-bold underline opacity-70 hover:opacity-100 cursor-pointer shrink-0"
+                            >
+                                Đóng
+                            </button>
+                        </div>
+                    )}
                     <CartItemsTable
                         items={items}
                         isLoading={isLoading}
