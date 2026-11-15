@@ -179,19 +179,7 @@ export function ProductsList() {
 
  return (
   <>
-   <PageHeader
-    title="Danh sách sản phẩm"
-    action={
-     <button
-      className={secondaryButton}
-      onClick={() =>
-       setNotice("Danh sách xuất đã được ghi nhận vào hàng đợi hệ thống.")
-      }
-     >
-      Xuất danh sách
-     </button>
-    }
-   />
+   <PageHeader title="Danh sách sản phẩm" />
 
    {notice && (
     <p role="status" className="rounded-lg bg-brand-subtle p-4 text-brand">
@@ -317,14 +305,19 @@ export function ProductsList() {
            className="h-10 w-10 shrink-0 rounded-lg bg-canvas object-contain border border-line p-0.5"
           />
           <div className="min-w-0">
-           <span className="font-medium text-ink leading-normal text-sm block" title={p.name}>
+           <span
+            className="font-medium text-ink leading-normal text-sm block"
+            title={p.name}
+           >
             {p.name}
            </span>
            {p.ratingAvg !== undefined && p.ratingAvg > 0 && (
             <div className="flex items-center gap-1 text-xs text-amber-500 font-medium mt-0.5">
              <Star className="size-3 fill-amber-400 text-amber-400 shrink-0" />
              <span>{p.ratingAvg.toFixed(1)}</span>
-             <span className="text-muted text-[11px]">({p.ratingCount || 0})</span>
+             <span className="text-muted text-[11px]">
+              ({p.ratingCount || 0})
+             </span>
             </div>
            )}
           </div>
