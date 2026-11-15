@@ -63,7 +63,7 @@ export function validateCheckoutAddress(address: CheckoutAddress): Record<string
   if (!address.phone?.trim()) {
     errors.phone = "Vui lòng nhập số điện thoại.";
   } else if (!/^[0-9+() -]{8,10}$/.test(address.phone.trim())) {
-    errors.phone = "Số điện thoại không hợp lệ (8 - 15 chữ số).";
+    errors.phone = "Số điện thoại không hợp lệ (8 - 10 chữ số).";
   }
 
   if (!address.province?.trim()) {
