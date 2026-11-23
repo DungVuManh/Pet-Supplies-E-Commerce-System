@@ -143,6 +143,15 @@ export async function convertCustomerOrderToCod(request, response) {
     throw ineligibility;
   }
 
+  const maxPrice = 1000000000;
+  if (order.total > maxPrice) {
+    throw new AppError(
+      `Đơn hàng của bạn có giá trị lớn ${maxPrice} nên phải thanh toán bằng QR.`,
+      400,
+      "COD_MAX_PRICE_EXCEEDED"
+    );
+  }
+
   const { paidAmount } = computeOrderPaymentAmounts(order);
   const updateFields = {
     paymentMethod: "COD",

@@ -400,11 +400,10 @@ export function ChangeAddressModal({
                     <div
                       key={addr._id}
                       onClick={() => setSelectedId(addr._id)}
-                      className={`relative flex items-start gap-3.5 p-4 rounded-xl border transition-all cursor-pointer select-none ${
-                        isChecked
-                          ? "border-blue-600 bg-blue-50/40 ring-1 ring-blue-600"
-                          : "border-line bg-surface hover:border-slate-300 hover:bg-slate-50/50"
-                      }`}
+                      className={`relative flex items-start gap-3.5 p-4 rounded-xl border transition-all cursor-pointer select-none ${isChecked
+                        ? "border-blue-600 bg-blue-50/40 ring-1 ring-blue-600"
+                        : "border-line bg-surface hover:border-slate-300 hover:bg-slate-50/50"
+                        }`}
                     >
                       {/* Radio button chọn */}
                       <div className="pt-0.5 shrink-0">
@@ -587,11 +586,10 @@ export function ChangeAddressModal({
                       }
                     }}
                     placeholder="VD: Nguyễn Văn A"
-                    className={`mt-1.5 block w-full rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-hidden transition-colors ${
-                      formErrors.recipientName
-                        ? "border-red-500 focus:border-red-500"
-                        : "border-line focus:border-blue-600"
-                    }`}
+                    className={`mt-1.5 block w-full rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-hidden transition-colors ${formErrors.recipientName
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-line focus:border-blue-600"
+                      }`}
                   />
                   {formErrors.recipientName && (
                     <p className="mt-1 text-xs text-red-600">
@@ -619,11 +617,10 @@ export function ChangeAddressModal({
                       }
                     }}
                     placeholder="VD: 0912345678"
-                    className={`mt-1.5 block w-full rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-hidden transition-colors ${
-                      formErrors.phone
-                        ? "border-red-500 focus:border-red-500"
-                        : "border-line focus:border-blue-600"
-                    }`}
+                    className={`mt-1.5 block w-full rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-hidden transition-colors ${formErrors.phone
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-line focus:border-blue-600"
+                      }`}
                   />
                   {formErrors.phone && (
                     <p className="mt-1 text-xs text-red-600">
@@ -660,11 +657,10 @@ export function ChangeAddressModal({
                           ward: "",
                         }));
                       }}
-                      className={`block w-full appearance-none rounded-xl border bg-surface px-3 py-2 text-xs sm:text-sm text-ink focus:outline-hidden transition-colors pr-7 ${
-                        formErrors.province
-                          ? "border-red-500 focus:border-red-500"
-                          : "border-line focus:border-blue-600"
-                      }`}
+                      className={`block w-full appearance-none rounded-xl border bg-surface px-3 py-2 text-xs sm:text-sm text-ink focus:outline-hidden transition-colors pr-7 ${formErrors.province
+                        ? "border-red-500 focus:border-red-500"
+                        : "border-line focus:border-blue-600"
+                        }`}
                     >
                       <option value="">-- Tỉnh / Thành --</option>
                       {provinces.map((prov) => (
@@ -704,11 +700,10 @@ export function ChangeAddressModal({
                           ward: "",
                         }));
                       }}
-                      className={`block w-full appearance-none rounded-xl border bg-surface px-3 py-2 text-xs sm:text-sm text-ink focus:outline-hidden transition-colors pr-7 disabled:bg-slate-50 disabled:text-muted disabled:cursor-not-allowed ${
-                        formErrors.district
-                          ? "border-red-500 focus:border-red-500"
-                          : "border-line focus:border-blue-600"
-                      }`}
+                      className={`block w-full appearance-none rounded-xl border bg-surface px-3 py-2 text-xs sm:text-sm text-ink focus:outline-hidden transition-colors pr-7 disabled:bg-slate-50 disabled:text-muted disabled:cursor-not-allowed ${formErrors.district
+                        ? "border-red-500 focus:border-red-500"
+                        : "border-line focus:border-blue-600"
+                        }`}
                     >
                       <option value="">-- Quận / Huyện --</option>
                       {districts.map((d) => (
@@ -742,11 +737,10 @@ export function ChangeAddressModal({
                         setFormWard(e.target.value);
                         setFormErrors((prev) => ({ ...prev, ward: "" }));
                       }}
-                      className={`block w-full appearance-none rounded-xl border bg-surface px-3 py-2 text-xs sm:text-sm text-ink focus:outline-hidden transition-colors pr-7 disabled:bg-slate-50 disabled:text-muted disabled:cursor-not-allowed ${
-                        formErrors.ward
-                          ? "border-red-500 focus:border-red-500"
-                          : "border-line focus:border-blue-600"
-                      }`}
+                      className={`block w-full appearance-none rounded-xl border bg-surface px-3 py-2 text-xs sm:text-sm text-ink focus:outline-hidden transition-colors pr-7 disabled:bg-slate-50 disabled:text-muted disabled:cursor-not-allowed ${formErrors.ward
+                        ? "border-red-500 focus:border-red-500"
+                        : "border-line focus:border-blue-600"
+                        }`}
                     >
                       <option value="">-- Phường / Xã --</option>
                       {wards.map((w) => (
@@ -785,11 +779,10 @@ export function ChangeAddressModal({
                     }
                   }}
                   placeholder="VD: 123 Đường Lê Lợi, Phường Bến Nghé"
-                  className={`mt-1.5 block w-full rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-hidden transition-colors ${
-                    formErrors.street
-                      ? "border-red-500 focus:border-red-500"
-                      : "border-line focus:border-blue-600"
-                  }`}
+                  className={`mt-1.5 block w-full rounded-xl border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-hidden transition-colors ${formErrors.street
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-line focus:border-blue-600"
+                    }`}
                 />
                 {formErrors.street && (
                   <p className="mt-1 text-xs text-red-600">
@@ -809,22 +802,20 @@ export function ChangeAddressModal({
                     <button
                       type="button"
                       onClick={() => setFormAddressType("home")}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${
-                        formAddressType === "home"
-                          ? "bg-blue-50 border-blue-600 text-blue-600"
-                          : "border-line text-slate-600 hover:bg-slate-50"
-                      }`}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${formAddressType === "home"
+                        ? "bg-blue-50 border-blue-600 text-blue-600"
+                        : "border-line text-slate-600 hover:bg-slate-50"
+                        }`}
                     >
                       Nhà riêng
                     </button>
                     <button
                       type="button"
                       onClick={() => setFormAddressType("office")}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${
-                        formAddressType === "office"
-                          ? "bg-blue-50 border-blue-600 text-blue-600"
-                          : "border-line text-slate-600 hover:bg-slate-50"
-                      }`}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${formAddressType === "office"
+                        ? "bg-blue-50 border-blue-600 text-blue-600"
+                        : "border-line text-slate-600 hover:bg-slate-50"
+                        }`}
                     >
                       Văn phòng
                     </button>
