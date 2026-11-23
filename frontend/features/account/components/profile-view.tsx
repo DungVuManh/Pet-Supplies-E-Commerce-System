@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { PawPrint } from "lucide-react";
 import type { CustomerProfile, ProfileStats } from "../types";
 
 interface ProfileViewProps {
@@ -18,7 +19,7 @@ export function ProfileView({ profile, stats, onEdit }: ProfileViewProps) {
         month: "2-digit",
         year: "numeric",
       })
-    : "12/02/2026";
+    : "Chưa cập nhật";
 
   const dobText = profile.dob
     ? new Date(profile.dob).toLocaleDateString("vi-VN", {
@@ -26,14 +27,16 @@ export function ProfileView({ profile, stats, onEdit }: ProfileViewProps) {
         month: "2-digit",
         year: "numeric",
       })
-    : "18/06/1998";
+    : "Chưa cập nhật";
 
   const genderText =
     profile.gender === "male"
       ? "Nam"
+      : profile.gender === "female"
+      ? "Nữ"
       : profile.gender === "other"
       ? "Khác"
-      : "Nữ";
+      : "Chưa cập nhật";
 
   return (
     <div className="space-y-6">
@@ -87,13 +90,13 @@ export function ProfileView({ profile, stats, onEdit }: ProfileViewProps) {
             </div>
 
             <h2 className="mt-4 text-lg font-bold text-ink">
-              {profile.fullName || "Nguyễn Minh Anh"}
+              {profile.fullName || "Chưa cập nhật"}
             </h2>
             <p className="mt-0.5 text-xs text-muted">
               Thành viên từ {memberSince}
             </p>
 
-            <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-success-subtle px-3 py-1 text-xs font-semibold text-success">
+            {/* <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-success-subtle px-3 py-1 text-xs font-semibold text-success">
               <svg
                 className="h-3.5 w-3.5"
                 fill="none"
@@ -108,7 +111,7 @@ export function ProfileView({ profile, stats, onEdit }: ProfileViewProps) {
                 />
               </svg>
               <span>Đã xác thực tài khoản</span>
-            </div>
+            </div> */}
 
             <p className="mt-3 text-[11px] text-muted max-w-[200px]">
               Cung cấp ảnh rõ nét để tăng tính xác thực cho tài khoản
@@ -125,21 +128,21 @@ export function ProfileView({ profile, stats, onEdit }: ProfileViewProps) {
               <div className="flex flex-col py-3.5 sm:flex-row sm:justify-between">
                 <span className="text-muted">Họ và tên:</span>
                 <span className="font-semibold text-ink">
-                  {profile.fullName || "Nguyễn Minh Anh"}
+                  {profile.fullName || "Chưa cập nhật"}
                 </span>
               </div>
 
               <div className="flex flex-col py-3.5 sm:flex-row sm:justify-between">
                 <span className="text-muted">Số điện thoại:</span>
                 <span className="font-semibold text-ink">
-                  {profile.phone || "0974 175 587"}
+                  {profile.phone || "Chưa cập nhật"}
                 </span>
               </div>
 
               <div className="flex flex-col py-3.5 sm:flex-row sm:justify-between">
                 <span className="text-muted">Email:</span>
                 <span className="font-semibold text-ink">
-                  {profile.email || "minhanh.nguyen@gmail.com"}
+                  {profile.email || "Chưa cập nhật"}
                 </span>
               </div>
 
@@ -161,7 +164,7 @@ export function ProfileView({ profile, stats, onEdit }: ProfileViewProps) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {/* Orders Stat */}
         <Link
-          href="/account/orders"
+          href="/orders"
           className="group flex items-center justify-between rounded-2xl border border-line bg-surface p-5 shadow-xs transition-all hover:border-brand/40 hover:shadow-sm"
         >
           <div>
@@ -199,19 +202,7 @@ export function ProfileView({ profile, stats, onEdit }: ProfileViewProps) {
             </p>
           </div>
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 text-amber-600 group-hover:scale-105 transition-transform">
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.75"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918"
-              />
-            </svg>
+            <PawPrint className="h-6 w-6" strokeWidth={1.75} />
           </div>
         </Link>
 
@@ -250,7 +241,7 @@ export function ProfileView({ profile, stats, onEdit }: ProfileViewProps) {
       </div>
 
       {/* Bottom Blue Notice Box */}
-      <div className="flex items-start gap-3 rounded-2xl border border-brand/20 bg-brand-subtle/50 p-5 text-xs text-brand leading-relaxed">
+      {/* <div className="flex items-start gap-3 rounded-2xl border border-brand/20 bg-brand-subtle/50 p-5 text-xs text-brand leading-relaxed">
         <svg
           className="h-5 w-5 shrink-0 text-brand mt-0.5"
           fill="none"
@@ -266,9 +257,9 @@ export function ProfileView({ profile, stats, onEdit }: ProfileViewProps) {
         </svg>
         <p className="text-muted text-xs sm:text-sm">
           <strong className="text-brand">Ghi chú:</strong> Lần cập nhật thông tin gần nhất:{" "}
-          <span className="font-semibold text-ink">22 Tháng 10, 2026</span>. Để thay đổi Email hoặc CCCD, vui lòng liên hệ bộ phận Chăm sóc khách hàng của Petjoy.
+           Để thay đổi Email hoặc CCCD, vui lòng liên hệ bộ phận Chăm sóc khách hàng của Petjoy.
         </p>
-      </div>
+      </div> */}
     </div>
   );
 }

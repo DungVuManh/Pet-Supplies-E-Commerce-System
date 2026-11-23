@@ -31,7 +31,7 @@ export async function getInventoryReport(request, response) {
     // 2. Tra cứu số lượng xuất kho từ các đơn hàng hợp lệ trong kỳ
     const orderMatch = {
       ...visibleOrders,
-      orderStatus: { $ne: "cancelled" },
+      orderStatus: { $nin: ["cancelled", "returned"] },
       createdAt: { $gte: start, $lt: end },
     };
 

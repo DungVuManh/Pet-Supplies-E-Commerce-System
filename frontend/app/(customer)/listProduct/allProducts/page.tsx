@@ -7,12 +7,11 @@ export const metadata: Metadata = { title: "Sản phẩm đồ dùng và dinh d�
 export const instant = false;
 
 type ProductHomePageProps = {
-  searchParams?: Promise<{ category?: string; petType?: string }>;
+  searchParams: Promise<{ category?: string; petType?: string }>;
 };
 
-export default async function ProductHomePage({ searchParams }: ProductHomePageProps = {}) {
-  const resolvedParams = searchParams ? await searchParams : {};
-  const { category, petType } = resolvedParams;
+export default async function ProductHomePage({ searchParams }: ProductHomePageProps) {
+  const { category, petType } = await searchParams;
 
   const pageTitle =
     petType === "dog"

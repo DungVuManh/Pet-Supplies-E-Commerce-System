@@ -27,6 +27,7 @@ const productSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     description: { type: String, default: "" },
+    components: { type: String, default: "" },
     brand: { type: String, trim: true },
     unit: { type: String, trim: true },
     petType: { type: String, required: true, trim: true },
@@ -53,6 +54,7 @@ const productSchema = new mongoose.Schema(
     ratingAvg: { type: Number, min: 0, max: 5, default: 0 },
     ratingCount: { ...nonNegativeInteger, default: 0 },
     soldCount: { ...nonNegativeInteger },
+    returnRestockKeys: { type: [String], default: undefined, select: false },
   },
   { timestamps: true, bufferCommands: false },
 );
@@ -78,7 +80,7 @@ productSchema.virtual("categories", {
 
 // The array validator also prevents duplicate SKUs within a single product.
 productSchema.index({ "variants.sku": 1 }, { unique: true });
-productSchema.index({ name: "text", description: "text", brand: "text" });
+productSchema.index({ name: "text", description: "text", brand: "text", components: "text" });
 productSchema.index({ categoryIds: 1, isActive: 1 });
 productSchema.index({ petType: 1, isActive: 1 });
 

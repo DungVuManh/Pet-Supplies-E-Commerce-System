@@ -364,7 +364,10 @@ export async function syncGuestCartToBackend(): Promise<void> {
   if (typeof window === "undefined") return;
 
   const localItems = getLocalGuestCartItems();
-  if (localItems.length === 0) return;
+  if (localItems.length === 0) {
+    window.dispatchEvent(new Event("cart-updated"));
+    return;
+  }
 
   try {
     for (const item of localItems) {
@@ -387,5 +390,6 @@ export async function syncGuestCartToBackend(): Promise<void> {
     window.dispatchEvent(new Event("cart-updated"));
   } catch (err) {
     console.error("Lỗi khi đồng bộ giỏ hàng lên DB:", err);
+    window.dispatchEvent(new Event("cart-updated"));
   }
 }

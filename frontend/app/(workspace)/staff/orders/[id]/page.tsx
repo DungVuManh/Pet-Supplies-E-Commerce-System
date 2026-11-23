@@ -2,14 +2,22 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { Printer, AlertCircle } from "lucide-react";
 import { money } from "@/features/staff/mock-data";
-import { Badge, PageHeader, card } from "@/features/staff/components/staff-ui";
+import {
+ Badge,
+ PageHeader,
+ card,
+ primaryLink,
+ secondaryButton,
+} from "@/features/staff/components/staff-ui";
 import {
  fetchStaffOrderDetail,
  StaffOrdersApiError,
 } from "@/features/staff/orders/api";
 import { OrderStatusAction } from "@/features/staff/components/order-status-action";
 import {
+ isInvoiceEligibleOrder,
  orderStatusLabels,
  orderStatusTones,
  paymentMethodLabels,
@@ -72,11 +80,39 @@ export default async function OrderDetailPage({
   throw error;
  }
 
-  return (
+ const canExportInvoice = isInvoiceEligibleOrder(order.orderStatus);
+
+ return (
   <>
    <PageHeader
     title={`Đơn hàng #${order.orderCode}`}
     subtitle={`Đặt lúc ${formatFullDateTime(order.createdAt)} `}
+    action={
+     canExportInvoice ? (
+      <Link
+       href={`/staff/orders/${encodeURIComponent(order.id)}/invoice`}
+       className={`${primaryLink} gap-2`}
+      >
+       <Printer className="h-4 w-4" aria-hidden="true" />
+       <span>Xuất hóa đơn</span>
+      </Link>
+     ) : (
+      <div className="flex flex-col items-start gap-1 sm:items-end">
+       <button
+        type="button"
+        disabled
+        title="Chỉ hỗ trợ xuất hóa đơn cho đơn hàng từ trạng thái Đã xác nhận trở lên."
+        className={`${secondaryButton} cursor-not-allowed gap-2 opacity-60 hover:bg-surface`}
+       >
+        <Printer className="h-4 w-4" aria-hidden="true" />
+        <span>Xuất hóa đơn</span>
+       </button>
+       <span className="text-xs text-muted">
+        Chỉ hỗ trợ xuất hóa đơn từ trạng thái Đã xác nhận trở lên.
+       </span>
+      </div>
+     )
+    }
    />
 
    <div className="mb-4">
@@ -128,7 +164,9 @@ export default async function OrderDetailPage({
        <dd className="text-right font-medium">{money(order.subtotal)}</dd>
        {order.discount > 0 && (
         <>
-         <dt className="text-muted">Giảm giá{order.promotionCode ? ` (${order.promotionCode})` : ""}</dt>
+         <dt className="text-muted">
+          Giảm giá{order.promotionCode ? ` (${order.promotionCode})` : ""}
+         </dt>
          <dd className="text-right font-medium text-success">
           −{money(order.discount)}
          </dd>
@@ -180,6 +218,23 @@ export default async function OrderDetailPage({
       </Badge>
      </div>
 
+     {order.orderStatus === "cancelled" && (
+      <div className="rounded-lg border border-danger/30 bg-danger-subtle p-4 text-danger">
+       <div className="flex items-center gap-2 font-semibold">
+        <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
+        <span>Đơn hàng đã bị hủy</span>
+       </div>
+       <p className="mt-2 text-sm">
+        <strong>Lý do:</strong> {order.cancellationReason || "Không có lý do cụ thể"}
+       </p>
+       {order.cancellationNote && (
+        <p className="mt-1 text-sm text-danger/80">
+         <strong>Ghi chú:</strong> {order.cancellationNote}
+        </p>
+       )}
+      </div>
+     )}
+
      {/* Customer & Address */}
      <OrderStatusAction order={order} />
      <section className={`${card} p-6`}>
@@ -222,14 +277,13 @@ export default async function OrderDetailPage({
        <Badge tone={paymentStatusTones[order.paymentStatus]}>
         {paymentStatusLabels[order.paymentStatus]}
        </Badge>
-       {order.needsReview && (
-        <Badge tone="warning">⚠️ Cần đối soát</Badge>
-       )}
+       {order.needsReview && <Badge tone="warning">⚠️ Cần đối soát</Badge>}
       </div>
 
       {order.needsReview && (
        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800 font-medium">
-        Đơn hàng có chênh lệch tiền hoặc chuyển khoản sau khi đổi phương thức. Vui lòng đối soát giao dịch ngân hàng.
+        Đơn hàng có chênh lệch tiền hoặc chuyển khoản sau khi đổi phương thức.
+        Vui lòng đối soát giao dịch ngân hàng.
        </div>
       )}
 

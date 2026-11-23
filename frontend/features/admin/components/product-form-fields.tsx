@@ -10,7 +10,7 @@ const textarea = `${control} h-auto min-h-28 py-3 leading-relaxed`;
 const petTypes = ["dog", "cat", "all"];
 
 /** The product-level values both product forms edit. */
-export type ProductBasicValues = { name: string; brand: string; petType: string; description: string; unit: string; categoryCodes: string[] };
+export type ProductBasicValues = { name: string; brand: string; petType: string; description: string; components: string; unit: string; categoryCodes: string[] };
 
 export function SelectField({ id, label, required, error, value, onChange, children }: { id: string; label: string; required?: boolean; error?: string; value: string; onChange: (value: string) => void; children: ReactNode }) {
   return <div className="flex min-w-0 flex-col gap-2">
@@ -76,6 +76,12 @@ export function ProductBasicSection<V extends ProductBasicValues>({ values, erro
         <textarea id="product-description" maxLength={20000} className={textarea} value={values.description} onChange={(e) => set("description", e.target.value)}
           aria-invalid={Boolean(errors.description)} aria-describedby={errors.description ? "product-description-error" : undefined} />
         {errors.description && <p id="product-description-error" role="alert" className="text-xs text-danger">{errors.description}</p>}
+      </div>
+      <div className="flex min-w-0 flex-col gap-2 sm:col-span-2">
+        <label htmlFor="product-components" className="text-sm font-medium">Thành phần &amp; hướng dẫn</label>
+        <textarea id="product-components" maxLength={20000} className={textarea} value={values.components} onChange={(e) => set("components", e.target.value)}
+          aria-invalid={Boolean(errors.components)} aria-describedby={errors.components ? "product-components-error" : undefined} />
+        {errors.components && <p id="product-components-error" role="alert" className="text-xs text-danger">{errors.components}</p>}
       </div>
     </div>
   </section>;

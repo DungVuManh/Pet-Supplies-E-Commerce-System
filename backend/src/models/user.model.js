@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema(
   },
   termsAcceptedAt: { type: Date, required: true },
   dob: { type: Date },
-  gender: { type: String, enum: ["male", "female", "other"], default: "female" },
+  gender: { type: String, enum: ["male", "female", "other"] },
   avatarUrl: { type: String, default: "/images/customer-avatar.jpg" },
   // Admin-managed and never part of publicUser(). Documents from before this
   // field have no status, so queries treat a missing value as active.
@@ -66,7 +66,7 @@ export function publicUser(user) {
   phone: user.phone,
   role: user.role,
   dob: user.dob,
-  gender: user.gender || "female",
+  gender: user.gender,
   avatarUrl: user.avatarUrl || "/images/customer-avatar.jpg",
   createdAt: user.createdAt,
  };

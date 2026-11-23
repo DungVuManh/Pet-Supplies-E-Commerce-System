@@ -93,6 +93,12 @@ export function useCartPage() {
     const targetItem = items.find((i) => i.id === itemId);
     if (!targetItem) return;
 
+    // Validate kiểm tra tồn kho trước khi tăng số lượng
+    const maxStock = targetItem.product.availableStock ?? targetItem.product.stock;
+    if (maxStock !== undefined && targetItem.quantity >= maxStock) {
+      return;
+    }
+
     try {
       const res = await updateCartItemQuantityApi(
         targetItem.product.sku,

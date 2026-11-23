@@ -7,7 +7,6 @@ import {
   ProductDiscovery,
   ProductDiscoveryContent,
   BrandShowcase,
-  PetCareTips,
 } from "@/features/catalog/components/homePage";
 
 export const metadata: Metadata = {
@@ -39,9 +38,6 @@ export default function ProductHomePage() {
 
       {/* 5. Thương hiệu Boss Mê */}
       <BrandShowcase />
-
-      {/* 6. Cẩm nang chăm sóc bé cưng */}
-      <PetCareTips />
     </main>
   );
 }

@@ -16,17 +16,22 @@ import { ChevronRight } from "lucide-react";
 
 
 export function OrdersView() {
-  // Lấy toàn bộ logic từ hook: gọi API, lọc, đếm, loading...
+  // Lấy toàn bộ logic từ hook: gọi API, lọc, đếm, loading, phân trang...
   const {
     isLoading,
     error,
-    filteredOrders,
+    paginatedOrders,
     counts,
     activeStatus,
     setActiveStatus,
     searchQuery,
     setSearchQuery,
     totalOrders,
+    totalFilteredOrders,
+    currentPage,
+    totalPages,
+    pageSize,
+    goToPage,
   } = useOrdersPage();
 
   return (
@@ -88,8 +93,13 @@ export function OrdersView() {
             </div>
           ) : (
             <OrdersTable
-              orders={filteredOrders}
+              orders={paginatedOrders}
               totalOrders={totalOrders}
+              totalFilteredOrders={totalFilteredOrders}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              onPageChange={goToPage}
             />
           )}
         </div>
@@ -101,4 +111,6 @@ export function OrdersView() {
 export default OrdersView;
 export { OrderDetailView } from "./components/order-detail-view";
 export { OrderCancelView } from "./components/order-cancel-view";
+export { OrderResumePaymentView } from "./components/order-resume-payment-view";
 export { OrderTrackingView } from "./components/order-tracking-view";
+export { OrderReturnView } from "./components/order-return-view";

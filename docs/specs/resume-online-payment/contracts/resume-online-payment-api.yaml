@@ -1,0 +1,361 @@
+openapi: 3.0.3
+info:
+  title: Pet Supplies - Customer Resume Online Payment API
+  description: API dành cho khách hàng đã đăng nhập mở lại, theo dõi, gia hạn phiên VietQR (SePay) hoặc chuyển sang COD từ màn hình Chi tiết đơn hàng.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Local Backend Server
+
+paths:
+  /orders/{id}:
+    get:
+      summary: Lấy chi tiết đơn hàng của khách hàng (mở rộng thông tin thanh toán trực tuyến)
+      description: Bổ sung các trường paymentStatusCode, paymentMethodLabel, paidAmount, remainingAmount, paymentExpiredAt và canResumeOnlinePayment.
+      tags:
+        - Customer Orders
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      responses:
+        '200':
+          description: Chi tiết đơn hàng của chủ sở hữu
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      order:
+                        $ref: '#/components/schemas/CustomerOrderDetailExtension'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /orders/{id}/payment:
+    get:
+      summary: Lấy phiên thanh toán VietQR của một đơn hàng thuộc khách hàng đang đăng nhập
+      description: Kiểm tra chính xác quyền sở hữu (customerId) và trả về trạng thái hợp lệ cùng dữ liệu VietQR còn hạn/hết hạn, hoặc lý do không thể tiếp tục thanh toán (already_paid, cancelled, not_online). Phục vụ cả tải trang lần đầu, làm mới trang (F5) và polling 3 giây.
+      tags:
+        - Customer Resume Payment
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      responses:
+        '200':
+          description: Thông tin phiên thanh toán của đơn hàng
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      session:
+                        $ref: '#/components/schemas/CustomerOrderPaymentSession'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /orders/{id}/payment/renew:
+    post:
+      summary: Gia hạn phiên thanh toán VietQR thêm 15 phút cho đơn hàng thuộc sở hữu khách hàng
+      tags:
+        - Customer Resume Payment
+      security:
+        - sessionCookie: []
+        - csrfToken: []
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+      responses:
+        '200':
+          description: Đã gia hạn phiên thanh toán thêm 15 phút
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Đã gia hạn phiên thanh toán thêm 15 phút."
+                  data:
+                    type: object
+                    properties:
+                      orderId:
+                        type: string
+                      orderCode:
+                        type: string
+                      paymentExpiredAt:
+                        type: string
+                        format: date-time
+                      secondsLeft:
+                        type: integer
+                        example: 900
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/PaymentConflictError'
+
+  /orders/{id}/payment/convert-to-cod:
+    post:
+      summary: Chuyển đổi phương thức thanh toán từ ONLINE sang COD cho đơn hàng thuộc sở hữu khách hàng
+      tags:
+        - Customer Resume Payment
+      security:
+        - sessionCookie: []
+        - csrfToken: []
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+      responses:
+        '200':
+          description: Đã chuyển đổi đơn hàng sang thanh toán COD
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Đã chuyển đổi phương thức thanh toán sang COD thành công."
+                  data:
+                    type: object
+                    properties:
+                      orderId:
+                        type: string
+                      orderCode:
+                        type: string
+                      paymentMethod:
+                        type: string
+                        example: "COD"
+                      paymentStatus:
+                        type: string
+                        example: "unpaid"
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/PaymentConflictError'
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: petly-session
+    csrfToken:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+
+  parameters:
+    OrderIdParam:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+
+  schemas:
+    CustomerOrderDetailExtension:
+      type: object
+      properties:
+        id:
+          type: string
+        orderCode:
+          type: string
+        orderStatus:
+          type: string
+          enum: [pending, confirmed, processing, shipping, completed, cancelled]
+        paymentMethod:
+          type: string
+          enum: [ONLINE, COD, CASH]
+        paymentMethodLabel:
+          type: string
+        paymentStatusCode:
+          type: string
+          enum: [unpaid, pending, paid, failed]
+        paymentStatus:
+          type: string
+        paidAmount:
+          type: integer
+        remainingAmount:
+          type: integer
+        paymentExpiredAt:
+          type: string
+          format: date-time
+          nullable: true
+        canResumeOnlinePayment:
+          type: boolean
+
+    SepayPaymentInfo:
+      type: object
+      properties:
+        orderCode:
+          type: string
+        total:
+          type: integer
+        paidAmount:
+          type: integer
+        remainingAmount:
+          type: integer
+        bankCode:
+          type: string
+        accountNumber:
+          type: string
+        accountHolder:
+          type: string
+        memo:
+          type: string
+          example: "PETJOY ORD173000123"
+        qrUrl:
+          type: string
+        qrPayload:
+          type: string
+        paymentExpiredAt:
+          type: string
+          format: date-time
+        secondsLeft:
+          type: integer
+        isExpired:
+          type: boolean
+        isPaid:
+          type: boolean
+
+    CustomerOrderPaymentSession:
+      type: object
+      required: [orderId, orderCode, orderStatus, paymentMethod, paymentStatus, total, paidAmount, remainingAmount, eligible, state]
+      properties:
+        orderId:
+          type: string
+        orderCode:
+          type: string
+        orderStatus:
+          type: string
+        paymentMethod:
+          type: string
+        paymentStatus:
+          type: string
+          enum: [unpaid, pending, paid, failed]
+        total:
+          type: integer
+        paidAmount:
+          type: integer
+        remainingAmount:
+          type: integer
+        needsReview:
+          type: boolean
+        eligible:
+          type: boolean
+        state:
+          type: string
+          enum: [eligible, already_paid, cancelled, not_online]
+        message:
+          type: string
+          nullable: true
+        paymentInfo:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/SepayPaymentInfo'
+
+    ApiErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+
+  responses:
+    ValidationError:
+      description: Mã đơn hàng không hợp lệ
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    UnauthorizedError:
+      description: Chưa đăng nhập
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    ForbiddenError:
+      description: Sai vai trò hoặc CSRF không hợp lệ
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    NotFoundError:
+      description: Không tìm thấy đơn hàng hoặc đơn thuộc về tài khoản khác
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    PaymentConflictError:
+      description: Trạng thái đơn không hợp lệ (ORDER_CANCELLED, ORDER_ALREADY_PAID, PAYMENT_METHOD_NOT_ONLINE, OFFLINE_ORDER)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+

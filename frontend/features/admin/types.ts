@@ -57,7 +57,7 @@ export type AdminOverview = {
   recentActivity: OverviewActivity[] | null;
 };
 
-export type UserActivityStatus = "pending" | "confirmed" | "processing" | "shipping" | "completed" | "cancelled" | "success" | "denied";
+export type UserActivityStatus = "pending" | "confirmed" | "processing" | "shipping" | "completed" | "cancelled" | "returned" | "success" | "denied";
 
 /** One entry of a user's history, merged from their orders and the audit log. `amount` is set for orders. */
 export type UserActivity = {
@@ -188,6 +188,7 @@ export type AdminProductDetail = {
   unit: string;
   petType: string;
   description: string;
+  components?: string;
   images: string[];
   categories: ProductCategory[];
   price: number;
@@ -211,9 +212,9 @@ export type ProductOptions = { petTypes: { code: string; name: string }[]; brand
 /** `POST /api/v1/admin/products/:sku/hide` and `/show`. */
 export type ProductVisibilityResult = Pick<AdminProductDetail, "sku" | "isActive" | "status">;
 
-export type OrderStatus = "pending" | "confirmed" | "processing" | "shipping" | "completed" | "cancelled";
-export type OrderTab = "all" | "processing" | "shipping" | "completed" | "cancelled";
-export type OrderStatusFilter = "all" | "pending" | "processing" | "shipping" | "completed" | "cancelled";
+export type OrderStatus = "pending" | "confirmed" | "processing" | "shipping" | "completed" | "cancelled" | "returned";
+export type OrderTab = "all" | "processing" | "shipping" | "completed" | "cancelled" | "pending_refund" | "refunded";
+export type OrderStatusFilter = "all" | "pending" | "processing" | "shipping" | "completed" | "cancelled" | "returned";
 export type OrderFilter = { tab: OrderTab; q: string; status: OrderStatusFilter };
 export type OrderCounts = Record<OrderTab, number>;
 export type PaymentMethod = "COD" | "ONLINE" | "CASH";
@@ -353,3 +354,22 @@ export type UpdatePolicyPayload = {
   effectiveDate?: string;
 };
 
+
+export type ReviewRatingFilter = "all" | "1" | "2" | "3" | "4" | "5";
+export type ReviewFilter = { q: string; rating: ReviewRatingFilter };
+
+/**
+ * One row of `GET /api/v1/admin/reviews`. `avatarUrl` is null when the customer has
+ * none that can be shown in a list, and `product` is null once the product is deleted.
+ * `product.sku` is its first variant's SKU, which addresses the Admin product page.
+ */
+export type AdminReviewRow = {
+  id: string;
+  rating: number;
+  comment: string;
+  images: string[];
+  createdAt: string;
+  edited: boolean;
+  customer: { name: string; avatarUrl: string | null };
+  product: { sku: string | null; name: string; image: string | null } | null;
+};

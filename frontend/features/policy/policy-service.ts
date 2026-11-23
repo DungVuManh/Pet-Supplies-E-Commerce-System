@@ -18,6 +18,7 @@ export const FOOTER_POLICY_SLUGS = [
   "huong-dan-mua-hang",
   "chinh-sach-van-chuyen",
   "chinh-sach-bao-mat",
+  "dieu-khoan-bao-ve-du-lieu-ca-nhan",
   "faq",
   "chinh-sach-khieu-nai",
   "dieu-khoan-su-dung",

@@ -104,7 +104,6 @@ describe("authentication HTTP boundary", () => {
    fullName: profile.fullName,
    phone: profile.phone,
    role: "customer",
-   gender: "female",
    avatarUrl: "/images/customer-avatar.jpg",
   });
   expect(JSON.stringify(response.body)).not.toMatch(
@@ -199,9 +198,21 @@ describe("authentication HTTP boundary", () => {
   );
   admin.verifyIdToken.mockResolvedValue({
    ...claims,
-   firebase: { sign_in_provider: "google.com" },
+   firebase: { sign_in_provider: "anonymous" },
   });
   await send("post", "session", { idToken: "token" }).expect(401);
+ });
+
+ it("accepts sign-in with Google and creates a session cookie", async () => {
+  const { send } = await browser();
+  admin.verifyIdToken.mockResolvedValue({
+   ...claims,
+   firebase: { sign_in_provider: "google.com" },
+   picture: "https://lh3.googleusercontent.com/avatar.jpg",
+  });
+  const response = await send("post", "session", { idToken: "token" }).expect(200);
+  expect(response.body.data.user.email).toBe(claims.email);
+  expect(admin.createSessionCookie).toHaveBeenCalled();
  });
 
  it("rejects invalid fields and attempted client-supplied identity or role", async () => {
@@ -310,7 +321,7 @@ describe("authentication HTTP boundary", () => {
    if (role === requiredRole) {
     expect(response.body.data.user).toEqual({
      id: profile._id, email: profile.email, fullName: profile.fullName, phone: profile.phone, role,
-     gender: "female", avatarUrl: "/images/customer-avatar.jpg",
+     avatarUrl: "/images/customer-avatar.jpg",
     });
     expect(JSON.stringify(response.body)).not.toMatch(/never-return|firebaseUid|signed-session/);
    } else {

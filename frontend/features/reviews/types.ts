@@ -43,6 +43,7 @@ export interface MyReviewsData {
 
 export interface CreateReviewPayload {
   productId: string;
+  orderId?: string;
   rating: number;
   comment?: string;
   images?: string[];

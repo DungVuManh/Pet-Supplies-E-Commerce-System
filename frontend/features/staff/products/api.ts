@@ -3,8 +3,64 @@ export type ProductSnapshot = { physical: number; reserved: number; status: Prod
 export type StaffProductDetail = ProductSnapshot & {
   productId: string; sku: string; name: string; category: string; brand: string; weight: string;
   price: number; availableStock: number; threshold: number; location: string; image: string; updated: string;
+  ratingAvg?: number; ratingCount?: number;
 };
 export type ProductUpdate = { physical: number; status: ProductStatus; description: string; expected: ProductSnapshot };
+
+export interface ReviewAuthor {
+  id: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+}
+
+export interface ReviewOrderInfo {
+  id: string;
+  orderCode: string;
+}
+
+export interface StaffProductReview {
+  id: string;
+  rating: number;
+  author: ReviewAuthor;
+  order?: ReviewOrderInfo;
+  comment: string;
+  images: string[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface RatingBreakdownItem {
+  count: number;
+  percentage: number;
+}
+
+export interface StaffProductReviewsSummary {
+  averageRating: number;
+  totalReviews: number;
+  breakdown: Record<1 | 2 | 3 | 4 | 5, RatingBreakdownItem>;
+}
+
+export interface StaffProductReviewsPagination {
+  currentPage: number;
+  totalPages: number;
+  totalReviews: number;
+  limit: number;
+}
+
+export interface StaffProductReviewsData {
+  summary: StaffProductReviewsSummary;
+  reviews: StaffProductReview[];
+  pagination: StaffProductReviewsPagination;
+}
+
+export interface StaffProductReviewsQuery {
+  rating?: string;
+  hasImages?: boolean;
+  sort?: "recent" | "rating_desc" | "rating_asc";
+  page?: number;
+  limit?: number;
+}
 
 const messages: Record<string, string> = {
   PRODUCT_CHANGED: "Sản phẩm hoặc tồn kho đã thay đổi. Hãy tải lại trước khi lưu.",
@@ -77,4 +133,23 @@ export function validateProductDraft(physical: string, description: string, rese
   else if (Number(physical) < reserved) errors.physical = `Số lượng thực tế không được nhỏ hơn ${reserved} sản phẩm đang giữ chỗ.`;
   if (!description.trim() || description.trim().length > 10000) errors.description = "Nhập mô tả từ 1 đến 10.000 ký tự.";
   return errors;
+}
+
+export async function fetchStaffProductReviews(
+  sku: string,
+  query: StaffProductReviewsQuery = {}
+): Promise<StaffProductReviewsData> {
+  const params = new URLSearchParams();
+  if (query.rating && query.rating !== "all") params.set("rating", query.rating);
+  if (query.hasImages !== undefined) params.set("hasImages", String(query.hasImages));
+  if (query.sort) params.set("sort", query.sort);
+  if (query.page) params.set("page", String(query.page));
+  if (query.limit) params.set("limit", String(query.limit));
+
+  const qs = params.toString() ? `?${params.toString()}` : "";
+  const data = await request(`/api/v1/staff/products/${encodeURIComponent(sku)}/reviews${qs}`, {
+    headers: { Accept: "application/json" },
+  });
+
+  return data as unknown as StaffProductReviewsData;
 }

@@ -7,6 +7,7 @@ import {
  card,
  primaryLink,
 } from "@/features/staff/components/staff-ui";
+import { ProductReviewsSection } from "@/features/staff/components/product-reviews-section";
 import { getStaffProduct } from "@/features/staff/products/server";
 
 export default async function ProductDetailPage({
@@ -94,6 +95,8 @@ export default async function ProductDetailPage({
      {p.description || "Chưa có mô tả."}
     </p>
    </section>
+
+   <ProductReviewsSection sku={p.sku} productName={p.name} />
   </>
  );
 }

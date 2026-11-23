@@ -19,12 +19,12 @@ export type ProductCreateValues = ProductBasicValues & { visibility: "active" | 
 type BasicField = keyof ProductCreateValues;
 type BasicErrors = Partial<Record<BasicField | "variants", string>>;
 
-const basicOrder: BasicField[] = ["name", "brand", "categoryCodes", "petType", "description", "unit", "images", "visibility"];
+const basicOrder: BasicField[] = ["name", "brand", "categoryCodes", "petType", "description", "components", "unit", "images", "visibility"];
 const variantOrder: (keyof ProductVariantValues)[] = ["label", "sku", "price", "cost", "stock", "threshold"];
 /** The form's field for each request field of a variant. */
 const variantField: Record<string, keyof ProductVariantValues> = { lowStockThreshold: "threshold" };
 const emptyVariant = (key: number): VariantRow => ({ key, label: "", sku: "", price: "", cost: "", stock: "0", threshold: "" });
-const initial: ProductCreateValues = { name: "", brand: "", petType: "dog", description: "", unit: "", categoryCodes: [], visibility: "active", images: [] };
+const initial: ProductCreateValues = { name: "", brand: "", petType: "dog", description: "", components: "", unit: "", categoryCodes: [], visibility: "active", images: [] };
 
 const optionalAmount = (text: string) => (text.trim() ? parseAmount(text) : undefined);
 
@@ -119,7 +119,7 @@ export function useProductCreate() {
     try {
       const created = await createProduct({
         name: values.name.trim(), brand: values.brand, petType: values.petType, categoryCodes: values.categoryCodes,
-        description: values.description.trim(), unit: values.unit, isActive: values.visibility === "active", images: values.images,
+        description: values.description.trim(), components: values.components.trim(), unit: values.unit, isActive: values.visibility === "active", images: values.images,
         variants: variants.map((row) => ({
           label: row.label.trim(), sku: row.sku.trim(), price: parseAmount(row.price),
           cost: optionalAmount(row.cost), stock: optionalAmount(row.stock) ?? 0, lowStockThreshold: optionalAmount(row.threshold),

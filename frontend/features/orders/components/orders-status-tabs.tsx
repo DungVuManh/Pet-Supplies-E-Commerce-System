@@ -25,6 +25,7 @@ export function OrdersStatusTabs({
     { key: "shipping", label: "Đang giao" },
     { key: "completed", label: "Hoàn thành" },
     { key: "cancelled", label: "Đã hủy" },
+    { key: "returned", label: "Đã hoàn trả" },
   ];
 
   return (

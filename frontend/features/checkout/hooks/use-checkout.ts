@@ -62,8 +62,8 @@ export function validateCheckoutAddress(address: CheckoutAddress): Record<string
 
   if (!address.phone?.trim()) {
     errors.phone = "Vui lòng nhập số điện thoại.";
-  } else if (!/^[0-9+() -]{8,15}$/.test(address.phone.trim())) {
-    errors.phone = "Số điện thoại không hợp lệ (8 - 15 chữ số).";
+  } else if (!/^[0-9+() -]{8,10}$/.test(address.phone.trim())) {
+    errors.phone = "Số điện thoại không hợp lệ (8 - 10 chữ số).";
   }
 
   if (!address.province?.trim()) {
@@ -415,6 +415,7 @@ export function useCheckout() {
         paymentMethod: order?.paymentMethod || (paymentMethod === "cod" ? "COD" : "ONLINE"),
         createdAt: order?.createdAt || new Date().toISOString(),
         paymentProvider: paymentMethod,
+        isPaid: String(order?.paymentStatus === "paid"),
       });
       if (order?.promotionCode) {
         queryParams.set("promotionCode", order.promotionCode);

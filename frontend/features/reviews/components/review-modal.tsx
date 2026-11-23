@@ -168,6 +168,7 @@ export function ReviewModal({
       } else if (unreviewedItem) {
         await onSubmitCreate({
           productId: unreviewedItem.productId,
+          orderId: unreviewedItem.orderId,
           rating,
           comment: comment.trim(),
           images: finalImages,

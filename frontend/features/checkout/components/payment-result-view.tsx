@@ -40,23 +40,27 @@ export function PaymentResultView() {
   const promotionCode = searchParams.get("promotionCode");
   const discount = Number(searchParams.get("discount") || 0);
 
-  const [isPaid, setIsPaid] = useState(false);
+  const isPaidParam = searchParams.get("isPaid") === "true" || total < 1000;
+  const [isPaid, setIsPaid] = useState(isPaidParam);
   const [currentMethod, setCurrentMethod] = useState(initialPaymentMethod);
 
   // Đơn hàng chuyển khoản SePay đang chờ quét mã
   const isSepayPending =
     (paymentProvider === "sepay" || initialPaymentMethod === "ONLINE") &&
     currentMethod === "ONLINE" &&
-    !isPaid;
+    !isPaid &&
+    total >= 1000;
 
   const displayMethod =
     currentMethod === "COD"
       ? "COD · Thanh toán khi nhận hàng"
-      : paymentProvider === "sepay"
-        ? "VietQR · Chuyển khoản ngân hàng qua SePay"
-        : currentMethod === "ONLINE"
-          ? "VNPay · Thanh toán trực tuyến"
-          : currentMethod;
+      : total < 1000 && (paymentProvider === "sepay" || initialPaymentMethod === "ONLINE")
+        ? "Chuyển khoản ngân hàng (Tự động xác nhận cho đơn dưới 1.000đ)"
+        : paymentProvider === "sepay"
+          ? "VietQR · Chuyển khoản ngân hàng qua SePay"
+          : currentMethod === "ONLINE"
+            ? "VNPay · Thanh toán trực tuyến"
+            : currentMethod;
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -95,7 +99,9 @@ export function PaymentResultView() {
           <div className="mb-4 text-center">
             <span className="inline-block rounded-full bg-emerald-50 px-3.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-100">
               {isPaid || currentMethod !== "COD"
-                ? "Thanh toán thành công"
+                ? total < 1000 && currentMethod === "ONLINE"
+                  ? "Thanh toán thành công (Đơn dưới 1.000đ)"
+                  : "Thanh toán thành công"
                 : "Đặt hàng thành công"}
             </span>
           </div>

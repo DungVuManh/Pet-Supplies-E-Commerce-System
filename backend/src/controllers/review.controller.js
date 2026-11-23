@@ -71,9 +71,23 @@ export async function getMyReviews(request, response, next) {
       .populate("productId", "name images price slug")
       .lean();
 
-    const reviewedProductIds = new Set(
-      publishedReviews.map((r) => r.productId?._id?.toString() || r.productId?.toString())
-    );
+    // Map các review đã có:
+    // a) Đối với review có orderId: ghi nhận chính xác theo cặp `${orderId}_${productId}`
+    // b) Đối với review cũ chưa có orderId (legacy): đếm số lượng review đã viết theo productId
+    const reviewedOrderProductSet = new Set();
+    const legacyReviewCountByProduct = new Map();
+
+    for (const r of publishedReviews) {
+      const pId = r.productId?._id?.toString() || r.productId?.toString();
+      if (!pId) continue;
+
+      if (r.orderId) {
+        reviewedOrderProductSet.add(`${r.orderId.toString()}_${pId}`);
+      } else {
+        const count = legacyReviewCountByProduct.get(pId) || 0;
+        legacyReviewCountByProduct.set(pId, count + 1);
+      }
+    }
 
     const formattedReviewed = publishedReviews.map((r) => {
       const prod = r.productId || {};
@@ -84,6 +98,7 @@ export async function getMyReviews(request, response, next) {
 
       return {
         _id: r._id.toString(),
+        orderId: r.orderId ? r.orderId.toString() : undefined,
         productId: prod._id?.toString() || r.productId?.toString(),
         productName: prod.name || "Sản phẩm",
         productSlug: prod.slug || "",
@@ -100,15 +115,16 @@ export async function getMyReviews(request, response, next) {
     });
 
     // 2. Lấy các đơn hàng hoàn tất của user để tìm sản phẩm chưa đánh giá
+    // Sắp xếp đơn hoàn tất: đơn cũ trước, đơn mới sau (để các review cũ legacy khớp với đơn cũ trước)
     const completedOrders = await Order.find({
       customerId: userId,
       orderStatus: "completed",
     })
-      .sort({ updatedAt: -1, createdAt: -1 })
+      .sort({ updatedAt: 1, createdAt: 1 })
       .lean();
 
     // Thu thập danh sách sản phẩm cần kiểm tra hạn 30 ngày
-    const unreviewedMap = new Map(); // Key: productId -> Unreviewed item
+    const unreviewedList = [];
 
     for (const order of completedOrders) {
       const completedAt = getOrderCompletedAt(order);
@@ -120,35 +136,51 @@ export async function getMyReviews(request, response, next) {
       }
 
       const daysRemaining = Math.max(0, Math.ceil((reviewWindowMs - diffMs) / (24 * 60 * 60 * 1000)));
+      const orderIdStr = order._id.toString();
+
+      // Để tránh lặp lại cùng 1 sản phẩm trong CÙNG 1 ĐƠN HÀNG (ví dụ mua 2 cái hoặc 2 variant)
+      const handledInOrder = new Set();
 
       for (const item of order.items || []) {
         const prodId = item.productId?.toString();
         if (!prodId) continue;
+        if (handledInOrder.has(prodId)) continue;
+        handledInOrder.add(prodId);
 
-        // Nếu sản phẩm này user đã viết review rồi -> bỏ qua
-        if (reviewedProductIds.has(prodId)) {
+        const orderProdKey = `${orderIdStr}_${prodId}`;
+
+        // Nếu đơn hàng này cho sản phẩm này đã có review cụ thể có orderId -> đã đánh giá
+        if (reviewedOrderProductSet.has(orderProdKey)) {
           continue;
         }
 
-        // Nếu cùng sản phẩm trong nhiều đơn, giữ đơn mới nhất (daysRemaining lớn nhất)
-        if (!unreviewedMap.has(prodId)) {
-          unreviewedMap.set(prodId, {
-            orderId: order._id.toString(),
-            orderCode: order.orderCode,
-            completedAt: completedAt.toISOString(),
-            daysRemaining,
-            productId: prodId,
-            productName: item.name,
-            productImage: item.image || "",
-            variantSku: item.variantSku,
-            price: item.unitPrice,
-          });
+        // Nếu sản phẩm này có legacy review (chưa có orderId) -> khớp với đơn này và trừ count
+        const legacyCount = legacyReviewCountByProduct.get(prodId) || 0;
+        if (legacyCount > 0) {
+          legacyReviewCountByProduct.set(prodId, legacyCount - 1);
+          continue;
         }
+
+        // Đơn này sản phẩm này CHƯA đánh giá!
+        unreviewedList.push({
+          orderId: orderIdStr,
+          orderCode: order.orderCode,
+          completedAt: completedAt.toISOString(),
+          daysRemaining,
+          productId: prodId,
+          productName: item.name,
+          productImage: item.image || "",
+          variantSku: item.variantSku,
+          price: item.unitPrice,
+        });
       }
     }
 
+    // Đảo lại để đơn hàng mới nhất lên đầu danh sách Chưa đánh giá
+    unreviewedList.reverse();
+
     // Nếu các sản phẩm chưa có ảnh trực tiếp, bổ sung ảnh từ bảng Product
-    const missingImageProdIds = Array.from(unreviewedMap.values())
+    const missingImageProdIds = unreviewedList
       .filter((u) => !u.productImage)
       .map((u) => u.productId);
 
@@ -158,18 +190,18 @@ export async function getMyReviews(request, response, next) {
         .lean();
       const pMap = new Map(products.map((p) => [p._id.toString(), p]));
 
-      for (const [prodId, unreviewedItem] of unreviewedMap.entries()) {
-        const prod = pMap.get(prodId);
-        if (prod) {
-          unreviewedItem.productImage = prod.images?.[0] || "/images/placeholder.png";
-          unreviewedItem.productSlug = prod.slug || "";
-        } else {
-          unreviewedItem.productImage = "/images/placeholder.png";
+      for (const unreviewedItem of unreviewedList) {
+        if (!unreviewedItem.productImage) {
+          const prod = pMap.get(unreviewedItem.productId);
+          if (prod) {
+            unreviewedItem.productImage = prod.images?.[0] || "/images/placeholder.png";
+            unreviewedItem.productSlug = prod.slug || "";
+          } else {
+            unreviewedItem.productImage = "/images/placeholder.png";
+          }
         }
       }
     }
-
-    const unreviewedList = Array.from(unreviewedMap.values());
 
     response.json({
       success: true,
@@ -199,7 +231,7 @@ export async function createReview(request, response, next) {
       throw new AppError("Vui lòng đăng nhập để đánh giá sản phẩm.", 401, "UNAUTHENTICATED");
     }
 
-    const { productId, rating, comment, images } = request.body;
+    const { productId, orderId, rating, comment, images } = request.body;
 
     if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
       throw new AppError("Mã sản phẩm không hợp lệ.", 400, "INVALID_PRODUCT_ID");
@@ -215,25 +247,92 @@ export async function createReview(request, response, next) {
       ? images.filter((img) => typeof img === "string" && img.trim()).slice(0, 2)
       : [];
 
-    // 1. Kiểm tra đơn hàng hoàn tất của user chứa sản phẩm này
-    const order = await Order.findOne({
-      customerId: userId,
-      orderStatus: "completed",
-      "items.productId": productId,
-    })
-      .sort({ updatedAt: -1, createdAt: -1 })
-      .lean();
+    let targetOrder = null;
 
-    if (!order) {
-      throw new AppError(
-        "Chỉ khách hàng đã mua và nhận hàng thành công mới có thể đánh giá sản phẩm.",
-        403,
-        "NOT_PURCHASED"
+    if (orderId && mongoose.Types.ObjectId.isValid(orderId)) {
+      // 1a. Kiểm tra theo orderId được chỉ định
+      targetOrder = await Order.findOne({
+        _id: orderId,
+        customerId: userId,
+        orderStatus: "completed",
+        "items.productId": productId,
+      }).lean();
+
+      if (!targetOrder) {
+        throw new AppError(
+          "Không tìm thấy đơn hàng hoàn tất hợp lệ chứa sản phẩm này.",
+          403,
+          "NOT_PURCHASED"
+        );
+      }
+
+      // Kiểm tra xem đơn hàng này đã được đánh giá cho sản phẩm này chưa
+      const existingReview = await Review.findOne({
+        userId,
+        productId,
+        orderId: targetOrder._id,
+      });
+
+      if (existingReview) {
+        throw new AppError(
+          "Bạn đã đánh giá sản phẩm này cho đơn hàng này rồi. Bạn có thể chỉnh sửa đánh giá hiện có trong thời hạn cho phép.",
+          400,
+          "ALREADY_REVIEWED"
+        );
+      }
+    } else {
+      // 1b. Nếu không truyền orderId: tìm đơn hàng completed gần nhất chưa được review
+      const completedOrders = await Order.find({
+        customerId: userId,
+        orderStatus: "completed",
+        "items.productId": productId,
+      })
+        .sort({ updatedAt: -1, createdAt: -1 })
+        .lean();
+
+      if (!completedOrders || completedOrders.length === 0) {
+        throw new AppError(
+          "Chỉ khách hàng đã mua và nhận hàng thành công mới có thể đánh giá sản phẩm.",
+          403,
+          "NOT_PURCHASED"
+        );
+      }
+
+      const existingReviews = await Review.find({ userId, productId }).lean();
+      const reviewedOrderIds = new Set(
+        existingReviews
+          .filter((r) => r.orderId)
+          .map((r) => r.orderId.toString())
       );
+      const legacyReviewCount = existingReviews.filter((r) => !r.orderId).length;
+
+      let remainingLegacyToSkip = legacyReviewCount;
+      const sortedOldToNew = [...completedOrders].reverse();
+
+      for (const ord of sortedOldToNew) {
+        const ordIdStr = ord._id.toString();
+        if (reviewedOrderIds.has(ordIdStr)) {
+          continue;
+        }
+        if (remainingLegacyToSkip > 0) {
+          remainingLegacyToSkip--;
+          continue;
+        }
+        targetOrder = ord;
+        break;
+      }
+
+      if (!targetOrder) {
+        throw new AppError(
+          "Bạn đã đánh giá cho các lần mua sản phẩm này rồi. Bạn có thể chỉnh sửa đánh giá hiện có trong thời hạn cho phép.",
+          400,
+          "ALREADY_REVIEWED"
+        );
+      }
     }
 
     // 2. Kiểm tra hạn 30 ngày kể từ khi đơn hàng completed
-    const completedAt = getOrderCompletedAt(order);
+    const completedAt = getOrderCompletedAt(targetOrder);
     const diffMs = Date.now() - completedAt.getTime();
     const windowMs = REVIEW_WINDOW_DAYS * 24 * 60 * 60 * 1000;
 
@@ -245,19 +344,10 @@ export async function createReview(request, response, next) {
       );
     }
 
-    // 3. Kiểm tra xem người dùng đã đánh giá sản phẩm này trước đó chưa
-    const existingReview = await Review.findOne({ userId, productId });
-    if (existingReview) {
-      throw new AppError(
-        "Bạn đã đánh giá sản phẩm này rồi. Bạn có thể chỉnh sửa đánh giá hiện có trong thời hạn cho phép.",
-        400,
-        "ALREADY_REVIEWED"
-      );
-    }
-
-    // 4. Lưu review vào MongoDB
+    // 3. Lưu review vào MongoDB kèm orderId
     const newReview = new Review({
       productId,
+      orderId: targetOrder._id,
       userId,
       rating: numRating,
       comment: (comment || "").trim(),

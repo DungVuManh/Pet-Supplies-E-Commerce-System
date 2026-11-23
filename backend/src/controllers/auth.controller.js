@@ -48,12 +48,13 @@ async function verifyIdToken(request, idToken) {
    "RECENT_LOGIN_REQUIRED",
   );
  }
+ const ALLOWED_SIGN_IN_PROVIDERS = new Set(["password", "google.com"]);
  if (
-  claims.firebase?.sign_in_provider !== "password" ||
+  !ALLOWED_SIGN_IN_PROVIDERS.has(claims.firebase?.sign_in_provider) ||
   typeof claims.email !== "string"
  ) {
   throw new AppError(
-   "Vui lòng sử dụng email và mật khẩu.",
+   "Phương thức đăng nhập không được hỗ trợ.",
    401,
    "UNAUTHENTICATED",
   );
@@ -74,18 +75,15 @@ export function csrf(request, response) {
  response.json({ success: true, data: { csrfToken } });
 }
 
-export function protectMutation(request, _response, next) {
+function verifyOrigin(request) {
  const { csrfName } = cookieSettings(request);
  if (!request.app.locals.config.CORS_ORIGIN.includes(request.get("origin"))) {
   throw new AppError("Nguồn yêu cầu không hợp lệ.", 403, "CSRF_INVALID");
  }
- if (!request.is("application/json")) {
-  throw new AppError(
-   "Yêu cầu phải sử dụng JSON.",
-   415,
-   "UNSUPPORTED_MEDIA_TYPE",
-  );
- }
+}
+
+function verifyCsrfToken(request) {
+ const { csrfName } = cookieSettings(request);
  const header = request.get("x-csrf-token") || "";
  const cookie = request.authCookies[csrfName] || "";
  if (
@@ -99,6 +97,31 @@ export function protectMutation(request, _response, next) {
    "CSRF_INVALID",
   );
  }
+}
+
+export function protectMutation(request, _response, next) {
+ verifyOrigin(request);
+ if (!request.is("application/json")) {
+  throw new AppError(
+   "Yêu cầu phải sử dụng JSON.",
+   415,
+   "UNSUPPORTED_MEDIA_TYPE",
+  );
+ }
+ verifyCsrfToken(request);
+ next();
+}
+
+export function protectMultipartMutation(request, _response, next) {
+ verifyOrigin(request);
+ if (!request.is("multipart/form-data")) {
+  throw new AppError(
+   "Yêu cầu tải tệp phải sử dụng multipart/form-data.",
+   415,
+   "UNSUPPORTED_MEDIA_TYPE",
+  );
+ }
+ verifyCsrfToken(request);
  next();
 }
 
@@ -139,6 +162,7 @@ export async function register(request, response) {
    email: claims.email,
    fullName: input.fullName,
    phone: input.phone,
+   ...(claims.picture ? { avatarUrl: claims.picture } : {}),
   }),
  );
  await sendSession(request, response, input, user);

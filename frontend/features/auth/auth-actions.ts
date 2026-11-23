@@ -17,6 +17,39 @@ export async function loginWithEmail(email: string, password: string, remember: 
   }
 }
 
+export async function loginWithGoogle(remember: boolean) {
+  const [auth, { GoogleAuthProvider, signInWithPopup, signOut, browserPopupRedirectResolver }] = await Promise.all([
+    getClientAuth(),
+    import("firebase/auth"),
+  ]);
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+  let needsProfile = false;
+  try {
+    const credential = await signInWithPopup(auth, provider, browserPopupRedirectResolver);
+    const idToken = await credential.user.getIdToken();
+    try {
+      const user = await authApi.login(idToken, remember);
+      return { user, needsProfile: false, initialFullName: "" };
+    } catch (apiError) {
+      if (apiError instanceof AuthApiError && apiError.code === "PROFILE_INCOMPLETE") {
+        needsProfile = true;
+        return {
+          user: null,
+          needsProfile: true,
+          initialFullName: credential.user.displayName || "",
+        };
+      }
+      throw apiError;
+    }
+  } catch (error) {
+    if (!needsProfile) await signOut(auth).catch(() => {});
+    throw error;
+  } finally {
+    if (!needsProfile) await signOut(auth).catch(() => {});
+  }
+}
+
 export async function registerWithEmail(email: string, password: string, profile: RegistrationProfile) {
   const [auth, { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut }] = await Promise.all([
     getClientAuth(), import("firebase/auth"),

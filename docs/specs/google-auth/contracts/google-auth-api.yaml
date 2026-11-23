@@ -1,0 +1,173 @@
+openapi: 3.0.3
+info:
+  title: Petjoy Google Authentication API
+  version: 1.0.0
+  description: API xác thực và hoàn tất hồ sơ cho phương thức đăng nhập bằng Google.
+paths:
+  /api/v1/auth/session:
+    post:
+      summary: Đăng nhập bằng Firebase ID Token (Hỗ trợ Google & Password)
+      description: Nhận Firebase ID Token sinh ra từ Google OAuth, xác thực và trả về HttpOnly session cookie.
+      headers:
+        X-CSRF-Token:
+          schema:
+            type: string
+          required: true
+          description: CSRF token lấy từ cookie petly-csrf
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - idToken
+              properties:
+                idToken:
+                  type: string
+                  description: Firebase ID Token
+                remember:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: Đăng nhập thành công, session cookie được thiết lập
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: petly-session=...; Path=/; HttpOnly; SameSite=Lax
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/PublicUser'
+        '401':
+          description: Token không hợp lệ hoặc provider không được hỗ trợ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Tài khoản Google mới chưa có hồ sơ trong database
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Vui lòng hoàn tất hồ sơ để tiếp tục.
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: PROFILE_INCOMPLETE
+
+  /api/v1/auth/register:
+    post:
+      summary: Hoàn tất đăng ký hồ sơ cho tài khoản Google lần đầu đăng nhập
+      headers:
+        X-CSRF-Token:
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - idToken
+                - fullName
+                - phone
+                - terms
+              properties:
+                idToken:
+                  type: string
+                fullName:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                phone:
+                  type: string
+                  pattern: '^(?:0|\+84)[0-9]{9}$'
+                terms:
+                  type: boolean
+                  enum: [true]
+                remember:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: Tạo hồ sơ thành công và thiết lập session cookie
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/PublicUser'
+
+components:
+  schemas:
+    PublicUser:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        fullName:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          example: customer
+        dob:
+          type: string
+          nullable: true
+        gender:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+        createdAt:
+          type: string
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+        error:
+          type: object
+          properties:
+            code:
+              type: string

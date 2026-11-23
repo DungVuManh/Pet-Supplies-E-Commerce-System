@@ -132,8 +132,8 @@ function ProfileContent() {
     fullName: user?.fullName || "",
     phone: user?.phone || "",
     role: user?.role || "customer",
-    dob: "",
-    gender: "other",
+    dob: user?.dob || null,
+    gender: user?.gender || "",
     avatarUrl: user?.avatarUrl || "/images/customer-avatar.jpg",
     createdAt: user?.createdAt || new Date().toISOString(),
   };

@@ -1,0 +1,257 @@
+openapi: 3.0.3
+info:
+  title: Pet Supplies - Order Returns Workflow API
+  description: API quy trình hoàn trả hàng 4 giai đoạn giữa Khách hàng và Nhân viên (Staff).
+  version: 1.1.0
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Local Backend Server
+
+paths:
+  /orders/{id}/return/upload:
+    post:
+      summary: Tải lên ảnh minh chứng hoàn trả hàng lên Cloudinary
+      description: Khách hàng tải lên 1–5 ảnh (JPG/PNG/WEBP, <=5MB/ảnh) cho đơn hàng.
+      tags:
+        - Customer Returns
+      security:
+        - sessionCookie: []
+        - csrfToken: []
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [images]
+              properties:
+                images:
+                  type: array
+                  minItems: 1
+                  maxItems: 5
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          description: Tải ảnh thành công
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+
+  /orders/{id}/return:
+    post:
+      summary: Gửi yêu cầu hoàn trả đơn hàng ban đầu
+      description: Khách hàng gửi lý do, thông tin ngân hàng, mô tả và ảnh minh chứng.
+      tags:
+        - Customer Returns
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason, description, bankAccount]
+              properties:
+                reason:
+                  type: string
+                  enum: [damaged_or_missing, not_received, damaged_or_defective, missing_items]
+                bankAccount:
+                  type: object
+                  required: [bankName, accountNumber, accountHolder]
+                  properties:
+                    bankName:
+                      type: string
+                    accountNumber:
+                      type: string
+                    accountHolder:
+                      type: string
+                description:
+                  type: string
+                images:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Đã tạo yêu cầu mới, trả data.returnRequest.requestId
+
+  /orders/{id}/returns:
+    get:
+      summary: Lịch sử từng lần gửi của chủ đơn, mới nhất trước
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: pageSize
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 50, default: 10 }
+      responses:
+        '200':
+          description: data.items gồm mã yêu cầu, lý do, trạng thái và thời điểm gửi hoặc hủy, kèm data.pagination
+        '404':
+          description: Đơn không tồn tại hoặc thuộc khách khác
+
+  /orders/{id}/returns/{requestId}:
+    get:
+      summary: Chi tiết đầy đủ của một lần gửi thuộc đơn của khách
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+        - name: requestId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: data.returnRequest chứa mô tả, ảnh, tài khoản nhận hoàn, trạng thái và các mốc xử lý
+        '404':
+          description: Yêu cầu hoặc đơn hàng không tồn tại trong phạm vi của khách
+
+  /orders/{id}/return/cancel:
+    post:
+      summary: Chủ đơn hủy yêu cầu đang chờ duyệt hoặc chờ gửi hàng
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      requestBody:
+        $ref: '#/components/requestBodies/ReturnRequestIdentity'
+      responses:
+        '200':
+          description: data.returnRequest ở trạng thái cancelled và có cancelledAt. Gửi lại cùng mã trả cùng kết quả.
+        '404':
+          description: Không tìm thấy yêu cầu thuộc đơn của khách
+        '409':
+          description: Thiếu mã hoặc trạng thái hiện tại không cho phép hủy
+
+  /orders/{id}/return/confirm-shipped:
+    post:
+      summary: Khách hàng xác nhận đã gửi trả hàng về cho cửa hàng
+      description: Sau khi Staff duyệt yêu cầu hoàn trả ban đầu, khách hàng bấm xác nhận đã gửi hàng.
+      tags:
+        - Customer Returns
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      requestBody:
+        $ref: '#/components/requestBodies/ReturnRequestIdentity'
+      responses:
+        '200':
+          description: Xác nhận đã gửi hàng thành công
+
+  /staff/returns:
+    get:
+      summary: Lấy danh sách yêu cầu hoàn trả cho Staff
+      tags:
+        - Staff Returns
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [all, pending, approved, customer_shipped, received, completed, rejected, cancelled]
+        - name: query
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Danh sách yêu cầu hoàn trả
+
+  /staff/returns/{id}:
+    get:
+      summary: Lấy chi tiết một yêu cầu hoàn trả cho Staff
+      tags:
+        - Staff Returns
+      parameters:
+        - $ref: '#/components/parameters/StaffReturnIdParam'
+      responses:
+        '200':
+          description: Chi tiết yêu cầu hoàn trả kèm thông tin đơn và tài khoản hoàn tiền
+
+  /staff/returns/{id}/receive:
+    post:
+      summary: Nhân viên xác nhận đã nhận được hàng gửi trả tại cửa hàng
+      tags:
+        - Staff Returns
+      parameters:
+        - $ref: '#/components/parameters/StaffReturnIdParam'
+      responses:
+        '200':
+          description: Cập nhật đã nhận được kiện hàng hoàn trả
+
+  /staff/returns/{id}/decision:
+    post:
+      summary: Nhân viên ra quyết định xử lý hoàn trả
+      description: Duyệt yêu cầu ban đầu (approve_request/reject_request) hoặc Quyết định hoàn tiền sau khi nhận hàng (complete_refund/reject_refund).
+      tags:
+        - Staff Returns
+      parameters:
+        - $ref: '#/components/parameters/StaffReturnIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [approve_request, reject_request, complete_refund, reject_refund]
+                rejectionReason:
+                  type: string
+                  minLength: 5
+                  maxLength: 500
+                refundAmount:
+                  type: integer
+                  minimum: 0
+      responses:
+        '200':
+          description: Xử lý quyết định thành công
+
+components:
+  requestBodies:
+    ReturnRequestIdentity:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [requestId]
+            properties:
+              requestId:
+                type: string
+                pattern: '^[0-9a-fA-F]{24}$'
+  parameters:
+    StaffReturnIdParam:
+      name: id
+      in: path
+      required: true
+      description: Mã của một lần gửi. Kết quả Staff dùng id cho mã này và orderId cho mã đơn.
+      schema: { type: string }
+    OrderIdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    ErrorResponse:
+      description: Phản hồi lỗi chuẩn
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string

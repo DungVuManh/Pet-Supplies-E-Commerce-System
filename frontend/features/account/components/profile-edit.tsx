@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
+import { accountApi } from "../api";
 import type { CustomerProfile, ProfileFormValues } from "../types";
 
 interface ProfileEditProps {
@@ -18,14 +19,20 @@ export function ProfileEdit({
   isSaving,
 }: ProfileEditProps) {
   // Format initial DOB to YYYY-MM-DD for <input type="date" />
-  const initialDobFormatted = profile.dob
-    ? new Date(profile.dob).toISOString().split("T")[0]
-    : "1998-06-18";
+  const initialDobFormatted = (() => {
+    if (!profile.dob) return "";
+    try {
+      const parsed = new Date(profile.dob);
+      return isNaN(parsed.getTime()) ? "" : parsed.toISOString().split("T")[0];
+    } catch {
+      return "";
+    }
+  })();
 
-  const [fullName, setFullName] = useState(profile.fullName || "Nguyễn Minh Anh");
-  const [phone, setPhone] = useState(profile.phone || "0974 175 587");
+  const [fullName, setFullName] = useState(profile.fullName || "");
+  const [phone, setPhone] = useState(profile.phone || "");
   const [dob, setDob] = useState(initialDobFormatted);
-  const [gender, setGender] = useState<string>(profile.gender || "female");
+  const [gender, setGender] = useState<string>(profile.gender || "");
   const [avatarUrl, setAvatarUrl] = useState<string>(
     profile.avatarUrl || "/images/customer-avatar.jpg",
   );
@@ -55,6 +62,7 @@ export function ProfileEdit({
   }
 
   const [isNewAvatar, setIsNewAvatar] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   function handleAvatarFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -71,6 +79,8 @@ export function ProfileEdit({
       setAvatarError("Dung lượng ảnh tối đa là 5MB.");
       return;
     }
+
+    setSelectedFile(file);
 
     const reader = new FileReader();
     reader.onload = (uploadEvent) => {
@@ -125,12 +135,21 @@ export function ProfileEdit({
     event.preventDefault();
     if (!validate()) return;
 
+    let finalAvatarUrl = avatarUrl;
+    if (isNewAvatar && selectedFile) {
+      try {
+        finalAvatarUrl = await accountApi.uploadAvatar(selectedFile, "user");
+      } catch (uploadErr) {
+        console.warn("Cloudinary upload failed or not configured, using fallback:", uploadErr);
+      }
+    }
+
     await onSave({
       fullName: fullName.trim(),
       phone: phone.trim(),
       dob: dob || undefined,
-      gender,
-      avatarUrl,
+      gender: gender || undefined,
+      avatarUrl: finalAvatarUrl,
     });
   }
 
@@ -281,6 +300,7 @@ export function ProfileEdit({
                       onChange={(e) => setGender(e.target.value)}
                       className="mt-1.5 block w-full min-h-11 rounded-xl border border-line bg-surface px-4 text-sm text-ink focus:border-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
                     >
+                      <option value="">Chưa cập nhật</option>
                       <option value="female">Nữ</option>
                       <option value="male">Nam</option>
                       <option value="other">Khác</option>

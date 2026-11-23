@@ -8,6 +8,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { AlertCircle, CheckCircle2, PhoneCall, X } from "lucide-react";
 import { AccountSidebar } from "./account-sidebar";
 import { useOrderDetail } from "../hooks/use-order-detail";
 import { cancelOrderApi } from "../services/order.service";
@@ -38,27 +39,45 @@ export function OrderCancelView({ orderId }: OrderCancelViewProps) {
   const [cancelNote, setCancelNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Xử lý khi bấm nút "Xác nhận hủy đơn"
-  const handleConfirmCancel = async () => {
+  // Đơn hàng đã được thanh toán (ONLINE / chuyển khoản đã trả tiền)
+  const isPaid =
+    order?.paymentStatusCode === "paid" ||
+    order?.paymentStatus === "Đã thanh toán";
+
+  // Hàm thực thi việc gọi API hủy đơn
+  const executeCancel = async () => {
     if (!orderId) return;
 
     try {
       setIsSubmitting(true);
-
-      // Gọi API cập nhật trạng thái đơn hàng sang 'cancelled' trong MongoDB
       await cancelOrderApi(orderId, selectedReason, cancelNote);
-
       setIsSubmitted(true);
+      setIsModalOpen(false);
 
-      // Sau 1.5 giây quay về danh sách đơn hàng
+      // Sau 2.5 giây quay về danh sách đơn hàng để khách kịp đọc thông báo
       setTimeout(() => {
         router.push("/orders");
-      }, 1500);
+      }, 2500);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Không thể hủy đơn hàng, vui lòng thử lại.");
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Không thể hủy đơn hàng, vui lòng thử lại.",
+      );
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Xử lý khi bấm nút "Xác nhận hủy đơn" trên giao diện form
+  const handleInitialClick = () => {
+    if (!orderId) return;
+    if (isPaid) {
+      setIsModalOpen(true);
+    } else {
+      executeCancel();
     }
   };
 
@@ -127,7 +146,9 @@ export function OrderCancelView({ orderId }: OrderCancelViewProps) {
               <div>
                 <p className="font-bold">Hủy đơn hàng thành công!</p>
                 <p className="text-xs text-emerald-700 mt-0.5">
-                  Đang chuyển hướng về danh sách đơn hàng...
+                  {isPaid
+                    ? "Nhân viên Petjoy sẽ liên hệ với bạn trong thời gian sớm nhất để hoàn tiền. Đang chuyển hướng..."
+                    : "Đang chuyển hướng về danh sách đơn hàng..."}
                 </p>
               </div>
             </div>
@@ -200,7 +221,7 @@ export function OrderCancelView({ orderId }: OrderCancelViewProps) {
                 </button>
                 <button
                   type="button"
-                  onClick={handleConfirmCancel}
+                  onClick={handleInitialClick}
                   disabled={isSubmitted || isSubmitting}
                   className="px-6 py-2.5 rounded-xl bg-rose-50 border border-rose-200 text-sm font-semibold text-rose-600 hover:bg-rose-100 transition-colors disabled:opacity-50"
                 >
@@ -262,6 +283,74 @@ export function OrderCancelView({ orderId }: OrderCancelViewProps) {
           </div>
         </div>
       </div>
+
+      {/* Modal xác nhận hủy đơn đã thanh toán */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
+          <div
+            className="relative w-full max-w-md rounded-3xl border border-line bg-surface p-6 sm:p-8 shadow-xl text-center animate-in zoom-in-95 duration-200"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cancel-modal-title"
+          >
+            {/* Nút đóng */}
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              disabled={isSubmitting}
+              aria-label="Đóng"
+              className="absolute right-4 top-4 rounded-full p-1.5 text-muted hover:bg-canvas hover:text-ink transition-colors cursor-pointer"
+            >
+              <X className="size-5" />
+            </button>
+
+            {/* Icon điện thoại / liên hệ hoàn tiền */}
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 mb-4 border border-amber-200">
+              <PhoneCall className="size-8" />
+            </div>
+
+            {/* Tiêu đề & Nội dung */}
+            <h2 id="cancel-modal-title" className="text-xl font-bold text-ink">
+              Xác nhận hủy đơn hàng đã thanh toán
+            </h2>
+
+            <div className="mt-3 rounded-xl bg-amber-50/70 border border-amber-200 p-3 text-left text-xs leading-relaxed text-amber-900">
+              <p className="font-semibold text-amber-950 mb-1 flex items-center gap-1.5">
+                <AlertCircle className="size-4 shrink-0 text-amber-700" />
+                Số tiền đã thanh toán: {formatVND(order.totalAmount)}
+              </p>
+              <p>
+                Đơn hàng của bạn đã được thanh toán. Sau khi hủy, nhân viên chăm sóc khách hàng của <strong>Petjoy</strong> sẽ chủ động liên hệ qua số điện thoại của bạn (
+                <strong>{order.shippingAddress?.phone || "SĐT đặt hàng"}</strong>) trong thời gian sớm nhất để xác nhận thông tin và tiến hành hoàn tiền.
+              </p>
+            </div>
+
+            <p className="mt-3 text-xs text-muted">
+              Lý do hủy đơn: <strong>{selectedReason}</strong>
+            </p>
+
+            {/* Nút hành động trong Modal */}
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                disabled={isSubmitting}
+                className="flex-1 py-3 px-4 rounded-xl border border-line bg-surface text-sm font-semibold text-ink hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                Giữ lại đơn
+              </button>
+              <button
+                type="button"
+                onClick={executeCancel}
+                disabled={isSubmitting}
+                className="flex-1 py-3 px-4 rounded-xl bg-rose-600 text-sm font-semibold text-white hover:bg-rose-700 transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
+              >
+                {isSubmitting ? "Đang hủy đơn..." : "Đồng ý hủy đơn"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

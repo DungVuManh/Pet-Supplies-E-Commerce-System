@@ -1,7 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Package, Plus } from "lucide-react";
 import { control, secondaryButton } from "../components/staff-ui";
 import { formatCurrency } from "@/lib/format-currency";
 import { findSaleCustomers, findSaleProducts, SaleApiError, type Lookup, type SaleCustomer, type SaleProduct } from "./sale-api";
@@ -69,7 +71,17 @@ export function SaleCustomerSearch({ selected, onSelect, error }: { selected: Sa
   </div>;
 }
 
-export function SaleProductSearch({ onAdd, canAdd, error }: { onAdd: (product: SaleProduct) => void; canAdd: (product: SaleProduct) => boolean; error?: string }) {
+export function SaleProductSearch({
+  onAdd,
+  canAdd,
+  selectedQuantities = {},
+  error,
+}: {
+  onAdd: (product: SaleProduct) => void;
+  canAdd: (product: SaleProduct) => boolean;
+  selectedQuantities?: Record<string, number>;
+  error?: string;
+}) {
   const [query, setQuery] = useState("");
   const search = useLookup(query, 0, findSaleProducts);
   return <div className="mt-5 space-y-3">
@@ -80,10 +92,43 @@ export function SaleProductSearch({ onAdd, canAdd, error }: { onAdd: (product: S
     {error && <p id="sale-items-error" role="alert" className="text-xs text-danger">{error}</p>}
     <SearchStatus loading={search.loading} error={search.error} empty={Boolean(search.result && !search.result.items.length)} retry={search.retry} />
     <button type="button" onClick={search.retry} className="min-h-10 text-xs font-semibold text-brand">Cập nhật giá và tồn</button>
-    <ul className="divide-y divide-line">{search.result?.items.map((product) => <li key={product.sku} className="flex flex-wrap items-center justify-between gap-3 py-4 text-sm">
-      <div className="min-w-0 flex-1"><p className="break-words font-semibold">{product.name}</p><p className="mt-1 break-words text-xs text-muted">{product.sku} · {product.variantLabel} · Còn {product.availableStock}</p><p className="mt-2 font-semibold">{formatCurrency(product.price)}</p></div>
-      <button type="button" className={secondaryButton} disabled={!canAdd(product)} onClick={() => onAdd(product)}>Thêm</button>
-    </li>)}</ul>
+    <ul className="divide-y divide-line">{search.result?.items.map((product) => {
+      const selectedQty = selectedQuantities[product.sku] || 0;
+      return <li key={product.sku} className="flex flex-wrap items-center justify-between gap-3 py-4 text-sm">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-line bg-canvas">
+            {product.image ? (
+              <Image src={product.image} alt={product.name} fill sizes="48px" className="object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-muted">
+                <Package className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" />
+              </div>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="break-words font-semibold">{product.name}</p>
+            <p className="mt-1 break-words text-xs text-muted">{product.sku} · {product.variantLabel} · Còn {product.availableStock}</p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-2">
+              <p className="font-semibold text-brand">{formatCurrency(product.price)}</p>
+              {selectedQty > 0 && (
+                <span className="rounded-full bg-brand-subtle px-2 py-0.5 text-xs font-semibold text-brand">
+                  Đã chọn: {selectedQty}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+        <button
+          type="button"
+          className={`${secondaryButton} gap-1.5`}
+          disabled={!canAdd(product)}
+          onClick={() => onAdd(product)}
+        >
+          <Plus className="h-4 w-4" aria-hidden="true" />
+          <span>Thêm</span>
+        </button>
+      </li>;
+    })}</ul>
     {search.result && <Paging page={search.page} more={search.result.hasMore} go={search.setPage} />}
     <p className="text-xs text-muted">Tồn khả dụng tại lần tải này. Hệ thống kiểm tra lại giá và tồn khi tạo đơn.</p>
   </div>;

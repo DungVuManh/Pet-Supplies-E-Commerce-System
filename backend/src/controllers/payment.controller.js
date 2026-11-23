@@ -6,50 +6,19 @@
 import { logPaymentAudit } from "../common/audit.js";
 import { AppError } from "../common/errors/app-error.js";
 import {
-  extractOrderCodeFromMemo,
-  formatTransferMemo,
-  generateVietQrPayload,
-  generateVietQrUrl,
-} from "../common/sepay-service.js";
+  buildVietQrInfo,
+  computeOrderPaymentAmounts,
+  computePaymentExpiry,
+  getEffectiveBankConfig,
+  getOnlinePaymentIneligibilityError,
+} from "../common/order-payment.js";
+import { extractOrderCodeFromMemo } from "../common/sepay-service.js";
 import { Order } from "../models/order.model.js";
 import { Payment } from "../models/payment.model.js";
-import { Setting } from "../models/setting.model.js";
 import {
   parseOrderCode,
   parseSepayWebhook,
 } from "../validators/payment.validator.js";
-
-/**
- * Lấy cấu hình tài khoản ngân hàng thụ hưởng từ Setting hoặc biến môi trường
- */
-async function getEffectiveBankConfig(config) {
-  let setting = null;
-  try {
-    setting = await Setting.findOne({ _id: "global" }).lean();
-  } catch {
-    // Nếu chưa khởi tạo setting thì dùng biến môi trường
-  }
-
-  const bankCode =
-    setting?.bankCode ||
-    config?.SEPAY_BANK_CODE ||
-    process.env.SEPAY_BANK_CODE ||
-    "MB";
-
-  const accountNumber =
-    setting?.accountNumber ||
-    config?.SEPAY_ACCOUNT_NUMBER ||
-    process.env.SEPAY_ACCOUNT_NUMBER ||
-    "";
-
-  const accountHolder =
-    setting?.accountHolder ||
-    config?.SEPAY_ACCOUNT_HOLDER ||
-    process.env.SEPAY_ACCOUNT_HOLDER ||
-    "PETJOY STORE";
-
-  return { bankCode, accountNumber, accountHolder };
-}
 
 /**
  * GET /api/v1/payments/sepay/info/:orderCode
@@ -60,60 +29,21 @@ export async function getPaymentInfo(request, response, next) {
     const orderCode = parseOrderCode(request.params.orderCode);
 
     const order = await Order.findOne({ orderCode });
-    if (!order) {
+    if (!order || order.creationState === "pending") {
       throw new AppError("Không tìm thấy đơn hàng yêu cầu.", 404, "ORDER_NOT_FOUND");
     }
 
+    if (order.orderStatus === "cancelled" || order.channel === "offline" || order.paymentMethod !== "ONLINE") {
+      const ineligibility = getOnlinePaymentIneligibilityError(order);
+      if (ineligibility) throw ineligibility;
+    }
+
     const bankConfig = await getEffectiveBankConfig(request.app?.locals?.config);
-    const paidAmount = order.paidAmount || 0;
-    const remainingAmount = Math.max(0, order.total - paidAmount);
-    const memo = formatTransferMemo(order.orderCode);
-
-    // Tính thời gian hết hạn phiên QR (15 phút từ lúc tạo hoặc gia hạn)
-    const paymentExpiredAt =
-      order.paymentExpiredAt ||
-      new Date(new Date(order.createdAt).getTime() + 15 * 60 * 1000);
-
-    const secondsLeft = Math.max(
-      0,
-      Math.floor((paymentExpiredAt.getTime() - Date.now()) / 1000)
-    );
-    const isExpired = secondsLeft === 0 && order.paymentStatus !== "paid";
-    const isPaid = order.paymentStatus === "paid";
-
-    const qrUrl = generateVietQrUrl({
-      bankCode: bankConfig.bankCode,
-      accountNumber: bankConfig.accountNumber,
-      amount: remainingAmount > 0 ? remainingAmount : order.total,
-      memo,
-      accountHolder: bankConfig.accountHolder,
-    });
-
-    const qrPayload = generateVietQrPayload({
-      bankCode: bankConfig.bankCode,
-      accountNumber: bankConfig.accountNumber,
-      amount: remainingAmount > 0 ? remainingAmount : order.total,
-      memo,
-    });
+    const info = buildVietQrInfo(order, bankConfig);
 
     return response.status(200).json({
       success: true,
-      data: {
-        orderCode: order.orderCode,
-        total: order.total,
-        paidAmount,
-        remainingAmount,
-        bankCode: bankConfig.bankCode,
-        accountNumber: bankConfig.accountNumber,
-        accountHolder: bankConfig.accountHolder,
-        memo,
-        qrUrl,
-        qrPayload,
-        paymentExpiredAt: paymentExpiredAt.toISOString(),
-        secondsLeft,
-        isExpired,
-        isPaid,
-      },
+      data: info,
     });
   } catch (error) {
     next(error);
@@ -277,19 +207,8 @@ export async function getPaymentStatus(request, response, next) {
       throw new AppError("Không tìm thấy đơn hàng.", 404, "ORDER_NOT_FOUND");
     }
 
-    const paidAmount = order.paidAmount || 0;
-    const remainingAmount = Math.max(0, order.total - paidAmount);
-    const isPaid = order.paymentStatus === "paid";
-
-    const paymentExpiredAt =
-      order.paymentExpiredAt ||
-      new Date(new Date(order.createdAt).getTime() + 15 * 60 * 1000);
-
-    const secondsLeft = Math.max(
-      0,
-      Math.floor((new Date(paymentExpiredAt).getTime() - Date.now()) / 1000)
-    );
-    const isExpired = secondsLeft === 0 && !isPaid;
+    const { paidAmount, remainingAmount } = computeOrderPaymentAmounts(order);
+    const { isPaid, isExpired } = computePaymentExpiry(order);
 
     return response.status(200).json({
       success: true,
@@ -319,12 +238,17 @@ export async function renewPaymentSession(request, response, next) {
   try {
     const orderCode = parseOrderCode(request.params.orderCode);
     const order = await Order.findOne({ orderCode });
-    if (!order) {
+    if (!order || order.creationState === "pending") {
       throw new AppError("Không tìm thấy đơn hàng.", 404, "ORDER_NOT_FOUND");
     }
 
     if (order.paymentStatus === "paid") {
       throw new AppError("Đơn hàng này đã được thanh toán.", 400, "ORDER_ALREADY_PAID");
+    }
+
+    const ineligibility = getOnlinePaymentIneligibilityError(order);
+    if (ineligibility) {
+      throw ineligibility;
     }
 
     const newExpiredAt = new Date(Date.now() + 15 * 60 * 1000);
@@ -353,12 +277,17 @@ export async function convertToCod(request, response, next) {
   try {
     const orderCode = parseOrderCode(request.params.orderCode);
     const order = await Order.findOne({ orderCode });
-    if (!order) {
+    if (!order || order.creationState === "pending") {
       throw new AppError("Không tìm thấy đơn hàng.", 404, "ORDER_NOT_FOUND");
     }
 
     if (order.paymentStatus === "paid") {
       throw new AppError("Đơn hàng đã thanh toán thành công, không thể đổi sang COD.", 400, "ORDER_ALREADY_PAID");
+    }
+
+    const ineligibility = getOnlinePaymentIneligibilityError(order);
+    if (ineligibility) {
+      throw ineligibility;
     }
 
     order.paymentMethod = "COD";

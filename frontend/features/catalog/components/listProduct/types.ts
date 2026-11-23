@@ -1,4 +1,4 @@
-﻿// =============================================================
+// =============================================================
 // features/catalog/components/listProduct/types.ts
 // Feature types: Định nghĩa kiểu dữ liệu cho tính năng AllProduct (listProduct)
 // =============================================================
@@ -17,6 +17,7 @@ export type CatalogProduct = {
   name: string;
   brand: string;
   description: string;
+  components?: string;
   petType: string;
   category: string;
   categorySlug: string;
@@ -66,10 +67,16 @@ export type GetCategoriesResponse = {
 };
 
 // Kết quả API lấy thương hiệu
+export type CatalogBrand = {
+  name: string;
+  productCount: number;
+};
+
 export type GetBrandsResponse = {
   success: boolean;
   data: {
     brands: string[];
+    brandDetails: CatalogBrand[];
   };
 };
 

@@ -1,6 +1,6 @@
 export type SaleCustomer = { id: string; fullName: string; phone: string; email: string };
 export type SaleProduct = { productId: string; sku: string; name: string; variantLabel: string;
-  price: number; availableStock: number };
+  price: number; availableStock: number; image: string };
 export type SaleLine = SaleProduct & { qty: number };
 export type SaleInput = {
   customerId?: string;
@@ -61,7 +61,7 @@ export function parseSaleProducts(body: unknown): Lookup<SaleProduct> {
       || !text(v.variantLabel) || !integer(v.price) || !integer(v.availableStock)
       || v.availableStock < 1) return invalid();
     return { productId: v.productId, sku: v.sku, name: v.name, variantLabel: v.variantLabel,
-      price: v.price, availableStock: v.availableStock };
+      price: v.price, availableStock: v.availableStock, image: text(v.image) ? v.image : "" };
   });
 }
 export function parseSaleCustomers(body: unknown): Lookup<SaleCustomer> {

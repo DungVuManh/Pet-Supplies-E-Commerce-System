@@ -79,6 +79,7 @@ describe("Staff sale HTTP and standalone compensation", () => {
   expect(stock).toBe(3);
   expect(saved.map((d) => d.model)).toEqual(["Order", "Payment", "AuditLog"]);
   const order = saved[0].doc;
+  expect(order.orderCode).toMatch(/^ORD\d+$/);
   expect(order).toMatchObject({ subtotal: 20000, total: 20000, channel: "offline",
    orderStatus: "completed", paymentStatus: "paid", paymentMethod: "CASH", guestInfo: body.customer });
   expect(order.shippingAddress).toBeUndefined();

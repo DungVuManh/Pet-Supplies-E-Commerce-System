@@ -62,3 +62,25 @@ input[type="checkbox"]:not(:disabled) {
   background: var(--brand);
   color: #ffffff;
 }
+
+@page {
+  size: auto;
+  margin: 12mm;
+}
+
+@media print {
+  body {
+    background: #ffffff;
+    color: #0f172a;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr {
+    break-inside: avoid;
+  }
+}

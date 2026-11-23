@@ -91,8 +91,8 @@ beforeEach(() => {
   return { lean: async () => found, then: (resolve, reject) => Promise.resolve(found).then(resolve, reject) };
  };
  vi.spyOn(Order, "findById").mockImplementation(findOrder);
- vi.spyOn(Order, "findByIdAndUpdate").mockImplementation(async (id, update) => {
-  const found = orders.find((item) => String(item._id) === String(id));
+ vi.spyOn(Order, "findOneAndUpdate").mockImplementation(async ({ _id }, update) => {
+  const found = orders.find((item) => String(item._id) === String(_id));
   Object.assign(found, update.$set);
   return found;
  });

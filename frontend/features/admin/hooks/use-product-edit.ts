@@ -9,7 +9,7 @@ import type { AdminCategoryRow, AdminProductDetail, ProductOptions } from "../ty
 import { parseAmount, validateProduct } from "../validation";
 
 export type ProductEditValues = {
-  name: string; sku: string; brand: string; petType: string; description: string; unit: string; categoryCodes: string[];
+  name: string; sku: string; brand: string; petType: string; description: string; components: string; unit: string; categoryCodes: string[];
   price: string; cost: string; stock: string; threshold: string; visibility: "active" | "hidden";
   /** Photo URLs, main photo first. */
   images: string[];
@@ -17,14 +17,14 @@ export type ProductEditValues = {
 type FieldName = keyof ProductEditValues;
 type FieldErrors = Partial<Record<FieldName, string>>;
 
-const fieldOrder: FieldName[] = ["name", "sku", "brand", "categoryCodes", "petType", "description", "price", "cost", "stock", "unit", "threshold", "images", "visibility"];
+const fieldOrder: FieldName[] = ["name", "sku", "brand", "categoryCodes", "petType", "description", "components", "price", "cost", "stock", "unit", "threshold", "images", "visibility"];
 /** The form's field for each request field. */
 const formField: Record<string, FieldName> = { lowStockThreshold: "threshold", isActive: "visibility", expectedStock: "stock" };
 
 export const formatAmount = (value: number) => value.toLocaleString("vi-VN");
 
 const formValues = (product: AdminProductDetail): ProductEditValues => ({
-  name: product.name, sku: product.sku, brand: product.brand, petType: product.petType, description: product.description, unit: product.unit,
+  name: product.name, sku: product.sku, brand: product.brand, petType: product.petType, description: product.description, components: product.components ?? "", unit: product.unit,
   categoryCodes: product.categories.map((category) => category.ref),
   price: formatAmount(product.price), cost: product.cost === null ? "" : formatAmount(product.cost), stock: String(product.stock),
   threshold: product.ownThreshold === null ? "" : String(product.ownThreshold), visibility: product.isActive ? "active" : "hidden",
@@ -45,6 +45,7 @@ function changedFields(values: ProductEditValues, product: AdminProductDetail): 
     ...(values.brand !== loaded.brand && { brand: values.brand }),
     ...(values.petType !== loaded.petType && { petType: values.petType }),
     ...(values.description !== loaded.description && { description: values.description.trim() }),
+    ...(values.components !== loaded.components && { components: values.components.trim() }),
     ...(values.unit !== loaded.unit && { unit: values.unit }),
     ...(!sameList(values.categoryCodes, loaded.categoryCodes) && { categoryCodes: values.categoryCodes }),
     ...(parseAmount(values.price) !== product.price && { price: parseAmount(values.price) }),

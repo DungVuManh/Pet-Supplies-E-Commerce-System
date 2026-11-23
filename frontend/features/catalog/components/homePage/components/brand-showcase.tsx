@@ -34,7 +34,7 @@ const BRAND_META: Record<string, { origin: string; tag: string }> = {
 
 function BrandShowcaseContent() {
   const searchParams = useSearchParams();
-  const urlBrand = searchParams?.get("brands") || searchParams?.get("brand") || null;
+  const urlBrand = searchParams?.get("brandName") || searchParams?.get("brands") || searchParams?.get("brand") || null;
 
   // 1. State lưu danh sách thương hiệu lấy từ database (bảng products, trường brand)
   const [brands, setBrands] = useState<string[]>(DEFAULT_BRANDS);
@@ -81,10 +81,10 @@ function BrandShowcaseContent() {
           </h2>
         </div>
         <Link
-          href="/listProduct/allProducts"
+          href="/brands"
           className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline"
         >
-          Xem tất cả đối tác
+          Xem tất cả thương hiệu
           <ArrowRight className="size-3.5" />
         </Link>
       </div>
@@ -103,7 +103,7 @@ function BrandShowcaseContent() {
             <Link
               key={brandName}
               // Khi click: Chuyển sang trang allProducts và lọc theo thương hiệu này
-              href={`/listProduct/allProducts?brands=${encodeURIComponent(brandName)}`}
+              href={`/listProduct/allProducts?${new URLSearchParams({ brandName })}`}
               // Cập nhật state active để người dùng theo dõi thương hiệu đang chọn
               onClick={() => setActiveBrand(brandName)}
               className={`group flex flex-col items-center justify-center rounded-xl p-4 text-center transition-all ${

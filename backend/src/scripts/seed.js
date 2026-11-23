@@ -1,4 +1,4 @@
-﻿import { createHash } from "node:crypto";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -49,6 +49,7 @@ async function seedProduct(filter, data) {
     const product = await ensureSample(Product, filter, data);
     const changes = {};
     if (product.description !== data.description) changes.description = data.description;
+    if (data.components !== undefined && product.components !== data.components) changes.components = data.components;
     const variants = product.variants.map((variant, index) => {
       const source = data.variants.find((item) => item.sku === variant.sku);
       if (!source) return variant;
@@ -62,7 +63,7 @@ async function seedProduct(filter, data) {
       changes.soldCount = data.soldCount;
     }
     if (!Object.keys(changes).length) return product;
-    const updated = { ...product, description: data.description, variants, soldCount: data.soldCount ?? product.soldCount ?? 0 };
+    const updated = { ...product, description: data.description, components: data.components ?? product.components ?? "", variants, soldCount: data.soldCount ?? product.soldCount ?? 0 };
     await new Product(updated).validate();
     const updatedAt = new Date();
     // Match the read snapshot so concurrent stock, reservation or content edits are not overwritten.
@@ -149,10 +150,13 @@ export async function seedSampleData() {
     const categoryId = categoryIds[0] || categoryMap.values().next().value;
     if (!categoryIds.length && categoryId) categoryIds = [categoryId];
     if (!categoryIds.length) throw new SeedError("Seed Product: không tìm thấy danh mục của sản phẩm mẫu.");
+    const components = Array.isArray(item.components)
+      ? item.components.join(", ")
+      : (typeof item.components === "string" ? item.components : "");
     const product = await seedProduct({ "variants.sku": item.variants[0].sku }, {
       name: item.name, categoryIds, brand: item.brand,
       petType: item.petType === "both" ? "all" : item.petType,
-      description: item.description, images: item.images, isActive: true,
+      description: item.description, components, images: item.images, isActive: true,
       variants: item.variants, ratingAvg: item.ratingAvg, ratingCount: item.ratingCount ?? 0, soldCount: item.soldCount ?? 0,
     });
     for (const variant of product.variants) productMap.set(variant.sku, product);
@@ -171,11 +175,12 @@ export async function seedSampleData() {
     });
   }
   for (const pet of [
-    { name: "Milo (mẫu)", species: "dog", breed: "Poodle", age: 730 },
-    { name: "Luna (mẫu)", species: "cat", breed: "Mèo Anh lông ngắn", age: 365 },
+    { name: "Milo (mẫu)", species: "dog", breed: "Poodle", age: 730, gender: "Đực", weight: 4.5 },
+    { name: "Luna (mẫu)", species: "cat", breed: "Mèo Anh lông ngắn", age: 365, gender: "Cái", weight: 3.8 },
   ]) {
     await ensureSample(PetProfile, { _id: sampleId(`pet:${ownerKey}:${pet.species}`) }, {
       userId: customer._id, name: pet.name, species: pet.species, breed: pet.breed,
+      gender: pet.gender, weight: pet.weight,
       dob: new Date(now.getTime() - pet.age * DAY),
     });
   }

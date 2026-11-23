@@ -16,12 +16,13 @@ export function getClientAuth(): Promise<Auth> {
       if (!config.apiKey || !config.authDomain || !config.projectId || !config.appId) {
         throw Object.assign(new Error("Firebase configuration missing"), { code: "FIREBASE_CONFIG_MISSING" });
       }
-      const [{ getApps, initializeApp }, { initializeAuth, getAuth, inMemoryPersistence }] = await Promise.all([
+      const [{ getApps, initializeApp }, { initializeAuth, getAuth, inMemoryPersistence, browserPopupRedirectResolver }] = await Promise.all([
         import("firebase/app"), import("firebase/auth"),
       ]);
       const existing = getApps().find((app) => app.name === "petjoy-web-auth");
       return existing ? getAuth(existing) : initializeAuth(initializeApp(config, "petjoy-web-auth"), {
         persistence: inMemoryPersistence,
+        popupRedirectResolver: browserPopupRedirectResolver,
       });
     })().catch((error) => { authPromise = undefined; throw error; });
   }

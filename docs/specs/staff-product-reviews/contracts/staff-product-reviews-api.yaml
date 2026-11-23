@@ -1,0 +1,123 @@
+openapi: 3.0.3
+info:
+  title: Staff Product Reviews API
+  version: 1.0.0
+  description: API cung cấp danh sách đánh giá từ khách hàng cho nhân viên trong Staff Workspace.
+paths:
+  /api/v1/staff/products/{sku}/reviews:
+    get:
+      summary: Lấy danh sách đánh giá từ khách hàng của một sản phẩm theo SKU
+      description: Yêu cầu quyền Staff. Trả về thống kê tổng quan, danh sách đánh giá chi tiết kèm thông tin khách hàng và phân trang.
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          description: Mã SKU của biến thể hoặc sản phẩm
+          schema:
+            type: string
+        - name: rating
+          in: query
+          required: false
+          description: Lọc theo số sao đánh giá (1, 2, 3, 4, 5, hoặc all)
+          schema:
+            type: string
+            enum: [all, "1", "2", "3", "4", "5"]
+            default: all
+        - name: hasImages
+          in: query
+          required: false
+          description: Lọc các đánh giá có ảnh đính kèm
+          schema:
+            type: string
+            enum: ["true", "false"]
+        - name: sort
+          in: query
+          required: false
+          description: Tiêu chí sắp xếp
+          schema:
+            type: string
+            enum: [recent, rating_desc, rating_asc]
+            default: recent
+        - name: page
+          in: query
+          required: false
+          description: Số trang hiện tại
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          description: Số lượng đánh giá mỗi trang
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Lấy danh sách đánh giá thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      summary:
+                        type: object
+                        properties:
+                          averageRating:
+                            type: number
+                            example: 4.8
+                          totalReviews:
+                            type: integer
+                            example: 24
+                          breakdown:
+                            type: object
+                            properties:
+                              '5':
+                                type: object
+                                properties:
+                                  count: { type: integer, example: 18 }
+                                  percentage: { type: integer, example: 75 }
+                      reviews:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id: { type: string }
+                            rating: { type: integer, minimum: 1, maximum: 5 }
+                            author:
+                              type: object
+                              properties:
+                                id: { type: string }
+                                fullName: { type: string }
+                                email: { type: string }
+                                phone: { type: string }
+                            order:
+                              type: object
+                              properties:
+                                id: { type: string }
+                                orderCode: { type: string }
+                            comment: { type: string }
+                            images:
+                              type: array
+                              items: { type: string }
+                            createdAt: { type: string, format: date-time }
+                      pagination:
+                        type: object
+                        properties:
+                          currentPage: { type: integer }
+                          totalPages: { type: integer }
+                          totalReviews: { type: integer }
+                          limit: { type: integer }
+        '401':
+          description: Chưa đăng nhập hoặc cookie phiên không hợp lệ
+        '403':
+          description: Không có quyền Staff (bị chặn nếu là Guest, Customer, hoặc Admin)
+        '404':
+          description: Không tìm thấy sản phẩm với SKU yêu cầu
+
