@@ -208,7 +208,7 @@ export async function createOrder(request, response, next) {
     }
 
     const total = subtotal - discount + shippingFee;
-    const maxPrice = 1000000000;
+    const maxPrice = 100000000;
     if (paymentMethod === "COD" && total > maxPrice) {
       if (voucher) await undoReservation({ voucher, orderId });
       throw new AppError(
