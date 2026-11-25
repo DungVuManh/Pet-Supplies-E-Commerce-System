@@ -435,13 +435,13 @@ export function CreateSaleForm() {
          <dd className="tabular-nums">0 đ</dd>
         </div>
         <div className="flex flex-wrap justify-between gap-3 border-t border-line pt-3">
-         <dt className="font-semibold">Cần thu tiền mặt</dt>
+         <dt className="font-semibold">Tổng cộng</dt>
          <dd className="text-2xl font-semibold text-brand tabular-nums">
           {validTotal ? formatCurrency(total) : "—"}
          </dd>
         </div>
        </dl>
-
+       <img src="/qr.png" alt="" />
        <label className="mt-4 flex items-start gap-3 text-sm font-medium">
         <input
          id="sale-cashReceived"
@@ -453,8 +453,8 @@ export function CreateSaleForm() {
          onChange={(e) => setCashReceived(e.target.checked)}
         />
         <span>
-         Đã thu đủ {validTotal ? formatCurrency(total) : "tiền"} tiền mặt từ
-         khách hàng.
+         Đã nhận {validTotal ? formatCurrency(total) : "tiền"} tiền mặt từ khách
+         hàng.
         </span>
        </label>
        {errors.cashReceived && (
