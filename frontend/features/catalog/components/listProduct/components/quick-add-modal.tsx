@@ -307,6 +307,7 @@ export function QuickAddModal({ product, isOpen, onClose }: QuickAddModalProps) 
                   e.currentTarget.value = String(quantity);
                   return;
                 }
+                
                 const nextQty = maxStock > 0 ? Math.min(raw, maxStock) : raw;
                 e.currentTarget.value = String(nextQty);
                 if (nextQty !== quantity) {
