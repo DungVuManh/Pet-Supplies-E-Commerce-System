@@ -290,7 +290,31 @@ export function QuickAddModal({ product, isOpen, onClose }: QuickAddModalProps) 
             >
               <Minus className="size-3.5" />
             </button>
-            <span className="w-8 text-center text-sm font-bold text-ink">{quantity}</span>
+            <input
+              key={quantity}
+              type="number"
+              min={1}
+              max={maxStock > 0 ? maxStock : undefined}
+              defaultValue={quantity}
+              disabled={isOutOfStock}
+              aria-label="Số lượng sản phẩm"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.currentTarget.blur();
+              }}
+              onBlur={(e) => {
+                const raw = Number.parseInt(e.currentTarget.value, 10);
+                if (!Number.isFinite(raw) || raw < 1) {
+                  e.currentTarget.value = String(quantity);
+                  return;
+                }
+                const nextQty = maxStock > 0 ? Math.min(raw, maxStock) : raw;
+                e.currentTarget.value = String(nextQty);
+                if (nextQty !== quantity) {
+                  setQuantity(nextQty);
+                }
+              }}
+              className="w-12 text-center text-sm font-bold text-ink bg-transparent focus:outline-none disabled:opacity-30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            />
             <button
               type="button"
               disabled={quantity >= maxStock || isOutOfStock}

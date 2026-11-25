@@ -57,9 +57,13 @@ export function useProductDetail(product: Product) {
     }
   };
 
-  const increaseQuantity = () =>
-    setQuantity((q) => (currentStock > 0 ? Math.min(q + 1, currentStock) : 1));
-  const decreaseQuantity = () => setQuantity((q) => Math.max(1, q - 1));
+  const updateQuantity = (next: number) => {
+    if (!Number.isFinite(next)) return;
+    const clamped = Math.max(1, Math.floor(next));
+    setQuantity(currentStock > 0 ? Math.min(clamped, currentStock) : 1);
+  };
+  const increaseQuantity = () => updateQuantity(quantity + 1);
+  const decreaseQuantity = () => updateQuantity(quantity - 1);
   const toggleLove = async () => {
     await toggleSave({
       id: productId,
@@ -142,6 +146,7 @@ export function useProductDetail(product: Product) {
     ratingAvg,
     ratingCount,
     quantity,
+    updateQuantity,
     increaseQuantity,
     decreaseQuantity,
     isLove,

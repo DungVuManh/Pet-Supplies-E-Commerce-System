@@ -7,6 +7,7 @@ import type { CartItem } from "../types";
 type CartItemsTableProps = {
  items: CartItem[];
  isLoading?: boolean;
+ onUpdateQuantity?: (id: string, quantity: number) => void;
  onIncreaseQuantity: (id: string) => void;
  onDecreaseQuantity: (id: string) => void;
  onRemoveItem: (id: string) => void;
@@ -21,6 +22,7 @@ function formatVND(value: number): string {
 export function CartItemsTable({
  items,
  isLoading = false,
+ onUpdateQuantity,
  onIncreaseQuantity,
  onDecreaseQuantity,
  onRemoveItem,
@@ -122,9 +124,30 @@ export function CartItemsTable({
          >
           −
          </button>
-         <span className="w-8 text-center text-sm font-semibold text-ink">
-          {item.quantity}
-         </span>
+         <input
+          key={item.quantity}
+          type="number"
+          min={1}
+          max={maxStock}
+          defaultValue={item.quantity}
+          aria-label={`Số lượng ${item.product.name}`}
+          onKeyDown={(e) => {
+           if (e.key === "Enter") e.currentTarget.blur();
+          }}
+          onBlur={(e) => {
+           const raw = Number.parseInt(e.currentTarget.value, 10);
+           if (!Number.isFinite(raw) || raw < 1) {
+            e.currentTarget.value = String(item.quantity);
+            return;
+           }
+           const nextQty = maxStock !== undefined ? Math.min(raw, Math.max(1, maxStock)) : raw;
+           e.currentTarget.value = String(nextQty);
+           if (nextQty !== item.quantity) {
+            onUpdateQuantity?.(item.id, nextQty);
+           }
+          }}
+          className="w-12 text-center text-sm font-semibold text-ink bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+         />
          <button
           type="button"
           disabled={isMaxReached}

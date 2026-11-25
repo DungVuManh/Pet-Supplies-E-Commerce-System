@@ -20,6 +20,7 @@ type ProductActionsProps = {
     type: "success" | "error";
     message: string;
   } | null;
+  onUpdateQuantity?: (quantity: number) => void;
   onIncreaseQuantity: () => void;
   onDecreaseQuantity: () => void;
   onToggleLove: () => void;
@@ -35,6 +36,7 @@ export function ProductActions({
   isAddingToCart = false,
   isBuyingNow = false,
   cartFeedback = null,
+  onUpdateQuantity,
   onIncreaseQuantity,
   onDecreaseQuantity,
   onToggleLove,
@@ -62,9 +64,31 @@ export function ProductActions({
           >
             <Minus size={15} />
           </button>
-          <span className="w-12 text-center text-sm font-semibold text-slate-800">
-            {quantity}
-          </span>
+          <input
+            key={quantity}
+            type="number"
+            min={1}
+            max={currentStock > 0 ? currentStock : undefined}
+            defaultValue={quantity}
+            disabled={isOutOfStock || isAddingToCart}
+            aria-label="Số lượng sản phẩm"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+            }}
+            onBlur={(e) => {
+              const raw = Number.parseInt(e.currentTarget.value, 10);
+              if (!Number.isFinite(raw) || raw < 1) {
+                e.currentTarget.value = String(quantity);
+                return;
+              }
+              const nextQty = currentStock > 0 ? Math.min(raw, currentStock) : raw;
+              e.currentTarget.value = String(nextQty);
+              if (nextQty !== quantity) {
+                onUpdateQuantity?.(nextQty);
+              }
+            }}
+            className="w-14 text-center text-sm font-semibold text-slate-800 bg-transparent focus:outline-none disabled:opacity-30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          />
           <button
             type="button"
             aria-label="Tăng số lượng"

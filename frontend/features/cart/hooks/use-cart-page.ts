@@ -88,22 +88,21 @@ export function useCartPage() {
     };
   }, []);
 
-  // 3. Tăng số lượng sản phẩm
-  async function increaseQuantity(itemId: string) {
+  // 3. Cập nhật số lượng sản phẩm (dùng chung cho nhập trực tiếp, tăng, giảm)
+  async function updateQuantity(itemId: string, quantity: number) {
     const targetItem = items.find((i) => i.id === itemId);
-    if (!targetItem) return;
+    if (!targetItem || !Number.isFinite(quantity)) return;
 
-    // Validate kiểm tra tồn kho trước khi tăng số lượng
     const maxStock = targetItem.product.availableStock ?? targetItem.product.stock;
-    if (maxStock !== undefined && targetItem.quantity >= maxStock) {
-      return;
+    let nextQty = Math.max(1, Math.floor(quantity));
+    if (maxStock !== undefined) {
+      if (maxStock <= 0) return;
+      nextQty = Math.min(nextQty, maxStock);
     }
+    if (nextQty === targetItem.quantity) return;
 
     try {
-      const res = await updateCartItemQuantityApi(
-        targetItem.product.sku,
-        targetItem.quantity + 1
-      );
+      const res = await updateCartItemQuantityApi(targetItem.product.sku, nextQty);
 
       if (res.data?.cart) {
         const mapped = (res.data.cart.items || []).map(mapBackendItemToCartItem);
@@ -113,30 +112,19 @@ export function useCartPage() {
 
       window.dispatchEvent(new Event("cart-updated"));
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Không thể tăng số lượng");
+      alert(err instanceof Error ? err.message : "Không thể cập nhật số lượng");
     }
   }
 
-  // 4. Giảm số lượng sản phẩm
-  async function decreaseQuantity(itemId: string) {
+  function increaseQuantity(itemId: string) {
     const targetItem = items.find((i) => i.id === itemId);
-    if (!targetItem || targetItem.quantity <= 1) return;
+    if (targetItem) void updateQuantity(itemId, targetItem.quantity + 1);
+  }
 
-    try {
-      const res = await updateCartItemQuantityApi(
-        targetItem.product.sku,
-        targetItem.quantity - 1
-      );
-
-      if (res.data?.cart) {
-        const mapped = (res.data.cart.items || []).map(mapBackendItemToCartItem);
-        setItems(mapped);
-        setSummary(res.data.cart.summary);
-      }
-
-      window.dispatchEvent(new Event("cart-updated"));
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Không thể giảm số lượng");
+  function decreaseQuantity(itemId: string) {
+    const targetItem = items.find((i) => i.id === itemId);
+    if (targetItem && targetItem.quantity > 1) {
+      void updateQuantity(itemId, targetItem.quantity - 1);
     }
   }
 
@@ -174,6 +162,7 @@ export function useCartPage() {
     isLoading,
     errorMessage,
     voucher,
+    updateQuantity,
     increaseQuantity,
     decreaseQuantity,
     removeItem,

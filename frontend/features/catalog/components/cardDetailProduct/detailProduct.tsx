@@ -32,6 +32,7 @@ export function DetailProduct({ product }: { product: Product }) {
     ratingAvg,
     ratingCount,
     quantity,
+    updateQuantity,
     increaseQuantity,
     decreaseQuantity,
     isLove,
@@ -124,6 +125,7 @@ export function DetailProduct({ product }: { product: Product }) {
             isAddingToCart={isAddingToCart}
             isBuyingNow={isBuyingNow}
             cartFeedback={orderFeedback || cartFeedback}
+            onUpdateQuantity={updateQuantity}
             onIncreaseQuantity={increaseQuantity}
             onDecreaseQuantity={decreaseQuantity}
             onToggleLove={toggleLove}

@@ -14,6 +14,7 @@ export function CartView() {
         summary,
         isLoading,
         voucher,
+        updateQuantity,
         increaseQuantity,
         decreaseQuantity,
         removeItem,
@@ -119,6 +120,7 @@ export function CartView() {
                     <CartItemsTable
                         items={items}
                         isLoading={isLoading}
+                        onUpdateQuantity={updateQuantity}
                         onIncreaseQuantity={increaseQuantity}
                         onDecreaseQuantity={decreaseQuantity}
                         onRemoveItem={removeItem}
