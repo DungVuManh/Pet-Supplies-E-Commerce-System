@@ -9,6 +9,11 @@ export const normalizeVoucherCode = (code) => (typeof code === "string" ? code.t
 /** Documents written before usage counting have no `usedCount`. */
 export const voucherUsedCount = (voucher) => voucher.usedCount ?? 0;
 
+export const isVoucherExhausted = (voucher) => voucher.usageLimit != null && voucherUsedCount(voucher) >= voucher.usageLimit;
+
+/** The database form of `!isVoucherExhausted`: no limit, or a use is still left. */
+export const HAS_USES_LEFT = { $or: [{ $eq: [{ $ifNull: ["$usageLimit", null] }, null] }, { $lt: [{ $ifNull: ["$usedCount", 0] }, "$usageLimit"] }] };
+
 /** `2026-11-03` → the moment that day starts in Vietnam. */
 export const vietnamDayStart = (date) => new Date(`${date}T00:00:00+07:00`);
 
