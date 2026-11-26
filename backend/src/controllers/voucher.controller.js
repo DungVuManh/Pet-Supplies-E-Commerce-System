@@ -1,7 +1,7 @@
 import { AppError } from "../common/errors/app-error.js";
 import { priceOrderItems } from "../common/order-pricing.js";
 import { checkVoucher, voucherRefusalMessage } from "../common/voucher-redemption.js";
-import { vietnamLastDate } from "../common/voucher-rules.js";
+import { HAS_USES_LEFT, vietnamLastDate } from "../common/voucher-rules.js";
 import { Promotion } from "../models/promotion.model.js";
 import { publicVouchersQuerySchema, voucherQuoteSchema } from "../validators/voucher.validator.js";
 
@@ -30,6 +30,8 @@ export async function listPublicVouchers(request, response) {
  // Chỉ lấy tất cả mã giảm giá có isActive: true trong MongoDB
  const vouchers = await Promotion.find({
   isActive: true,
+  // Voucher đã hết lượt dùng thì ẩn khỏi khách hàng.
+  $expr: HAS_USES_LEFT,
  }).sort({ createdAt: -1, _id: -1 }).limit(limit).lean();
 
  response.set("Cache-Control", "no-store");

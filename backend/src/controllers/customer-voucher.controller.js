@@ -4,6 +4,7 @@ import {
   formatCustomerVoucherItem,
   isStaleVoucher,
 } from "../common/customer-voucher-helpers.js";
+import { isVoucherExhausted } from "../common/voucher-rules.js";
 import { CustomerVoucher } from "../models/customer-voucher.model.js";
 import { Promotion } from "../models/promotion.model.js";
 import { PromotionRedemption } from "../models/promotion-redemption.model.js";
@@ -249,6 +250,12 @@ export async function listCustomerVouchers(request, response) {
 
     const activeRedemption = redemptionMap.get(String(promotion._id));
     const state = computeCustomerVoucherState(promotion, activeRedemption, now);
+
+    // Hide a used-up voucher. It stays saved, so it returns if a cancelled order frees a use.
+    // The customer's own "used" history stays visible.
+    if (state !== "used" && isVoucherExhausted(promotion)) {
+      continue;
+    }
 
     counts.all += 1;
     if (state === "ready") counts.ready += 1;
